@@ -4,7 +4,6 @@ int Function exec_console(Actor _a, string _cmd) global
 
     if SKSE.GetPluginVersion("ConsoleUtilSSE") != -1
         if ConsoleUtil.GetVersion() > 0
-            ;MiscUtil.PrintConsole("cons: " + _a)
             ConsoleUtil.SetSelectedReference(_a)
             ConsoleUtil.ExecuteCommand(_cmd)
             return 1

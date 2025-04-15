@@ -1,1 +1,17 @@
+scriptname dlc2book01bendyhallwayreset extends objectreference
+objectreference property dlc2book01ahall001 auto
+objectreference property dlc2book01ahall001trigger auto
+objectreference property dlc2book01ahall002 auto
+objectreference property dlc2book01ahall002cap auto
+objectreference property dlc2book01ahall002trigger auto
+objectreference property dlc2book01ahall003 auto
+objectreference property dlc2book01ahall003trigger auto
+objectreference property dlc2mq06hallstaticenableparent auto
+dlc2book01bendyhallwaycontroller property bendyhall auto hidden
+dlc2apoextendinghallscript property extendinghall001 auto hidden
+dlc2apoextendinghallscript property extendinghall002 auto hidden
+globalvariable property dlc2book01resethalls auto
+globalvariable property dlc2book01takenbookinparta auto
+event oncellattach()
+endevent
 ;This file was cleaned with PapyrusSourceHeadliner 1

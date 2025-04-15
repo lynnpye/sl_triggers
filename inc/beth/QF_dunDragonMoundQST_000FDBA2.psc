@@ -1,1 +1,38 @@
+scriptname qf_dundragonmoundqst_000fdba2 extends quest hidden
+referencealias property alias_dragonmoundreach03marker auto
+referencealias property alias_dragonmoundsnowy01marker auto
+referencealias property alias_dragonmoundvolcanictundra02marker auto
+referencealias property alias_dragonmoundpineforest02marker auto
+referencealias property alias_dragonmoundtundra01marker auto
+referencealias property alias_dragonmoundtundra04marker auto
+referencealias property alias_dragonmoundtundramarsh02marker auto
+referencealias property alias_dragonmoundtundramarsh01marker auto
+referencealias property alias_dragonmoundfallforest03marker auto
+referencealias property alias_dragonmoundreach01marker auto
+referencealias property alias_dragonmoundpineforest01marker auto
+referencealias property alias_dragonmoundreach02marker auto
+referencealias property alias_dragonmoundtundra02marker auto
+referencealias property alias_dragonmoundtundra03marker auto
+referencealias property alias_dragonmoundtundramarsh03marker auto
+referencealias property alias_dragonmoundvolcanictundra01marker auto
+referencealias property alias_dragonmoundsnowy02marker auto
+referencealias property alias_dragonmoundpineforest03marker auto
+referencealias property alias_dragonmoundfallforest02marker auto
+referencealias property alias_dragonmoundfallforest01marker auto
+referencealias property alias_dragonmoundvolcanictundra03marker auto
+function fragment_6()
+endfunction
+function fragment_2()
+endfunction
+function fragment_5()
+endfunction
+function fragment_1()
+endfunction
+function fragment_0()
+endfunction
+function fragment_7()
+endfunction
+function fragment_3()
+endfunction
+quest property mqresurrectdragon  auto  
 ;This file was cleaned with PapyrusSourceHeadliner 1

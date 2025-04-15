@@ -1,1 +1,4 @@
+scriptname sf_da02boethiahscenekilledcul_0005fa45 extends scene hidden
+function fragment_0()
+endfunction
 ;This file was cleaned with PapyrusSourceHeadliner 1

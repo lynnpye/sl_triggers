@@ -1,0 +1,191 @@
+21
+	bugfix: position is now being handled correctly by the MCM (it was overwriting the "role" attribute)
+
+20
+	bugfix: Chance works again
+
+19
+	enhancement: new operation
+		- sl_isinslot - is the specified actor in the specified slot of a SexLab scene (I accidentally implemented this and kept it)
+			["sl_isinslot", "$self", "1"]
+				$$ == "1" if true; "0" otherwise
+	enhancement: new trigger criteria: is_position (is the actor in the indicated slot; what I was asked for)
+	enhancement: setting events back to "Select an Event" clears out the event, helping keep your settings.json cleaner
+	bugfix: Main no longer skipping most of the checks due to my switch to int conversion and not paying attention to !
+	bugfix: SexLab event handling no longer goes into an infinite loop (present since v16)
+	change: brought in "whatsnew" to consolidate change history
+
+18
+	enhancement: new operations
+		- sl_advance
+			["sl_advance"] (go forward) OR ["sl_advance", "-1"] (go backward)
+		- actor_isaffectedby
+			["actor_isaffectedby", "Skyrim.esm:1030541"] (actor is affected by FortifyHealthFFSelf (i.e. Potion of Health), $$ == "1")
+
+17
+	enhancement: removed SexLab hard dependency; you can now enjoy your sl(shhh)_triggers on your more vanilla Skyrim experiences
+		existing functions should gracefully degrade or give best accurate answer (i.e. gender coming from base actor instead of sexlab if not available)
+	enhancement: MCM Main page now displays SexLab status
+	bugfix: fixed a bug in the MCM trigger cleanup code
+
+16
+	enhancement: added keymapping as an event; you can now bind keymappings to, as usual, up to 3 command files
+		also allows for modifier use
+		also allows for Dynamic Activation Key use per trigger
+	enhancement: events will only be registered for if triggers exist that use them; if you do not hook any SexLab events, they will not be registered
+		registration will update if you update the MCM
+	change: lots of refactoring, technically some performance improvements but I haven't done timings so it's mostly my instinct, some general code cleanup (mostly due to mess of my own making)
+	change: event id values (0 for SLStart...) are now 1 higher (1 for SLStart) to make the MCM behave more nicely; this should get converted automatically
+	change: started adding some non-trigger values into settings.json, currently to track version; this is to help allow for settings updates in the future
+	
+
+15
+	enhancement: improved "top of the hour" updategametime processing
+	enhancement: variables can be any "$<non-negative-int>"
+		["set", "$42", "life, the universe, and everything"]
+		is now valid
+	enhancement: global variables can be any "$g<non-negative-int>"
+		["set", "$g42", "life, the universe, and everything"]
+		is now valid
+	fixed bug: fixed race condition when running multiple commands from one trigger
+	change: renamed operation "actual_hours_since_last_top" to "toh_elapsed_time"
+		"actual_hours_since_last_top" redirects to the new functionality for now
+	
+
+14
+	split "if_race" into "if_race" and "if_player"
+		you will likely need to update any triggers that relied on "if_race" previously
+		existing "if_race" values will not be automatically updated and you will probably see:
+			if you had...			then you will now have until you edit it...
+			Player					Undead
+			Not Player				Partner Humanoid
+			Undead					Partner Creature
+			Partner Humanoid		Partner Undead
+			Partner Creature		??
+			Partner Player			.. crabs??
+			Partner Not Player		.. the void of space??
+			Partner Undead			Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn.
+			
+		"if_race" now offers:
+			Any
+			Humanoid
+			Creature
+			Undead
+			Partner Humanoid
+			Partner Creature
+			Partner Undead
+			
+		"if_player" offers:
+			Any
+			Player
+			Not Player
+			Partner Player
+			Partner Not Player
+
+13
+	added event handling for "top of the hour" (i.e. on the 'o'clock for each in-game hour, with the player as $self)
+	added "global" variables: "$g0" through "$g9"; accessible across scripts, retained across executions
+	added new operations:
+		actor_worninslot
+		actor_wornhaskeyword
+		actual_hours_since_last_top
+
+v12:
+    General:
+        - Form ID for objects can now be in dex or hex notation. If ID starts with 0, it is assumed to be hex, else its dec
+        - Example:
+        -     Hex version:
+        -     ["item_equip", "$self", "skyrim.esm:0166d6", "0", "1"],
+        -     Dec version:
+        -     ["item_equip", "$self", "skyrim.esm:91862", "0", "1"],
+        - I hope I didn't broke something :(
+        
+    Functions: 
+        - actor_race: get actors race name. Vannila(Nord, Bretonr, etc) or SL "RaceKey" (Dogs, Trolls, etc)
+        - math: math fuctions: asint, floor, ceiling, abs
+
+v11: 
+    Functions:
+        - av_set: set actor value
+        - av_getbase: get actor base value
+        - actor_advskill: player only, advance actor skill
+        - "$partner2", "$partner3", "$partner4": to get 2nd, 3rd and 4th "partner"
+        
+        
+v10:
+    General:
+        - increased max number of goto labels to 32
+        
+    Functions:
+        - item_equip: equip item. Like item_equipex. item_equip is "vannila" function, item_equipex is SKSE version
+        - actor_state: get or set/exec a couple of misc functions, "states" about actor
+        - actor_body: a couple of functions related to actors body (weight, head regen, stuff)
+        - weather_state: get what kind of weather is currently active (rain, show, etc...)
+        - util_game: some functions from game.psc. IncrementStat, QueryStat
+        
+v09: 
+    Functions:
+        - sl_animname: returns current SL animation name
+        - util_waitforkbd: wait for user to press a specific key or SL animation ends
+        - json_getvalue: read data from external json file
+        - json_setvalue: write data to external file
+        - json_save: while "save" is done automaticly when user makes skyrim save, this forces .json to be saved now
+        
+    Commands:
+        - Time Control.json: You can control the game speed, and so animation speed with keyboard. (must have ConsoleUtilSSE plugin)
+        
+v08:
+    Functions:
+        - snd_play, snd_setvolume, snd_stop: for playing sound
+        - console: (optional). If you have ConsoleUtilSSE installed (https://www.nexusmods.com/skyrimspecialedition/mods/24858), it executes console commands
+        - mfg_*, facial expressions: (optional) If you have MfgFix (https://www.nexusmods.com/skyrimspecialedition/mods/11669), you can play with facial expressions
+        
+    Commands:
+        - Heart beat(A).json: play "heart beat" sound 
+        - Sound - levelup.json: play "levelup" sound
+        - Time Slow.json: slows global time by 50%. Resets time to normal at the end. Uses console command (must have ConsoleUtilSSE plugin)
+        - MFG Reset.json: When sex ends, reset facial expression (must have MfgFix plugin installed)
+
+v07:
+    Misc:
+        - you can now set up to 80 triggers
+        
+    Functions:
+        - actor_wornhaskeyword: check if anything actor is wearing has specified keyword
+        - actor_lochaskeyword: check if location where actor is has a specific keyword
+        
+        
+v06:
+    Functions:
+        - actor_sendmodevent: Actor version of util_sendmodevent
+        - sl_hastag: check if current animation has a specific tag
+        - util_getgametime: get game time
+        - util_gethour: get day hour
+        
+    Commands:
+        - Eat (sweets).json
+        - It was bad.json
+
+v05: 
+    Variables:
+        - "$partner" : partner in sex
+        
+    Variables operations:
+        - "set" : has now 2 versions. Simple assignment and some math like ["set", "$1", "12", "+", "3"]  
+        - "inc" : short version for "+"
+        - "cat" : short version for string "+"
+        
+    Functions:
+        - actor_isguard: is law
+        - actor_isplayer: is PC
+        - actor_getgender: gender
+        - actor_haskeyword: does it have a specific kewyord
+        - actor_getrelation: get relationship rank btween 2 actors (enemy, friend, ...)
+        - actor_setrelation: set relationship rank btween 2 actors (enemy, friend, ...)
+        - actor_infaction: check if actor is in specific faction
+        - actor_getfactionrank: get faction rank
+        - actor_setfactionrank: set faction rank
+        - actor_removefaction: remove from faction
+        - actor_playanim: play animation
+        - util_sendmodevent: send event (SendModEvent)
+        - util_sendevent: send event using SKSE (ModEvent.psc)

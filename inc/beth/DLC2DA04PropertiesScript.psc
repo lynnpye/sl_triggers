@@ -1,1 +1,4 @@
+scriptname dlc2da04propertiesscript extends objectreference  
+dlc2hermaeusmorafacefxscript property dlc2da04hermaeusmorafxref001 auto
+dlc2hermaeusmorafacefxscript property dlc2da04hermaeusmorafxref002 auto
 ;This file was cleaned with PapyrusSourceHeadliner 1

@@ -1,1 +1,14 @@
+scriptname dlc2apocryphabookrewardbscript extends dlc2apocryphabookrewardscript
+globalvariable property dlc2blackbookreward2 auto
+message property dlc2apocryphabookreward_b1_prompt auto
+message property dlc2apocryphabookreward_b1_removed auto
+spell property dlc2conjuredremoramerchant auto
+message property dlc2apocryphabookreward_b2_prompt auto
+message property dlc2apocryphabookreward_b2_removed auto
+spell property dlc2conjuredremorabutler auto
+message property dlc2apocryphabookreward_b3_prompt auto
+message property dlc2apocryphabookreward_b3_removed auto
+spell property dlc2conjurebardinstruments auto
+event oninit()
+endevent
 ;This file was cleaned with PapyrusSourceHeadliner 1

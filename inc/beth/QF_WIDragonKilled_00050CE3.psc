@@ -1,1 +1,30 @@
+scriptname qf_widragonkilled_00050ce3 extends quest hidden
+referencealias property alias_spectator3 auto
+locationalias property alias_spectatorhabitation auto
+referencealias property alias_spectatorpackageonlynoscene7 auto
+referencealias property alias_spectator10 auto
+referencealias property alias_spectator8 auto
+referencealias property alias_spectatorpackageonlynoscene10 auto
+referencealias property alias_spectatorpackageonlynoscene2 auto
+referencealias property alias_spectator1 auto
+referencealias property alias_spectator6 auto
+referencealias property alias_dragon auto
+referencealias property alias_spectatorpackageonlynoscene6 auto
+referencealias property alias_spectator5 auto
+referencealias property alias_spectator2 auto
+referencealias property alias_spectator4 auto
+referencealias property alias_spectator9 auto
+referencealias property alias_spectator7 auto
+referencealias property alias_spectatorpackageonlynoscene5 auto
+referencealias property alias_spectatorpackageonlynoscene1 auto
+referencealias property alias_spectatorpackageonlynoscene8 auto
+referencealias property alias_spectatorpackageonlynoscene3 auto
+referencealias property alias_spectatorpackageonlynoscene4 auto
+referencealias property alias_spectatorpackageonlynoscene9 auto
+function fragment_2()
+endfunction
+function fragment_1()
+endfunction
+function fragment_0()
+endfunction
 ;This file was cleaned with PapyrusSourceHeadliner 1

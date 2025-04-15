@@ -1,1 +1,2 @@
+scriptname wiremoveitem04script extends worldinteractionsscript  
 ;This file was cleaned with PapyrusSourceHeadliner 1

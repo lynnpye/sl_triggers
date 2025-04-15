@@ -1,1 +1,11 @@
+scriptname cwplayerscript extends referencealias  
+locationalias property shutdownquestwhenplayerleavesthislocationalias auto
+int property stageafterwhichshutdownquestwhenplayerleaves auto
+locationalias property setstagewhenplayerleavesthislocationalias auto
+locationalias property setstagewhenplayerarrivesatthislocationalias auto
+locationalias property setstagewhenplayerarrivesatthisotherlocationaliasalso auto
+int property stagetosetwhenplayerarrives auto
+int property stagetosetwhenplayerleaves auto
+event onlocationchange(location akoldloc, location aknewloc)
+endevent
 ;This file was cleaned with PapyrusSourceHeadliner 1

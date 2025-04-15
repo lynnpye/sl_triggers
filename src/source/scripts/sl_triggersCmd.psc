@@ -1,36 +1,46 @@
-Scriptname sl_TriggersCmd extends activemagiceffect
+Scriptname sl_TriggersCmd extends ActiveMagicEffect
 
+sl_triggersMain		Property SLT Auto
+sl_triggersSetup	Property SLTCFG Auto
+
+function DebMsg(string msg)
+	SLT.DebMsg(msg)
+endfunction
+
+; CONSTANTS
+
+; Properties
 Actor               Property PlayerRef Auto
 Keyword				Property ActorTypeNPC Auto
 Keyword				Property ActorTypeUndead Auto
-SexLabFramework     Property SexLab Auto
-Faction	            Property SexLabAnimatingFaction Auto
+SexLabFramework     Property SexLab Auto Hidden
+Faction	            Property SexLabAnimatingFaction Auto Hidden
 
-;string commandsPath1 = "../sl_triggers/commands/"
-int    tid
-string cmdName
-Actor  aCaster
-Actor  aPartner1
-Actor  aPartner2
-Actor  aPartner3
-Actor  aPartner4
+; internal variables
+int					tid
+string				cmdName
+Actor				aCaster
+Actor				aPartner1
+Actor				aPartner2
+Actor				aPartner3
+Actor				aPartner4
 
+string[]			stack
+int					cmdIdx
+int					cmdNum
+float				hoursElapsed
 
-string[] vars
-string[] stack
-int      cmdIdx
-int      cmdNum
+int[]				gotoIdx
+string[]			gotoLabels
+int					gotoCnt
 
-int[]    gotoIdx
-string[] gotoLabels
-int      gotoCnt
+Actor				iterActor
 
-Actor    iterActor
+sslThreadController	thread
 
-Faction SexLabGenderFaction
-sslThreadController thread
+int					lastKey
 
-int lastKey
+string				SUMO_extension
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
 	aCaster = akCaster
@@ -39,34 +49,39 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
     aPartner3 = none
     aPartner4 = none
 	
-   	cmdName = StorageUtil.GetStringValue(akCaster, "slt:cmd")
-	tid = StorageUtil.GetIntValue(akCaster, "slt:tid")
-    
-    StorageUtil.UnsetStringValue(akCaster, "slt:cmd")
-   	StorageUtil.UnsetIntValue(akCaster, "slt:tid")
-    
-    ;MiscUtil.PrintConsole("InCmd: " + tid + "," + cmdName)
-    
-    thread = Sexlab.GetController(tid)
-    int actorIdx = 0
-    while actorIdx < thread.Positions.Length
-        Actor theOther = thread.Positions[actorIdx]
-        if theOther != aCaster
-            if !aPartner1
-                aPartner1 = theOther
-            elseif !aPartner2
-                aPartner2 = theOther
-            elseif !aPartner3
-                aPartner3 = theOther
-            elseif !aPartner4
-                aPartner4 = theOther
-            endIf
-        endif
-        actorIdx += 1
-    endWhile
+	SUMO_extension = sl_triggersMain.PopSUMOExtensionF(aCaster) ;"sl_triggersCmd(" + SLT.NextOneUp() + ")"
+	
+	
+   	cmdName = sl_triggersMain.SUMO_StringGetF(aCaster, sl_triggersMain.SUMO_MakeKey(SUMO_extension, "cmd"))
+	tid = sl_triggersMain.SUMO_IntGetF(aCaster, sl_triggersMain.SUMO_MakeKey(SUMO_extension, "tid"))
+	
+	; emulation
+	SexLab = none
+	SexLabAnimatingFaction = none
+	if sl_triggersMain.SUMO_FormHasF(aCaster, sl_triggersMain.SUMO_MakeKey(SUMO_extension, "sexlab"))
+		SexLab					= sl_triggersMain.SUMO_FormGetF(aCaster, sl_triggersMain.SUMO_MakeKey(SUMO_extension, "sexlab")) as SexLabFramework
+		SexLabAnimatingFaction	= sl_triggersMain.SUMO_FormGetF(aCaster, sl_triggersMain.SUMO_MakeKey(SUMO_extension, "sexlabanimatingfaction")) as Faction
+	
+		thread = Sexlab.GetController(tid)
+		int actorIdx = 0
+		while actorIdx < thread.Positions.Length
+			Actor theOther = thread.Positions[actorIdx]
+			if theOther != aCaster
+				if !aPartner1
+					aPartner1 = theOther
+				elseif !aPartner2
+					aPartner2 = theOther
+				elseif !aPartner3
+					aPartner3 = theOther
+				elseif !aPartner4
+					aPartner4 = theOther
+				endIf
+			endif
+			actorIdx += 1
+		endWhile
+	endif
     
     cmdIdx = 0
-    vars = new string[10]
     stack = new string[4]
     
     gotoCnt = 0
@@ -93,15 +108,92 @@ Event OnUpdate()
 		Self.Dispel()
 		Return
 	EndIf
-
+	
     exec()
+	
+	sl_triggersMain.SUMO_ClearPrefixF(aCaster, sl_triggersMain.SUMO_MakeKeyPrefix(SUMO_extension))
     
     If Self
         Self.Dispel()
     endIf
-	;RegisterForSingleUpdate(30)
 EndEvent
 
+; used in conjuction with the util_waitforkbd command
+Event OnKeyDown(Int keyCode)
+    lastKey = keyCode
+EndEvent
+
+;/
+opens the command file, loops through the commands, and runs them
+/;
+string Function exec()
+    string[] cmdLine
+    string   code
+    string   p1
+    string   p2
+    string   po
+    bool     ifTrue
+    
+    cmdNum = JsonUtil.PathCount(cmdName, ".cmd")
+    cmdIdx = 0
+    ;MiscUtil.PrintConsole("Lines: " + cmdNum)
+    while cmdIdx < cmdNum
+        cmdLine = JsonUtil.PathStringElements(cmdName, ".cmd[" + cmdIdx + "]")
+        if cmdLine.Length
+            code = resolve(cmdLine[0])
+            ;MiscUtil.PrintConsole("Cmd: " + code)
+
+            if code == ":"
+                _addGoto(cmdIdx, cmdLine[1])
+                cmdIdx += 1
+            elseIf code == "goto"    
+                cmdIdx = _findGoto(cmdLine[1], cmdIdx)
+                ;MiscUtil.PrintConsole("Goto: " + cmdIdx)
+                cmdIdx += 1
+            elseIf code == "if"
+                ; ["if", "$$", "=", "0", "end"],
+                p1 = resolve(cmdLine[1])
+                p2 = resolve(cmdLine[3])
+                po = cmdLine[2]
+                ifTrue = resolveCond(p1, p2, po)
+                if ifTrue
+                    cmdIdx = _findGoto(cmdLine[4], cmdIdx)
+                    ;MiscUtil.PrintConsole("GotoIf: " + cmdIdx)
+                endIf
+                cmdIdx += 1
+            elseIf code == "return"
+                return ""
+            else
+				; I love everything about this implementation
+                GotoState("cmd_" + code)
+                oper(cmdLine)
+                GotoState("")
+                cmdIdx += 1
+            endIf
+        endIf
+    endWhile
+    
+    return ""
+EndFunction
+
+; blank empty state version
+function oper(string[] param)
+endFunction
+
+;; ...wrapped to conveniently give access to scratch memory variables we will need
+;; yes, this is a little less performant than the hard coded array, but it's a set up
+;; for a better, self-managed, extensible system
+string Function vars_get(int varsindex)
+	return sl_triggersMain.SUMO_StringGetF(aCaster, sl_triggersMain.SUMO_MakeKey(SUMO_extension, "vars" + varsindex))
+EndFunction
+
+string Function vars_set(int varsindex, string value)
+	return sl_triggersMain.SUMO_StringSetF(aCaster, sl_triggersMain.SUMO_MakeKey(SUMO_extension, "vars" + varsindex), value)
+EndFunction
+
+;/
+various helper methods
+/;
 String Function _actorName(Actor _person)
 	if _person
 		return _person.GetLeveledActorBase().GetName()
@@ -112,7 +204,16 @@ EndFunction
 Int Function _actorGender(Actor _actor)
 	int rank
     
-    rank = Sexlab.GetGender(_actor)
+	if SexLab
+		rank = Sexlab.GetGender(_actor)
+	else
+		ActorBase _actorBase = _actor.GetActorBase()
+		if _actorBase
+			rank = _actorBase.GetSex()
+		else
+			rank = -1
+		endif
+	endif
     
 	return rank
 EndFunction
@@ -233,30 +334,48 @@ Bool Function inSameCell(Actor _actor)
 	return True
 EndFunction
 
+int function isVarPrefixed(string _code, string _prefix)
+	if !_code || !_prefix || StringUtil.SubString(_code, 0, StringUtil.GetLength(_prefix)) != _prefix
+		return -1
+	endif
+	
+	string numchunk = StringUtil.Substring(_code, StringUtil.GetLength(_prefix))
+	int num = numchunk as int
+	
+	if (num as string) == numchunk
+		return num
+	else
+		return -1
+	endif
+endfunction
+
+int function isVarString(string _code)
+	return isVarPrefixed(_code, "$")
+endfunction
+
+int function isVarStringG(string _code)
+	return isVarPrefixed(_code, "$g")
+endfunction
+
 string Function resolve(string _code)
+	int varindex = -1
     if StringUtil.getNthChar(_code, 0) == "$"
         if _code == "$$"
             return stack[0]
-        elseIf _code == "$0"
-            return vars[0]
-        elseIf _code == "$1"
-            return vars[1]
-        elseIf _code == "$2"
-            return vars[2]
-        elseIf _code == "$3"
-            return vars[3]
-        elseIf _code == "$4"
-            return vars[4]
-        elseIf _code == "$5"
-            return vars[5]
-        elseIf _code == "$6"
-            return vars[6]
-        elseIf _code == "$7"
-            return vars[7]
-        elseIf _code == "$8"
-            return vars[8]
-        elseIf _code == "$9"
-            return vars[9]
+        else
+			varindex = isVarString(_code)
+			if varindex >= 0
+				
+				return vars_get(varindex)
+			endif
+			
+			varindex = isVarStringG(_code)
+			if varindex >= 0
+				
+				return SLT.globalvars_get(varindex)
+			endif
+			
+			
         endIf
     endIf
     return _code    
@@ -318,89 +437,52 @@ bool Function resolveCond(string _p1, string _p2, string _oper)
     return false
 endFunction
 
-string Function exec()
-    string[] cmdLine
-    string   code
-    string   p1
-    string   p2
-    string   po
-    bool     ifTrue
-    
-    cmdNum = JsonUtil.PathCount(cmdName, ".cmd")
-    cmdIdx = 0
-    ;MiscUtil.PrintConsole("Lines: " + cmdNum)
-    while cmdIdx < cmdNum
-        cmdLine = JsonUtil.PathStringElements(cmdName, ".cmd[" + cmdIdx + "]")
-        if cmdLine.Length
-            code = resolve(cmdLine[0])
-            ;MiscUtil.PrintConsole("Cmd: " + code)
-
-            if code == ":"
-                _addGoto(cmdIdx, cmdLine[1])
-                cmdIdx += 1
-            elseIf code == "goto"    
-                cmdIdx = _findGoto(cmdLine[1], cmdIdx)
-                ;MiscUtil.PrintConsole("Goto: " + cmdIdx)
-                cmdIdx += 1
-            elseIf code == "if"
-                ; ["if", "$$", "=", "0", "end"],
-                p1 = resolve(cmdLine[1])
-                p2 = resolve(cmdLine[3])
-                po = cmdLine[2]
-                ifTrue = resolveCond(p1, p2, po)
-                if ifTrue
-                    cmdIdx = _findGoto(cmdLine[4], cmdIdx)
-                    ;MiscUtil.PrintConsole("GotoIf: " + cmdIdx)
-                endIf
-                cmdIdx += 1
-            elseIf code == "return"
-                return ""
-            else
-                GotoState("cmd_" + code)
-                oper(cmdLine)
-                GotoState("")
-                cmdIdx += 1
-            endIf
-        endIf
-    endWhile
-    
-    return ""
-EndFunction
-
-function oper(string[] param)
-endFunction
-
-Event OnKeyDown(Int keyCode)
-    lastKey = keyCode
-    ;MiscUtil.PrintConsole("KeyDown: " + lastKey)
-EndEvent
-
+;/
+all the operations
+/;
 State cmd_set ; set "$1", "value"
 function oper(string[] param)
-    if StringUtil.getNthChar(param[1], 0) == "$"
-        int idx = StringUtil.getNthChar(param[1], 1) as int
-        if idx >= 0 && idx <= 9
-            if param.length == 3
-                vars[idx] = resolve(param[2])
-            elseIf param.length == 5
-                if param[3] == "+"
-                    float p1 = resolve(param[2]) as float
-                    float p2 = resolve(param[4]) as float
-                    vars[idx] = (p1 + p2) as string
-                elseIf param[3] == "-"
-                    vars[idx] = ((resolve(param[2]) as float) - (resolve(param[4]) as float)) as string
-                elseIf param[3] == "*"
-                    vars[idx] = ((resolve(param[2]) as float) * (resolve(param[4]) as float)) as string
-                elseIf param[3] == "/"
-                    vars[idx] = ((resolve(param[2]) as float) / (resolve(param[4]) as float)) as string
-                elseIf param[3] == "&"
-                    vars[idx] = resolve(param[2]) + resolve(param[4])
-                endIf
-            endIf
-        else
-            Debug.Notification("Bad var: " +  cmdName + "(" + cmdIdx + ")")
-        endIf
-    endIf
+	int varindex = isVarString(param[1])
+	if varindex >= 0
+		if param.length == 3
+			vars_set(varindex, resolve(param[2]))
+		elseif param.length == 5
+			if param[3] == "+"
+				float p1 = resolve(param[2]) as float
+				float p2 = resolve(param[4]) as float
+				vars_set(varindex, (p1 + p2) as string)
+			elseIf param[3] == "-"
+				vars_set(varindex, ((resolve(param[2]) as float) - (resolve(param[4]) as float)) as string)
+			elseIf param[3] == "*"
+				vars_set(varindex, ((resolve(param[2]) as float) * (resolve(param[4]) as float)) as string)
+			elseIf param[3] == "/"
+				vars_set(varindex, ((resolve(param[2]) as float) / (resolve(param[4]) as float)) as string)
+			elseIf param[3] == "&"
+				vars_set(varindex, resolve(param[2]) + resolve(param[4]))
+			endIf
+		endif
+	endif
+	
+	varindex = isVarStringG(param[1])
+	if varindex >= 0
+		if param.length == 3
+			SLT.globalvars_set(varindex, resolve(param[2]))
+		elseif param.length == 5
+			if param[3] == "+"
+				float p1 = resolve(param[2]) as float
+				float p2 = resolve(param[4]) as float
+				SLT.globalvars_set(varindex, (p1 + p2) as string)
+			elseIf param[3] == "-"
+				SLT.globalvars_set(varindex, ((resolve(param[2]) as float) - (resolve(param[4]) as float)) as string)
+			elseIf param[3] == "*"
+				SLT.globalvars_set(varindex, ((resolve(param[2]) as float) * (resolve(param[4]) as float)) as string)
+			elseIf param[3] == "/"
+				SLT.globalvars_set(varindex, ((resolve(param[2]) as float) / (resolve(param[4]) as float)) as string)
+			elseIf param[3] == "&"
+				SLT.globalvars_set(varindex, resolve(param[2]) + resolve(param[4]))
+			endIf
+		endif
+	endif
 endFunction
 EndState 
 
@@ -409,7 +491,7 @@ function oper(string[] param)
     if StringUtil.getNthChar(param[1], 0) == "$"
         int idx = StringUtil.getNthChar(param[1], 1) as int
         if idx >= 0 && idx <= 9
-            vars[idx] = ((vars[idx] as float) + (resolve(param[2]) as float)) as string
+            vars_set(idx, ((vars_get(idx) as float) + (resolve(param[2]) as float)) as string)
         else
             Debug.Notification("Bad var: " +  cmdName + "(" + cmdIdx + ")")
         endIf
@@ -417,12 +499,25 @@ function oper(string[] param)
 endFunction
 EndState 
 
+State cmd_toh_elapsed_time
+function oper(string[] param)
+	stack[0] = SLT.tohElapsedTime as string
+endFunction
+EndState
+
+State cmd_actual_hours_since_last_top
+function oper(string[] param)
+	GotoState("cmd_toh_elapsed_time")
+	oper(param)
+endFunction
+EndState
+
 State cmd_cat ; cat "$1", "value"
 function oper(string[] param)
     if StringUtil.getNthChar(param[1], 0) == "$"
         int idx = StringUtil.getNthChar(param[1], 1) as int
         if idx >= 0 && idx <= 9
-            vars[idx] = vars[idx] + resolve(param[2])
+            vars_set(idx, vars_get(idx) + resolve(param[2]))
         else
             Debug.Notification("Bad var: " +  cmdName + "(" + cmdIdx + ")")
         endIf
@@ -853,6 +948,10 @@ EndState
 
 State cmd_util_waitforend ;util_waitforend
 function oper(string[] param)
+	if !SexLab
+		return
+	endif
+	
     Actor mate
     
     mate = resolveActor(param[1])
@@ -866,6 +965,11 @@ EndState
 
 State cmd_util_getrndactor ;util_getrndactor "range", "option"
 function oper(string[] param)
+	if !SexLab
+		iterActor = none
+		return
+	endif
+	
     string ss
     float  p1
     int    opt
@@ -921,6 +1025,11 @@ EndState
 
 State cmd_sl_isin ;sl_isin "$self"
 function oper(string[] param)
+	if !SexLab
+        stack[0] = "0"
+		return
+	endif
+	
     Actor mate
     int retVal
     
@@ -937,9 +1046,13 @@ EndState
 
 State cmd_sl_hastag ;sl_hastag "tag_name"
 function oper(string[] param)
-    string ss
-    
     stack[0] = "0"
+	
+	if !SexLab
+		return
+	endif
+	
+    string ss
     
     if thread
         ss = resolve(param[1])
@@ -953,9 +1066,13 @@ EndState
 
 State cmd_sl_animname ;sl_animname
 function oper(string[] param)
-    string ss
-    
     stack[0] = ""
+	
+	if !SexLab
+		return
+	endif
+    
+    string ss
     
     if thread
         stack[0] = thread.Animation.Name
@@ -967,9 +1084,13 @@ EndState
 
 State cmd_sl_getprop ;sl_getprop
 function oper(string[] param)
-    string ss
-    
     stack[0] = ""
+	
+	if !SexLab
+		return
+	endif
+    
+    string ss
     
     if thread
         ss = resolve(param[1])
@@ -983,6 +1104,52 @@ function oper(string[] param)
 
 endFunction
 EndState 
+
+State cmd_sl_advance ;sl_advance "-1" (to go backward)
+function oper(string[] param)
+	if !SexLab || !thread
+		return
+	endif
+	
+	int ss = resolve(param[1]) as int
+	thread.AdvanceStage(ss == -1)
+endFunction
+EndState
+
+State cmd_sl_isinslot ;sl_isinslot "$self", "1" (SexLab slots numbered 1-5)
+function oper(string[] param)
+	stack[0] = "0"
+	
+	if !SexLab || !thread
+		return
+	endif
+	
+	int slPosition = resolve(param[1]) as int
+	if slPosition < 1 || slPosition > 4
+		return
+	endif
+	
+	if slPosition == 1 && !aPartner1 || slPosition == 2 && !aPartner2 || slPosition == 3 && !aPartner3 || slPosition == 4 && !aPartner4
+		return
+	endif
+	
+	Actor mate = resolveActor(param[1])
+	int actorIdx = 0
+	while actorIdx < thread.Positions.Length
+		if (actorIdx + 1) > slPosition
+			return
+		endif
+		Actor slActor = thread.Positions[actorIdx]
+		; the assumption is that slPosition is 1-based and actorIdx is 0-based
+		if slActor == mate
+			if (actorIdx + 1) == slPosition
+				stack[0] = "1"
+			endif
+			return
+		endif
+	endwhile
+endFunction
+EndState
 
 State cmd_perk_addpoints ;perk_addpoints "count"
 function oper(string[] param)
@@ -1018,6 +1185,50 @@ function oper(string[] param)
 endFunction
 EndState 
 
+State cmd_actor_isaffectedby ;actor_isaffected by "$player", "Skyrim.esm:1030541" (can be MGEF or SPEL)
+function oper(string[] param)
+	Actor mate
+	Form thing
+	
+	mate = resolveActor(param[1])
+	if !mate
+		stack[0] = "0"
+		return
+	endif
+	
+	thing = _getFormId(resolve(param[2]))
+	
+	; is it a MGEF?
+	MagicEffect mgef = thing as MagicEffect
+	if mgef
+		if mate.HasMagicEffect(mgef)
+			stack[0] = "1"
+		else
+			stack[0] = "0"
+		endif
+		return
+	endif
+	
+	; is it a SPEL?
+	Spell spel = thing as Spell
+	if spel
+		int i = 0
+		int numeffs = spel.GetNumEffects()
+		while i < numeffs
+			mgef = spel.GetNthEffectMagicEffect(i)
+			if mate.HasMagicEffect(mgef)
+				stack[0] = "1"
+				return
+			endif
+			
+			i += 1
+		endwhile
+	endif
+	
+	; it was nothing :(
+	stack[0] = "0"
+endFunction
+EndState
 
 State cmd_actor_advskill ;actor_advskill "$self", "skill name", "count"
 function oper(string[] param)
@@ -1177,7 +1388,7 @@ function oper(string[] param)
     thing = _getFormId(resolve(param[2])) as Topic
     if thing
         mate = resolveActor(param[1])
-        if mate == PlayerRef && SexLab.Config.ToggleFreeCamera
+        if mate == PlayerRef && SexLab && SexLab.Config.ToggleFreeCamera
             ;mate.Say(thing, mate, true)
         else
             mate.Say(thing)
@@ -1206,6 +1417,37 @@ function oper(string[] param)
     
 endFunction
 EndState 
+
+State cmd_actor_iswearing ;actor_iswearing "$a1", "module:id"
+function oper(string[] param)
+	Actor mate
+	Form thing
+	
+	mate = resolveActor(param[1])
+	thing = _getFormId(resolve(param[2]))
+	
+	if thing && mate.IsEquipped(thing)
+        stack[0] = "1"
+    else
+        stack[0] = "0"
+    endIf
+	
+endFunction
+EndState
+
+State cmd_actor_worninslot ;actor_worninslot "$a1", "slot"
+function oper(string[] param)
+	Actor mate
+	int slot = param[2] as int
+	
+	mate = resolveActor(param[1])
+	if mate && mate.GetEquippedArmorInSlot(slot)
+		stack[0] = "1"
+	else
+		stack[0] = "0"
+	endIf
+endFunction
+EndState
 
 State cmd_actor_wornhaskeyword ;actor_wornhaskeyword "$a1", "keyword name"
 function oper(string[] param)
@@ -1739,6 +1981,11 @@ EndState
 
 State cmd_util_waitforkbd ;util_waitfokbd "keycode", "keycode", ...
 function oper(string[] param)
+	if !SexLab
+        stack[0] = "-1"
+		return
+	endif
+	
     string ss
     string ssx
     int cnt

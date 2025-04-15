@@ -1,1 +1,8 @@
+scriptname tif__000a3e86 extends topicinfo hidden
+function fragment_1(objectreference akspeakerref)
+endfunction
+function fragment_0(objectreference akspeakerref)
+endfunction
+scene property farkasscene  auto  
+referencealias property playerwatched  auto  
 ;This file was cleaned with PapyrusSourceHeadliner 1

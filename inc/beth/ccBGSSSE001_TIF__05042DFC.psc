@@ -1,1 +1,3 @@
+scriptname ccbgssse001_tif__05042dfc extends topicinfo hidden
+ccbgssse001_advancestageonupdate property advancestageonupdate auto
 ;This file was cleaned with PapyrusSourceHeadliner 1

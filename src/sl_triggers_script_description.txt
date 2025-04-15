@@ -1,3 +1,11 @@
+A note about events, triggers, and contextual availability of some functions and variables.
+
+Originally all of the triggers were SexLab focused, so all functions were able to function during a trigger.
+With the addition of events that are contextually different, some functions will not work as expected, or perhaps
+at all, when used outside of their environment. 'sl_in' will not make sense when run inside a command.json
+run at the top of the hour and not due to a SexLab event.
+
+======
 Script for SL Triggers is .json formated file. 
 Name of the file is also name of the command displayed in MCM menu.
 File must be in Data\SKSE\Plugins\sl_triggers\commands. If its there, MCM should pick it up.
@@ -298,7 +306,7 @@ actor_isvalid: check is actor is valid (not none, dead, etc)
     
     jump to end is actor not good.
 
-actor_isquard: check is actor is guard
+actor_isguard: check is actor is guard
     - parameter 1: who, actor ID. 
     
     Example:
@@ -354,6 +362,35 @@ actor_haskeyword: check if actor has a specific keyword
         [":", "end"]
     
     jump to end is actor not vampire.
+
+
+actor_iswearing: is actor wearing specified item
+	- parameter 1: who, actor ID.
+	- parameter 2: item ID
+
+	Example:
+		["actor_iswearing", "petcollar.esp:31017"]
+	
+	return 1 if actor is wearing the pet collar, 0 otherwise
+
+actor_isaffectedby: is actor affected by MGEF or SPEL
+	- parameter 1: who, actor ID.
+	- parameter 2: MGEF or SPEL FormID
+	
+	Example:
+		["actor_isaffectedby", "Skyrim.esm:1030541"]
+	
+	return 1 if actor is affected by FortifyHealthFFSelf (i.e. Potion of Health)
+
+actor_worninslot: is actor wearing an item in indicated body slot
+	- parameter 1: who, actor ID.
+	- parameter 2: slot number
+	
+	Example:
+		["actor_worninslot", "60"]
+	
+	returns 1 if actor is wearing something in slot 60, 0 otherwise
+
 
 actor_wornhaskeyword: check if anything actor is wearing has specified keyword
     - parameter 1: who, actor ID. 
@@ -710,6 +747,12 @@ perk_remove: remove perk. The reverse of perk_add
 
 Utility/misc:
 
+toh_elapsed_time: returns the actual time that passed, in hours as a float since the last "top of the hour" event was processed; can be useful for handling events proccing on the top of each game hour to determine if e.g. the player waited or slept more than 1 hour
+
+	Example:
+	
+		["toh_elapsed_time"]
+
 msg_notify: display a message on screen. Top left
     - parameter 1: text
 
@@ -885,7 +928,24 @@ sl_hastag: test if animation has a specific tag
 
         
     maybe wrong hole?
+
+
+sl_advance: advances the current SL scene by one
+	- parameter 1: optional, if -1, reverses the SL scene by one
     
+	Example:
+	
+		["sl_advance"], -- scene goes forward
+		["sl_advance", "-1"], -- scene goes backward
+		["sl_advance", "-23"], -- scene goes FORWARD (was not -1)
+
+sl_isinslot: test if actor is inSexLab scene in specified slot; $$ == "0" if true, "1" otherwise
+	- parameter 1: actors ID
+	- parameter 2: 1-based slot number (1-5)
+	
+	Example:
+	
+		["sl_isinslot", "$self", "1"] -- true if $self is in slot 1
     
 ism_applyfade: apply imagespace modifier
     - parameter 1: item id. Look CK, SpecialEffects\Imagespace Modifier
