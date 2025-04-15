@@ -16,6 +16,8 @@ if "%~1"=="" (
 	goto filecheck
 )
 
+DEL /Y "%TARGET_DIR%\*.pex"
+
 :beginloop
 if "%~1"=="" goto endloop
 set PSC_FILE=%1
