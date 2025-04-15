@@ -1,272 +1,212 @@
-Scriptname sl_TriggersCmd extends ActiveMagicEffect
+Scriptname sl_TriggersCmd extends sl_TriggersCmdBase
 
-sl_triggersMain		Property SLT Auto
-sl_triggersSetup	Property SLTCFG Auto
-
-function DebMsg(string msg)
-	SLT.DebMsg(msg)
-endfunction
+import sl_triggersStatics
+import sl_triggersHeap
+import sl_triggersFile
 
 ; CONSTANTS
+float	SECONDS_FOR_TIMEOUT_WAITING_FOR_SUPPORT = 1.5 ; seems really big
 
-; Properties
-Actor               Property PlayerRef Auto
-Keyword				Property ActorTypeNPC Auto
-Keyword				Property ActorTypeUndead Auto
-SexLabFramework     Property SexLab Auto Hidden
-Faction	            Property SexLabAnimatingFaction Auto Hidden
+; PropertiesProperty stack Auto Hidden
+int			Property lastKey Auto Hidden
+Actor		Property iterActor Auto Hidden
 
 ; internal variables
-int					tid
-string				cmdName
-Actor				aCaster
-Actor				aPartner1
-Actor				aPartner2
-Actor				aPartner3
-Actor				aPartner4
+int			cmdIdx 
+int			cmdNum 
+string		cmdName
 
-string[]			stack
-int					cmdIdx
-int					cmdNum
-float				hoursElapsed
+int[]		gotoIdx 
+string[]	gotoLabels 
+int			gotoCnt 
 
-int[]				gotoIdx
-string[]			gotoLabels
-int					gotoCnt
+bool		sltCmdSupportCheckedIn = false
+bool		sltCmdExecuteStarted = false
+bool		actualEffectStartDone = false
+ActiveMagicEffect[]		supportCmds
 
-Actor				iterActor
+int			expectedSupportCmds
+int			supportCmdsCheckedIn
 
-sslThreadController	thread
+int			coreCmdMailbox
 
-int					lastKey
+String Function EVENT_SLT_ACTUAL_EFFECT_START()
+	return "SLTActualEffectStart:" + instanceId
+EndFunction
 
-string				SUMO_extension
+String Function EVENT_SLT_ACTUAL_EFFECT_START_HANDLER()
+	return "On" + EVENT_SLT_ACTUAL_EFFECT_START()
+EndFunction
+
+String Function _slt_getActualInstanceId()
+	return InstanceId
+EndFunction
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
-	aCaster = akCaster
-    aPartner1 = none
-    aPartner2 = none
-    aPartner3 = none
-    aPartner4 = none
-	
-	SUMO_extension = sl_triggersMain.PopSUMOExtensionF(aCaster) ;"sl_triggersCmd(" + SLT.NextOneUp() + ")"
-	
-	
-   	cmdName = sl_triggersMain.SUMO_StringGetF(aCaster, sl_triggersMain.SUMO_MakeKey(SUMO_extension, "cmd"))
-	tid = sl_triggersMain.SUMO_IntGetF(aCaster, sl_triggersMain.SUMO_MakeKey(SUMO_extension, "tid"))
-	
-	; emulation
-	SexLab = none
-	SexLabAnimatingFaction = none
-	if sl_triggersMain.SUMO_FormHasF(aCaster, sl_triggersMain.SUMO_MakeKey(SUMO_extension, "sexlab"))
-		SexLab					= sl_triggersMain.SUMO_FormGetF(aCaster, sl_triggersMain.SUMO_MakeKey(SUMO_extension, "sexlab")) as SexLabFramework
-		SexLabAnimatingFaction	= sl_triggersMain.SUMO_FormGetF(aCaster, sl_triggersMain.SUMO_MakeKey(SUMO_extension, "sexlabanimatingfaction")) as Faction
-	
-		thread = Sexlab.GetController(tid)
-		int actorIdx = 0
-		while actorIdx < thread.Positions.Length
-			Actor theOther = thread.Positions[actorIdx]
-			if theOther != aCaster
-				if !aPartner1
-					aPartner1 = theOther
-				elseif !aPartner2
-					aPartner2 = theOther
-				elseif !aPartner3
-					aPartner3 = theOther
-				elseif !aPartner4
-					aPartner4 = theOther
-				endIf
-			endif
-			actorIdx += 1
-		endWhile
-	endif
-    
+	coreCmdMailbox = -1
     cmdIdx = 0
     stack = new string[4]
     
     gotoCnt = 0
     gotoIdx = new int[32]
     gotoLabels = new string[32]
+	
+	instanceId = Heap_DequeueInstanceIdF(aCaster)
+   	cmdName = Heap_StringGetFK(aCaster, MakeInstanceKey(instanceId, "cmd"))
+	
+	SLTOnEffectStart(akCaster)
+	
+	actualEffectStartDone = false
+	RegisterForModEvent(EVENT_SLT_ACTUAL_EFFECT_START(), EVENT_SLT_ACTUAL_EFFECT_START_HANDLER())
+	
+	DoSLTActualEffectStart()
+EndEvent
 
+Function DoSLTActualEffectStart()
+	Utility.Wait(0.0)
+	
+	if actualEffectStartDone
+		return
+	endif
+	
+	SendModEvent(EVENT_SLT_ACTUAL_EFFECT_START())
+EndFunction
+
+Event OnSLTActualEffectStart(string eventName, string strArg, float numArg, Form sender)
+	if actualEffectStartDone
+		return
+	endif
+	actualEffectStartDone = true
+	UnregisterForModEvent(EVENT_SLT_ACTUAL_EFFECT_START())
+	
+	coreCmdMailbox = SLT.RequestCoreMailbox(self)
+	
+	Heap_IntSetFK(aCaster, MakeInstanceKey(instanceId, "coreCmdMailbox"), coreCmdMailbox)
+	
+	; retrieve the formSpells if present
+	int spellFormsCount = Heap_IntGetFK(aCaster, MakeInstanceKey(instanceId, "spellFormsLength"))
+	supportCmds = new ActiveMagicEffect[128] ; implicit 128 extension limit but I mean c'mon
+	
+	expectedSupportCmds = 0
+	if spellFormsCount > 0
+		int sfi = 0
+		while sfi < spellFormsCount
+			Spell spellForm = Heap_FormListGetFK(aCaster, MakeInstanceKey(instanceId, "spellForms"), sfi) as Spell
+			
+			; only if there was actually a Spell from the extension
+			if spellForm
+				expectedSupportCmds += 1
+				spellForm.RemoteCast(aCaster, aCaster, aCaster)
+			endif
+		endwhile
+	endif
+	
+	; if no AMEs to attach, just start updating
     if Self
-        RegisterForSingleUpdate(1)
+		; was 1 sec
+		sltCmdSupportCheckedIn = true
+        SendSLTCmdExecute()
+	else
+		RegisterForSingleUpdate(SECONDS_FOR_TIMEOUT_WAITING_FOR_SUPPORT)
     endIf
 EndEvent
 
 Event OnUpdate()
+	; when we start receiving these, we are assuming we are ready
 	If !Self
 		Return
 	EndIf
+	
+	; not good that we ended up here
+	if expectedSupportCmds > supportCmdsCheckedIn || !sltCmdExecuteStarted
+		Debug.Trace("sl_trigger: Cmd: failed to start execution")
+        Self.Dispel()
+		return
+	endif
+EndEvent
 
-	If !aCaster
-		Self.Dispel()
+Event OnKeyDown(Int keyCode)
+    lastKey = keyCode
+    ;MiscUtil.PrintConsole("KeyDown: " + lastKey)
+EndEvent
+
+Function SendSLTCmdExecute()
+	if sltCmdExecuteStarted
+		return
+	endif
+	RegisterForModEvent("SLTCmdExecute" + instanceId, "OnSLTCmdExecute")
+	_ActualSendSLTCmdExecute()
+EndFunction
+
+Function _ActualSendSLTCmdExecute()
+	Utility.Wait(0.0)
+	if sltCmdExecuteStarted
+		return
+	endif
+	sltCmdExecuteStarted = true
+	SendModEvent("SLTCmdExecute" + instanceId)
+EndFunction
+
+Event OnSLTCmdExecute(string eventName, string strArg, float numArg, Form sender)
+	If !Self
 		Return
 	EndIf
 	
-	If !inSameCell(aCaster)
-		Debug.Trace("SL triggers: " + _actorName(aCaster) + " not in same cell as Player. Best to abort.")
-		Self.Dispel()
-		Return
-	EndIf
+	UnregisterForModEvent("SLTCmdExecute" + instanceId)
+	
+	; sort supportCmds if necessary
+	if supportCmdsCheckedIn > 0 && supportCmds
+		ActiveMagicEffect[] tmpBuffer = supportCmds
+		
+		sl_triggersCmdBase c_j
+		sl_triggersCmdBase c_i
+		ActiveMagicEffect c_swap
+		int j = 0
+		while j < supportCmdsCheckedIn
+			c_j = tmpBuffer[j] as sl_triggersCmdBase
+			int i = j + 1
+			while i < supportCmdsCheckedIn
+				c_i = tmpBuffer[i] as sl_triggersCmdBase
+				if c_i._slt_getActualPriority() < c_j._slt_getActualPriority()
+					c_swap = tmpBuffer[j]
+					tmpBuffer[j] = tmpBuffer[i]
+					tmpBuffer[i] = c_swap
+				endif
+			
+				i += 1
+			endwhile
+		
+			j += 1
+		endwhile
+		
+		supportCmds = tmpBuffer
+	endif
 	
     exec()
 	
-	sl_triggersMain.SUMO_ClearPrefixF(aCaster, sl_triggersMain.SUMO_MakeKeyPrefix(SUMO_extension))
+	Heap_ClearPrefixF(aCaster, MakeInstanceKeyPrefix(instanceId))
     
     If Self
         Self.Dispel()
-    endIf
-EndEvent
-
-; used in conjuction with the util_waitforkbd command
-Event OnKeyDown(Int keyCode)
-    lastKey = keyCode
-EndEvent
-
-;/
-opens the command file, loops through the commands, and runs them
-/;
-string Function exec()
-    string[] cmdLine
-    string   code
-    string   p1
-    string   p2
-    string   po
-    bool     ifTrue
-    
-    cmdNum = JsonUtil.PathCount(cmdName, ".cmd")
-    cmdIdx = 0
-    ;MiscUtil.PrintConsole("Lines: " + cmdNum)
-    while cmdIdx < cmdNum
-        cmdLine = JsonUtil.PathStringElements(cmdName, ".cmd[" + cmdIdx + "]")
-        if cmdLine.Length
-            code = resolve(cmdLine[0])
-            ;MiscUtil.PrintConsole("Cmd: " + code)
-
-            if code == ":"
-                _addGoto(cmdIdx, cmdLine[1])
-                cmdIdx += 1
-            elseIf code == "goto"    
-                cmdIdx = _findGoto(cmdLine[1], cmdIdx)
-                ;MiscUtil.PrintConsole("Goto: " + cmdIdx)
-                cmdIdx += 1
-            elseIf code == "if"
-                ; ["if", "$$", "=", "0", "end"],
-                p1 = resolve(cmdLine[1])
-                p2 = resolve(cmdLine[3])
-                po = cmdLine[2]
-                ifTrue = resolveCond(p1, p2, po)
-                if ifTrue
-                    cmdIdx = _findGoto(cmdLine[4], cmdIdx)
-                    ;MiscUtil.PrintConsole("GotoIf: " + cmdIdx)
-                endIf
-                cmdIdx += 1
-            elseIf code == "return"
-                return ""
-            else
-				; I love everything about this implementation
-                GotoState("cmd_" + code)
-                oper(cmdLine)
-                GotoState("")
-                cmdIdx += 1
-            endIf
-        endIf
-    endWhile
-    
-    return ""
-EndFunction
-
-; blank empty state version
-function oper(string[] param)
-endFunction
-
-;; ...wrapped to conveniently give access to scratch memory variables we will need
-;; yes, this is a little less performant than the hard coded array, but it's a set up
-;; for a better, self-managed, extensible system
-string Function vars_get(int varsindex)
-	return sl_triggersMain.SUMO_StringGetF(aCaster, sl_triggersMain.SUMO_MakeKey(SUMO_extension, "vars" + varsindex))
-EndFunction
-
-string Function vars_set(int varsindex, string value)
-	return sl_triggersMain.SUMO_StringSetF(aCaster, sl_triggersMain.SUMO_MakeKey(SUMO_extension, "vars" + varsindex), value)
-EndFunction
-
-;/
-various helper methods
-/;
-String Function _actorName(Actor _person)
-	if _person
-		return _person.GetLeveledActorBase().GetName()
-	EndIf
-	return "[Null actor]"
-EndFunction
-
-Int Function _actorGender(Actor _actor)
-	int rank
-    
-	if SexLab
-		rank = Sexlab.GetGender(_actor)
-	else
-		ActorBase _actorBase = _actor.GetActorBase()
-		if _actorBase
-			rank = _actorBase.GetSex()
-		else
-			rank = -1
+		if supportCmdsCheckedIn > 0
+			int i = 0
+			while i < supportCmdsCheckedIn
+				supportCmds[i].Dispel()
+			endwhile
 		endif
+    endIf
+EndEvent
+
+Function SupportCheckin(sl_triggersCmdBase supportCmd)
+	supportCmds[supportCmdsCheckedIn] = supportCmd
+	supportCmdsCheckedIn += 1
+	
+	if supportCmdsCheckedIn >= expectedSupportCmds
+		UnregisterForUpdate()
+		SendSLTCmdExecute()
 	endif
-    
-	return rank
 EndFunction
 
-int Function hex_to_int(string _value)
-    int retVal
-    int idx
-    int iDigit
-    int pos
-    string sChar
-    string hexChars = "0123456789ABCDEF"
-    
-    idx = StringUtil.GetLength(_value) - 1
-    while idx >= 0
-        sChar = StringUtil.GetNthChar(_value, idx)
-        iDigit = StringUtil.Find(hexChars, sChar, 0)
-        if iDigit >= 0
-            iDigit = Math.LeftShift(iDigit, 4 * pos)
-            retVal = Math.LogicalOr(retVal, iDigit)
-            idx -= 1
-            pos += 1
-        else 
-            idx = -1
-        endIf
-    endWhile
-    
-    return retVal
-EndFunction
-
-Form Function _getFormId(string _data)
-    Form retVal
-    string[] params
-    string fname
-    string sid
-    int  id
-    
-    params = StringUtil.Split(_data, ":")
-    fname = params[0]
-    sid = params[1]
-    ; check if hex or dec
-    if sid && (StringUtil.GetNthChar(sid, 0) == "0")
-        id = hex_to_int(sid)
-    else
-        id = params[1] as int
-    endIf
-    
-    retVal = Game.GetFormFromFile(id, fname)
-    if !retVal
-        MiscUtil.PrintConsole("Form not found: " + _data)
-    endIf
-    
-    return retVal
-EndFunction
 
 Function _addGoto(int _idx, string _label)
     int idx
@@ -327,37 +267,91 @@ Int Function _findGoto(string _label, int _cmdIdx)
     return cmdNum
 EndFunction
 
-Bool Function inSameCell(Actor _actor)
-	if _actor.getParentCell() != playerRef.getParentCell()
-		return False
-	EndIf
-	return True
+;/
+opens the command file, loops through the commands, and runs them
+/;
+string Function exec()
+    string[] cmdLine
+    string   code
+    string   p1
+    string   p2
+    string   po
+    bool     ifTrue
+    
+    cmdNum = JsonUtil.PathCount(cmdName, ".cmd")
+    cmdIdx = 0
+    ;MiscUtil.PrintConsole("Lines: " + cmdNum)
+    while cmdIdx < cmdNum
+        cmdLine = JsonUtil.PathStringElements(cmdName, ".cmd[" + cmdIdx + "]")
+        if cmdLine.Length
+            code = resolve(cmdLine[0])
+            ;MiscUtil.PrintConsole("Cmd: " + code)
+
+            if code == ":"
+                _addGoto(cmdIdx, cmdLine[1])
+                cmdIdx += 1
+            elseIf code == "goto"    
+                cmdIdx = _findGoto(cmdLine[1], cmdIdx)
+                ;MiscUtil.PrintConsole("Goto: " + cmdIdx)
+                cmdIdx += 1
+            elseIf code == "if"
+                ; ["if", "$$", "=", "0", "end"],
+                p1 = resolve(cmdLine[1])
+                p2 = resolve(cmdLine[3])
+                po = cmdLine[2]
+                ifTrue = resolveCond(p1, p2, po)
+                if ifTrue
+                    cmdIdx = _findGoto(cmdLine[4], cmdIdx)
+                    ;MiscUtil.PrintConsole("GotoIf: " + cmdIdx)
+                endIf
+                cmdIdx += 1
+            elseIf code == "return"
+                return ""
+            else
+				ActualOper(cmdLine, code)
+                cmdIdx += 1
+            endIf
+        endIf
+    endWhile
+    
+    return ""
 EndFunction
 
-int function isVarPrefixed(string _code, string _prefix)
-	if !_code || !_prefix || StringUtil.SubString(_code, 0, StringUtil.GetLength(_prefix)) != _prefix
-		return -1
+string Function ActualResolve(string _code)
+	; try negative priority resolve
+	; try our resolve
+	; try positive priority resolve
+	if supportCmdsCheckedIn < 1
+		return self.CustomResolve(_code)
 	endif
 	
-	string numchunk = StringUtil.Substring(_code, StringUtil.GetLength(_prefix))
-	int num = numchunk as int
+	string _value
+	bool readyForCore = true
+	int i = 0
+	sl_triggersCmdBase currCmd
+	while i < supportCmdsCheckedIn
+		currCmd = supportCmds[i] as sl_triggersCmdBase
+		
+		if currCmd._slt_getActualPriority() < 0 || !readyForCore
+			_value = currCmd.CustomResolve(_code)
+			if _value
+				return _value
+			endif
+		elseif readyForCore
+			readyForCore = false
+			_value = self.CustomResolve(_code)
+			if _value
+				return _value
+			endif
+		endif
 	
-	if (num as string) == numchunk
-		return num
-	else
-		return -1
-	endif
-endfunction
+		i += 1
+	endwhile
+	
+	return _code
+EndFunction
 
-int function isVarString(string _code)
-	return isVarPrefixed(_code, "$")
-endfunction
-
-int function isVarStringG(string _code)
-	return isVarPrefixed(_code, "$g")
-endfunction
-
-string Function resolve(string _code)
+string Function CustomResolve(string _code)
 	int varindex = -1
     if StringUtil.getNthChar(_code, 0) == "$"
         if _code == "$$"
@@ -365,42 +359,91 @@ string Function resolve(string _code)
         else
 			varindex = isVarString(_code)
 			if varindex >= 0
-				
 				return vars_get(varindex)
 			endif
 			
 			varindex = isVarStringG(_code)
 			if varindex >= 0
-				
 				return SLT.globalvars_get(varindex)
 			endif
-			
-			
         endIf
     endIf
-    return _code    
+    return none    
 EndFunction
 
-Actor Function resolveActor(string _code)
+Actor Function ActualResolveActor(string _code)
+	; try negative priority resolve
+	; try our resolve
+	; try positive priority resolve
+	Actor _value
+	
+	if supportCmdsCheckedIn < 1
+		_value = self.CustomResolveActor(_code)
+	else
+		bool readyForCore = true
+		int i = 0
+		sl_triggersCmdBase currCmd
+		while i < supportCmdsCheckedIn && !_value
+			currCmd = supportCmds[i] as sl_triggersCmdBase
+			
+			if currCmd._slt_getActualPriority() < 0 || !readyForCore
+				_value = currCmd.CustomResolveActor(_code)
+			elseif readyForCore
+				readyForCore = false
+				_value = self.CustomResolveActor(_code)
+			endif
+		
+			i += 1
+		endwhile
+	endif
+	
+	if _value
+		return _value
+	endif
+	return aCaster
+EndFunction
+
+Actor Function CustomResolveActor(string _code)
     if _code == "$self"
         return aCaster
     elseIf _code == "$player"
         return PlayerRef
     elseIf _code == "$actor"
         return iterActor
-    elseIf _code == "$partner"
-        return aPartner1
-    elseIf _code == "$partner2"
-        return aPartner2
-    elseIf _code == "$partner3"
-        return aPartner3
-    elseIf _code == "$partner4"
-        return aPartner4
     endIf
-    return aCaster 
+    return none
 EndFunction
 
-bool Function resolveCond(string _p1, string _p2, string _oper)
+bool Function ActualResolveCond(string _p1, string _p2, string _oper)
+	; try negative priority resolve
+	; try our resolve
+	; try positive priority resolve
+	bool _value
+	
+	if supportCmdsCheckedIn < 1
+		_value = self.CustomResolveCond(_p1, _p2, _oper)
+	else
+		bool readyForCore = true
+		int i = 0
+		sl_triggersCmdBase currCmd
+		while i < supportCmdsCheckedIn && !_value
+			currCmd = supportCmds[i] as sl_triggersCmdBase
+			
+			if currCmd._slt_getActualPriority() < 0 || !readyForCore
+				_value = currCmd.CustomResolveCond(_p1, _p2, _oper)
+			elseif readyForCore
+				readyForCore = false
+				_value = self.CustomResolveCond(_p1, _p2, _oper)
+			endif
+		
+			i += 1
+		endwhile
+	endif
+	
+	return _value
+EndFunction
+
+bool Function CustomResolveCond(string _p1, string _p2, string _oper)
     if _oper == "="
         if (_p1 as float) == (_p2 as float)
             return true
@@ -437,11 +480,44 @@ bool Function resolveCond(string _p1, string _p2, string _oper)
     return false
 endFunction
 
+Function ActualOper(string[] param, string code)
+	; try negative priority resolve
+	; try our resolve
+	; try positive priority resolve
+	bool cmdSuccess = false
+	
+	if supportCmdsCheckedIn < 1
+		cmdSuccess = self._slt_oper_driver(param, code)
+	else
+		bool readyForCore = true
+		int i = 0
+		sl_triggersCmdBase currCmd
+		while i < supportCmdsCheckedIn && !cmdSuccess
+			currCmd = supportCmds[i] as sl_triggersCmdBase
+			
+			if currCmd._slt_getActualPriority() < 0 || !readyForCore
+				cmdSuccess = currCmd._slt_oper_driver(param, code)
+			elseif readyForCore
+				readyForCore = false
+				cmdSuccess = self._slt_oper_driver(param, code)
+			endif
+		
+			i += 1
+		endwhile
+	endif
+EndFunction
+
+; blank empty state version
+bool function oper(string[] param)
+	return false
+endFunction
+
+
 ;/
 all the operations
 /;
 State cmd_set ; set "$1", "value"
-function oper(string[] param)
+bool function oper(string[] param)
 	int varindex = isVarString(param[1])
 	if varindex >= 0
 		if param.length == 3
@@ -483,11 +559,13 @@ function oper(string[] param)
 			endIf
 		endif
 	endif
+
+	return true
 endFunction
 EndState 
 
 State cmd_inc ; inc "$1", "value"
-function oper(string[] param)
+bool function oper(string[] param)
     if StringUtil.getNthChar(param[1], 0) == "$"
         int idx = StringUtil.getNthChar(param[1], 1) as int
         if idx >= 0 && idx <= 9
@@ -496,24 +574,13 @@ function oper(string[] param)
             Debug.Notification("Bad var: " +  cmdName + "(" + cmdIdx + ")")
         endIf
     endIf
+
+	return true
 endFunction
 EndState 
 
-State cmd_toh_elapsed_time
-function oper(string[] param)
-	stack[0] = SLT.tohElapsedTime as string
-endFunction
-EndState
-
-State cmd_actual_hours_since_last_top
-function oper(string[] param)
-	GotoState("cmd_toh_elapsed_time")
-	oper(param)
-endFunction
-EndState
-
 State cmd_cat ; cat "$1", "value"
-function oper(string[] param)
+bool function oper(string[] param)
     if StringUtil.getNthChar(param[1], 0) == "$"
         int idx = StringUtil.getNthChar(param[1], 1) as int
         if idx >= 0 && idx <= 9
@@ -522,46 +589,56 @@ function oper(string[] param)
             Debug.Notification("Bad var: " +  cmdName + "(" + cmdIdx + ")")
         endIf
     endIf
+
+	return true
 endFunction
 EndState 
 
 State cmd_av_restore ;av_restore "$self", "actor_value", "value"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     
     mate = resolveActor(param[1])
     mate.RestoreActorValue(resolve(param[2]), resolve(param[3]) as float)
+
+	return true
 endFunction
 EndState 
 
 State cmd_av_damage ;av_damage "$self", "actor_value", "value"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     mate = resolveActor(param[1])
     mate.DamageActorValue(resolve(param[2]), resolve(param[3]) as float)
+
+	return true
 endFunction
 EndState 
 
 State cmd_av_mod ;av_mod "$self", "actor_value", "value"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     
     mate = resolveActor(param[1])
     mate.ModActorValue(resolve(param[2]), resolve(param[3]) as float)
+
+	return true
 endFunction
 EndState 
 
 State cmd_av_set ;av_set "$self", "actor_value", "value"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     
     mate = resolveActor(param[1])
     mate.SetActorValue(resolve(param[2]), resolve(param[3]) as float)
+
+	return true
 endFunction
 EndState 
 
 State cmd_av_getbase ;av_getbase "$self", "actor_value"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     float val
     
@@ -570,11 +647,13 @@ function oper(string[] param)
     
     stack[0] = val as string
     ;MiscUtil.PrintConsole("Return: " + stack[0])
+
+	return true
 endFunction
 EndState 
 
 State cmd_av_get ;av_get "$self", "actor_value"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     float val
     
@@ -583,11 +662,13 @@ function oper(string[] param)
     
     stack[0] = val as string
     ;MiscUtil.PrintConsole("Return: " + stack[0])
+
+	return true
 endFunction
 EndState 
 
 State cmd_av_getmax ;av_getmax "$self", "actor_value"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     float val
     
@@ -595,12 +676,14 @@ function oper(string[] param)
     val = mate.GetActorValueMax(resolve(param[2]))
     
     stack[0] = val as string
+
+	return true
 endFunction
 EndState 
 
 
 State cmd_av_getpercent ;av_getmax "$self", "actor_value"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     float val
     
@@ -609,96 +692,110 @@ function oper(string[] param)
     val = val * 100.0
     
     stack[0] = val as string
+
+	return true
 endFunction
 EndState 
 
 State cmd_spell_cast ;spell_cast "module:id", "$self"
-function oper(string[] param)
+bool function oper(string[] param)
     Spell thing
     Actor mate
-    thing = _getFormId(resolve(param[1])) as Spell
+    thing = getFormId(resolve(param[1])) as Spell
     if thing
         mate = resolveActor(param[2])
         thing.RemoteCast(mate, mate, mate)
     endIf
+
+	return true
 endFunction
 EndState 
 
 State cmd_spell_dcsa ;spell_dcsa "module:id", "$self"
-function oper(string[] param)
+bool function oper(string[] param)
     Spell thing
     Actor mate
-    thing = _getFormId(resolve(param[1])) as Spell
+    thing = getFormId(resolve(param[1])) as Spell
     if thing
         mate = resolveActor(param[2])
         mate.DoCombatSpellApply(thing, mate)
     endIf
+
+	return true
 endFunction
 EndState 
 
 State cmd_spell_dispel ;spell_dispel "module:id", "$self"
-function oper(string[] param)
+bool function oper(string[] param)
     Spell thing
     Actor mate
-    thing = _getFormId(resolve(param[1])) as Spell
+    thing = getFormId(resolve(param[1])) as Spell
     if thing
         mate = resolveActor(param[2])
         mate.DispelSpell(thing)
     endIf
+
+	return true
 endFunction
 EndState 
 
 State cmd_spell_add ;spell_add "module:id", "$self"
-function oper(string[] param)
+bool function oper(string[] param)
     Spell thing
     Actor mate
-    thing = _getFormId(resolve(param[1])) as Spell
+    thing = getFormId(resolve(param[1])) as Spell
     if thing
         mate = resolveActor(param[2])
         mate.AddSpell(thing)
     endIf
+
+	return true
 endFunction
 EndState 
 
 State cmd_spell_remove ;spell_remove "module:id", "$self"
-function oper(string[] param)
+bool function oper(string[] param)
     Spell thing
     Actor mate
-    thing = _getFormId(resolve(param[1])) as Spell
+    thing = getFormId(resolve(param[1])) as Spell
     if thing
         mate = resolveActor(param[2])
         mate.RemoveSpell(thing)
     endIf
+
+	return true
 endFunction
 EndState 
 
 
 State cmd_item_add ;item_add "$self", "module:id", "count:int", "silent:bool"
-function oper(string[] param)
+bool function oper(string[] param)
     Form thing
     Actor mate
     int count
     bool isSilent
     
     mate = resolveActor(param[1])
-    thing = _getFormId(resolve(param[2]))
+    thing = getFormId(resolve(param[2]))
     if thing
         count = resolve(param[3]) as int
         isSilent = resolve(param[4]) as int
         mate.AddItem(thing, count, isSilent)
     endIf
+
+	return true
 endFunction
 EndState 
 
 State cmd_item_addex ;item_add "$self", "module:id", "count:int", "silent:bool"
-function oper(string[] param)
+bool function oper(string[] param)
     Form thing
     Actor mate
     int count
     bool isSilent
     
     mate = resolveActor(param[1])
-    thing = _getFormId(resolve(param[2]))
+    thing = getFormId(resolve(param[2]))
     if thing
         count = resolve(param[3]) as int
         isSilent = resolve(param[4]) as int
@@ -763,112 +860,126 @@ function oper(string[] param)
         EndIf
         
     endIf
+
+	return true
 endFunction
 EndState 
 
 State cmd_item_remove ;item_remove "$self", "module:id", "count:int", "silent:bool"
-function oper(string[] param)
+bool function oper(string[] param)
     Form thing
     Actor mate
     int count
     bool isSilent
     
     mate = resolveActor(param[1])
-    thing = _getFormId(resolve(param[2]))
+    thing = getFormId(resolve(param[2]))
     if thing
         count = resolve(param[3]) as int
         isSilent = resolve(param[4]) as int
         mate.RemoveItem(thing, count, isSilent)
     endIf
+
+	return true
 endFunction
 EndState 
 
 State cmd_item_adduse ;item_adduse "$self", "module:id", "count:int", "silent:bool"
-function oper(string[] param)
+bool function oper(string[] param)
     Form thing
     Actor mate
     int count
     bool isSilent
     
     mate = resolveActor(param[1])
-    thing = _getFormId(resolve(param[2]))
+    thing = getFormId(resolve(param[2]))
     if thing
         count = resolve(param[3]) as int
         isSilent = resolve(param[4]) as int
         mate.AddItem(thing, count, isSilent)
         mate.EquipItem(thing, false, isSilent)
     endIf
+
+	return true
 endFunction
 EndState 
 
 
 State cmd_item_equipex ;item_equipex "$self", "module:id", "slot:int", "sound:bool"
-function oper(string[] param)
+bool function oper(string[] param)
     Form thing
     Actor mate
     int slotId
     bool isSilent
     
     mate = resolveActor(param[1])
-    thing = _getFormId(resolve(param[2]))
+    thing = getFormId(resolve(param[2]))
     if thing
         slotId = resolve(param[3]) as int
         isSilent = resolve(param[4]) as int
         mate.EquipItemEx(thing, slotId, false, isSilent)
     endIf
+
+	return true
 endFunction
 EndState 
 
 State cmd_item_equip ;item_equipex "$self", "module:id", "noremove:int", "sound:bool"
-function oper(string[] param)
+bool function oper(string[] param)
     Form thing
     Actor mate
     int slotId
     bool isSilent
     
     mate = resolveActor(param[1])
-    thing = _getFormId(resolve(param[2]))
+    thing = getFormId(resolve(param[2]))
     if thing
         slotId = resolve(param[3]) as int
         isSilent = resolve(param[4]) as int
         mate.EquipItem(thing, slotId, isSilent)
     endIf
+
+	return true
 endFunction
 EndState 
 
 State cmd_item_unequipex ;item_equipex "$self", "module:id", "slot:int"
-function oper(string[] param)
+bool function oper(string[] param)
     Form thing
     Actor mate
     int slotId
     bool isSilent
     
     mate = resolveActor(param[1])
-    thing = _getFormId(resolve(param[2]))
+    thing = getFormId(resolve(param[2]))
     if thing
         slotId = resolve(param[3]) as int
         mate.UnEquipItemEx(thing, slotId)
     endIf
+
+	return true
 endFunction
 EndState 
 
 State cmd_item_getcount ;item_equipex "$self", "module:id"
-function oper(string[] param)
+bool function oper(string[] param)
     Form thing
     Actor mate
     int retVal
 
     mate = resolveActor(param[1])
-    thing = _getFormId(resolve(param[2]))
+    thing = getFormId(resolve(param[2]))
     if thing
         retVal = mate.GetItemCount(thing)
         stack[0] = retVal as string
     endIf
+
+	return true
 endFunction
 EndState 
 
 State cmd_msg_notify ;msg_notify "text"
-function oper(string[] param)
+bool function oper(string[] param)
     string ss
     string ssx
     int cnt
@@ -883,11 +994,13 @@ function oper(string[] param)
     endWhile
     
     Debug.Notification(ssx)
+
+	return true
 endFunction
 EndState 
 
 State cmd_msg_console ;msg_console "text"
-function oper(string[] param)
+bool function oper(string[] param)
     string ss
     string ssx
     int cnt
@@ -902,12 +1015,14 @@ function oper(string[] param)
     endWhile
 
     MiscUtil.PrintConsole(ssx)
+
+	return true
 endFunction
 EndState 
 
 
 State cmd_rnd_list ;rnd_list "stuff1", "stuff2", ...
-function oper(string[] param)
+bool function oper(string[] param)
     string ss
     int cnt
     int idx
@@ -917,11 +1032,13 @@ function oper(string[] param)
     ss = resolve(param[idx])
     stack[0] = ss
     ;MiscUtil.PrintConsole("rnd_list: " + cnt + "," + idx + ", " + ss + ", " + stack[0])
+
+	return true
 endFunction
 EndState 
 
 State cmd_rnd_int ;rnd_int "min", "max"
-function oper(string[] param)
+bool function oper(string[] param)
     string ss
     int idx
     int p1
@@ -935,41 +1052,23 @@ function oper(string[] param)
     idx = utility.RandomInt(p1, p2)
     stack[0] = idx as string
     
+
+	return true
 endFunction
 EndState 
 
 State cmd_util_wait ;util_wait "sec"
-function oper(string[] param)
+bool function oper(string[] param)
     string ss
     ss = resolve(param[1])
     Utility.wait(ss as float)
-endFunction
-EndState 
 
-State cmd_util_waitforend ;util_waitforend
-function oper(string[] param)
-	if !SexLab
-		return
-	endif
-	
-    Actor mate
-    
-    mate = resolveActor(param[1])
-
-    while mate.GetFactionRank(SexLabAnimatingFaction) >= 0 && inSameCell(mate)
-        Utility.wait(6)
-    endWhile
-
+	return true
 endFunction
 EndState 
 
 State cmd_util_getrndactor ;util_getrndactor "range", "option"
-function oper(string[] param)
-	if !SexLab
-		iterActor = none
-		return
-	endif
-	
+bool function oper(string[] param)
     string ss
     float  p1
     int    opt
@@ -990,7 +1089,7 @@ function oper(string[] param)
     iterActor = none
     cnt = inCell.Length
     if cnt < 1
-        return
+        return false
     endIf
     
     idxRnd = Utility.RandomInt(0, cnt)
@@ -1001,237 +1100,63 @@ function oper(string[] param)
 		if mate && mate != PlayerRef && mate.isEnabled() && !mate.isDead() && !mate.isInCombat() && !mate.IsUnconscious() && mate.HasKeyWord(ActorTypeNPC) && mate.Is3DLoaded() && cc == mate.getParentCell()
             if idx > idxRnd
                 idx = cnt + 1
-            elseIf opt == 0
+            else
                 lastFound = mate
-            elseif opt == 1
-                if !mate.IsInFaction(SexLabAnimatingFaction)
-                    lastFound = mate
-                endIf
-            elseif opt == 2
-                if mate.IsInFaction(SexLabAnimatingFaction)
-                    lastFound = mate
-                endIf
             endIf
 		endIf
     
         idx += 1
     endWhile
     
-    iterActor = lastFound    
-    
+    iterActor = lastFound
+
+	return true
 endFunction
 EndState 
-
-
-State cmd_sl_isin ;sl_isin "$self"
-function oper(string[] param)
-	if !SexLab
-        stack[0] = "0"
-		return
-	endif
-	
-    Actor mate
-    int retVal
-    
-    mate = resolveActor(param[1])
-    
-    ;if SexLab.ValidateActor(mate) == -10 && inSameCell(mate)
-    if mate.GetFactionRank(SexLabAnimatingFaction) >= 0 && inSameCell(mate)
-        stack[0] = "1"
-    else
-        stack[0] = "0"
-    endIf
-endFunction
-EndState 
-
-State cmd_sl_hastag ;sl_hastag "tag_name"
-function oper(string[] param)
-    stack[0] = "0"
-	
-	if !SexLab
-		return
-	endif
-	
-    string ss
-    
-    if thread
-        ss = resolve(param[1])
-        if thread.Animation.HasTag(ss)
-            stack[0] = "1"
-        endIf
-    endIf
-
-endFunction
-EndState 
-
-State cmd_sl_animname ;sl_animname
-function oper(string[] param)
-    stack[0] = ""
-	
-	if !SexLab
-		return
-	endif
-    
-    string ss
-    
-    if thread
-        stack[0] = thread.Animation.Name
-        ;MiscUtil.PrintConsole("animname: " + stack[0])
-    endIf
-
-endFunction
-EndState 
-
-State cmd_sl_getprop ;sl_getprop
-function oper(string[] param)
-    stack[0] = ""
-	
-	if !SexLab
-		return
-	endif
-    
-    string ss
-    
-    if thread
-        ss = resolve(param[1])
-        if ss == "Stage"
-            stack[0] = thread.Stage as string
-        elseif ss == "ActorCount"
-            stack[0] = thread.ActorCount as string
-        endIf
-        ;MiscUtil.PrintConsole("animname: " + stack[0])
-    endIf
-
-endFunction
-EndState 
-
-State cmd_sl_advance ;sl_advance "-1" (to go backward)
-function oper(string[] param)
-	if !SexLab || !thread
-		return
-	endif
-	
-	int ss = resolve(param[1]) as int
-	thread.AdvanceStage(ss == -1)
-endFunction
-EndState
-
-State cmd_sl_isinslot ;sl_isinslot "$self", "1" (SexLab slots numbered 1-5)
-function oper(string[] param)
-	stack[0] = "0"
-	
-	if !SexLab || !thread
-		return
-	endif
-	
-	int slPosition = resolve(param[1]) as int
-	if slPosition < 1 || slPosition > 4
-		return
-	endif
-	
-	if slPosition == 1 && !aPartner1 || slPosition == 2 && !aPartner2 || slPosition == 3 && !aPartner3 || slPosition == 4 && !aPartner4
-		return
-	endif
-	
-	Actor mate = resolveActor(param[1])
-	int actorIdx = 0
-	while actorIdx < thread.Positions.Length
-		if (actorIdx + 1) > slPosition
-			return
-		endif
-		Actor slActor = thread.Positions[actorIdx]
-		; the assumption is that slPosition is 1-based and actorIdx is 0-based
-		if slActor == mate
-			if (actorIdx + 1) == slPosition
-				stack[0] = "1"
-			endif
-			return
-		endif
-	endwhile
-endFunction
-EndState
 
 State cmd_perk_addpoints ;perk_addpoints "count"
-function oper(string[] param)
+bool function oper(string[] param)
     string ss
     int    p1
     ss = resolve(param[1])
     p1 = ss as int
     Game.AddPerkPoints(p1)
+
+	return true
 endFunction
 EndState 
 
 State cmd_perk_add ;perk_add "module:id", "$self"
-function oper(string[] param)
+bool function oper(string[] param)
     Perk thing
     Actor mate
-    thing = _getFormId(resolve(param[1])) as Perk
+    thing = getFormId(resolve(param[1])) as Perk
     if thing
         mate = resolveActor(param[2])
         mate.AddPerk(thing)
     endIf
+
+	return true
 endFunction
 EndState 
 
 State cmd_perk_remove ;perk_remove "module:id", "$self"
-function oper(string[] param)
+bool function oper(string[] param)
     Perk thing
     Actor mate
-    thing = _getFormId(resolve(param[1])) as Perk
+    thing = getFormId(resolve(param[1])) as Perk
     if thing
         mate = resolveActor(param[2])
         mate.RemovePerk(thing)
     endIf
+
+	return true
 endFunction
 EndState 
 
-State cmd_actor_isaffectedby ;actor_isaffected by "$player", "Skyrim.esm:1030541" (can be MGEF or SPEL)
-function oper(string[] param)
-	Actor mate
-	Form thing
-	
-	mate = resolveActor(param[1])
-	if !mate
-		stack[0] = "0"
-		return
-	endif
-	
-	thing = _getFormId(resolve(param[2]))
-	
-	; is it a MGEF?
-	MagicEffect mgef = thing as MagicEffect
-	if mgef
-		if mate.HasMagicEffect(mgef)
-			stack[0] = "1"
-		else
-			stack[0] = "0"
-		endif
-		return
-	endif
-	
-	; is it a SPEL?
-	Spell spel = thing as Spell
-	if spel
-		int i = 0
-		int numeffs = spel.GetNumEffects()
-		while i < numeffs
-			mgef = spel.GetNthEffectMagicEffect(i)
-			if mate.HasMagicEffect(mgef)
-				stack[0] = "1"
-				return
-			endif
-			
-			i += 1
-		endwhile
-	endif
-	
-	; it was nothing :(
-	stack[0] = "0"
-endFunction
-EndState
 
 State cmd_actor_advskill ;actor_advskill "$self", "skill name", "count"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     string skillName
     string ss
@@ -1246,11 +1171,13 @@ function oper(string[] param)
         Game.AdvanceSkill(skillName, p1)
     endIf
 
+
+	return true
 endFunction
 EndState 
 
 State cmd_actor_incskill ;actor_incskill "$self", "skill name", "count"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     string skillName
     string ss
@@ -1267,11 +1194,13 @@ function oper(string[] param)
         mate.ModActorValue(skillName, p1)
     endIf
 
+
+	return true
 endFunction
 EndState 
 
 State cmd_actor_isvalid ;actor_isvalid "$self"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     Cell  cc = PlayerRef.getParentCell()
     
@@ -1282,11 +1211,13 @@ function oper(string[] param)
         stack[0] = "0"
     endIf
 
+
+	return true
 endFunction
 EndState 
 
 State cmd_actor_haslos ;actor_haslos "$a1", "$a2"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     Actor mate2
     
@@ -1298,21 +1229,25 @@ function oper(string[] param)
         stack[0] = "0"
     endIf
 
+
+	return true
 endFunction
 EndState 
 
 State cmd_actor_name ;actor_name "$a1"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     
     mate = resolveActor(param[1])
-    stack[0] = _actorName(mate)
+    stack[0] = actorName(mate)
 
+
+	return true
 endFunction
 EndState 
 
 State cmd_actor_modcrimegold ;actor_haslos "$actor", "count"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     string ss
     int    p1
@@ -1326,21 +1261,25 @@ function oper(string[] param)
 		crimeFact.ModCrimeGold(p1, false)
     endIf
 
+
+	return true
 endFunction
 EndState 
 
 State cmd_actor_qnnu ;actor_qnnu "$a1"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     
     mate = resolveActor(param[1])
     mate.QueueNiNodeUpdate()
 
+
+	return true
 endFunction
 EndState 
 
-State cmd_actor_isquard ;actor_isquard "$a1"
-function oper(string[] param)
+State cmd_actor_isguard ;actor_isguard "$a1"
+bool function oper(string[] param)
     Actor mate
     
     mate = resolveActor(param[1])
@@ -1350,11 +1289,20 @@ function oper(string[] param)
         stack[0] = "0"
     endIf
     
+
+	return true
+endFunction
+EndState 
+
+State cmd_actor_isquard ;actor_isguard "$a1"
+bool function oper(string[] param)
+	GotoState("cmd_actor_isguard") ; because, seriously
+	return oper(param)
 endFunction
 EndState 
 
 State cmd_actor_isplayer ;actor_isplayer "$a1"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     
     mate = resolveActor(param[1])
@@ -1364,42 +1312,42 @@ function oper(string[] param)
         stack[0] = "0"
     endIf
     
+
+	return true
 endFunction
 EndState 
 
 State cmd_actor_getgender ;actor_getgender "$a1"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     int   gender
     
     mate = resolveActor(param[1])
-    gender = _actorGender(mate)
+    gender = actorGender(mate)
     
     stack[0] = gender as int
-    
+
+	return true
 endFunction
 EndState 
 
 State cmd_actor_say ;actor_say "$self", "topic id"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     Topic thing
     
-    thing = _getFormId(resolve(param[2])) as Topic
+    thing = getFormId(resolve(param[2])) as Topic
     if thing
         mate = resolveActor(param[1])
-        if mate == PlayerRef && SexLab && SexLab.Config.ToggleFreeCamera
-            ;mate.Say(thing, mate, true)
-        else
-            mate.Say(thing)
-        endIf
+        mate.Say(thing)
     endIf
 
+	return true
 endFunction
 EndState 
 
 State cmd_actor_haskeyword ;actor_haskeyword "$a1", "keyword name"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     string ss
     Keyword keyw
@@ -1414,17 +1362,18 @@ function oper(string[] param)
     else
         stack[0] = "0"
     endIf
-    
+
+	return true
 endFunction
 EndState 
 
 State cmd_actor_iswearing ;actor_iswearing "$a1", "module:id"
-function oper(string[] param)
+bool function oper(string[] param)
 	Actor mate
 	Form thing
 	
 	mate = resolveActor(param[1])
-	thing = _getFormId(resolve(param[2]))
+	thing = getFormId(resolve(param[2]))
 	
 	if thing && mate.IsEquipped(thing)
         stack[0] = "1"
@@ -1432,11 +1381,13 @@ function oper(string[] param)
         stack[0] = "0"
     endIf
 	
+
+	return true
 endFunction
 EndState
 
 State cmd_actor_worninslot ;actor_worninslot "$a1", "slot"
-function oper(string[] param)
+bool function oper(string[] param)
 	Actor mate
 	int slot = param[2] as int
 	
@@ -1446,11 +1397,13 @@ function oper(string[] param)
 	else
 		stack[0] = "0"
 	endIf
+
+	return true
 endFunction
 EndState
 
 State cmd_actor_wornhaskeyword ;actor_wornhaskeyword "$a1", "keyword name"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     string ss
     Keyword keyw
@@ -1466,11 +1419,13 @@ function oper(string[] param)
         stack[0] = "0"
     endIf
     
+
+	return true
 endFunction
 EndState 
 
 State cmd_actor_lochaskeyword ;actor_lochaskeyword "$a1", "keyword name"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     string ss
     Keyword keyw
@@ -1486,11 +1441,13 @@ function oper(string[] param)
         stack[0] = "0"
     endIf
     
+
+	return true
 endFunction
 EndState 
 
 State cmd_actor_getrelation ;actor_getrelation "$a1", "$a2"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate1
     Actor mate2
     int   ret
@@ -1501,11 +1458,13 @@ function oper(string[] param)
     ret = mate1.GetRelationshipRank(mate2)
     stack[0] = ret as int
     
+
+	return true
 endFunction
 EndState 
 
 State cmd_actor_setrelation ;actor_setrelation "$a1", "$a2", "num"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate1
     Actor mate2
     string  ss
@@ -1518,16 +1477,18 @@ function oper(string[] param)
     
     mate1.SetRelationshipRank(mate2, p1)
     
+
+	return true
 endFunction
 EndState 
 
 State cmd_actor_infaction ;actor_infaction "$a1", "faction id"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     Faction thing
     
     mate = resolveActor(param[1])
-    thing = _getFormId(resolve(param[2])) as Faction
+    thing = getFormId(resolve(param[2])) as Faction
     
     stack[0] = "0"
     if thing
@@ -1536,18 +1497,20 @@ function oper(string[] param)
         endif
     endif
     
+
+	return true
 endFunction
 EndState 
 
 ;getfactionrank
 State cmd_actor_getfactionrank ;actor_getfactionrank "$a1", "faction id"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     Faction thing
     int retVal
     
     mate = resolveActor(param[1])
-    thing = _getFormId(resolve(param[2])) as Faction
+    thing = getFormId(resolve(param[2])) as Faction
     
     stack[0] = "0"
     if thing
@@ -1555,18 +1518,20 @@ function oper(string[] param)
         stack[0] = retVal as Int
     endif
     
+
+	return true
 endFunction
 EndState 
 
 State cmd_actor_setfactionrank ;actor_setfactionrank "$a1", "faction id", "rank"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     Faction thing
     string ss
     int p1
     
     mate = resolveActor(param[1])
-    thing = _getFormId(resolve(param[2])) as Faction
+    thing = getFormId(resolve(param[2])) as Faction
     ss = resolve(param[3])
     p1 = ss as int
     
@@ -1574,26 +1539,76 @@ function oper(string[] param)
         mate.SetFactionRank(thing, p1)
     endif
     
+
+	return true
 endFunction
 EndState 
 
+State cmd_actor_isaffectedby ;actor_isaffected by "$player", "Skyrim.esm:1030541" (can be MGEF or SPEL)
+bool function oper(string[] param)
+	Actor mate
+	Form thing
+	
+	mate = resolveActor(param[1])
+	if !mate
+		stack[0] = "0"
+		return true
+	endif
+	
+	thing = GetFormId(resolve(param[2]))
+	
+	; is it a MGEF?
+	MagicEffect mgef = thing as MagicEffect
+	if mgef
+		if mate.HasMagicEffect(mgef)
+			stack[0] = "1"
+		else
+			stack[0] = "0"
+		endif
+		return true
+	endif
+	
+	; is it a SPEL?
+	Spell spel = thing as Spell
+	if spel
+		int i = 0
+		int numeffs = spel.GetNumEffects()
+		while i < numeffs
+			mgef = spel.GetNthEffectMagicEffect(i)
+			if mate.HasMagicEffect(mgef)
+				stack[0] = "1"
+				return true
+			endif
+			
+			i += 1
+		endwhile
+	endif
+	
+	; it was nothing :(
+	stack[0] = "0"
+	return true
+endFunction
+EndState
+
 State cmd_actor_removefaction ;actor_removefaction "$a1", "faction id"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     Faction thing
     
     mate = resolveActor(param[1])
-    thing = _getFormId(resolve(param[2])) as Faction
+    thing = getFormId(resolve(param[2])) as Faction
 
     if thing
         mate.RemoveFromFaction(thing)
     endif
     
+
+	return true
 endFunction
 EndState 
 
 State cmd_actor_playanim ;
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     string ss
     
@@ -1602,11 +1617,13 @@ function oper(string[] param)
     
     Debug.SendAnimationEvent(mate, ss)
     
+
+	return true
 endFunction
 EndState 
 
 State cmd_actor_sendmodevent ;actor_sendmodevent "actor", "event name", "arg1", "arg2"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     string ss1
     string ss2
@@ -1623,11 +1640,13 @@ function oper(string[] param)
         mate.SendModEvent(ss1, ss2, p3)
     endIf
 
+
+	return true
 endFunction
 EndState 
 
 State cmd_actor_state ;actor_state "actor", "func name", ...
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     string ss1
     
@@ -1657,11 +1676,13 @@ function oper(string[] param)
         endIf
     endIf
 
+
+	return true
 endFunction
 EndState 
 
 State cmd_actor_body ;actor_body "actor", "func name", ...
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     string ss1
     string ss2
@@ -1700,11 +1721,13 @@ function oper(string[] param)
         endIf
     endIf
 
+
+	return true
 endFunction
 EndState 
 
 State cmd_actor_race ;actor_race "actor", "option"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     string ss1
     
@@ -1720,17 +1743,19 @@ function oper(string[] param)
         endIf
     endIf
 
+
+	return true
 endFunction
 EndState 
 
 
 State cmd_ism_applyfade ;ism_applyfade "item id", duration"
-function oper(string[] param)
+bool function oper(string[] param)
     Form   thing
     string ss
     float  p1
 
-    thing = _getFormId(resolve(param[1]))
+    thing = getFormId(resolve(param[1]))
     ss = resolve(param[2])
     p1 = ss as float
 
@@ -1738,17 +1763,19 @@ function oper(string[] param)
         (thing as ImageSpaceModifier).ApplyCrossFade(p1)
     endIf
 
+
+	return true
 endFunction
 EndState 
 
 
 State cmd_ism_removefade ;ism_removefade "item id", duration"
-function oper(string[] param)
+bool function oper(string[] param)
     Form   thing
     string ss
     float  p1
 
-    thing = _getFormId(resolve(param[1]))
+    thing = getFormId(resolve(param[1]))
     ss = resolve(param[2])
     p1 = ss as float
 
@@ -1756,12 +1783,14 @@ function oper(string[] param)
         ImageSpaceModifier.RemoveCrossFade(p1)
     endIf
 
+
+	return true
 endFunction
 EndState 
 
 
 State cmd_util_sendmodevent ;util_sendmodevent "event name", "arg1", "arg2"
-function oper(string[] param)
+bool function oper(string[] param)
     string ss1
     string ss2
     string ss3
@@ -1774,11 +1803,13 @@ function oper(string[] param)
     
     SendModEvent(ss1, ss2, p3)
 
+
+	return true
 endFunction
 EndState 
 
 State cmd_util_sendevent ;util_sendevent "event name", "arg1", "arg2"
-function oper(string[] param)
+bool function oper(string[] param)
     string eventName
     string typeId
     string ss
@@ -1818,20 +1849,24 @@ function oper(string[] param)
         ModEvent.Send(eid)
     endIf
     
+
+	return true
 endFunction
 EndState 
 
 State cmd_util_getgametime ;
-function oper(string[] param)
+bool function oper(string[] param)
     float dayTime = Utility.GetCurrentGameTime()
     
     stack[0] = dayTime as string
     
+
+	return true
 endFunction
 EndState 
 
 State cmd_util_gethour ;
-function oper(string[] param)
+bool function oper(string[] param)
 	float dayTime = Utility.GetCurrentGameTime()
  
 	dayTime -= Math.Floor(dayTime)
@@ -1841,11 +1876,13 @@ function oper(string[] param)
     
     stack[0] = theHour as string
     
+
+	return true
 endFunction
 EndState 
 
 State cmd_util_game ;
-function oper(string[] param)
+bool function oper(string[] param)
     string p1
     string p2
     
@@ -1859,16 +1896,18 @@ function oper(string[] param)
         stack[0] = Game.QueryStat(p2) as string
     endIf
     
+
+	return true
 endFunction
 EndState 
 
 State cmd_snd_play ;snd_play "item:id", "actor"
-function oper(string[] param)
+bool function oper(string[] param)
     Sound   thing
     Actor   mate
     int     retVal
     
-    thing = _getFormId(resolve(param[1])) as Sound
+    thing = getFormId(resolve(param[1])) as Sound
     mate = resolveActor(param[2])
     ;MiscUtil.PrintConsole("snd:play: " + thing)
     if thing
@@ -1876,11 +1915,13 @@ function oper(string[] param)
         stack[0] = retVal as string
     endIf
 
+
+	return true
 endFunction
 EndState 
 
 State cmd_snd_setvolume ;snd_setvolume "soundId", "vol"
-function oper(string[] param)
+bool function oper(string[] param)
     string ss
     int    soundId
     float  vol
@@ -1894,11 +1935,13 @@ function oper(string[] param)
     ;MiscUtil.PrintConsole("snd:set volume: " + soundId)
     Sound.SetInstanceVolume(soundId, vol)
 
+
+	return true
 endFunction
 EndState 
 
 State cmd_snd_stop ;snd_stop "soundId"
-function oper(string[] param)
+bool function oper(string[] param)
     string ss
     int    soundId
 
@@ -1908,11 +1951,13 @@ function oper(string[] param)
     ;MiscUtil.PrintConsole("snd:stop: " + soundId)
     Sound.StopInstance(soundId)
 
+
+	return true
 endFunction
 EndState 
 
 State cmd_console ;console "$actor", "cmd", ...
-function oper(string[] param)
+bool function oper(string[] param)
     string ss
     string ssx
     int cnt
@@ -1931,22 +1976,26 @@ function oper(string[] param)
     
     sl_TriggersConsole.exec_console(mate, ssx)
     
+
+	return true
 endFunction
 EndState 
 
 State cmd_mfg_reset ;mfg_reset "$actor"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     
     mate = resolveActor(param[1])
 
     sl_TriggersMfg.mfg_reset(mate)
     
+
+	return true
 endFunction
 EndState 
 
 State cmd_mfg_setphonememodifier ;mfg_setphonememodifier "$actor", "mode", "id", "value"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     int   p1
     int   p2
@@ -1959,11 +2008,13 @@ function oper(string[] param)
     
     sl_TriggersMfg.mfg_SetPhonemeModifier(mate, p1, p2, p3)
     
+
+	return true
 endFunction
 EndState 
 
 State cmd_mfg_getphonememodifier ;mfg_getphonememodifier "$actor", "mode", "id"
-function oper(string[] param)
+bool function oper(string[] param)
     Actor mate
     int   p1
     int   p2
@@ -1976,16 +2027,13 @@ function oper(string[] param)
     retVal = sl_TriggersMfg.mfg_GetPhonemeModifier(mate, p1, p2)
     stack[0] = retVal as string
     
+
+	return true
 endFunction
 EndState 
 
 State cmd_util_waitforkbd ;util_waitfokbd "keycode", "keycode", ...
-function oper(string[] param)
-	if !SexLab
-        stack[0] = "-1"
-		return
-	endif
-	
+bool function oper(string[] param)
     string ss
     string ssx
     int cnt
@@ -1994,9 +2042,9 @@ function oper(string[] param)
 
     cnt = param.length
 
-    if (aCaster != PlayerRef) || (cnt <= 1) || !(PlayerRef.GetFactionRank(SexLabAnimatingFaction) >= 0)
+    if (aCaster != PlayerRef) || (cnt <= 1)
         stack[0] = "-1"
-        return
+        return false
     endIf
 
     UnregisterForAllKeys()
@@ -2013,27 +2061,25 @@ function oper(string[] param)
     endWhile
     
     lastKey = 0
+	int timeoutcheck = 0
     
-    while Self && lastKey == 0 && PlayerRef.GetFactionRank(SexLabAnimatingFaction) >= 0
+    while Self && lastKey == 0 && timeoutcheck < 20
         Utility.Wait(0.5)
+		timeoutcheck += 1
     endWhile
     
-    if !(PlayerRef.GetFactionRank(SexLabAnimatingFaction) >= 0)
-        stack[0] = "-1"
-    else
-        stack[0] = lastKey as string
-    endIf
+    stack[0] = lastKey as string
     
     ;MiscUtil.PrintConsole("RetKey: " + lastKey)
     
     UnregisterForAllKeys()
-    
+
+	return true
 endFunction
 EndState 
 
-
 State cmd_json_getvalue ;json_getvalue "file name", "type", "keyname", "value_if_missing"
-function oper(string[] param)
+bool function oper(string[] param)
     string pname
     string ptype
     string pkey
@@ -2058,11 +2104,13 @@ function oper(string[] param)
         stack[0] = sRet
     endIf
     
+
+	return true
 endFunction
 EndState 
 
 State cmd_json_setvalue ;json_getvalue "file name", "type", "keyname", "value"
-function oper(string[] param)
+bool function oper(string[] param)
     string pname
     string ptype
     string pkey
@@ -2081,22 +2129,26 @@ function oper(string[] param)
         JsonUtil.SetStringValue(pname, pkey, pdef)
     endIf
     
+
+	return true
 endFunction
 EndState 
 
 State cmd_json_save ;json_getvalue "file name"
-function oper(string[] param)
+bool function oper(string[] param)
     string pname
     
     pname = resolve(param[1])
     ;MiscUtil.PrintConsole("Set: " + pname)
     JsonUtil.Save(pname)
     
+
+	return true
 endFunction
 EndState 
 
 State cmd_weather_state ;weather_state "actor", "func name", ...
-function oper(string[] param)
+bool function oper(string[] param)
     string ss1
     string ss2
     
@@ -2110,11 +2162,13 @@ function oper(string[] param)
         endIf
     endIf
 
+
+	return true
 endFunction
 EndState 
 
 State cmd_math ;math "function", ["arg1", ...]
-function oper(string[] param)
+bool function oper(string[] param)
     string ss1
     string ss2
     int    ii1
@@ -2146,7 +2200,7 @@ function oper(string[] param)
     elseIf ss1 == "toint"
         ss2 = resolve(param[2])
         if ss2 && (StringUtil.GetNthChar(ss2, 0) == "0")
-            ii1 = hex_to_int(ss2)
+            ii1 = hexToInt(ss2)
         elseIf ss2
             ii1 = ss2 as int
         else 
@@ -2155,5 +2209,7 @@ function oper(string[] param)
         stack[0] = ii1 as string
     endIf
 
+
+	return true
 endFunction
 EndState 
