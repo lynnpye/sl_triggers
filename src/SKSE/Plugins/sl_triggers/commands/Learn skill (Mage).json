@@ -1,0 +1,9 @@
+{
+	"cmd" : 
+	[
+        ["rnd_list", "Alteration","Conjuration","Destruction","Illusion","Restoration","Enchanting"],
+        ["set", "$1", "$$"],
+        ["actor_incskill", "$self", "$1", "1"]
+	]
+}
+

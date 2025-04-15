@@ -1,0 +1,10 @@
+{
+	"cmd" : 
+	[
+        ["util_waitforend", "$self"],
+        ["util_wait", "5"],
+        ["actor_playanim", "$self", "IdleChildCryingStart"],
+        ["util_wait", "20"],
+        ["actor_playanim", "$self", "IdleForceDefaultState"]
+	]
+}

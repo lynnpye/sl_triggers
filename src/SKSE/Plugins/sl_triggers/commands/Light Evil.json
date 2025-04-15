@@ -1,0 +1,8 @@
+{
+	"cmd" : 
+	[
+        ["spell_cast", "sl_triggers.esp:11737", "$self"],
+        ["util_waitforend", "$self"],
+        ["spell_dispel", "sl_triggers.esp:11737", "$self"]
+    ]
+}

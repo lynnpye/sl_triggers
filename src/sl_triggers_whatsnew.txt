@@ -1,0 +1,99 @@
+v05: 
+    Variables:
+        - "$partner" : partner in sex
+        
+    Variables operations:
+        - "set" : has now 2 versions. Simple assignment and some math like ["set", "$1", "12", "+", "3"]  
+        - "inc" : short version for "+"
+        - "cat" : short version for string "+"
+        
+    Functions:
+        - actor_isguard: is law
+        - actor_isplayer: is PC
+        - actor_getgender: gender
+        - actor_haskeyword: does it have a specific kewyord
+        - actor_getrelation: get relationship rank btween 2 actors (enemy, friend, ...)
+        - actor_setrelation: set relationship rank btween 2 actors (enemy, friend, ...)
+        - actor_infaction: check if actor is in specific faction
+        - actor_getfactionrank: get faction rank
+        - actor_setfactionrank: set faction rank
+        - actor_removefaction: remove from faction
+        - actor_playanim: play animation
+        - util_sendmodevent: send event (SendModEvent)
+        - util_sendevent: send event using SKSE (ModEvent.psc)
+        
+        
+v06:
+    Functions:
+        - actor_sendmodevent: Actor version of util_sendmodevent
+        - sl_hastag: check if current animation has a specific tag
+        - util_getgametime: get game time
+        - util_gethour: get day hour
+        
+    Commands:
+        - Eat (sweets).json
+        - It was bad.json
+
+v07:
+    Misc:
+        - you can now set up to 80 triggers
+        
+    Functions:
+        - actor_wornhaskeyword: check if anything actor is wearing has specified keyword
+        - actor_lochaskeyword: check if location where actor is has a specific keyword
+        
+v08:
+    Functions:
+        - snd_play, snd_setvolume, snd_stop: for playing sound
+        - console: (optional). If you have ConsoleUtilSSE installed (https://www.nexusmods.com/skyrimspecialedition/mods/24858), it executes console commands
+        - mfg_*, facial expressions: (optional) If you have MfgFix (https://www.nexusmods.com/skyrimspecialedition/mods/11669), you can play with facial expressions
+        
+    Commands:
+        - Heart beat(A).json: play "heart beat" sound 
+        - Sound - levelup.json: play "levelup" sound
+        - Time Slow.json: slows global time by 50%. Resets time to normal at the end. Uses console command (must have ConsoleUtilSSE plugin)
+        - MFG Reset.json: When sex ends, reset facial expression (must have MfgFix plugin installed)
+        
+v09: 
+    Functions:
+        - sl_animname: returns current SL animation name
+        - util_waitforkbd: wait for user to press a specific key or SL animation ends
+        - json_getvalue: read data from external json file
+        - json_setvalue: write data to external file
+        - json_save: while "save" is done automaticly when user makes skyrim save, this forces .json to be saved now
+        
+    Commands:
+        - Time Control.json: You can control the game speed, and so animation speed with keyboard. (must have ConsoleUtilSSE plugin)
+        
+v10:
+    General:
+        - increased max number of goto labels to 32
+        
+    Functions:
+        - item_equip: equip item. Like item_equipex. item_equip is "vannila" function, item_equipex is SKSE version
+        - actor_state: get or set/exec a couple of misc functions, "states" about actor
+        - actor_body: a couple of functions related to actors body (weight, head regen, stuff)
+        - weather_state: get what kind of weather is currently active (rain, show, etc...)
+        - util_game: some functions from game.psc. IncrementStat, QueryStat
+
+v11: 
+    Functions:
+        - av_set: set actor value
+        - av_getbase: get actor base value
+        - actor_advskill: player only, advance actor skill
+        - "$partner2", "$partner3", "$partner4": to get 2nd, 3rd and 4th "partner"
+
+v12:
+    General:
+        - Form ID for objects can now be in dex or hex notation. If ID starts with 0, it is assumed to be hex, else its dec
+        - Example:
+        -     Hex version:
+        -     ["item_equip", "$self", "skyrim.esm:0166d6", "0", "1"],
+        -     Dec version:
+        -     ["item_equip", "$self", "skyrim.esm:91862", "0", "1"],
+        - I hope I didn't broke something :(
+        
+    Functions: 
+        - actor_race: get actors race name. Vannila(Nord, Bretonr, etc) or SL "RaceKey" (Dogs, Trolls, etc)
+        - math: math fuctions: asint, floor, ceiling, abs
+        

@@ -1,0 +1,1055 @@
+Script for SL Triggers is .json formated file. 
+Name of the file is also name of the command displayed in MCM menu.
+File must be in Data\SKSE\Plugins\sl_triggers\commands. If its there, MCM should pick it up.
+For reading .json file PapyrusUtil lib(skse dll) is used. Its part of Sexlab Framework.
+
+1. Simple
+
+The best way to learn is by example. So first, a simple one. We will cast a spell. Its from Cast Light.json.
+
+{
+	"cmd" : 
+	[
+        ["spell_cast", "skyrim.esm:275236", "$self"]
+	]
+}
+
+All commands start with "{" and end with "}" (whats inside of "", not "" itself). It has something to do with json.
+Commands are a variable named "cmd", that is an array of string arrays. 
+So kinda like 1 or more lines (array) of function calls and 'function call' is array of strings. First string is function name, followed by 0 or more parameters.
+
+So any given command would start with:
+
+{
+	"cmd" : 
+	[
+        ... content goes here
+        
+and end with:
+
+        ... content was here
+	]
+}
+
+(dont type that ... content goes/was here).
+
+
+The function itself is like:
+    [ "function name", "param1", param2", "paramX"]
+    
+So its starts with [ and ends with ]. First string is function name, then 0 or more strings that are parameters for this specific function.
+Multiple function calls are separated by comma(,), multiple parameters are separated by comma(').
+
+
+We used "spell_cast" function. The parameters for spell_cast are:
+- spell to cast: its id in the form module_name : id. "skyrim.esm:275236" in this case. Id is in decimal, NOT hex.
+- target actor: who gets, is target of, the spell. In this case "$self". This is how you do it. 
+
+Thats about it for simple stuff. Sort of like you would type commands in console.
+
+
+2. Variables
+
+This command json things supports 'variables'. Memory slots, where you can store stuff.
+
+Example (content of Alchocol.json):
+
+{
+	"cmd" : 
+	[
+        ["rnd_list", "skyrim.esm:216158", "skyrim.esm:853342", "skyrim.esm:181082", "skyrim.esm:329930", "skyrim.esm:201531", "skyrim.esm:201532", "skyrim.esm:1079946", "skyrim.esm:901490", "skyrim.esm:758231" ],
+        ["set", "$1", "$$"],
+        ["item_adduse", "$self", "$1", "1", "0"]
+	]
+}
+
+We have 3 lines:
+- "rnd_list" is a function that picks one random parameters and puts it into $$ variable
+- "set" is a function that puts(sets) whatever is in 3rd parameter into variable named "$1"
+- "item_adduse" is a function that adds item into actors inventory and then "uses" it. 
+
+
+So about variables:
+- $$ is a variable reserved for "function return value". Its where some function will put result. Your script should only read it.
+- $0, $1, $2, $3, $4, $5, $6, $7, $8, $9 are variable for general use. You can use them for read or write
+- its string type only. Always string, only string. Its why you have only seen things as "<whatever>". Its string.
+- nothing is perfect. Especialy if you want to do script language in a Papyrus script language.
+- in case you ask "why does it starts with $". So I know if its "variable" or just value. If it starts with $, it is replaced with value stored under that name
+
+Actor variables:
+- some functions expect 'Actor' as a parameter
+- in this case you can use:
+    - "$self" : you, I mean actor that is target of this script
+    - "$partner" : sex partner. The other that is not you. 
+    - "$partner2" : sex partner. The second other that is not you. 
+    - "$partner3" : sex partner. The third other that is not you. 
+    - "$partner4" : sex partner. The forth other that is not you.
+    - "$player" : player. Main actor. Dragonborn. $self is not always $player
+    - "$actor" : some special functions return 'Actor' type, but as "$$" is string-only, they return it in "$actor" var
+
+Variables operations:
+    - "set": set a variable. There are 2 version. 
+        - version 1: assignment. It has 2 parameters. variable name and value
+                Example: ["set", "$0", "1"]  
+                
+        - version 2: math. 4 parameters. Variable name, left operand, math operation, right operand
+                Posible operations are:
+                    - "+": add(numeric)
+                    - "-": substract(numeric)
+                    - "*": multiply(numeric)
+                    - "/": divide(numeric)
+                    - "&": string concat 
+                    
+                Example: ["set", "$0", "1", "+", "2"]
+                
+                
+    - "inc": increment variable. 
+        Ex.: ["inc", "$0", "1"]
+        
+        Short version of ["set", "$0", "$0", "+", "1"]
+        
+    - "cat": string concat
+        Ex.: ["inc", "$0", "A"]
+        
+        Short version of ["set", "$0", "$0", "&", "A"]
+
+    
+3. If ... goto
+
+So far we have functions calls, variables, now we will also add the simplest possible "flow control".
+
+Example (from Disease.json):
+
+{
+	"cmd" : 
+	[
+        ["rnd_list", "skyrim.esm:755580", "skyrim.esm:755582", "skyrim.esm:755583", "skyrim.esm:755584", "skyrim.esm:755585", "skyrim.esm:755586", "skyrim.esm:755587"],
+        ["set", "$1", "$$"],
+        [":", "more"],
+        ["spell_dcsa", "$1", "$self"],
+        ["sl_isin", "$self"],
+        ["if", "$$", "=", "0", "end"],
+        ["util_wait", "6"],
+        ["goto", "more"],
+        [":", "end"]
+	]
+}
+
+First:
+ - "if" in all computer languages means "condition". Its where we decide if we want to do one thing or some other thing
+ - "goto" means: jump to somewhere else inside of code
+
+Most of things you have seen before. New stuff is:
+- [":", "more"] : this reads as: define goto label named "more". ":" is define goto target, "more" is labels name
+- ["if", "$$", "=", "0", "end"] : is condition. It means: if var "$$" equals "0" then "goto" label named "end"
+- ["goto", "more"] : is unconditional "goto". In this case: just goto/jump to where its labeled "more"
+
+Operators for "if" command (we are checking value on the left and on the right):
+- "=" : numeric check. Are numbers equal
+- "!=" : numeric check. Are numbers not equal
+- ">" : numeric check. Is left greater then right
+- ">=" : numeric check. Is left greater-or-equal then right
+- "<" : numeric check. Is left smaller then right
+- "<=" : numeric check. Is left smaller-or-equal then right
+- "&=" : string check. Is left string equal to the right one
+- "&!=" : string check. Is left string not equal to the right one
+
+How script reads:
+- get one random code from a list. Codes just happen to be what is disease in Skyrim
+- store return value in a variable so its not overwritten by some other function call
+- define goto label "more". We will be doing a loop. 
+- "spell_dcsa" is Papyrus command that reads as "Do Combat Spell Apply". Hmm, melee attacks in Skyrim can also apply magical spells. Animals for example not only attack with claws but can also apply disease.
+- "sl_isin" is a function that checks if Sexlab sceene is still running. If "$self" is still in SL. "1" if in, "0" if out.
+- so "if" whatever prev. command returned($$) equals(=) "0" then goto to "end"
+- "util_wait" waits, sleeps for "6" seconds. This line gets executed because prev. "if" didn't jumped away. 
+- just "goto" "more". We do again lines that are after goto label "more".
+- define goto label "end" so that "if" can jump somewhere
+
+
+... thats about it. 
+
+4. Functions
+
+Actor values:
+
+av_restore: restore actor value
+    - parameter 1: who, actor ID. 
+    - parameter 2: name of actors attribute. "Health", "Stamina", etc. Skyrims actor values
+    - parameter 3: by how much. "75" would mean "restore by 75 points"
+    
+    Example:
+    
+        ["av_restore", "$self", "Health", "100"]
+    
+    would be restore my HP by 100.
+
+av_damage: damage actor value. Like restore, but in reverse
+    - parameter 1: who, actor ID. 
+    - parameter 2: name of actors attribute. "Health", "Stamina", etc. Skyrims actor values
+    - parameter 3: by how much. "75" would mean "damage by 75 points"
+    
+    Example:
+    
+        ["av_damage", "$self", "Health", "100"]
+    
+    would be damage my HP by 100. Ohh. Carefull. It can kill.
+
+    
+av_mod: change actor value. 
+    - parameter 1: who, actor ID. 
+    - parameter 2: name of actors attribute. "Health", "Stamina", etc. Skyrims actor values
+    - parameter 3: by how much
+    
+    Note: this fuction changes max value of actor value. Fuction not the same as restore/damage
+    
+    Example:
+    
+        ["av_mod", "$self", "Health", "10"]
+    
+    max Health goes up
+    
+av_get: get actor value
+    - parameter 1: who, actor ID. 
+    - parameter 2: name of actors attribute. "Health", "Stamina", etc. Skyrims actor values
+    
+    Example:
+    
+        ["av_get", "$self", "Health"]
+    
+    puts actors Health into $$
+    
+av_getbase: get actors base value
+    - parameter 1: who, actor ID. 
+    - parameter 2: name of actors attribute. "Health", "Stamina", etc. Skyrims actor values
+    
+    Example:
+    
+        ["av_getbase", "$self", "Health"]
+    
+    puts actors base Health into $$
+    
+av_getmax: get max of actors value
+    - parameter 1: who, actor ID. 
+    - parameter 2: name of actors attribute. "Health", "Stamina", etc. Skyrims actor values
+    
+    Example:
+    
+        ["av_getmax", "$self", "Health"]
+    
+    puts actors max Health into $$
+    
+    
+av_getpercent: get actors value as percentage of its max value (0 - 100)
+    - parameter 1: who, actor ID. 
+    - parameter 2: name of actors attribute. "Health", "Stamina", etc. Skyrims actor values
+    
+    Example:
+    
+        ["av_getpercent", "$self", "Health"]
+    
+    puts actors percent of max Health into $$
+    
+av_set: set actor value
+    - parameter 1: who, actor ID. 
+    - parameter 2: name of actors attribute. "Health", "Stamina", etc. Skyrims actor values
+    - parameter 3: value
+    
+    Example:
+    
+        ["av_set", "$self", "Health", "100"]
+    
+    set actors Health to 100
+
+    
+Actor:
+
+actor_advskill:  advance target actors skill by X
+    - parameter 1: who, actor ID. (must be $player)
+    - parameter 2: name of skill
+    - parameter 3: by how much. "1" would mean "by 1 point"
+    
+    Example:
+        
+        ["actor_advkill", "$self", "Alteration", "1"]
+        
+    boost Alteration by 1 point
+    note: currently only works on PC/Player
+    
+actor_incskill: increase target actors skill by X
+    - parameter 1: who, actor ID. 
+    - parameter 2: name of skill
+    - parameter 3: by how much. "1" would mean "by 1 point"
+    
+    Example:
+        
+        ["actor_incskill", "$self", "Alteration", "1"]
+        
+    boost Alteration by 1 point
+
+actor_isvalid: check is actor is valid (not none, dead, etc)
+    - parameter 1: who, actor ID. 
+    
+    Example:
+    
+        ["actor_isvalid", "$actor"],
+        ["if", "$$", "=", "0", "end"],
+        ...
+        [":", "end"]
+    
+    jump to end is actor not good.
+
+actor_isquard: check is actor is guard
+    - parameter 1: who, actor ID. 
+    
+    Example:
+    
+        ["actor_isquard", "$partner"],
+        ["if", "$$", "=", "0", "end"],
+        ...
+        [":", "end"]
+    
+    jump to end is actor not guard.
+
+
+actor_isplayer: check is actor is Player(Playable Character)
+    - parameter 1: who, actor ID. 
+    
+    Example:
+    
+        ["actor_isplayer", "$self"],
+        ["if", "$$", "=", "0", "end"],
+        ...
+        [":", "end"]
+    
+    jump to end is actor not PC.
+
+
+actor_getgender: get actors gender (uses SexLab function)
+    - parameter 1: who, actor ID. 
+    
+    Result:
+        0 - male
+        1 - female
+        2 - creature
+        
+    Example:
+    
+        ["actor_getgender", "$self"],
+        ["if", "$$", "=", "0", "end"],
+        ...
+        [":", "end"]
+    
+    jump to end is actor is male.
+    
+
+actor_haskeyword: check if actor has a specific keyword
+    - parameter 1: who, actor ID. 
+    - paramater 2: keyword name (not form ID, name)
+    
+    Example:
+    
+        ["actor_haskeyword", "$self", "Vampire"],
+        ["if", "$$", "=", "0", "end"],
+        ...
+        [":", "end"]
+    
+    jump to end is actor not vampire.
+
+actor_wornhaskeyword: check if anything actor is wearing has specified keyword
+    - parameter 1: who, actor ID. 
+    - paramater 2: keyword name (not form ID, name)
+    
+    Example:
+    
+        ["actor_wornhaskeyword", "$self", "VendorItemJewelry"],
+        ["if", "$$", "=", "0", "end"],
+        ...
+        [":", "end"]
+    
+    check for shiny stuff.
+
+
+actor_lochaskeyword: check if location where actor is has a specific keyword
+    - parameter 1: who, actor ID. 
+    - paramater 2: keyword name (not form ID, name)
+    
+    Example:
+    
+        ["actor_lochaskeyword", "$self", "LocTypeInn"],
+        ["if", "$$", "=", "0", "end"],
+        ...
+        [":", "end"]
+    
+    in the bar.
+    
+actor_haslos: check if 1st actor can see(LOS) the 2nd one
+    - parameter 1: actor ID. Can I see ...
+    - parameter 2: actor ID. ... this one
+    
+    Example:
+    
+        ["actor_haslos", "$actor", "$self"],
+        ["if", "$$", "=", "0", "more"],
+    
+actor_name: return actors name
+    - parameter 1: actor ID
+    
+    Example:
+    
+        ["actor_name", "$self"],
+        ["msg_notify", "My name is ", "$$"]
+
+actor_modcrimegold: player gets bounty to actors crime faction
+    - parameter 1: actor ID
+    - parameter 2: count
+    
+    Note: player gets bounty, not some NPC
+    
+    Example:
+    
+        ["actor_modcrimegold", "$actor", "10"],
+
+    "$actor" reported player to local police($actors crime faction)
+
+
+actor_qnnu: repaints actor (call QueueNiNodeUpdate)
+    - parameter 1: actor ID
+    
+    Note: don't call this fuction too often or Skyrim will crash (`tis Skyrim)
+    
+    Example:
+    
+        ["actor_qnnu", "$self"]
+
+    its sometimes required.
+
+
+actor_getrelation: get relationship rank between 2 actors
+    - parameter 1: actor ID 1
+    - parameter 2: actor ID 2
+    
+    Result (from Actor.psc): 
+         4 - Lover
+         3 - Ally
+         2 - Confidant
+         1 - Friend
+         0 - Acquaintance
+        -1 - Rival
+        -2 - Foe
+        -3 - Enemy
+        -4 - Archnemesis
+        
+    Example:
+    
+        ["actor_getrelation", "$self", "$partner"],
+        ["if", "$$", "<", "0", "end"],
+
+    if 'do-not-like' jump to "end"
+    
+actor_setrelation: set relationship rank between 2 actors
+    - parameter 1: actor ID 1
+    - parameter 2: actor ID 2
+    - parameter 3: rank
+    
+    Example:
+    
+        ["actor_setrelation", "$self", "$partner", "0"], 
+        
+        
+actor_infaction: check is actor is in faction
+    - parameter 1: who, actor ID. 
+    - paramater 2: faction id
+    
+    Example:
+    
+        ["actor_infaction", "$partner", "skyrim.esm:378958"],
+        ["if", "$$", "=", "1", "end"],
+        ...
+        [":", "end"]
+    
+    jump to end is actor can be follower(CurrentFollowerFaction)
+
+actor_getfactionrank: get faction rank
+    - parameter 1: who, actor ID. 
+    - paramater 2: faction id
+    
+    Example:
+    
+        ["actor_getfactionrank", "$partner", "skyrim.esm:378958"],
+        ["if", "$$", "<", "0", "end"],
+        ...
+        [":", "end"]
+    
+    get and check actors faction rank 
+
+actor_setfactionrank: get faction rank
+    - parameter 1: who, actor ID. 
+    - paramater 2: faction id
+    - parameter 3: rank
+    
+    Example:
+    
+        ["actor_setfactionrank", "$partner", "skyrim.esm:378958", "-1"]
+    
+    set actors faction rank 
+
+
+actor_removefaction: remove from faction
+    - parameter 1: who, actor ID. 
+    - paramater 2: faction id
+    
+    Example:
+    
+        ["actor_removefaction", "$partner", "skyrim.esm:3505"]
+    
+    remove from faction
+
+actor_playanim: play animation
+    - parameter 1: who, actor ID. 
+    - paramater 2: animation name
+    
+    Example:
+    
+        ["actor_playanim", "$self", "IdleChildCryingStart"]
+    
+
+actor_sendmodevent: send event
+    - parameter 1: who, actor ID. 
+    - paramater 2: event name
+    - paramater 3: arg 1 of event(string)
+    - paramater 4: arg 2 of event(number)
+    
+    Example:
+    
+actor_state: 
+    - parameter 1: who, actor ID. 
+    - parameter 2: sub-function name
+    - parameter 3+ : depends on "parameter 2"
+    
+    if parameter 2 is "GetCombatState": return actors combatstate. 0-no combat, 1-combat, 2-searching
+    if parameter 2 is "GetLevel": return actors level
+    if parameter 2 is "GetSleepState": return actors sleep mode. 0-not, 1-not, but wants to, 2-sleeping, 3-sleeping, but wants to wake up
+    if parameter 2 is "IsAlerted": is actor alerted
+    if parameter 2 is "IsAlarmed": is actor alerted
+    if parameter 2 is "IsPlayerTeammate": is actor PC team member
+    if parameter 2 is "SetPlayerTeammate": set actor as PC team member
+    if parameter 2 is "SendAssaultAlarm": actor will send out alarm 
+
+actor_body:
+    - parameter 1: who, actor ID. 
+    - parameter 2: sub-function name
+    
+    if parameter 2 is "ClearExtraArrows": clear extra arrows 
+    if parameter 2 is "RegenerateHead": regenerate head
+    if parameter 2 is "GetWeight": get actors weight (0-100)
+    if parameter 2 is "SetWeight": set actors weight
+
+
+actor_race:
+    - parameter 1: who, actor ID. 
+    - parameter 2: sub-function name
+    
+    if parameter 2 is "": return actors race name. Skyrims, original name. Like: "Nord", "Breton"
+    if parameter 2 is "SL": return actors Sexlab frameworks race key name. Like: "dogs", "bears", etc. Note: will return "" if actor is humanoid
+
+    Example:
+    
+        ["actor_race", "$self", "SL"],
+        ["msg_notify", "  Race SL: ", "$$"]
+        
+        
+Spells:
+
+spell_cast: cast a spell on target
+    - parameter 1: spells code
+    - parameter 2: target actor ID
+
+    Example:
+    
+        ["spell_cast", "skyrim.esm:275236", "$self"]
+    
+    casts light spell
+    
+spell_dcsa: casts spell with DoCombatSpellApply papyrus function. Its usualy used for spells that are park of melee attack (like animals that also carry poison or disease)
+    - parameter 1: spells code
+    - parameter 2: target actor ID
+    
+    Example:
+    
+        ["spell_dcsa", "$1", "$self"]
+        
+    
+    
+spell_add add: spell to actor. You usualy "add" spells that are ability or add them actors to spell book
+    - parameter 1: spells code
+    - parameter 2: target actor ID
+    
+    Example:
+    
+        ["spell_add", "skyrim.esm:842269", "$self"]
+        
+    adds ability Lovers Comfort. Its when you are maried and rest with spouse.
+
+spell_dispel: dispel(stop) ongoing spell on target actor
+    - parameter 1: spells code
+    - parameter 2: target actor ID
+
+spell_remove: the reverse of spell_add
+    - parameter 1: spells code
+    - parameter 2: target actor ID
+    
+    
+Items: 
+
+item_add: add item into actors inventory
+    - parameter 1: targets actor ID
+    - parameter 2: item ID
+    - parameter 3: count, how many
+    - parameter 4: "0", display msg on screen, "1" do it without msg on screen
+    
+    Example:
+        ["item_add", "$self", "skyrim.esm:15", "10", "0"]
+        
+    add 10 gold.
+
+item_addex: add item into actors inventory, but check if some armor was re-equiped(if NPC)
+    - parameter 1: targets actor ID
+    - parameter 2: item ID
+    - parameter 3: count, how many
+    - parameter 4: "0", display msg on screen, "1" do it without msg on screen
+    
+    Example:
+        ["item_addex", "$self", "skyrim.esm:15", "10", "0"]
+        
+    add 10 gold.
+    
+item_adduse: add item and then use it. Like item_add, but also use added item. Most useful for potions, food, etc. Consumables 
+    - parameter 1: targets actor ID
+    - parameter 2: item ID
+    - parameter 3: count, how many
+    - parameter 4: "0", display msg on screen, "1" do it without msg on screen
+    
+    Example:
+        
+        ["item_adduse", "$self", "skyrim.esm:216158", "1", "0"]
+        
+    add/drink some booze.
+
+item_equipex: equip item ("vanila" version)
+    - parameter 1: targets actor ID
+    - parameter 2: item ID
+    - parameter 3: int, prevent removal
+    - parameter 4: int, silent. "0", no sound, "1" make a sound
+    
+    Example:
+        ["set", "$1", "ZaZAnimationPack.esm:159072"],
+        ["item_equip", "$self", "$1", "0", "1"],
+        ["actor_qnnu", "$self"],
+
+    equips item directly. Workaround for "NPCs re-equip all armor, if they get an item that looks like armor"
+
+item_equipex: equip item (SKSE version)
+    - parameter 1: targets actor ID
+    - parameter 2: item ID
+    - parameter 3: equipSlot. "0"-default slot, "1"-Right hand, "2"-Left hand
+    - parameter 4: "0", no sound, "1" make a sound
+    
+    Example:
+        
+item_uequipex: unequip item
+    - parameter 1: targets actor ID
+    - parameter 2: item ID
+    - parameter 3: equipSlot. "0"-default slot, "1"-Right hand, "2"-Left hand
+    
+    Example:
+
+item_getcount: return how many items actor has
+    - parameter 1: targets actor ID
+    - parameter 2: item ID
+    
+    Example:
+    
+        ["item_getcount", "$self", "skyrim.esm:15"],
+        ["msg_notify", "Have :", "$$", " gold"]
+        
+
+item_remove: remove item from actors inventory
+    - parameter 1: targets actor ID
+    - parameter 2: item ID
+    - parameter 3: count, how many
+    - parameter 4: "0", display msg on screen, "1" do it without msg on screen
+    
+    Example:
+    
+        ["item_remove", "$self", "skyrim.esm:15", "10", "0"]
+        
+    remove 10 gold.
+
+
+        
+Perks:
+
+perk_addpoints: add perk points to player
+    - parameter 1: count, how many
+    
+    Example:
+    
+        ["perk_addpoints", "1"]
+        
+    give yourself a perk point.    
+    
+perk_add: add specifi perk to actor
+    - parameter 1: perks ID
+    - parameter 2: target actors ID
+
+    
+perk_remove: remove perk. The reverse of perk_add
+    - parameter 1: perks ID
+    - parameter 2: target actors ID
+    
+
+Utility/misc:
+
+msg_notify: display a message on screen. Top left
+    - parameter 1: text
+
+    Example:
+    
+        ["msg_notify", "Hello Skyrim"]
+
+        
+msg_console: display message in skyrims console 
+    - parameter 1: text
+
+    Example:
+    
+        ["msg_console", "Hello Skyrim"]
+    
+    
+rnd_list: pick one of parameters and put it into $$ variable. Fuction has variable number of parameters.
+    - parameter 1: stuff 1
+    - parameter 2: stuff 2
+    ...
+    - parameter N: stuff N
+
+    Example:
+    
+        ["rnd_list", "skyrim.esm:216158", "skyrim.esm:853342", "skyrim.esm:181082", "skyrim.esm:329930", "skyrim.esm:201531", "skyrim.esm:201532", "skyrim.esm:1079946", "skyrim.esm:901490", "skyrim.esm:758231" ]
+    
+    select one param. at random.
+
+rnd_int: return random integer 
+    - parameter 1: min value
+    - parameter 2: max value
+    
+    Example: 
+    
+        ["rnd_int", "5", "15"]
+    
+    random int between 5 and 15.
+    
+util_wait: wait/sleep X seconds
+    - parameter 1: count, how many seconds to wait
+    
+    Example:
+
+        ["util_wait", "60"]
+    
+    wait a minute.
+
+util_waitforend: wait/sleep until target is out of SL sceene
+    - parameter 1: actor ID
+    
+    Example:
+
+        ["util_waitforend", "$self"]
+    
+    wait until it ends
+
+util_getrndactor: get a random actor within a specific range from self
+    - parameter 1: range, 0 -  all, >0 - range in skyrim units
+    - parameter 2: option. 0 - all, 1 - not part of Sexlab scene, 2 - must be part of SL
+    
+    Example:
+
+        ["util_getrndactor", "500", "1"],
+        ["actor_isvalid", "$actor"],
+        ["if", "$$", "=", "0", "end"],
+        ["msg_notify", "Someone is watching you!"],
+        [":", "end"]
+
+util_sendmodevent: send event (std. Skyrim SendModEvent)
+    - parameter 1: event name
+    - parameter 2: event param 1 (string)
+    - parameter 3: event param 2 (number)
+    
+    Example:
+    
+        ["util_sendmodevent", "SXP", "GainXP", "100"]
+
+    
+util_sendevent: send SKSE custom event (ModEvent.psc)
+    - parameter 1: event name
+    - parameter 2: event param 1 type
+    - parameter 3: event param 1 value
+    ...
+    - parameter N: event param N type
+    - parameter N+1: event param N value
+    
+    Type can be:
+        - "bool"   : papyrus boolean
+        - "int"    : number
+        - "float"  : floating point number
+        - "string" : string
+        - "form"   : form. Currently only actors are used ("$self", "$player", "$partner", ...)
+        
+    Example:
+    
+        ["util_sendevent", "slaUpdateExposure", "form", "$self", "float", "33"]
+
+    calls SexlabAroused.esm
+        
+
+util_getgametime: get game time
+    
+    Example:
+
+        ["util_getgametime"],
+    
+    timer.
+    
+util_gethour: get day hour
+    
+    Example:
+
+        ["util_gethour"],
+    
+    timer.
+
+util_waitforkbd: wait for user to press a specific key or SL animation to end
+    - parameter 1: DXScanCode of key
+    - parameter 2: seconds DXScanCode of key
+    - parameter N: N-th DXScanCode of key
+
+    - return: $$ while have DXScanCode of key pressed or -1 is SL animation stopped. 
+    
+    Note:
+        - DXScanCodes can be found here: https://www.creationkit.com/index.php?title=Input_Script
+        
+    Example:
+    
+        ["util_waitforkbd", "74", "78", "181", "55"],
+        ["if", "$$", "=", "74", "MINUS"],
+        ...
+        ["if", "$$", "<", "0", "END"],
+        
+    wait for Num- or Num+ or Num/ or Num* or anim expired and then do something about it
+
+
+util_game: game related functions
+    - parameter 1: "IncrementStat"
+    - parameter 2: stat name, look at: https://www.creationkit.com/index.php?title=IncrementStat_-_Game
+    - parameter 3: count, number
+    
+    - parameter 1: "QueryStat"
+    - parameter 2: stat name, look at: https://www.creationkit.com/index.php?title=QueryStat_-_Game
+    - return: int, value
+    
+
+sl_animname: put current animation name into $$
+    - (no parameters)
+
+    Example:
+    
+        ["sl_animname"],
+        ["mfg_notify", "Playing: ", "$$"],
+    
+    
+sl_isin: test if actor is in Sexlab sceene and put "0" in $$ if not, "1" if yes
+    - parameter 1: actors ID
+
+    Example:
+    
+        ["sl_isin", "$self"]
+        
+    check if we are doing it.
+    
+
+sl_hastag: test if animation has a specific tag
+    - parameter 1: tag name
+
+    Example:
+    
+        ["sl_hastag", "Oral"],
+        ["if", "$$", "=", "1", "ORAL"],
+
+        
+    maybe wrong hole?
+    
+    
+ism_applyfade: apply imagespace modifier
+    - parameter 1: item id. Look CK, SpecialEffects\Imagespace Modifier
+    - parameter 2: fade duration
+    
+    Example:
+    
+        ["ism_applyfade", "$1", "2"]
+
+
+ism_removefade: remove imagespace modifier
+    - parameter 1: item id. Look CK, SpecialEffects\Imagespace Modifier
+    - parameter 2: fade duration
+    
+    Example:
+    
+        ["ism_removefade", "$1", "2"]
+
+snd_play: play sound
+    - parameter 1: sound id. Look CK, Audio\Sound Marker
+    - parameter 2: actor that is the source of sound 
+    - Return     : sound instance handle
+    
+    Example:
+    
+        ["snd_play", "skyrim.esm:318128", "$self"],
+        ["set", "$1", "$$"],
+
+        
+snd_setvolume: set sounds volume
+    - parameter 1: sound instance handle (return value of snd_play)
+    - parameter 2: volume (0 .. 1.0)
+
+
+    Example:
+    
+        ["snd_setvolume", "$1", "1.0"],
+
+        
+snd_stop: stop sound
+    - parameter 1: sound instance handle (return value of snd_play)
+
+
+    Example:
+    
+        ["util_waitforend", "$self"],
+        ["snd_stop", "$1"]
+
+
+console: execute console command 
+    - (note: must have ConsoleUtilSSE installed, https://www.nexusmods.com/skyrimspecialedition/mods/24858)
+    - parameter 1: actor that will be "console selected reference". Many console commands need this
+    - parameter 2: command or part of command to execute
+    - ...
+    - parameter N: everything after(and including) parameter 2 will be merged into one
+    
+    Example: 
+    
+        ["console", "$self", "sgtm 0.5"]
+        ...
+        ["console", "$self", "sgtm", " ", "0.5"]
+        
+    Note: previous lines are the same. both execute 'sgtm 0.5'
+
+
+mfg_reset: reset facial expression 
+    - (note: must have Mfg Fix installed, https://www.nexusmods.com/skyrimspecialedition/mods/11669)
+    - parameter 1: actor 
+    
+    Example: 
+    
+        ["mfg_reset", "$self"]
+        
+mfg_setphonememodifier: set facial expression 
+    - (note: must have Mfg Fix installed, https://www.nexusmods.com/skyrimspecialedition/mods/11669)
+    - parameter 1: actor 
+    - parameter 2: mode
+    - parameter 3: id
+    - parameter 4: value
+    
+    Parameter 2, "mode":
+        - 0 : set phoneme
+        - 1 : set modifier
+        
+    Example: 
+
+    
+mfg_getphonememodifier: get facial expression 
+    - (note: must have Mfg Fix installed, https://www.nexusmods.com/skyrimspecialedition/mods/11669)
+    - parameter 1: actor 
+    - parameter 2: mode
+    - parameter 3: id
+    
+    Parameter 2, "mode":
+        - 0 : get phoneme
+        - 1 : get modifier
+        - 2 : get expression value
+        - 3 : get expression ID
+    
+    Example: 
+        
+json_getvalue: get value from json file (uses PapyrusUtil, JsonUtil lib)
+    - parameter 1: file name
+    - parameter 2: data type
+    - parameter 3: key
+    - parameter 4: default value if not found in json file
+    
+    Parameter 2, "type":
+        - int : read as integer
+        - float : read as float
+        - string : read as string
+    
+    Example: 
+
+        ["set", "$2", "../sl_triggers/commandstore/time_control"],
+        ["json_getvalue", "$2", "float", "demo", "1"],
+
+        
+json_setvalue: set/store value to json file (uses PapyrusUtil, JsonUtil lib)
+    - parameter 1: file name
+    - parameter 2: data type
+    - parameter 3: key
+    - parameter 4: value
+    
+    Parameter 2, "type":
+        - int : write as integer
+        - float : write as float
+        - string : write as string
+    
+    Example: 
+
+        ["set", "$2", "../sl_triggers/commandstore/time_control"],
+        ["json_setvalue", "$2", "float", "demo", "1"],
+
+        
+json_save: forces json file to be saved now
+    - parameter 1: file name
+    
+
+    Note:
+        - normaly you don't need to do this. If json file was changed (json_setvalue has been called), it will be saved when user makes a regular game save.
+        
+    Example: 
+
+        ["set", "$2", "../sl_triggers/commandstore/time_control"],
+        ["json_save", "$2"],
+
+
+
+weather_state: weather related function
+    - parameter 1: "GetClassification" 
+        return weather type. -1 - No classification, 0 - Pleasant, 1 - Cloudy, 2 - Rainy, 3 - Snow
+
+math: math functions
+    - parameter 1: sub-function name
+    - parameter 2: extra parameters based on parameter 1
+    
+    if parameter 2 1s "asint": return parameter 3 as integer
+    if parameter 2 1s "floor": return parameter 3 the largest integer less than or equal to the value
+    if parameter 2 1s "ceiling": return parameter 3 the smallest integer greater than or equal to the value
+    if parameter 2 1s "abs": return parameter 3 as absolute value of the passed in value - N for N, and N for (-N)
+    if parameter 2 1s "toint": return parameter 3 as integer. Parameter 3 can be in dec or hex. If it starts with 0, its converted as hex value
+
+    Example:
+    
+        ["math", "floor", "1.2"],
+        ["msg_notify", "Floor: ", "$$"]

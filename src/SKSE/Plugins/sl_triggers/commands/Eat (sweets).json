@@ -1,0 +1,8 @@
+{
+	"cmd" : 
+	[
+        ["rnd_list", "skyrim.esm:412464", "skyrim.esm:412483", "skyrim.esm:412477" ],
+        ["set", "$1", "$$"],
+        ["item_adduse", "$self", "$1", "1", "0"]
+	]
+}

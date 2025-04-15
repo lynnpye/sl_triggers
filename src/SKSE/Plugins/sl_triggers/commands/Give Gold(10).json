@@ -1,0 +1,6 @@
+{
+	"cmd" : 
+	[
+        ["item_add", "$self", "skyrim.esm:15", "10", "0"]
+	]
+}

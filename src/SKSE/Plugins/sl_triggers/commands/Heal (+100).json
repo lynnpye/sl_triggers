@@ -1,0 +1,8 @@
+{
+    "cmd" : 
+    [
+        ["av_restore", "$self", "Health", "100"],
+        ["av_restore", "$self", "Magicka", "100"],
+        ["av_restore", "$self", "Stamina", "100"]
+    ]
+}

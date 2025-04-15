@@ -1,0 +1,9 @@
+{
+	"cmd" : 
+	[
+        ["rnd_list", "LightArmor","Pickpocket","Lockpicking","Sneak","Alchemy","Speechcraft"],
+        ["set", "$1", "$$"],
+        ["actor_incskill", "$self", "$1", "1"]
+	]
+}
+

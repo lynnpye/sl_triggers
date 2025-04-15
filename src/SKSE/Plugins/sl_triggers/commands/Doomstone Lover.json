@@ -1,0 +1,6 @@
+{
+	"cmd" : 
+	[
+        ["spell_add", "skyrim.esm:941914", "$self"]
+	]
+}

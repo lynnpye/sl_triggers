@@ -1,0 +1,40 @@
+Commands:
+- Add perk point.json: Adds a perk point to player. 
+- Alchocol.json: booze. Actor will get and drink one of drinks that counts as alchocol.
+- Cast Calm.json: cast Calm spell
+- Cast Fear.json: cast Fear spell
+- Cast Light.json: cast Candle light spell.
+- Change stats (bad).json: Health/Stamin/Magicka change by -10 to 0 (perma change on PC)
+- Change stats (good).json: Health/Stamin/Magicka change by 0 to 10 (perma change on PC)
+- Change stats (mix).json: Health/Stamin/Magicka change by -5 to 10 (perma change on PC)
+- Disease.json: Actor is 'attacked' by disease spell every 6 seconds for as long as sex scene is running
+- Doomstone Lover.json: Add the effect of Lovers doomstone
+- Eat (sweet).json: eat something sweet
+- Give Gold(10).json: Actor gets 10 gold.
+- Harm (-100).json: Actors Health is drained by 100 points
+- Heal (+100).json: Actors Health, Stamina, Magicka is restored by 100 points
+- Heart beat(A).json: Play builtin "heart beat" sound
+- It was bad.json: Apply some debuffs based on animation tag
+- Learn skill (Mage).json: increase(learn) one random mage skill by 1 point
+- Learn skill (random).json: increase(learn) one random skill by 1 point
+- Learn skill (Thief).json: increase(learn) one random thief skill by 1 point
+- Learn skill (Warrior).json: increase(learn) one random warrior skill by 1 point
+- Light Campfire.json: cast light effect that persists until end
+- Light Evil.json: cast light effect that persists until end
+- Lovers Comfort.json: Adds the effect of Lover Comfort. You married, rest with spouse. 
+- MFG Reset.json: When sex ends, reset facial expression (must have MfgFix plugin installed)
+- Sex is crime.json: Every 10 sec, if someone is watching you doing it and does not have sex, it reports you for crime (5-15 gold)
+- Sound - Levelup.json: Play builtin "Levelup" sound
+- Time Control.json: You can control the game speed, and so animation speed with keyboard. (must have ConsoleUtilSSE plugin)
+        - is designed for player only.
+        - press '+' on numpad for more speed
+        - press '-' on numpad for less speed
+        - press '/' on numpad to reset speed to default
+        - press '*' on numpad to save, store current speed setting into external file (at skse\plugins\sl_triggers\commandstore\time_control.json).
+          This speed setting is stored "per animation". Each animation will have a different one.
+          It will be reused next time you activate Time Control.json command.
+        
+- Time Slow.json: slows global time by 50%. Resets time to normal at the end. Uses console command (must have ConsoleUtilSSE plugin)
+- Vision blurred.json: Blures screen. Lasts until end of SL scene, plus 30 seconds
+- ZAZ LeakyPussy2B.json: (needs ZAZ) equip something from ZAZ module
+
