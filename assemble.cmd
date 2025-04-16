@@ -1,6 +1,10 @@
 @echo off
 setlocal
 
+
+REM Everything below this line should be able to remain untouched
+SET "SRC_DIR=%~dp0src"
+
 :: Check for exactly one argument
 if "%~1"=="" (
     echo Usage: %~nx0 ^<integer-version-number^>
@@ -21,13 +25,13 @@ set "VERNO=%INPUT%"
 :: Confirm assignment
 echo VERNO is set to %VERNO%
 
-
 set "THEZIP=%~dp0sl_triggers%VERNO%.zip"
 
 del /f %THEZIP%
 
 pushd src
-7z a -tzip -r "%THEZIP%" *.*
+powershell -Command "Compress-Archive -Path '%SRC_DIR%\*' -DestinationPath '%THEZIP%'"
 popd
 
 endlocal
+
