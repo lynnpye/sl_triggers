@@ -1,11 +1,12 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-
-SET "INC_ROOT=%~dp0\inc"
-SET "TARGET_DIR=%~dp0\src\scripts"
+SET "INC_ROOT=%~dp0inc"
+SET "TARGET_DIR=%~dp0src\scripts"
 SET "SKSE=D:\src\sksemods\skse64_2_00_20"
 SET "PAPYRUS_EXE=C:\tools\Papyrus\PapyrusCompiler.exe"
+
+DEL "%TARGET_DIR%\*.pex"
 
 call .\inc\inc.cmd
 
@@ -15,8 +16,6 @@ if "%~1"=="" (
 	set PSC_FILE=. -all
 	goto filecheck
 )
-
-DEL /Y "%TARGET_DIR%\*.pex"
 
 :beginloop
 if "%~1"=="" goto endloop
