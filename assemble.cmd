@@ -22,12 +22,12 @@ set "VERNO=%INPUT%"
 echo VERNO is set to %VERNO%
 
 
-set "THEZIP=%~dp0\sl_triggers%VERNO%.zip"
+set "THEZIP=%~dp0sl_triggers%VERNO%.zip"
 
 del /f %THEZIP%
 
 pushd src
-7z a -tzip -r "%THEZIP%" sl_triggers
+7z a -tzip -r "%THEZIP%" *.*
 popd
 
 endlocal
