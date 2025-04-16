@@ -127,6 +127,10 @@ endFunction
 Function SLTOnEffectStart(Actor akCaster)
 	aCaster = akCaster ;"sl_triggersCmd(" + SLT.NextOneUp() + ")"
 	
+	SafeRegisterForModEvent_AME(self, _slt_GetHeartbeatEvent(), "OnSLTHeartbeat")
+	
+	SendModEvent(EVENT_SLT_AME_HEARTBEAT_UPDATE(), _slt_GetHeartbeatEvent(), 1.0)
+	
 	; we are a Cmd extension; we need to find our primary AME and report in
 	if CmdExtension
 		_isSupportCmdVal = true
@@ -141,7 +145,17 @@ Function SLTOnEffectStart(Actor akCaster)
 		CmdPrimary = SLT.GetCoreCmdFromMailbox(CmdPrimaryMailbox)
 		CmdPrimary.SupportCheckin(self)
 	Endif
+	
+	SafeRegisterForModEvent_AME(self, _slt_GetClusterEvent(), "OnSLTAMEClusterEvent")
 EndFunction
+
+Event OnSLTAMEClusterEvent(string eventName, string strArg, float numArg, Form sender)
+	if strArg == "DISPEL"
+		self.Dispel()
+	elseif strArg == "EXECUTE"
+		_slt_ExecuteCmd()
+	endif
+EndEvent
 
 ; vars_get
 ; int varsindex: integer representing which variable to fetch
@@ -309,6 +323,10 @@ String Function GetInstanceId()
 	return InstanceId
 EndFunction
 
+Function QueueUpdateLoop(float afDelay = 1.0)
+	RegisterForSingleUpdate(afDelay)
+EndFunction
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -338,6 +356,28 @@ string _actualInstanceId ; cache copy
 bool _apfetched
 int _actualPriority ; cache copy
 bool _isSupportCmdVal
+string	heartbeatEvent
+string clusterEvent
+
+Event OnSLTHeartbeat(string eventName, string strArg, float numArg, Form sender)
+EndEvent
+
+Function _slt_ExecuteCmd()
+EndFunction
+
+string Function _slt_GetHeartbeatEvent()
+	if !heartbeatEvent
+		heartbeatEvent = "sl_triggers_SLT_HEARTBEAT_" + (Utility.RandomInt(100000, 999999) as string)
+	endif
+	return heartbeatEvent
+EndFunction
+
+string Function _slt_GetClusterEvent()
+	if !clusterEvent
+		clusterEvent = "sl_triggers_SLT_CLUSTER_" + _slt_getActualInstanceId()
+	endif
+	return clusterEvent
+EndFunction
 
 ; _isSupportCmd
 ; returns: true if this is a support Cmd from an extension; false if this is an sl_triggersCmd
@@ -349,7 +389,7 @@ EndFunction
 ; GetActualInstanceId
 ; returns: the instanceId of the cmdPrimary (sl_triggersCmd) if this is a support Cmd, and the instanceId of self if this is a sl_triggersCmd
 ; DO NOT OVERRIDE
-String Function _slt_getActualInstanceId()
+string Function _slt_getActualInstanceId()
 	if !_actualInstanceId
 		if _slt_isSupportCmd()
 			_actualInstanceId = CmdPrimary.GetInstanceId()
@@ -375,12 +415,9 @@ int Function _slt_getActualPriority()
 	return _actualPriority
 EndFunction
 
-
-
 bool Function _slt_oper_driver(string[] param, string code)
 	GotoState("cmd_" + code)
 	bool oresult = oper(param)
 	GotoState("")
 	return oresult
 EndFunction
-

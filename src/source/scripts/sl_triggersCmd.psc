@@ -19,10 +19,9 @@ string		cmdName
 int[]		gotoIdx 
 string[]	gotoLabels 
 int			gotoCnt 
+bool		deferredInitCompleted
+bool		clusterDispelSent
 
-bool		sltCmdSupportCheckedIn = false
-bool		sltCmdExecuteStarted = false
-bool		actualEffectStartDone = false
 ActiveMagicEffect[]		supportCmds
 
 int			expectedSupportCmds
@@ -30,19 +29,12 @@ int			supportCmdsCheckedIn
 
 int			coreCmdMailbox
 
-String Function EVENT_SLT_ACTUAL_EFFECT_START()
-	return "SLTActualEffectStart:" + instanceId
-EndFunction
-
-String Function EVENT_SLT_ACTUAL_EFFECT_START_HANDLER()
-	return "On" + EVENT_SLT_ACTUAL_EFFECT_START()
-EndFunction
-
 String Function _slt_getActualInstanceId()
 	return InstanceId
 EndFunction
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
+	deferredInitCompleted = false
 	coreCmdMailbox = -1
     cmdIdx = 0
     stack = new string[4]
@@ -56,104 +48,22 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
 	
 	SLTOnEffectStart(akCaster)
 	
-	actualEffectStartDone = false
-	RegisterForModEvent(EVENT_SLT_ACTUAL_EFFECT_START(), EVENT_SLT_ACTUAL_EFFECT_START_HANDLER())
-	
-	DoSLTActualEffectStart()
+	QueueUpdateLoop(0.1)
 EndEvent
 
-Function DoSLTActualEffectStart()
-	Utility.Wait(0.0)
-	
-	if actualEffectStartDone
+Function SendClusterDispel()
+	if clusterDispelSent
 		return
 	endif
-	
-	SendModEvent(EVENT_SLT_ACTUAL_EFFECT_START())
+	clusterDispelSent = true
+	SendModEvent(_slt_GetClusterEvent(), "DISPEL")
 EndFunction
 
-Event OnSLTActualEffectStart(string eventName, string strArg, float numArg, Form sender)
-	if actualEffectStartDone
-		return
-	endif
-	actualEffectStartDone = true
-	UnregisterForModEvent(EVENT_SLT_ACTUAL_EFFECT_START())
-	
-	coreCmdMailbox = SLT.RequestCoreMailbox(self)
-	
-	Heap_IntSetFK(aCaster, MakeInstanceKey(instanceId, "coreCmdMailbox"), coreCmdMailbox)
-	
-	; retrieve the formSpells if present
-	int spellFormsCount = Heap_IntGetFK(aCaster, MakeInstanceKey(instanceId, "spellFormsLength"))
-	supportCmds = new ActiveMagicEffect[128] ; implicit 128 extension limit but I mean c'mon
-	
-	expectedSupportCmds = 0
-	if spellFormsCount > 0
-		int sfi = 0
-		while sfi < spellFormsCount
-			Spell spellForm = Heap_FormListGetFK(aCaster, MakeInstanceKey(instanceId, "spellForms"), sfi) as Spell
-			
-			; only if there was actually a Spell from the extension
-			if spellForm
-				expectedSupportCmds += 1
-				spellForm.RemoteCast(aCaster, aCaster, aCaster)
-			endif
-		endwhile
-	endif
-	
-	; if no AMEs to attach, just start updating
-    if Self
-		; was 1 sec
-		sltCmdSupportCheckedIn = true
-        SendSLTCmdExecute()
-	else
-		RegisterForSingleUpdate(SECONDS_FOR_TIMEOUT_WAITING_FOR_SUPPORT)
-    endIf
-EndEvent
-
-Event OnUpdate()
-	; when we start receiving these, we are assuming we are ready
-	If !Self
-		Return
-	EndIf
-	
-	; not good that we ended up here
-	if expectedSupportCmds > supportCmdsCheckedIn || !sltCmdExecuteStarted
-		Debug.Trace("sl_trigger: Cmd: failed to start execution")
-        Self.Dispel()
-		return
-	endif
-EndEvent
-
-Event OnKeyDown(Int keyCode)
-    lastKey = keyCode
-    ;MiscUtil.PrintConsole("KeyDown: " + lastKey)
-EndEvent
-
-Function SendSLTCmdExecute()
-	if sltCmdExecuteStarted
-		return
-	endif
-	RegisterForModEvent("SLTCmdExecute" + instanceId, "OnSLTCmdExecute")
-	_ActualSendSLTCmdExecute()
+Function SendClusterExecute() ; really just to me
+	SendModEvent(_slt_GetClusterEvent(), "EXECUTE")
 EndFunction
 
-Function _ActualSendSLTCmdExecute()
-	Utility.Wait(0.0)
-	if sltCmdExecuteStarted
-		return
-	endif
-	sltCmdExecuteStarted = true
-	SendModEvent("SLTCmdExecute" + instanceId)
-EndFunction
-
-Event OnSLTCmdExecute(string eventName, string strArg, float numArg, Form sender)
-	If !Self
-		Return
-	EndIf
-	
-	UnregisterForModEvent("SLTCmdExecute" + instanceId)
-	
+Function _slt_ExecuteCmd()
 	; sort supportCmds if necessary
 	if supportCmdsCheckedIn > 0 && supportCmds
 		ActiveMagicEffect[] tmpBuffer = supportCmds
@@ -186,15 +96,60 @@ Event OnSLTCmdExecute(string eventName, string strArg, float numArg, Form sender
 	
 	Heap_ClearPrefixF(aCaster, MakeInstanceKeyPrefix(instanceId))
     
-    If Self
-        Self.Dispel()
-		if supportCmdsCheckedIn > 0
-			int i = 0
-			while i < supportCmdsCheckedIn
-				supportCmds[i].Dispel()
+	SendClusterDispel()
+EndFunction
+
+Event OnUpdate()
+	; when we start receiving these, we are assuming we are ready
+	If !Self
+		Return
+	EndIf
+	
+	float currentRealTime = Utility.GetCurrentRealTime()
+	
+	if !deferredInitCompleted
+		deferredInitCompleted = true
+		
+		coreCmdMailbox = SLT.RequestCoreMailbox(self)
+	
+		Heap_IntSetFK(aCaster, MakeInstanceKey(instanceId, "coreCmdMailbox"), coreCmdMailbox)
+		
+		; retrieve the formSpells if present
+		int spellFormsCount = Heap_IntGetFK(aCaster, MakeInstanceKey(instanceId, "spellFormsLength"))
+		supportCmds = new ActiveMagicEffect[128] ; implicit 128 extension limit but I mean c'mon
+		
+		expectedSupportCmds = 0
+		if spellFormsCount > 0
+			int sfi = 0
+			while sfi < spellFormsCount
+				Spell spellForm = Heap_FormListGetFK(aCaster, MakeInstanceKey(instanceId, "spellForms"), sfi) as Spell
+				
+				; only if there was actually a Spell from the extension
+				if spellForm
+					expectedSupportCmds += 1
+					spellForm.RemoteCast(aCaster, aCaster, aCaster)
+				endif
+				
+				sfi += 1
 			endwhile
 		endif
-    endIf
+		
+		if expectedSupportCmds < 1
+			SendClusterExecute()
+		endif
+	endif
+	
+	; not good that we ended up here
+	if expectedSupportCmds > supportCmdsCheckedIn && currentRealTime > SECONDS_FOR_TIMEOUT_WAITING_FOR_SUPPORT
+		Debug.Trace("sl_trigger: Cmd: failed to start execution")
+		SendClusterDispel()
+		return
+	endif
+EndEvent
+
+Event OnKeyDown(Int keyCode)
+    lastKey = keyCode
+    ;MiscUtil.PrintConsole("KeyDown: " + lastKey)
 EndEvent
 
 Function SupportCheckin(sl_triggersCmdBase supportCmd)
@@ -202,8 +157,7 @@ Function SupportCheckin(sl_triggersCmdBase supportCmd)
 	supportCmdsCheckedIn += 1
 	
 	if supportCmdsCheckedIn >= expectedSupportCmds
-		UnregisterForUpdate()
-		SendSLTCmdExecute()
+		SendClusterExecute()
 	endif
 EndFunction
 

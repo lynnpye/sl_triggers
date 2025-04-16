@@ -12,15 +12,15 @@ OPTIONAL
 
 You would only be required to assign spellPool and effectPool values
 if you are adding new operations to be available in scripts, and those
-cases you will also be extending the sl_triggersCmdExtension script.
+cases you will also be extending the sl_triggersCmdBase script.
 
 Each spell should be matched to an effect. The IDs don't matter so long
-as your sl_triggersCmdExtension script is appropriately attached and
+as your sl_triggersCmdBase script is appropriately attached and
 configured for your use.
 
-When a script calls for your operation, your CmdExtension will be
-added to the Actor and associated with the cluster of other CmdExtensions
-(if any, but including the CoreCmdExtension) into it's own cluster to handle
+When a script calls for your operation, your CmdBase extension will be
+added to the Actor and associated with the cluster of other CmdBase extension
+(if any, but including the prime CmdBase) into it's own cluster to handle
 all operations for that script execution. By doing this, which may end up
 launching a cluster of ActiveMagicEffects all at once on one Actor, any
 operation that is long running and might block other events from being handled
@@ -38,18 +38,16 @@ MagicEffect[]       Property EffectPool Auto
 
 ; sl_triggersMain SLT
 ; access to the sl_triggers API and framework
-sl_triggersMain		Property SLT Auto ; will be populated on startup
-Keyword				Property ActorTypeNPC Auto ; will be populated on startup
-Keyword				Property ActorTypeUndead Auto ; will be populated on startup
+sl_triggersMain		Property SLT Auto Hidden ; will be populated on startup
+Keyword				Property ActorTypeNPC Auto Hidden ; will be populated on startup
+Keyword				Property ActorTypeUndead Auto Hidden ; will be populated on startup
+sl_triggersSetup	Property SLTMCM Auto Hidden ; will be populated as needed
 
 ; string[] TriggerKeys
 ; Holds the current known list of filenames (triggerKeys) representing triggers
 ; Transient; refreshed in OnInit()
 ; DO NOT MODIFY (I mean, unless you know what you're doing, right)
 string[]			Property TriggerKeys Auto Hidden
-
-
-bool	deferredInitSent = false
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -96,34 +94,6 @@ int Function GetPriority()
 	return 1000
 EndFunction
 
-; SLTDeferredInit
-; OPTIONAL
-; SLTDeferredInit() is run once the SLT API has been contacted, the extension has been registered, and trigger data
-; has been refreshed. Extensions should not try to interact with SLT before this function runs.
-Function SLTDeferredInit()
-EndFunction
-
-; SLTUpdated
-; OPTIONAL
-; SLTUpdated() is run when settings have changed mid-game i.e. MCM changes to your triggers. In case you need
-; to act. For example, if afterward you have no triggers assigned for an event, you might consider disabling
-; the event handling to reduce impact. As an extension, your TriggerKeys will not be updated until you receive
-; this function call.
-Function SLTUpdated()
-EndFunction
-
-; PopulateMCM
-; OPTIONAL, REQUIRED IF YOU WANT TRIGGER SUPPORT IN THE MCM
-; PopulateMCM() is run when extension registration closes, once per launch. This gives an opportunity
-; for extensions to send the shape of their trigger data to the MCM.
-; If you are just sending command requests from your mod's events, or you just
-; aren't interested in SLT's MCM support, don't bother overriding this function
-;
-; Although the mcm does extend SKI_ConfigBase, try to avoid the temptation to use those functions
-; and stick to the functions provided in sl_triggersMCMSetup.
-Function PopulateMCM(sl_triggersMCMSetup mcm)
-EndFunction
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -159,7 +129,9 @@ Function SLTInit()
 		ActorTypeUndead = Game.GetFormFromFile(0x13796, "Skyrim.esm") as Keyword
 	endif
 	
-	_StartSLTDeferredInit()
+	deferredInitHandled = false
+	SafeRegisterForModEvent_Quest(self, _GetHeartbeatEvent(), "OnSLTHeartbeat")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_OPEN_REGISTRATION(), "OnSLTOpenRegistration")
 EndFunction
 
 ; some helper methods
@@ -218,35 +190,35 @@ EndFunction
 ; Tells setup to render the attribute via a Slider
 ; _formatString is optional
 ; _ptype accepted values: PTYPE_INT(), PTYPE_FLOAT()
-Function DescribeSliderAttribute(sl_triggersMCMSetup mcm, string _attributeName, int _ptype, string _label, float _minValue, float _maxValue, float _interval, string _formatString = "", float _defaultValue = 0.0)
+Function DescribeSliderAttribute(sl_triggersSetup mcm, string _attributeName, int _ptype, string _label, float _minValue, float _maxValue, float _interval, string _formatString = "", float _defaultValue = 0.0)
 	mcm.DescribeSliderAttribute(GetExtensionKey(), _attributeName, _ptype, _label, _minValue, _maxValue, _interval, _formatString, _defaultValue)
 EndFunction
 
 ; DescribeMenuAttribute
 ; Tells setup to render the attribute via a menu
 ; _ptype accepted values: PTYPE_INT(), PTYPE_STRING()
-Function DescribeMenuAttribute(sl_triggersMCMSetup mcm, string _attributeName, int _ptype, string _label, int _defaultIndex, string[] _menuSelections)
+Function DescribeMenuAttribute(sl_triggersSetup mcm, string _attributeName, int _ptype, string _label, int _defaultIndex, string[] _menuSelections)
 	mcm.DescribeMenuAttribute(GetExtensionKey(), _attributeName, _ptype, _label, _defaultIndex, _menuSelections)
 EndFunction
 
 ; DescribeKeymapAttribute
 ; Tells setup to render the attribute via a keymap
 ; _ptype accepted values: PTYPE_INT()
-Function DescribeKeymapAttribute(sl_triggersMCMSetup mcm, string _attributeName, int _ptype, string _label, int _defaultValue = -1)
+Function DescribeKeymapAttribute(sl_triggersSetup mcm, string _attributeName, int _ptype, string _label, int _defaultValue = -1)
 	mcm.DescribeKeymapAttribute(GetExtensionKey(), _attributeName, _ptype, _label, _defaultValue)
 EndFunction
 
 ; DescribeToggleAttribute
 ; Tells setup to render the attribute via a toggle
 ; _ptype accepted values: PTYPE_INT()
-Function DescribeToggleAttribute(sl_triggersMCMSetup mcm, string _attributeName, int _ptype, string _label, int _defaultValue = 0)
+Function DescribeToggleAttribute(sl_triggersSetup mcm, string _attributeName, int _ptype, string _label, int _defaultValue = 0)
 	mcm.DescribeToggleAttribute(GetExtensionKey(), _attributeName, _ptype, _label, _defaultValue)
 EndFunction
 
 ; DescribeInputAttribute
 ; Tells setup to render the attribute via an input
 ; _ptype accepted values: Any
-Function DescribeInputAttribute(sl_triggersMCMSetup mcm, string _attributeName, int _ptype, string _label, string _defaultValue = "")
+Function DescribeInputAttribute(sl_triggersSetup mcm, string _attributeName, int _ptype, string _label, string _defaultValue = "")
 	mcm.DescribeInputAttribute(GetExtensionKey(), _attributeName, _ptype, _label, _defaultValue)
 EndFunction
 
@@ -254,8 +226,30 @@ EndFunction
 ; Tells setup to render a dropdown list of available commands.
 ; You can call this multiple times to add the option of running
 ; multiple commands from the same trigger (i.e. 3 was legacy setting)
-Function AddCommandList(sl_triggersMCMSetup mcm, string _attributeName, string _label)
+Function AddCommandList(sl_triggersSetup mcm, string _attributeName, string _label)
 	mcm.AddCommandList(GetExtensionKey(), _attributeName, _label)
+EndFunction
+
+; SetVisibilityKeyAttribute
+; Tells setup that the indicated attribute, _attributeName, will be used during
+; MCM rendering to selectively render some of the attributes. This allows you
+; to change how the MCM looks depending on what the user selects e.g. event
+; types.
+;
+; This is NOT required if, for example, the same set of attributes will be displayed 
+; for each trigger.
+Function SetVisibilityKeyAttribute(sl_triggersSetup mcm, string _attributeName)
+	mcm.SetVisibilityKeyAttribute(GetExtensionKey(), _attributeName)
+EndFunction
+
+; SetVisibleOnlyIf
+; Tells setup that the specified attribute should only be displayed in the MCM if the
+; visibility key attribute has the specified value. Note that this function will
+; have no effect if SetVisibilityKeyAttribute() is not also called.
+;
+; If the PTYPE of the key attribute is int, cast to string for this call.
+Function SetVisibleOnlyIf(sl_triggersSetup mcm, string _attributeName, string _requiredKeyAttributeValue)
+	mcm.SetVisibleOnlyIf(GetExtensionKey(), _attributeName, _requiredKeyAttributeValue)
 EndFunction
 
 ; bool IsEnabled
@@ -336,6 +330,23 @@ string				Property currentTriggerId Auto Hidden ; used for simple iteration
 
 ; used to generate a stream of unique ids for each sl_triggersCmd
 int		oneupnumber
+bool	deferredInitHandled
+string	heartbeatEvent ; uniquely generated each launch and sent during registration to receive heartbeats
+string	settingsUpdateEvent ; uniquely generated each launch and sent during registration to receive settings update
+
+string Function _GetHeartbeatEvent()
+	if !heartbeatEvent
+		heartbeatEvent = "sl_triggers_SLT_HEARTBEAT_" + (Utility.RandomInt(100000, 999999) as string)
+	endif
+	return heartbeatEvent
+EndFunction
+
+string Function _GetSettingsUpdateEvent()
+	if !settingsUpdateEvent
+		settingsUpdateEvent = "sl_triggers_SLT_SETTINGS_UPDATE_" + (Utility.RandomInt(100000, 999999) as string)
+	endif
+	return settingsUpdateEvent
+EndFunction
 
 bool Function _HasPool()
 	return SpellPool.Length > 0 && EffectPool.Length > 0
@@ -415,47 +426,28 @@ Function _RefreshTriggers()
 	endif
 EndFunction
 
-Function _StartSLTDeferredInit()
-	deferredInitSent = false
-	
-	RegisterForModEvent("SLTDeferredInit" + GetExtensionKey(), "OnSLTDeferredInitInternalSLTExtensionBaseHandler")
-	_SendSLTDeferredInit()
-EndFunction
-
-Function _SendSLTDeferredInit()
-	Utility.Wait(0.0)
-	if deferredInitSent
-		return
+Event OnSLTHeartbeat(string eventName, string strArg, float numArg, Form sender)
+	if !deferredInitHandled
+		deferredInitHandled = true
+		
+		; Load our triggers
+		_RefreshTriggers()
+		
+		SafeRegisterForModEvent_Quest(self, _GetSettingsUpdateEvent(), "OnSLTSettingsUpdated")
 	endif
-	SendModEvent("SLTDeferredInit" + GetExtensionKey())
-EndFunction
+EndEvent
 
-Event OnSLTDeferredInitInternalSLTExtensionBaseHandler(string eventName, string strArg, float numArg, Form sender)
-	if deferredInitSent
-		return
-	endif
-	deferredInitSent = true
-	UnregisterForModEvent("SLTDeferredInit" + GetExtensionKey())
-	
-	RegisterForModEvent(EVENT_SLT_CONFIGURATION_UPDATED_INFORM_ALL_LISTENERS(), "OnSLTConfigurationUpdatedInformAllListeners")
-	
-	; Load our triggers
-	_RefreshTriggers()
-	
+Event OnSLTOpenRegistration(string eventName, string strArg, float numArg, Form sender)
 	SLT.RegisterExtension(self)
-	
-	SLTDeferredInit()
 EndEvent
 
-Event OnSLTConfigurationUpdatedInformAllListeners(string eventName, string strArg, float numArg, Form sender)
+Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
 	_RefreshTriggers()
-	SLTUpdated()
 EndEvent
 
-Function _InternalPopulateMCM(sl_triggersMCMSetup mcm)
-	mcm.SetTriggers(GetExtensionKey(), TriggerKeys)
-
-	PopulateMCM(mcm)
+Function _InternalPopulateMCM(sl_triggersSetup mcm)
+	SLTMCM = mcm
+	SLTMCM.SetTriggers(GetExtensionKey(), TriggerKeys)
 EndFunction
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

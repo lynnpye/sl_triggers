@@ -2,7 +2,7 @@ scriptname sl_triggersStatics
 
 ; DebMsg
 ; Shouts to the rooftops.
-function DebMsg(string msg, bool shouldIDoAnything = false) global
+function DebMsg(string msg, bool shouldIDoAnything = true) global
 	if !shouldIDoAnything
 		return
 	endif
@@ -18,16 +18,85 @@ EndFunction
 
 ;;;;;;;;;
 ; ModEvent names
+
+; SLT sends this any time the game is loaded (fresh character or save reload)
 string Function EVENT_SLT_GAME_LOADED() global
-	return "SLTGameLoaded"
+	return "sl_triggers_SLTGameLoaded"
 EndFunction
 
+; SLT sends to all listeners; good time to register your extension
+string Function EVENT_SLT_OPEN_REGISTRATION() global
+	return "sl_triggers_SLTOpenRegistration"
+EndFunction
+
+; SLT sends this to itself; registration will fail if attempted once this is sent
 string Function EVENT_SLT_CLOSE_REGISTRATION() global
-	return "SLTCloseRegistration"
+	return "sl_triggers_SLTCloseRegistration"
 EndFunction
 
-string Function EVENT_SLT_CORE_INIT() global
-	return "SLTCoreInit"
+; SLT sends this when settings have been updated
+string Function EVENT_SLT_SETTINGS_UPDATED() global
+	return "sl_triggers_SLTSettingsUpdated"
+EndFunction
+
+; SLT sends this when it is ready to interact with and receive events
+string Function EVENT_SLT_READY() global
+	return "sl_triggers_SLTReady"
+EndFunction
+
+; SLT listens for this and can send ad-hoc commands. If an Actor is not
+; specified, the PlayerRef will be assumed.
+string Function EVENT_SLT_REQUEST_COMMAND() global
+	return "sl_triggers_SLTRequestCommand"
+EndFunction
+
+; SLT sends this event when extensions should send the shape of their
+; trigger data to Setup, if they intend to let it manage their trigger data
+string Function EVENT_SLT_POPULATE_MCM() global
+	return "sl_triggers_SLTPopulateMCM"
+EndFunction
+
+; SLT sends this soon after OnUpdate() starts processing; most things should be loaded
+; this is mostly offered for convenience
+string Function EVENT_SLT_DEFERRED_INIT() global
+	return "sl_triggers_SLTDeferredInit"
+EndFunction
+
+; SLT uses these to update the hearbeat registry for the AMEs
+string Function EVENT_SLT_AME_HEARTBEAT_UPDATE() global
+	return "sl_triggers_SLTAMEHeartbeatUpdate"
+EndFunction
+
+;;;;;;;
+; Annoying
+; Registers a Quest for a mod event safely
+Function SafeRegisterForModEvent_Quest(Quest _theSelf, String _theEvent, String _theHandler) global
+	If _theSelf == None
+		Debug.Trace("SafeRegisterForModEvent_Quest: registrar is None!")
+		Return
+	EndIf
+	_theSelf.UnregisterForModEvent(_theEvent)
+	_theSelf.RegisterForModEvent(_theEvent, _theHandler)
+EndFunction
+
+; Registers an ObjectReference for a mod event safely
+Function SafeRegisterForModEvent_ObjectReference(ObjectReference _theSelf, String _theEvent, String _theHandler) global
+	If _theSelf == None
+		Debug.Trace("SafeRegisterForModEvent_ObjectReference: registrar is None!")
+		Return
+	EndIf
+	_theSelf.UnregisterForModEvent(_theEvent)
+	_theSelf.RegisterForModEvent(_theEvent, _theHandler)
+EndFunction
+
+; Registers an ActiveMagicEffect for a mod event safely
+Function SafeRegisterForModEvent_AME(ActiveMagicEffect _theSelf, String _theEvent, String _theHandler) global
+	If _theSelf == None
+		Debug.Trace("SafeRegisterForModEvent_AME: registrar is None!")
+		Return
+	EndIf
+	_theSelf.UnregisterForModEvent(_theEvent)
+	_theSelf.RegisterForModEvent(_theEvent, _theHandler)
 EndFunction
 
 
@@ -55,13 +124,6 @@ string FUNCTION DELETED_ATTRIBUTE() global
 	return "trigger_deleted_by_user_via_mcm"
 EndFunction
 
-; hypothetical future when an external mod taps into the trigger
-; data handling framework but has not added commands, they could
-; technically listen for this event.
-; For now, extension authors will get this automatically: see sl_triggersExtension.SLTUpdated()
-string Function EVENT_SLT_CONFIGURATION_UPDATED_INFORM_ALL_LISTENERS() global
-	return "SLTConfigurationUpdatedInformAllListeners"
-EndFunction
 
 ;;;;;;;;
 ; Global general values
@@ -108,5 +170,3 @@ EndFunction
 string Function MakeInstanceKey(string instance, string keyname) global
 	return MakeInstanceKeyPrefix(instance) + ":" + keyname
 EndFunction
-
-

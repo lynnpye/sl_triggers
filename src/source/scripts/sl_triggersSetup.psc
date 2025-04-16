@@ -1,4 +1,4 @@
-scriptname sl_triggersSetup extends sl_triggersMCMSetup
+scriptname sl_triggersSetup extends SKI_ConfigBase
 
 import sl_triggersStatics
 import sl_triggersFile
@@ -37,18 +37,12 @@ string		currentSLTPage
 string		currentExtensionKey
 
 bool 		readinessCheck
-bool		mcmready ; state of readiness at time of MCM opening
 int			headerIndex
 int			extensionIndex
 int			currentCardination
 
-Event OnInit()
-	DebMsg("Setup.OnInit")
-	readinessCheck = false
-EndEvent
-
-Function SetMCMReady()
-	readinessCheck = true
+int Function GetVersion()
+	return GetModVersion()
 EndFunction
 
 Event OnConfigInit()
@@ -57,18 +51,17 @@ Event OnConfigInit()
 	headerPages[0] = "SL Triggers"
 EndEvent
 
-Function ClearSetupHeap()
-	Heap_ClearPrefixF(self, "sl_triggersSetup")
-EndFunction
+Event OnVersionUpdate(int version)
+EndEvent
 
-Function SetCommandsList(string[] _commandsList)
-	commandsList = _commandsList
-EndFunction
+;/
+Event OnGameReload
+	parent.OnGameReload()
+EndEvent
+/;
 
 Event OnConfigOpen()
-	mcmready = readinessCheck
-	
-	if mcmready
+	if extensionPages.Length > 0
 		Pages = PapyrusUtil.MergeStringArray(headerPages, extensionPages)
 	else
 		Pages = headerPages
@@ -78,7 +71,20 @@ EndEvent
 event OnConfigClose()
 	DebMsg("Setup.OnConfigClose")
 	;MiscUtil.PrintConsole("OnConfigClose")
+	SLT.SendSettingsUpdateEvents()
 endEvent
+
+Function SetMCMReady(bool _readiness = true)
+	readinessCheck = _readiness
+EndFunction
+
+Function ClearSetupHeap()
+	Heap_ClearPrefixF(self, "sl_triggersSetup")
+EndFunction
+
+Function SetCommandsList(string[] _commandsList)
+	commandsList = _commandsList
+EndFunction
 
 
 Event OnPageReset(string page)
@@ -123,7 +129,8 @@ Event OnOptionSelect(int option)
 		return
 	elseIf option == oidAddTop || option == oidAddBottom
 		; add a record
-		Trigger_CreateT(GetOidExtensionKey(option))
+		DebMsg("Setup: addtop or addbottom clicked, trying to add item")
+		Trigger_CreateT(extensionKeys[extensionIndex])
 		ForcePageReset()
 	
 		return
@@ -145,6 +152,10 @@ string Function TK_extension(string _extensionKey)
 	return "ek-" + _extensionKey
 EndFunction
 
+string Function TK_visibilityKey(string _extensionKey)
+	return TK_extension(_extensionKey) + "-viskey"
+EndFunction
+
 string Function TK_triggerKeys(string _extensionKey)
 	return TK_extension(_extensionKey) + "-tkeys"
 EndFunction
@@ -155,6 +166,10 @@ EndFunction
 
 string Function TK_attr(string _extensionKey, string _attributeName)
 	return TK_extension(_extensionKey) + "-attr-" + _attributeName
+EndFunction
+
+string Function TK_attr_visibleOnlyIf(string _extensionKey, string _attributeName)
+	return TK_attr(_extensionKey, _attributeName) + "-onlyif"
 EndFunction
 
 string Function TK_attr_widget(string _extensionKey, string _attributeName)
@@ -231,6 +246,14 @@ string Function GetOidAttributeName(int _oid)
 	return Heap_StringGetX(self, SLTSETUPCONST, "oid-" + _oid + "-att")
 EndFunction
 
+bool Function HasExtensionVisibilityKey(string _extensionKey)
+	return Heap_StringHasX(self, SLTSETUPCONST, TK_visibilityKey(_extensionKey))
+EndFunction
+
+string Function GetExtensionVisibilityKey(string _extensionKey)
+	return Heap_StringGetX(self, SLTSETUPCONST, TK_visibilityKey(_extensionKey))
+EndFunction
+
 int Function GetTriggerCount(string _extensionKey)
 	return Heap_StringListCountX(self, SLTSETUPCONST, TK_triggerKeys(_extensionKey))
 EndFunction
@@ -249,6 +272,14 @@ EndFunction
 
 string[] Function GetAttributeNames(string _extensionKey)
 	return Heap_StringListToArrayX(self, SLTSETUPCONST, TK_attributeNames(_extensionKey))
+EndFunction
+
+bool Function HasAttrVisibleOnlyIf(string _extensionKey, string _attributeName)
+	return Heap_StringHasX(self, SLTSETUPCONST, TK_attr_visibleOnlyIf(_extensionKey, _attributeName))
+EndFunction
+
+string Function GetAttrVisibleOnlyIf(string _extensionKey, string _attributeName)
+	return Heap_StringGetX(self, SLTSETUPCONST, TK_attr_visibleOnlyIf(_extensionKey, _attributeName))
 EndFunction
 
 int Function GetAttrWidget(string _ext, string _attr)
@@ -318,6 +349,10 @@ EndFunction
 ; SetTriggers
 ; Tells setup the triggerKeys specific to your extension.
 ; Overwrites any previous values.
+string Function SetExtensionVisibilityKey(string _extensionKey, string _attributeName)
+	return Heap_StringSetX(self, SLTSETUPCONST, TK_visibilityKey(_extensionKey), _attributeName)
+EndFunction
+
 bool Function SetTriggers(string _extensionKey, string[] _triggerKeys)
 	return Heap_StringListCopyX(self, SLTSETUPCONST, TK_triggerKeys(_extensionKey), _triggerKeys)
 EndFunction
@@ -328,6 +363,10 @@ EndFunction
 
 bool Function SetAttributeNames(string _extensionKey, string[] _values)
 	return Heap_StringListCopyX(self, SLTSETUPCONST, TK_attributeNames(_extensionKey), _values)
+EndFunction
+
+string Function SetAttrVisibleOnlyIf(string _extensionKey, string _attributeName, string _requiredKeyAttributeValue)
+	return Heap_StringSetX(self, SLTSETUPCONST, TK_attr_visibleOnlyIf(_extensionKey, _attributeName), _requiredKeyAttributeValue)
 EndFunction
 
 int Function SetAttrWidget(string _ext, string _attr, int _value)
@@ -392,7 +431,7 @@ EndFunction
 ; done
 
 Function ShowExtensionPage()
-	if !mcmready
+	if extensionPages.Length < 1
 		return
 	endif
 	; I have an extensionIndex with which I can retrieve an extensionKey
@@ -451,6 +490,9 @@ Function ShowExtensionPage()
 	int i = startIndex
 	bool needsEmpty = false
 	int _oid
+	string visibilityKeyAttribute = GetExtensionVisibilityKey(extensionKey)
+	bool allowedVisible
+	
 	while i < displayCount
 		string triggerKey = GetTrigger(extensionKey, i)
 		if !Trigger_IsDeletedT(extensionKey, triggerKey)
@@ -468,88 +510,119 @@ Function ShowExtensionPage()
 			
 			int aidx = 0
 			while aidx < attributeNames.Length
-				needsEmpty = !needsEmpty
-				
 				string attrName = attributeNames[aidx]
-				int widg = GetAttrWidget(extensionKey, attrName)
-				string label = GetAttrLabel(extensionKey, attrName)
-				if widg == WIDG_SLIDER
-					float _defval = GetAttrDefaultFloat(extensionKey, attrName)
-					if Trigger_FloatHasX(extensionKey, triggerKey, attrName)
-						_defval = Trigger_FloatGetX(extensionKey, triggerKey, attrName)
+				allowedVisible = true
+				
+				if visibilityKeyAttribute && HasAttrVisibleOnlyIf(extensionKey, attrName)
+					string visibleOnlyIfValueIs = GetAttrVisibleOnlyIf(extensionKey, attrName)
+					; arbitrarily prefer int over string if for some reason they specified two 
+					; attributes with the same and types int and string
+					string attrVal
+					if Trigger_IntHasX(extensionKey, triggerKey, attrName)
+						attrVal = Trigger_IntGetX(extensionKey, triggerKey, attrName)
+					elseif Trigger_StringHasX(extensionKey, triggerKey, attrName)
+						attrVal = Trigger_StringGetX(extensionKey, triggerKey, attrName)
 					endif
-					_oid = AddSliderOption(label, _defval, GetAttrFormatString(extensionKey, attrName))
-					; add to list of oids to heap
-					AddOid(_oid, extensionKey, triggerKey, attrName)
-				elseif widg == WIDG_MENU
-					string[] menuSelections = GetAttrMenuSelections(extensionKey, attrName)
-					int ptype = GetAttrType(extensionKey, attrName)
-					string menuValue
-					if (ptype == PTYPE_INT() && !Trigger_IntHasX(extensionKey, triggerKey, attrName)) || (ptype == PTYPE_STRING() && !Trigger_StringHasX(extensionKey, triggerKey, attrName))
-						menuValue = menuSelections[GetAttrDefaultIndex(extensionKey, attrName)]
+					
+					string tval
+					if Trigger_IntHasX(extensionKey, triggerKey, visibilityKeyAttribute)
+						tval = Trigger_IntGetX(extensionKey, triggerKey, visibilityKeyAttribute) as string
+					elseif Trigger_StringHasX(extensionKey, triggerKey, visibilityKeyAttribute)
+						tval = Trigger_StringGetX(extensionKey, triggerKey, visibilityKeyAttribute)
 					else
-						if ptype == PTYPE_INT()
-							menuValue = menuSelections[Trigger_IntGetX(extensionKey, triggerKey, attrName)]
-						elseif ptype == PTYPE_STRING()
-							string _tval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
-							if menuSelections.find(_tval) > -1
-								menuValue = _tval
+						; they specified it, it somehow got past, and now we have to deal with it
+						; or ignore it
+						Debug.Trace("MCM: visibilityKeyAttribute (" + visibilityKeyAttribute + ") specified but neither int nor string available for current trigger")
+						allowedVisible = false
+					endif
+					if allowedVisible && tval && tval != attrVal
+						allowedVisible = false
+					endif
+				endif
+				
+				if allowedVisible
+					needsEmpty = !needsEmpty
+					
+					int widg = GetAttrWidget(extensionKey, attrName)
+					string label = GetAttrLabel(extensionKey, attrName)
+					if widg == WIDG_SLIDER
+						float _defval = GetAttrDefaultFloat(extensionKey, attrName)
+						if Trigger_FloatHasX(extensionKey, triggerKey, attrName)
+							_defval = Trigger_FloatGetX(extensionKey, triggerKey, attrName)
+						endif
+						_oid = AddSliderOption(label, _defval, GetAttrFormatString(extensionKey, attrName))
+						; add to list of oids to heap
+						AddOid(_oid, extensionKey, triggerKey, attrName)
+					elseif widg == WIDG_MENU
+						string[] menuSelections = GetAttrMenuSelections(extensionKey, attrName)
+						int ptype = GetAttrType(extensionKey, attrName)
+						string menuValue
+						if (ptype == PTYPE_INT() && !Trigger_IntHasX(extensionKey, triggerKey, attrName)) || (ptype == PTYPE_STRING() && !Trigger_StringHasX(extensionKey, triggerKey, attrName))
+							menuValue = menuSelections[GetAttrDefaultIndex(extensionKey, attrName)]
+						else
+							if ptype == PTYPE_INT()
+								menuValue = menuSelections[Trigger_IntGetX(extensionKey, triggerKey, attrName)]
+							elseif ptype == PTYPE_STRING()
+								string _tval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
+								if menuSelections.find(_tval) > -1
+									menuValue = _tval
+								endif
 							endif
 						endif
-					endif
-					_oid = AddMenuOption(label, menuValue)
-					AddOid(_oid, extensionKey, triggerKey, attrName)
-				elseif widg == WIDG_KEYMAP
-					int _defmap = GetAttrDefaultValue(extensionKey, attrName)
-					if Trigger_IntHasX(extensionKey, triggerKey, attrName)
-						_defmap = Trigger_IntGetX(extensionKey, triggerKey, attrName)
-					endif
-					_oid = AddKeyMapOption(label, _defmap)
-					AddOid(_oid, extensionKey, triggerKey, attrName)
-				elseif widg == WIDG_TOGGLE
-					bool _defval = GetAttrDefaultValue(extensionKey, attrName) != 0
-					if Trigger_IntHasX(extensionKey, triggerKey, attrName)
-						_defval = Trigger_IntGetX(extensionKey, triggerKey, attrName) != 0
-					endif
-					_oid = AddToggleOption(label, _defval)
-					AddOid(_oid, extensionKey, triggerKey, attrName)
-				elseif widg == WIDG_INPUT
-					string _defval = GetAttrDefaultString(extensionKey, attrName)
-					
-					int ptype = GetAttrType(extensionKey, attrName)
-					if ptype == PTYPE_INT()
+						_oid = AddMenuOption(label, menuValue)
+						AddOid(_oid, extensionKey, triggerKey, attrName)
+					elseif widg == WIDG_KEYMAP
+						int _defmap = GetAttrDefaultValue(extensionKey, attrName)
 						if Trigger_IntHasX(extensionKey, triggerKey, attrName)
-							_defval = Trigger_IntGetX(extensionKey, triggerKey, attrName) as string
+							_defmap = Trigger_IntGetX(extensionKey, triggerKey, attrName)
 						endif
-					elseif ptype == PTYPE_FLOAT()
-						if Trigger_FloatHasX(extensionKey, triggerKey, attrName)
-							_defval = Trigger_FloatGetX(extensionKey, triggerKey, attrName) as string
+						_oid = AddKeyMapOption(label, _defmap)
+						AddOid(_oid, extensionKey, triggerKey, attrName)
+					elseif widg == WIDG_TOGGLE
+						bool _defval = GetAttrDefaultValue(extensionKey, attrName) != 0
+						if Trigger_IntHasX(extensionKey, triggerKey, attrName)
+							_defval = Trigger_IntGetX(extensionKey, triggerKey, attrName) != 0
 						endif
-					elseif ptype == PTYPE_STRING()
-						if Trigger_StringHasX(extensionKey, triggerKey, attrName)
-							_defval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
+						_oid = AddToggleOption(label, _defval)
+						AddOid(_oid, extensionKey, triggerKey, attrName)
+					elseif widg == WIDG_INPUT
+						string _defval = GetAttrDefaultString(extensionKey, attrName)
+						
+						int ptype = GetAttrType(extensionKey, attrName)
+						if ptype == PTYPE_INT()
+							if Trigger_IntHasX(extensionKey, triggerKey, attrName)
+								_defval = Trigger_IntGetX(extensionKey, triggerKey, attrName) as string
+							endif
+						elseif ptype == PTYPE_FLOAT()
+							if Trigger_FloatHasX(extensionKey, triggerKey, attrName)
+								_defval = Trigger_FloatGetX(extensionKey, triggerKey, attrName) as string
+							endif
+						elseif ptype == PTYPE_STRING()
+							if Trigger_StringHasX(extensionKey, triggerKey, attrName)
+								_defval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
+							endif
+						elseif ptype == PTYPE_FORM()
+							if Trigger_FormHasX(extensionKey, triggerKey, attrName)
+								_defval = Trigger_FormGetX(extensionKey, triggerKey, attrName) as string
+							endif
 						endif
-					elseif ptype == PTYPE_FORM()
-						if Trigger_FormHasX(extensionKey, triggerKey, attrName)
-							_defval = Trigger_FormGetX(extensionKey, triggerKey, attrName) as string
+						
+						_oid = AddInputOption(label, _defval)
+						AddOid(_oid, extensionKey, triggerKey, attrName)
+					elseif widg == WIDG_COMMANDLIST
+						string menuValue = ""
+						if !Trigger_StringHasX(extensionKey, triggerKey, attrName)
+							menuValue = commandsList[0]
+						else
+							string _cval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
+							if commandsList.find(_cval) > -1
+								menuValue = _cval
+							endif
 						endif
+						
+						_oid = AddMenuOption(label, menuValue)
+						AddOid(_oid, extensionKey, triggerKey, attrName)
 					endif
-					
-					_oid = AddInputOption(label, _defval)
-					AddOid(_oid, extensionKey, triggerKey, attrName)
-				elseif widg == WIDG_COMMANDLIST
-					string menuValue = ""
-					if !Trigger_StringHasX(extensionKey, triggerKey, attrName)
-						menuValue = commandsList[0]
-					else
-						string _cval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
-						if commandsList.find(_cval) > -1
-							menuValue = _cval
-						endif
-					endif
-					
-					_oid = AddMenuOption(label, menuValue)
-					AddOid(_oid, extensionKey, triggerKey, attrName)
 				endif
 				
 				aidx += 1
@@ -637,6 +710,8 @@ Function SetSLTCurrentPage(string _page)
 	if pageDidChange && IsExtensionPage()
 		attributeNames = GetAttributeNames(extensionKeys[extensionIndex])
 	endif
+	
+	DebMsg("set current SLT page: extensionIndex(" + extensionIndex + ") extensionKey(" + extensionKeys[extensionIndex] + ")")
 EndFunction
 
 bool Function IsHeaderPage()
@@ -821,7 +896,46 @@ Function AddCommandList(string _extensionKey, string _attributeName, string _lab
 	SetAttrLabel(_extensionKey, _attributeName, _label)
 EndFunction
 
+Function SetVisibilityKeyAttribute(string _extensionKey, string _attributeName)
+	if !_extensionKey
+		Debug.Trace("Setup: _extensionKey is required but was not provided")
+		return
+	endif
+	if !_attributeName
+		Debug.Trace("Setup: _attributeName is required but was not provided")
+		return
+	endif
+	
+	SetExtensionVisibilityKey(_extensionKey, _attributeName)
+EndFunction
 
+; SetVisibleOnlyIf
+; Tells setup that the specified attribute should only be displayed in the MCM if the
+; visibility key attribute has the specified value. Note that this function will
+; have no effect if SetVisibilityKeyAttribute() is not also called.
+;
+; If the PTYPE of the key attribute is int, cast to string for this call.
+Function SetVisibleOnlyIf(string _extensionKey, string _attributeName, string _requiredKeyAttributeValue)
+	if !_extensionKey
+		Debug.Trace("Setup: _extensionKey is required but was not provided")
+		return
+	endif
+	if !_attributeName
+		Debug.Trace("Setup: _attributeName is required but was not provided")
+		return
+	endif
+	if !_requiredKeyAttributeValue
+		Debug.Trace("Setup: _requiredKeyAttributeValue is required but was not provided")
+		return
+	endif
+	int _attrType = GetAttrType(_extensionKey, _attributeName)
+	if _attrType != PTYPE_INT() && _attrType != PTYPE_STRING()
+		Debug.Trace("Setup: _requiredKeyAttribute must be PTYPE_INT or PTYPE_STRING")
+		return
+	endif
+	
+	SetAttrVisibleOnlyIf(_extensionKey, _attributeName, _requiredKeyAttributeValue)
+EndFunction
 
 
 ; Trigger Data Convenience Functions
@@ -854,6 +968,7 @@ string Function Trigger_CreateT(string _extensionKey)
 	if found
 		Debug.Trace("SLT: Setup: Unable to create new trigger: '" + triggerFileName + "'")
 	else
+		DebMsg("Trigger_CreateT: extensionKey(" + _extensionKey + ") triggerKey(" + triggerKey + ")")
 		AddTrigger(_extensionKey, triggerKey)
 	endif
 EndFunction

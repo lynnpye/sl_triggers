@@ -62,10 +62,15 @@ int Function GetPriority()
 EndFunction
 
 Event OnInit()
+	DebMsg("Core.OnInit")
 	SLTInit()
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_DEFERRED_INIT(), "OnSLTDeferredInit")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_POPULATE_MCM(), "OnPopulateMCM")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTUpdated")
 EndEvent
 
-Function RefreshTriggers()
+Function RefreshTriggerCache()
+	DebMsg("Core.RefreshTriggerCache")
 	triggerKeys_topOfTheHour = PapyrusUtil.StringArray(0)
 	triggerKeys_keyDown = PapyrusUtil.StringArray(0)
 	int i = 0
@@ -76,20 +81,23 @@ Function RefreshTriggers()
 		elseif eventCode == 1
 			triggerKeys_keyDown = PapyrusUtil.PushString(triggerKeys_keyDown, TriggerKeys[i])
 		endif
+		i += 1
 	endwhile
 EndFunction
 
-Function SLTDeferredInit()
+Event OnSLTDeferredInit(string eventName, string strArg, float numArg, Form sender)
+	DebMsg("Core.SLTDeferredInit")
 	UpdateDAKStatus()
 	
-	RefreshTriggers()
-	_registerEvents()
-EndFunction
+	RefreshTriggerCache()
+	RegisterEvents()
+EndEvent
 
 ; configuration was updated mid-game
-Function SLTUpdated()
-	RefreshTriggers()
-	_registerEvents()
+Function OnSLTUpdated(string eventName, string strArg, float numArg, Form sender)
+	DebMsg("SexLab.SLTUpdated")
+	RefreshTriggerCache()
+	RegisterEvents()
 EndFunction
 
 Event OnUpdateGameTime()
@@ -104,7 +112,7 @@ Event OnUpdateGameTime()
 			tohElapsedTime = currentTime - lastTopOfTheHour
 			lastTopOfTheHour = currentTime
 			
-			SendModEvent(EVENT_TOP_OF_THE_HOUR)
+			SendModEvent(EVENT_TOP_OF_THE_HOUR, "", tohElapsedTime)
 			AlignToNextHour(currentTime)
 		else
 			RegisterForSingleUpdateGameTime((nextTopOfTheHour - currentTime) * 24.0 * 1.04)
@@ -116,7 +124,7 @@ EndEvent
 ; next game-time top of the hour
 ; the 1.04 multiplier is to intentionally overshoot a tiny bit to ensure our trigger works
 Function AlignToNextHour(float _curTime = -1.0)
-	DebMsg("Main.AlignToNextHour")
+	DebMsg("Core.AlignToNextHour")
 	if triggerKeys_topOfTheHour.Length <= 0
 		return
 	endif
@@ -154,21 +162,9 @@ Function UpdateDAKStatus()
 	endif
 EndFunction
 
-Function _unregisterEvents()
-	DebMsg("Core._unregisterEvents")
-    if bDebugMsg
-        Debug.Notification("SL Triggers: unregister events")
-    endIf
-	
-	UnregisterForModEvent(EVENT_TOP_OF_THE_HOUR)
-	handlingTopOfTheHour = false
-	UnregisterForKeyEvents()
-	UnregisterForModEvent(EVENT_SLT_GAME_LOADED())
-EndFunction
-
 ; selectively enables only events with triggers
-Function _registerEvents()
-	DebMsg("Core._registerEvents")
+Function RegisterEvents()
+	DebMsg("Core.RegisterEvents")
     if bDebugMsg
         Debug.Notification("SL Triggers Core: register events")
     endIf
@@ -177,7 +173,7 @@ Function _registerEvents()
 	handlingTopOfTheHour = false
 	if bEnabled && triggerKeys_topOfTheHour.Length > 0
 		DebMsg("Core: registering top of the hour")
-		RegisterForModEvent(EVENT_TOP_OF_THE_HOUR, EVENT_TOP_OF_THE_HOUR_HANDLER)
+		SafeRegisterForModEvent_Quest(self, EVENT_TOP_OF_THE_HOUR, EVENT_TOP_OF_THE_HOUR_HANDLER)
 		AlignToNextHour()
 		handlingTopOfTheHour = true
 	endif
@@ -205,7 +201,40 @@ Function UnregisterForKeyEvents()
 	UnregisterForAllKeys()
 EndFunction
 
-
+Event OnPopulateMCM(string eventName, string strArg, float numArg, Form sender)
+	DebMsg("Core.PopulateMCM")
+	
+	string[] triggerIfEventNames	= PapyrusUtil.StringArray(3)
+	triggerIfEventNames[0]			= "- Select an Event -"
+	triggerIfEventNames[1]			= "Keymapping"
+	triggerIfEventNames[2]			= "Top of the Hour"
+	DescribeMenuAttribute(SLTMCM, "event", PTYPE_INT(), "Event:", 0, triggerIfEventNames)
+	
+	; Only for Keymapping
+	DescribeKeymapAttribute(SLTMCM, "keymapping", PTYPE_INT(), "Keymapping: ")
+	DescribeKeymapAttribute(SLTMCM, "modifierkeymapping", PTYPE_INT(), "Modifier Key: ")
+	DescribeToggleAttribute(SLTMCM, "usedak", PTYPE_INT(), "Use DAK? ")
+	
+	; Only for Top of the Hour
+	DescribeSliderAttribute(SLTMCM, "chance", PTYPE_FLOAT(), "Chance: ", 0.0, 100.0, 1.0, "{0}")
+	
+	; technically you could add as many as you wanted here but of course
+	; that could cause performance issues
+	AddCommandList(SLTMCM, "do_1", "Command 1:")
+	AddCommandList(SLTMCM, "do_2", "Command 2:")
+	AddCommandList(SLTMCM, "do_3", "Command 3:")
+	
+	; placing these at the end just to point out that the position of the calls doesn't matter, so feel free 
+	; to place these calls wherever in this function call you would want for organizational purposes
+	SetVisibilityKeyAttribute(SLTMCM, "event")
+	
+	SetVisibleOnlyIf(SLTMCM, "keymapping", "1")
+	SetVisibleOnlyIf(SLTMCM, "modifierkeymapping", "1")
+	SetVisibleOnlyIf(SLTMCM, "usedak", "1")
+	
+	SetVisibleOnlyIf(SLTMCM, "chance", "2")
+	
+EndEvent
 
 Event OnTopOfTheHour(String eventName, string strArg, Float fltArg, Form sender)
 	if !self

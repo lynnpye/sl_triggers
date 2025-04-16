@@ -37,7 +37,7 @@ string Function GetFriendlyName()
 EndFunction
 
 Function UpdateSexLabStatus()
-	DebMsg("Core.UpdateSexLabStatus")
+	DebMsg("SexLab.UpdateSexLabStatus")
 	SexLabAnimatingFaction = none
 	SexLab = none
 	
@@ -56,10 +56,15 @@ int Function GetPriority()
 EndFunction
 
 Event OnInit()
+	DebMsg("SexLab.OnInit")
 	SLTInit()
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_DEFERRED_INIT(), "OnSLTDeferredInit")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_POPULATE_MCM(), "OnPopulateMCM")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTUpdated")
 EndEvent
 
-Function RefreshTriggers()
+Function RefreshTriggerCache()
+	DebMsg("SexLab.RefreshTriggerCache")
 	triggerKeys_Start = PapyrusUtil.StringArray(0)
 	triggerKeys_Orgasm = PapyrusUtil.StringArray(0)
 	triggerKeys_Stop = PapyrusUtil.StringArray(0)
@@ -76,32 +81,38 @@ Function RefreshTriggers()
 		elseif eventCode == 3
 			triggerKeys_Orgasm_S = PapyrusUtil.PushString(triggerKeys_Orgasm_S, TriggerKeys[i])
 		endif
+		
+		i += 1
 	endwhile
 EndFunction
 
-Function SLTDeferredInit()
+Event OnSLTDeferredInit(string eventName, string strArg, float numArg, Form sender)
+	DebMsg("SexLab.SLTDeferredInit")
 	UpdateSexLabStatus()
 	
-	RefreshTriggers()
-	_registerEvents()
-EndFunction
+	RefreshTriggerCache()
+	RegisterEvents()
+EndEvent
 
 ; configuration was updated mid-game
-Function SLTUpdated()
-	RefreshTriggers()
-	_registerEvents()
+Function OnSLTUpdated(string eventName, string strArg, float numArg, Form sender)
+	DebMsg("SexLab.SLTUpdated")
+	RefreshTriggerCache()
+	RegisterEvents()
 EndFunction
 
-Function PopulateMCM(sl_triggersMCMSetup mcm)
+Event OnPopulateMCM(string eventName, string strArg, float numArg, Form sender)
+	DebMsg("SexLab.PopulateMCM")
+	
 	string[] triggerIfEventNames	= PapyrusUtil.StringArray(5)
 	triggerIfEventNames[0]			= "- Select an Event -"
 	triggerIfEventNames[1]			= "Begin"
 	triggerIfEventNames[2]			= "Orgasm"
 	triggerIfEventNames[3]			= "End"
 	triggerIfEventNames[4]			= "Orgasm(SLSO)"
-	DescribeMenuAttribute(mcm, "event", PTYPE_INT(), "Event:", 0, triggerIfEventNames)
+	DescribeMenuAttribute(SLTMCM, "event", PTYPE_INT(), "Event:", 0, triggerIfEventNames)
 	
-	DescribeSliderAttribute(mcm, "chance", PTYPE_FLOAT(), "Chance: ", 0.0, 100.0, 1.0, "{0}")
+	DescribeSliderAttribute(SLTMCM, "chance", PTYPE_FLOAT(), "Chance: ", 0.0, 100.0, 1.0, "{0}")
 	
 	string[] triggerIfRaceNames = new string[7]
 	triggerIfRaceNames[0] = "Any"
@@ -111,14 +122,14 @@ Function PopulateMCM(sl_triggersMCMSetup mcm)
 	triggerIfRaceNames[4] = "Partner Humanoid"
 	triggerIfRaceNames[5] = "Partner Creature"
 	triggerIfRaceNames[6] = "Partner Undead"
-	DescribeMenuAttribute(mcm, "race", PTYPE_INT(), "Race:", 0, triggerIfRaceNames)
+	DescribeMenuAttribute(SLTMCM, "race", PTYPE_INT(), "Race:", 0, triggerIfRaceNames)
 	
 	string[] triggerIfRoleNames = new string[4]
 	triggerIfRoleNames[0] = "Any"
 	triggerIfRoleNames[1] = "Aggressor"
 	triggerIfRoleNames[2] = "Victim"
 	triggerIfRoleNames[3] = "Not part of rape"
-	DescribeMenuAttribute(mcm, "role", PTYPE_INT(), "Role:", 0, triggerIfRoleNames)
+	DescribeMenuAttribute(SLTMCM, "role", PTYPE_INT(), "Role:", 0, triggerIfRoleNames)
 	
 	string[] triggerIfPlayerNames = new string[5]
 	triggerIfPlayerNames[0] = "Any"
@@ -126,32 +137,32 @@ Function PopulateMCM(sl_triggersMCMSetup mcm)
 	triggerIfPlayerNames[2] = "Not Player"
 	triggerIfPlayerNames[3] = "Partner Player"
 	triggerIfPlayerNames[4] = "Partner Not Player"
-	DescribeMenuAttribute(mcm, "player", PTYPE_INT(), "Player Status:", 0, triggerIfPlayerNames)
+	DescribeMenuAttribute(SLTMCM, "player", PTYPE_INT(), "Player Status:", 0, triggerIfPlayerNames)
 	
 	string[] triggerIfGenderNames = new string[3]
 	triggerIfGenderNames[0] = "Any"
 	triggerIfGenderNames[1] = "Male"
 	triggerIfGenderNames[2] = "Female"
-	DescribeMenuAttribute(mcm, "gender", PTYPE_INT(), "Gender:", 0, triggerIfGenderNames)
+	DescribeMenuAttribute(SLTMCM, "gender", PTYPE_INT(), "Gender:", 0, triggerIfGenderNames)
 	
 	string[] triggerIfTagNames = new String[4]
 	triggerIfTagNames[0] = "Any"
 	triggerIfTagNames[1] = "Vaginal"
 	triggerIfTagNames[2] = "Anal"
 	triggerIfTagNames[3] = "Oral"
-	DescribeMenuAttribute(mcm, "tag", PTYPE_INT(), "SL Tag:", 0, triggerIfTagNames)
+	DescribeMenuAttribute(SLTMCM, "tag", PTYPE_INT(), "SL Tag:", 0, triggerIfTagNames)
 	
 	string[] triggerIfDaytimeNames = new String[3]
 	triggerIfDaytimeNames[0] = "Any"
 	triggerIfDaytimeNames[1] = "Day"
 	triggerIfDaytimeNames[2] = "Night"
-	DescribeMenuAttribute(mcm, "daytime", PTYPE_INT(), "Time of Day:", 0, triggerIfDaytimeNames)
+	DescribeMenuAttribute(SLTMCM, "daytime", PTYPE_INT(), "Time of Day:", 0, triggerIfDaytimeNames)
 	
 	string[] triggerIfLocationNames = new String[3]
 	triggerIfLocationNames[0] = "Any"
 	triggerIfLocationNames[1] = "Inside"
 	triggerIfLocationNames[2] = "Outside"
-	DescribeMenuAttribute(mcm, "location", PTYPE_INT(), "Location:", 0, triggerIfLocationNames)
+	DescribeMenuAttribute(SLTMCM, "location", PTYPE_INT(), "Location:", 0, triggerIfLocationNames)
 	
 	string[] triggerIfPosition = new string[6]
 	triggerIfPosition[0] = "Any"
@@ -160,30 +171,18 @@ Function PopulateMCM(sl_triggersMCMSetup mcm)
 	triggerIfPosition[3] = "3"
 	triggerIfPosition[4] = "4"
 	triggerIfPosition[5] = "5"
-	DescribeMenuAttribute(mcm, "position", PTYPE_INT(), "SL Position:", 0, triggerIfPosition)
+	DescribeMenuAttribute(SLTMCM, "position", PTYPE_INT(), "SL Position:", 0, triggerIfPosition)
 	
 	; technically you could add as many as you wanted here but of course
 	; that could cause performance issues
-	AddCommandList(mcm, "do_1", "Command 1:")
-	AddCommandList(mcm, "do_2", "Command 2:")
-	AddCommandList(mcm, "do_3", "Command 3:")
-EndFunction
-
-Function _unregisterEvents()
-	DebMsg("SexLab._unregisterEvents")
-    if bDebugMsg
-        Debug.Notification("SL Triggers: unregister events")
-    endIf
-	
-	UnregisterForModEvent(EVENT_SEXLAB_START)
-	UnregisterForModEvent(EVENT_SEXLAB_END)
-	UnregisterForModEvent(EVENT_SEXLAB_ORGASM)
-	UnregisterForModEvent(EVENT_SEXLAB_ORGASM_SLSO)
-EndFunction
+	AddCommandList(SLTMCM, "do_1", "Command 1:")
+	AddCommandList(SLTMCM, "do_2", "Command 2:")
+	AddCommandList(SLTMCM, "do_3", "Command 3:")
+EndEvent
 
 ; selectively enables only events with triggers
-Function _registerEvents()
-	DebMsg("sl_triggers.SexLab._registerEvents")
+Function RegisterEvents()
+	DebMsg("SexLab.RegisterEvents")
     if bDebugMsg
         Debug.Notification("SL Triggers SL: register events")
     endIf
@@ -191,25 +190,25 @@ Function _registerEvents()
 	UnregisterForModEvent(EVENT_SEXLAB_START)
 	if bEnabled && triggerKeys_Start.Length > 0 && SexLab
 		DebMsg("SexLab: registering SL begin")
-		RegisterForModEvent(EVENT_SEXLAB_START, EVENT_SEXLAB_START_HANDLER)
+		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_START, EVENT_SEXLAB_START_HANDLER)
 	endif
 	
 	UnregisterForModEvent(EVENT_SEXLAB_END)
 	if bEnabled && triggerKeys_Stop.Length > 0 && SexLab
 		DebMsg("SexLab: registering SL end")
-		RegisterForModEvent(EVENT_SEXLAB_END, EVENT_SEXLAB_END_HANDLER)
+		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_END, EVENT_SEXLAB_END_HANDLER)
 	endif
 	
 	UnregisterForModEvent(EVENT_SEXLAB_ORGASM)
 	if bEnabled && triggerKeys_Orgasm.Length > 0 && SexLab
 		DebMsg("SexLab: registering SL orgasm")
-		RegisterForModEvent(EVENT_SEXLAB_ORGASM, EVENT_SEXLAB_ORGASM_HANDLER)
+		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_ORGASM, EVENT_SEXLAB_ORGASM_HANDLER)
 	endif
     
 	UnregisterForModEvent(EVENT_SEXLAB_ORGASM_SLSO)
 	if bEnabled && triggerKeys_Orgasm_S.Length > 0 && SexLab
 		DebMsg("SexLab: registering SL orgasm slso")
-		RegisterForModEvent(EVENT_SEXLAB_ORGASM_SLSO, EVENT_SEXLAB_ORGASM_SLSO_HANDLER)
+		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_ORGASM_SLSO, EVENT_SEXLAB_ORGASM_SLSO_HANDLER)
 	endif
 EndFunction
 
