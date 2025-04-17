@@ -128,9 +128,21 @@ Function SLTInit()
 	if !ActorTypeUndead
 		ActorTypeUndead = Game.GetFormFromFile(0x13796, "Skyrim.esm") as Keyword
 	endif
-	
+	DebMsg("Extension.SLTInit")
+	JumpStart()
+EndFunction
+
+Function QueueUpdateLoop(float afDelay = 1.0)
+	RegisterForSingleUpdate(afDelay)
+EndFunction
+
+Function JumpStart()
+	DebMsg("Extension.JumpStart")
 	deferredInitHandled = false
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_GAME_LOADED(), "OnSLTGameLoaded")
 	SafeRegisterForModEvent_Quest(self, _GetHeartbeatEvent(), "OnSLTHeartbeat")
+	SafeRegisterForModEvent_Quest(self, _GetGameLoadedEvent(), "_slt_OnSLTGameLoaded")
+	SafeRegisterForModEvent_Quest(self, _GetSettingsUpdateEvent(), "OnSLTSettingsUpdated")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_OPEN_REGISTRATION(), "OnSLTOpenRegistration")
 EndFunction
 
@@ -252,6 +264,12 @@ Function SetVisibleOnlyIf(sl_triggersSetup mcm, string _attributeName, string _r
 	mcm.SetVisibleOnlyIf(GetExtensionKey(), _attributeName, _requiredKeyAttributeValue)
 EndFunction
 
+; SetHighlightText
+; Tells setup what to display when the attribute is highlighted in the MCM.
+Function SetHighlightText(sl_triggersSetup mcm, string _attributeName, string _highlightText)
+	mcm.SetHighlightText(GetExtensionKey(), _attributeName, _highlightText)
+EndFunction
+
 ; bool IsEnabled
 ; enabled status for this extension
 ; returns - true if BOTH sl_triggers AND this extension are enabled; false otherwise
@@ -333,6 +351,7 @@ int		oneupnumber
 bool	deferredInitHandled
 string	heartbeatEvent ; uniquely generated each launch and sent during registration to receive heartbeats
 string	settingsUpdateEvent ; uniquely generated each launch and sent during registration to receive settings update
+string	gameLoadedEvent ; uniquely generated each launch and sent during registration to receive game loaded events
 
 string Function _GetHeartbeatEvent()
 	if !heartbeatEvent
@@ -346,6 +365,13 @@ string Function _GetSettingsUpdateEvent()
 		settingsUpdateEvent = "sl_triggers_SLT_SETTINGS_UPDATE_" + (Utility.RandomInt(100000, 999999) as string)
 	endif
 	return settingsUpdateEvent
+EndFunction
+
+string Function _GetGameLoadedEvent()
+	if !gameLoadedEvent
+		gameLoadedEvent = "sl_triggers_SLT_GAME_LOADED_" + (Utility.RandomInt(100000, 999999) as string)
+	endif
+	return gameLoadedEvent
 EndFunction
 
 bool Function _HasPool()
@@ -443,6 +469,16 @@ EndEvent
 
 Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
 	_RefreshTriggers()
+EndEvent
+
+Event _slt_OnSLTGameLoaded(string eventName, string strArg, float numArg, Form sender)
+	bool firstTime = false
+	if "true" == strArg
+		firstTime = true
+	endif
+	if !firstTime
+		_RefreshTriggers()
+	endif
 EndEvent
 
 Function _InternalPopulateMCM(sl_triggersSetup mcm)

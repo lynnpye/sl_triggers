@@ -37,7 +37,6 @@ string Function GetFriendlyName()
 EndFunction
 
 Function UpdateSexLabStatus()
-	DebMsg("SexLab.UpdateSexLabStatus")
 	SexLabAnimatingFaction = none
 	SexLab = none
 	
@@ -58,13 +57,9 @@ EndFunction
 Event OnInit()
 	DebMsg("SexLab.OnInit")
 	SLTInit()
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_DEFERRED_INIT(), "OnSLTDeferredInit")
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_POPULATE_MCM(), "OnPopulateMCM")
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTUpdated")
 EndEvent
 
 Function RefreshTriggerCache()
-	DebMsg("SexLab.RefreshTriggerCache")
 	triggerKeys_Start = PapyrusUtil.StringArray(0)
 	triggerKeys_Orgasm = PapyrusUtil.StringArray(0)
 	triggerKeys_Stop = PapyrusUtil.StringArray(0)
@@ -86,8 +81,11 @@ Function RefreshTriggerCache()
 	endwhile
 EndFunction
 
-Event OnSLTDeferredInit(string eventName, string strArg, float numArg, Form sender)
-	DebMsg("SexLab.SLTDeferredInit")
+Event OnSLTGameLoaded(string eventName, string strArg, float numArg, Form sender)
+	DebMsg("SexLab.OnGameLoaded")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_POPULATE_MCM(), "OnPopulateMCM")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTUpdated")
+	
 	UpdateSexLabStatus()
 	
 	RefreshTriggerCache()
@@ -96,14 +94,12 @@ EndEvent
 
 ; configuration was updated mid-game
 Function OnSLTUpdated(string eventName, string strArg, float numArg, Form sender)
-	DebMsg("SexLab.SLTUpdated")
 	RefreshTriggerCache()
 	RegisterEvents()
 EndFunction
 
 Event OnPopulateMCM(string eventName, string strArg, float numArg, Form sender)
 	DebMsg("SexLab.PopulateMCM")
-	
 	string[] triggerIfEventNames	= PapyrusUtil.StringArray(5)
 	triggerIfEventNames[0]			= "- Select an Event -"
 	triggerIfEventNames[1]			= "Begin"
@@ -111,8 +107,10 @@ Event OnPopulateMCM(string eventName, string strArg, float numArg, Form sender)
 	triggerIfEventNames[3]			= "End"
 	triggerIfEventNames[4]			= "Orgasm(SLSO)"
 	DescribeMenuAttribute(SLTMCM, "event", PTYPE_INT(), "Event:", 0, triggerIfEventNames)
+	SetHighlightText(SLTMCM, "event", "Choose which type of event this trigger will use.")
 	
 	DescribeSliderAttribute(SLTMCM, "chance", PTYPE_FLOAT(), "Chance: ", 0.0, 100.0, 1.0, "{0}")
+	SetHighlightText(SLTMCM, "chance", "The chance the trigger will run when all prerequisites are met.")
 	
 	string[] triggerIfRaceNames = new string[7]
 	triggerIfRaceNames[0] = "Any"
@@ -182,32 +180,27 @@ EndEvent
 
 ; selectively enables only events with triggers
 Function RegisterEvents()
-	DebMsg("SexLab.RegisterEvents")
     if bDebugMsg
         Debug.Notification("SL Triggers SL: register events")
     endIf
 	
 	UnregisterForModEvent(EVENT_SEXLAB_START)
 	if bEnabled && triggerKeys_Start.Length > 0 && SexLab
-		DebMsg("SexLab: registering SL begin")
 		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_START, EVENT_SEXLAB_START_HANDLER)
 	endif
 	
 	UnregisterForModEvent(EVENT_SEXLAB_END)
 	if bEnabled && triggerKeys_Stop.Length > 0 && SexLab
-		DebMsg("SexLab: registering SL end")
 		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_END, EVENT_SEXLAB_END_HANDLER)
 	endif
 	
 	UnregisterForModEvent(EVENT_SEXLAB_ORGASM)
 	if bEnabled && triggerKeys_Orgasm.Length > 0 && SexLab
-		DebMsg("SexLab: registering SL orgasm")
 		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_ORGASM, EVENT_SEXLAB_ORGASM_HANDLER)
 	endif
     
 	UnregisterForModEvent(EVENT_SEXLAB_ORGASM_SLSO)
 	if bEnabled && triggerKeys_Orgasm_S.Length > 0 && SexLab
-		DebMsg("SexLab: registering SL orgasm slso")
 		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_ORGASM_SLSO, EVENT_SEXLAB_ORGASM_SLSO_HANDLER)
 	endif
 EndFunction

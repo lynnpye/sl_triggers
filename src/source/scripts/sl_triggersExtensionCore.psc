@@ -64,13 +64,9 @@ EndFunction
 Event OnInit()
 	DebMsg("Core.OnInit")
 	SLTInit()
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_DEFERRED_INIT(), "OnSLTDeferredInit")
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_POPULATE_MCM(), "OnPopulateMCM")
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTUpdated")
 EndEvent
 
 Function RefreshTriggerCache()
-	DebMsg("Core.RefreshTriggerCache")
 	triggerKeys_topOfTheHour = PapyrusUtil.StringArray(0)
 	triggerKeys_keyDown = PapyrusUtil.StringArray(0)
 	int i = 0
@@ -85,8 +81,11 @@ Function RefreshTriggerCache()
 	endwhile
 EndFunction
 
-Event OnSLTDeferredInit(string eventName, string strArg, float numArg, Form sender)
-	DebMsg("Core.SLTDeferredInit")
+Event OnSLTGameLoaded(string eventName, string strArg, float numArg, Form sender)
+	DebMsg("Core.OnGameLoaded")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_POPULATE_MCM(), "OnPopulateMCM")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTUpdated")
+	
 	UpdateDAKStatus()
 	
 	RefreshTriggerCache()
@@ -95,7 +94,6 @@ EndEvent
 
 ; configuration was updated mid-game
 Function OnSLTUpdated(string eventName, string strArg, float numArg, Form sender)
-	DebMsg("SexLab.SLTUpdated")
 	RefreshTriggerCache()
 	RegisterEvents()
 EndFunction
@@ -124,7 +122,6 @@ EndEvent
 ; next game-time top of the hour
 ; the 1.04 multiplier is to intentionally overshoot a tiny bit to ensure our trigger works
 Function AlignToNextHour(float _curTime = -1.0)
-	DebMsg("Core.AlignToNextHour")
 	if triggerKeys_topOfTheHour.Length <= 0
 		return
 	endif
@@ -152,7 +149,6 @@ string Function GetDAKModname()
 endfunction
 
 Function UpdateDAKStatus()
-	DebMsg("Core.UpdateDAKStatus")
 	dakavailable = false
 	DAKStatus = Game.GetFormFromFile(0x801, GetDAKModname()) as GlobalVariable
 	DAKHotKey = Game.GetFormFromFile(0x804, GetDAKModname()) as GlobalVariable
@@ -164,7 +160,6 @@ EndFunction
 
 ; selectively enables only events with triggers
 Function RegisterEvents()
-	DebMsg("Core.RegisterEvents")
     if bDebugMsg
         Debug.Notification("SL Triggers Core: register events")
     endIf
@@ -172,7 +167,6 @@ Function RegisterEvents()
 	UnregisterForModEvent(EVENT_TOP_OF_THE_HOUR)
 	handlingTopOfTheHour = false
 	if bEnabled && triggerKeys_topOfTheHour.Length > 0
-		DebMsg("Core: registering top of the hour")
 		SafeRegisterForModEvent_Quest(self, EVENT_TOP_OF_THE_HOUR, EVENT_TOP_OF_THE_HOUR_HANDLER)
 		AlignToNextHour()
 		handlingTopOfTheHour = true
@@ -180,7 +174,6 @@ Function RegisterEvents()
 	
 	UnregisterForKeyEvents()
 	if bEnabled && triggerKeys_keyDown.Length > 0
-		DebMsg("Core: registering keymapping")
 		RegisterForKeyEvents()
 	endif
 	
@@ -203,26 +196,33 @@ EndFunction
 
 Event OnPopulateMCM(string eventName, string strArg, float numArg, Form sender)
 	DebMsg("Core.PopulateMCM")
-	
 	string[] triggerIfEventNames	= PapyrusUtil.StringArray(3)
 	triggerIfEventNames[0]			= "- Select an Event -"
 	triggerIfEventNames[1]			= "Keymapping"
 	triggerIfEventNames[2]			= "Top of the Hour"
 	DescribeMenuAttribute(SLTMCM, "event", PTYPE_INT(), "Event:", 0, triggerIfEventNames)
+	SetHighlightText(SLTMCM, "event", "Choose which type of event this trigger will use.")
 	
 	; Only for Keymapping
 	DescribeKeymapAttribute(SLTMCM, "keymapping", PTYPE_INT(), "Keymapping: ")
+	SetHighlightText(SLTMCM, "keymapping", "Choose the key to map to the action.")
 	DescribeKeymapAttribute(SLTMCM, "modifierkeymapping", PTYPE_INT(), "Modifier Key: ")
+	SetHighlightText(SLTMCM, "modifierkeymapping", "(Optional) If specified, will be required to be pressed to trigger the action.")
 	DescribeToggleAttribute(SLTMCM, "usedak", PTYPE_INT(), "Use DAK? ")
+	SetHighlightText(SLTMCM, "usedak", "(Optional) If enabled, will use the Dynamic Activation Key instead of the Modifier key (if selected)")
 	
 	; Only for Top of the Hour
 	DescribeSliderAttribute(SLTMCM, "chance", PTYPE_FLOAT(), "Chance: ", 0.0, 100.0, 1.0, "{0}")
+	SetHighlightText(SLTMCM, "chance", "The chance the trigger will run when all prerequisites are met.")
 	
 	; technically you could add as many as you wanted here but of course
 	; that could cause performance issues
 	AddCommandList(SLTMCM, "do_1", "Command 1:")
+	SetHighlightText(SLTMCM, "do_1", "You can run up to 3 commands associated with this keymapping. This is the first.")
 	AddCommandList(SLTMCM, "do_2", "Command 2:")
+	SetHighlightText(SLTMCM, "do_2", "You can run up to 3 commands associated with this keymapping. This is the second.")
 	AddCommandList(SLTMCM, "do_3", "Command 3:")
+	SetHighlightText(SLTMCM, "do_3", "You can run up to 3 commands associated with this keymapping. This is the third.")
 	
 	; placing these at the end just to point out that the position of the calls doesn't matter, so feel free 
 	; to place these calls wherever in this function call you would want for organizational purposes
@@ -252,6 +252,7 @@ EndEvent
 
 
 Event OnKeyDown(Int KeyCode)
+	DebMsg("Core.OnKeyDown")
 	if !self
 		Debug.Notification("Triggers: Critical error")
 		Return

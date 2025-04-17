@@ -24,7 +24,9 @@ string Function EVENT_SLT_GAME_LOADED() global
 	return "sl_triggers_SLTGameLoaded"
 EndFunction
 
-; SLT sends to all listeners; good time to register your extension
+; SLT sends to all listeners; extensions should be auto-registered
+; Do not mask this with your own handler; the base Extension script
+; must be able to handle this event.
 string Function EVENT_SLT_OPEN_REGISTRATION() global
 	return "sl_triggers_SLTOpenRegistration"
 EndFunction
@@ -54,12 +56,6 @@ EndFunction
 ; trigger data to Setup, if they intend to let it manage their trigger data
 string Function EVENT_SLT_POPULATE_MCM() global
 	return "sl_triggers_SLTPopulateMCM"
-EndFunction
-
-; SLT sends this soon after OnUpdate() starts processing; most things should be loaded
-; this is mostly offered for convenience
-string Function EVENT_SLT_DEFERRED_INIT() global
-	return "sl_triggers_SLTDeferredInit"
 EndFunction
 
 ; SLT uses these to update the hearbeat registry for the AMEs
@@ -154,7 +150,7 @@ string Function ExtensionTriggersFolder(string extensionId) global
 EndFunction
 
 string Function ExtensionTriggerName(string extensionId, string triggerId) global
-	return SettingsFolder() + extensionId + "/" + triggerId
+	return ExtensionTriggersFolder(extensionId) + triggerId
 EndFunction
 
 ;;;;;;;;

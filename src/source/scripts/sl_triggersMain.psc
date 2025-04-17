@@ -9,7 +9,7 @@ int		REGISTRATION_STATE_PENDING		= 0
 int		REGISTRATION_STATE_OPEN			= 1
 int		REGISTRATION_STATE_CLOSED		= 1000
 float	SECONDS_FOR_CORE_INIT			= 0.1
-float	SECONDS_FOR_REGISTRATION		= 4.0 ; seconds we wait to allow registration of extensions
+float	SECONDS_FOR_REGISTRATION		= 6.0 ; seconds we wait to allow registration of extensions
 float	ALLOWED_REAL_DELTA				= 2.0 ; if real time drifts more than this
 float	ALLOWED_GAME_DELTA				= 0.00001 ; and game time less than this, it's probably a game load
 string	KYPT_EXTENSION_SLT_GLOBAL		= "sl_triggers_global"
@@ -25,20 +25,13 @@ Bool				Property bDebugMsg = true 		Auto Hidden
 
 ; SLT sends this to itself at startup; you don't really need to listen for this though you may. It will run
 ; early after OnUpdate() starts running and will be sent once per launch, similar to OnInit().
-string Function EVENT_SLT_CORE_INIT() global
-	return "sl_triggers_SLTCoreInit"
+
+string Function EVENT_SLT_GAME_LOADED_HANDLER() global
+	return "OnSLTGameLoaded"
 EndFunction
 
 string Function EVENT_SLT_CLOSE_REGISTRATION_HANDLER()
 	return "OnSLTCloseRegistration"
-EndFunction
-
-string Function EVENT_SLT_CORE_INIT_HANDLER()
-	return "OnSLTCoreInit"
-EndFunction
-
-string Function EVENT_SLT_DEFERRED_INIT_HANDLER()
-	return "OnSLTDeferredInit"
 EndFunction
 
 string Function EVENT_SLT_AME_HEARTBEAT_UPDATE_HANDLER()
@@ -56,12 +49,11 @@ Form[]		extensions
 Form[]		extensionBuffer
 string[]	heartbeatEvents
 string[]	settingsUpdateEvents
-float		lastRealTime = 0.0
-float		lastGameTime = 0.0
-bool 		gameHasLoaded = false
-bool		gameLoadedSent = false
-bool		onCoreInitSent = false
+string[]	gameLoadedEvents
+
 bool		sltIsReady = false
+bool		oncePerLoadCompleted = false
+bool		gameLoadedSent = false
 bool		broadcastSettingsUpdated = false
 
 ; this is my buffer. there are many like it, but this one is mine. my buffer is my best friend. it is my life. i must master it as i must master my life.
@@ -89,16 +81,8 @@ Function SetSettingsVersion(int newVersion = -1)
 EndFunction
 
 Event OnInit()
-	onCoreInitSent = false
-	sltIsReady = false
-	gameLoadedSent = false
-	registrationState = REGISTRATION_STATE_PENDING
 	DebMsg("Main.OnInit")
-	
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_CORE_INIT(), EVENT_SLT_CORE_INIT_HANDLER())
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_DEFERRED_INIT(), EVENT_SLT_DEFERRED_INIT_HANDLER())
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_CLOSE_REGISTRATION(), EVENT_SLT_CLOSE_REGISTRATION_HANDLER())
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_AME_HEARTBEAT_UPDATE(), EVENT_SLT_AME_HEARTBEAT_UPDATE_HANDLER())
+	DoOncePerLifetime()
 	
 	QueueUpdateLoop(0.1)
 EndEvent
@@ -108,28 +92,28 @@ Event OnUpdate()
 		return
 	endif
 	
+	DebMsg("Main.OnUpdate")
+	
 	float currentRealTime = Utility.GetCurrentRealTime()
 	float currentGameTime = Utility.GetCurrentGameTime()
 	
 	; init timings
-	if !onCoreInitSent && currentRealTime > SECONDS_FOR_CORE_INIT
-		onCoreInitSent = true
-		DebMsg("Main: Sending core init")
-		SendModEvent(EVENT_SLT_CORE_INIT())
+	if !oncePerLoadCompleted && currentRealTime > SECONDS_FOR_CORE_INIT
+		oncePerLoadCompleted = true
+		DoOncePerLoad()
+		QueueUpdateLoop()
+		return
 	endif
-	
-	lastRealTime = currentRealTime
-	lastGameTime = currentGameTime
 
 	; don't start sending heartbeats until we are ready
 	if sltIsReady
-		if registrationState == REGISTRATION_STATE_OPEN && currentRealTime > SECONDS_FOR_REGISTRATION
-			SendSLTCloseRegistration()
+		if !gameLoadedSent
+			SendSLTGameLoaded(gameLoadedSent)
+			gameLoadedSent = true
 		endif
 		
-		if !gameLoadedSent && (currentRealTime - lastRealTime) > ALLOWED_REAL_DELTA && (currentGameTime - lastGameTime) < ALLOWED_GAME_DELTA
-			gameLoadedSent = true
-			SendSLTGameLoaded()
+		if registrationState == REGISTRATION_STATE_OPEN && currentRealTime > SECONDS_FOR_REGISTRATION
+			SendSLTCloseRegistration()
 		endif
 		
 		if broadcastSettingsUpdated
@@ -151,23 +135,36 @@ Event OnUpdate()
 		endwhile
 	endif
 	
-	; dubious usefulness
-	;SendModEvent(EVENT_SLT_HEARTBEAT())
 	QueueUpdateLoop()
 EndEvent
 
-Event OnSLTCoreInit(string eventName, string strArg, float numArg, Form sender)
-	DebMsg("Main.OnSLTCoreInit")
-	UnregisterForModEvent(EVENT_SLT_CORE_INIT())
+Function SetSLTReady()
+	sltIsReady = true
+	SendModEvent(EVENT_SLT_READY())
+EndFunction
+
+Function JumpStart()
+	DebMsg("Main.JumpStart")
+	sltIsReady = false
+	gameLoadedSent = false
+	oncePerLoadCompleted = false
+	UnregisterForUpdate()
+	QueueUpdateLoop(0.1)
 	
-	SendModEvent(EVENT_SLT_DEFERRED_INIT())
-	
-	if SLTMCM
-		SLTMCM.SetMCMReady(false)
-	endif
+	int i = 0
+	while i < extensions.Length
+		(extensions[i] as sl_triggersExtension).JumpStart()
+		i += 1
+	endwhile
+EndFunction
+
+Function DoOncePerLifetime()
+	sltIsReady = false
+	gameLoadedSent = false
+	oncePerLoadCompleted = false
+	registrationState = REGISTRATION_STATE_PENDING
 	
 	if !coreCmdMailbox0
-		DebMsg("Main.OnCoreInit: setting coreCmdMailbox")
 		coreCmdMailbox0 = new ActiveMagicEffect[128]
 		coreCmdMailbox1 = new ActiveMagicEffect[128]
 		coreCmdMailbox2 = new ActiveMagicEffect[128]
@@ -175,24 +172,22 @@ Event OnSLTCoreInit(string eventName, string strArg, float numArg, Form sender)
 		coreCmdNextMailbox = 0
 		coreCmdNextSilo = 0
 		coreCmdNextSlot = 0
-		Debug.Trace("sl_trigger: Main: setting coreCmdMailbox")
 	endif
-	
+EndFunction
+
+Function DoOncePerLoad()
+	DebMsg("Main.DoOncePerLoad")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_GAME_LOADED(), EVENT_SLT_GAME_LOADED_HANDLER())
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_CLOSE_REGISTRATION(), EVENT_SLT_CLOSE_REGISTRATION_HANDLER())
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_AME_HEARTBEAT_UPDATE(), EVENT_SLT_AME_HEARTBEAT_UPDATE_HANDLER())
+
+	if SLTMCM
+		SLTMCM.SetMCMReady(false)
+	endif
+
 	OpenRegistration()
 	
-	lastRealTime = Utility.GetCurrentRealTime()
-	
 	SetSLTReady()
-	;QueueUpdateLoop()
-EndEvent
-
-Event OnSLTDeferredInit(string eventName, string strArg, float numArg, Form sender)
-	SetSLTReady()
-EndEvent
-
-Function SetSLTReady()
-	sltIsReady = true
-	SendModEvent(EVENT_SLT_READY())
 EndFunction
 
 Event OnSLTAMEHeartbeatUpdate(string _eventName, string _ameHeartbeat, float _addingHeartbeat, Form _theActor)
@@ -222,18 +217,21 @@ Event OnSLTRequestCommand(string _eventName, string _commandName, float __ignore
 	startCommand(_actualActor, _commandName, none)
 EndEvent
 
-Function SendSLTGameLoaded()
-	DebMsg("Main.SendSLTGameLoaded")
-	if gameHasLoaded
-		SendModEvent(EVENT_SLT_GAME_LOADED())
-	else
-		gameHasLoaded = true
-		SendModEvent(EVENT_SLT_GAME_LOADED(), true)
+Function SendSLTGameLoaded(bool firstTime = false)
+	string ft = "false"
+	if firstTime
+		ft = "true"
 	endif
+	
+	int i = 0
+	while i < gameLoadedEvents.Length
+		SendModEvent(gameLoadedEvents[i], ft, 0.0)
+		i += 1
+	endwhile
+	SendModEvent(EVENT_SLT_GAME_LOADED(), ft, 0.0)
 EndFunction
 
 Function SendSLTCloseRegistration()
-	DebMsg("Main.SendSLTCloseRegistration")
 	; preemptive and duplicated; sneaky extensions might register during 
 	; the event dispatch window, but I also don't want to lose track
 	; of the fact that this state needs to be set to CLOSED
@@ -247,7 +245,6 @@ EndFunction
 ; Sent by sl_triggers to indicate registration is closed and bookkeeping is required
 ; Not recommended to capture as it is of dubious usefulness.
 Event OnSLTCloseRegistration(string eventName, string strArg, float numArg, Form sender)
-	DebMsg("Main.OnSLTCloseRegistration")
 	CloseRegistration()
 EndEvent
 
@@ -268,9 +265,7 @@ int Function MailboxFromSiloAndSlot(int silo, int slot)
 EndFunction
 
 int Function RequestCoreMailbox(sl_triggersCmd coreCmd)
-	DebMsg("Main.RequestCoreMailbox")
 	if !coreCmdMailbox0 || !coreCmdMailbox1 || !coreCmdMailbox2 || !coreCmdMailbox3
-		DebMsg("sl_triggers: Main: coreCmdMailboxes not initialized")
 		Debug.Trace("sl_triggers: Main: coreCmdMailboxes not initialized")
 		return -1
 	endif
@@ -345,13 +340,11 @@ EndFunction
 
 
 Function OpenRegistration()
-	DebMsg("Main.OpenRegistration")
 	registrationState = REGISTRATION_STATE_OPEN
 	SendModEvent(EVENT_SLT_OPEN_REGISTRATION())
 EndFunction
 
 Function RegisterExtension(sl_triggersExtension newExtension)
-	DebMsg("Main.RegisterExtension: " + newExtension.GetExtensionKey())
 	if registrationState == REGISTRATION_STATE_CLOSED
 		Debug.Trace("sl_triggers: extension attempted registration but registrationState is CLOSED: " + newExtension.GetId())
 		return
@@ -361,15 +354,16 @@ Function RegisterExtension(sl_triggersExtension newExtension)
 		extensionBuffer = PapyrusUtil.FormArray(0)
 		heartbeatEvents = PapyrusUtil.StringArray(0)
 		settingsUpdateEvents = PapyrusUtil.StringArray(0)
+		gameLoadedEvents = PapyrusUtil.StringArray(0)
 	endif
 	extensionBuffer = PapyrusUtil.PushForm(extensionBuffer, newExtension)
 	heartbeatEvents = PapyrusUtil.PushString(heartbeatEvents, newExtension._GetHeartbeatEvent())
 	settingsUpdateEvents = PapyrusUtil.PushString(settingsUpdateEvents, newExtension._GetSettingsUpdateEvent())
+	gameLoadedEvents = PapyrusUtil.PushString(gameLoadedEvents, newExtension._GetGameLoadedEvent())
 EndFunction
 
 Function CloseRegistration()
 	Utility.Wait(0.1)
-	DebMsg("Main.CloseRegistration")
 	; preemptive and duplicated; sneaky extensions might register during 
 	; the event dispatch window, but I also don't want to lose track
 	; of the fact that this state needs to be set to CLOSED
@@ -541,27 +535,20 @@ EndFunction
 
 string[] Function GetCommandsList()
 	commandsListCache = JsonUtil.JsonInFolder(CommandsFolder())
-	string[] _blank = new string[1]
-	_blank[0] = ""
-	return PapyrusUtil.MergeStringArray(_blank, commandsListCache)
+	return commandsListCache
 EndFunction
 
 ;;;
 ;; MCM stuff.. yay
 Function PopulateMCM()
-	DebMsg("Main.PopulateMCM")
 	if !SLTMCM
-		DebMsg("Main.PopulateMCM: SLTMCM is just not")
 		return
 	endif
 	
-	DebMsg("Main.PopMCM: prior to clearing setup heap")
 	SLTMCM.ClearSetupHeap()
 	
-	DebMsg("Main.PopMCM: setting commands list")
 	SLTMCM.SetCommandsList(GetCommandsList())
 	
-	DebMsg("Main.PopMCM: iterating extensions")
 	int i = 0
 	string[] extensionFriendlyNames = PapyrusUtil.StringArray(extensions.Length)
 	string[] extensionKeys = PapyrusUtil.StringArray(extensions.Length)
@@ -570,17 +557,13 @@ Function PopulateMCM()
 		extensionFriendlyNames[i] = _ext.GetFriendlyName()
 		extensionKeys[i] = _ext.GetExtensionKey()
 		
-		DebMsg("Main.PopMCM: extension(" + extensionKeys[i] + ") named(" + extensionFriendlyNames[i] + ")")
-		
 		_ext._InternalPopulateMCM(SLTMCM)
 		
 		i += 1
 	endwhile
 	
-	DebMsg("Main.PopMCM: setting extension pages")
 	SLTMCM.SetExtensionPages(extensionFriendlyNames, extensionKeys)
 	
-	DebMsg("Main.PopMCM: sending populateMCM event")
 	SendModEvent(EVENT_SLT_POPULATE_MCM())
 EndFunction
 

@@ -34,7 +34,7 @@ shift
 :filecheck
 if "%PSC_FILE%"=="" goto endloop
 pushd src\source\scripts
-"%PAPYRUS_EXE%" %PSC_FILE% -o="%TARGET_DIR%" -i="%INC_PATH%" -f=TESV_Papyrus_Flags.flg -op 
+"%PAPYRUS_EXE%" %PSC_FILE% -o="%SRC_PEX_DIR%" -i="%INC_PATH%" -f=TESV_Papyrus_Flags.flg -op 
 popd
 goto beginloop
 
