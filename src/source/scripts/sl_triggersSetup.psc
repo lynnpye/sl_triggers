@@ -43,7 +43,7 @@ bool checkingVersion = false ; locking variable for version checks
 
 
 int Function GetVersion()
-	return 21
+	return 22
 EndFunction
 
 Event OnConfigInit()
@@ -66,13 +66,42 @@ event OnConfigOpen()
 endEvent
 
 event OnConfigClose()
-	;MiscUtil.PrintConsole("OnConfigClose")
-	; some cleanup, if you please
-	CleanTriggerData()
-	
+	;CleanTriggerData()
 	JsonUtil.Save(settingsName)
 	SLT.HandleSettingsUpdated()
 endEvent
+
+;/
+; Commenting this out for now to focus on stability before moving forward with this feature.
+; Besides, v100 is coming.
+Function CleanTriggerData()
+	int i
+	int j
+	
+	; Remove anything that evaluates to an empty string
+	i = 1
+	while i < 81
+		j = 0
+		while j < triggerParamNames.Length
+			if "" == JsonUtil.GetStringValue(SettingsName, _makeSlotId(i, j))
+				JsonUtil.UnsetStringValue(SettingsName, _makeSlotId(i, j))
+			endif
+			j += 1
+		endwhile
+		i += 1
+	endwhile
+	
+	; Remove triggers with invalid events
+	i = 1
+	while i < 81
+		if !JsonUtil.HasStringValue(settingsName, _makeSlotId(i, 2)) || "0" == JsonUtil.GetStringValue(settingsName, _makeSlotId(i, 2))
+			;; clear everything out
+			JsonUtil.ClearPath(settingsName, _makeSlotNoPrefix(i))
+		endif
+		i += 1
+	endwhile
+EndFunction
+/;
 
 Event OnPageReset(string page)
 	If page == ""
@@ -255,34 +284,6 @@ Function initVersionCheck()
 		endwhile
     endIf
 	checkingVersion = false
-EndFunction
-
-Function CleanTriggerData()
-	int i
-	int j
-	
-	; Remove anything that evaluates to an empty string
-	i = 1
-	while i < 81
-		j = 0
-		while j < triggerParamNames.Length
-			if "" == JsonUtil.GetStringValue(SettingsName, _makeSlotId(i, j))
-				JsonUtil.UnsetStringValue(SettingsName, _makeSlotId(i, j))
-			endif
-			j += 1
-		endwhile
-		i += 1
-	endwhile
-	
-	; Remove triggers with invalid events
-	i = 1
-	while i < 81
-		if !JsonUtil.HasStringValue(settingsName, _makeSlotId(i, 2)) || "0" == JsonUtil.GetStringValue(settingsName, _makeSlotId(i, 2))
-			;; clear everything out
-			JsonUtil.ClearPath(settingsName, _makeSlotNoPrefix(i))
-		endif
-		i += 1
-	endwhile
 EndFunction
 
 ; assumes zero-based pageNo

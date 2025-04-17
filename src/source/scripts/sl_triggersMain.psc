@@ -118,6 +118,7 @@ EndEvent
 
 Function on_reload()
 	UpdateDAKStatus()
+	UpdateSexLabStatus()
 	RefreshTriggerCaches()
 	UnregisterForUpdate()
 	RegisterForSingleUpdate(10)
@@ -140,9 +141,6 @@ Function UpdateSexLabStatus()
 	if SexLab
 		SexLabAnimatingFaction = Game.GetFormFromFile(0xE50F, "SexLab.esm") as Faction
 	endif
-EndFunction
-
-Function UpdateSLSOStatus()
 EndFunction
 
 ; this function should be called at player start and any time configs change

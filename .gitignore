@@ -1,1 +1,7 @@
 src/scripts/
+.vscode/
+
+SkyrimSE.code-workspace
+deploy.cmd
+push.cmd
+skyrimse.ppj
