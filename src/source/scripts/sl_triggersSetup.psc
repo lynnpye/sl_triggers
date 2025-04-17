@@ -43,7 +43,7 @@ bool checkingVersion = false ; locking variable for version checks
 
 
 int Function GetVersion()
-	return 22
+	return 23
 EndFunction
 
 Event OnConfigInit()

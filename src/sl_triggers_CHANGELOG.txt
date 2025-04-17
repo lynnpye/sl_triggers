@@ -1,3 +1,6 @@
+23
+	bugfix: fixed sl_isinslot - now appropriately checks parameter 2 for the slot number rather than expecting the Actor in parameter 1 to also be a slot number. The insanity.
+
 22
 	bugfix: *sigh* next time you turn a hard dependency into a soft one, remember to actually hook up the dependency checker (added code to actually call the SexLab checker function I had written)
 		Funny thing about testing; as it turns out, this wasn't a problem for me because my SexLab test instance takes so long to launch I tend to avoid creating a new save, just reusing the old one and upgrading.

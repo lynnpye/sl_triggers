@@ -1124,7 +1124,7 @@ function oper(string[] param)
 		return
 	endif
 	
-	int slPosition = resolve(param[1]) as int
+	int slPosition = resolve(param[2]) as int
 	if slPosition < 1 || slPosition > 4
 		return
 	endif
