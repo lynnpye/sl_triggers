@@ -1,3 +1,12 @@
+22
+	bugfix: *sigh* next time you turn a hard dependency into a soft one, remember to actually hook up the dependency checker (added code to actually call the SexLab checker function I had written)
+		Funny thing about testing; as it turns out, this wasn't a problem for me because my SexLab test instance takes so long to launch I tend to avoid creating a new save, just reusing the old one and upgrading.
+		Well, Quest objects (most Forms) will retain data stored in instance variables across saves. Including things like, I dunno, references to third party mods.
+		So when I just replaced v16 with v17, it was on a dirty save, so the Quest already had the SLT property filled in from when it was launched as a hard dependency
+		And of course everything worked fine on a non-SexLab environment because, well, no SexLab was expected to be detected.
+		So... I now have a pristine SexLab instance sans sl_triggers that I can test with, so I've got that goin' for me.
+	change: I commented out a change I had made to clean out triggers with bad data; at this point I want to make sure sl_triggers is stable as a trigger platform
+
 21
 	bugfix: position is now being handled correctly by the MCM (it was overwriting the "role" attribute)
 
