@@ -166,3 +166,46 @@ EndFunction
 string Function MakeInstanceKey(string instance, string keyname) global
 	return MakeInstanceKeyPrefix(instance) + ":" + keyname
 EndFunction
+
+string[] Function TokenizeLine(String line) Global 
+    String[] tokens = PapyrusUtil.StringArray(0)
+    String currentToken = ""
+    Bool inQuotes = False
+    Int i = 0
+    Int len = StringUtil.GetLength(line)
+
+    While i < len
+        String c = StringUtil.Substring(line, i, 1)
+
+        If inQuotes
+            If c == "\""
+                inQuotes = False
+                currentToken += c
+            Else
+                currentToken += c
+            EndIf
+        Else
+            ; Check for whitespace characters
+            If c == " " || c == "\t"
+                If currentToken != ""
+                    tokens = PapyrusUtil.PushString(tokens, currentToken)
+                    currentToken = ""
+                EndIf
+            ElseIf c == "\""
+                inQuotes = True
+                currentToken += c
+            Else
+                currentToken += c
+            EndIf
+        EndIf
+
+        i += 1
+    EndWhile
+
+    ; Push the final token if any
+    If currentToken != ""
+        tokens = PapyrusUtil.PushString(tokens, currentToken)
+    EndIf
+
+    Return tokens
+EndFunction

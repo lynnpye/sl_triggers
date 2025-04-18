@@ -278,7 +278,7 @@ actor_advskill:  advance target actors skill by X
     
     Example:
         
-        ["actor_advkill", "$self", "Alteration", "1"]
+        ["actor_advskill", "$self", "Alteration", "1"]
         
     boost Alteration by 1 point
     note: currently only works on PC/Player
@@ -311,7 +311,7 @@ actor_isguard: check is actor is guard
     
     Example:
     
-        ["actor_isquard", "$partner"],
+        ["actor_isguard", "$partner"],
         ["if", "$$", "=", "0", "end"],
         ...
         [":", "end"]
