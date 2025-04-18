@@ -322,7 +322,7 @@ bool function oper(string[] param)
 		return true
 	endif
 	
-	int slPosition = resolve(param[1]) as int
+	int slPosition = resolve(param[2]) as int
 	if slPosition < 1 || slPosition > 4
 		return true
 	endif
