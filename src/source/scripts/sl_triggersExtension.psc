@@ -118,6 +118,12 @@ EndFunction
 ; to be first or last at the time of this writing, take that into consideration if you
 ; run into problems.
 Function SLTInit()
+	DebMsg("Extension.SLTInit")
+	BootstrapSLTInit()
+EndFunction
+
+Function BootstrapSLTInit()
+	DebMsg("Extension.BootstrapSLTInit")
 	; fetch and store some key properties dynamically
 	if !SLT
 		SLT = Game.GetFormFromFile(0xD62, "sl_triggers.esp") as sl_triggersMain
@@ -128,22 +134,13 @@ Function SLTInit()
 	if !ActorTypeUndead
 		ActorTypeUndead = Game.GetFormFromFile(0x13796, "Skyrim.esm") as Keyword
 	endif
-	DebMsg("Extension.SLTInit")
-	JumpStart()
-EndFunction
 
-Function QueueUpdateLoop(float afDelay = 1.0)
-	RegisterForSingleUpdate(afDelay)
-EndFunction
-
-Function JumpStart()
-	DebMsg("Extension.JumpStart")
 	deferredInitHandled = false
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_GAME_LOADED(), "OnSLTGameLoaded")
-	SafeRegisterForModEvent_Quest(self, _GetHeartbeatEvent(), "OnSLTHeartbeat")
-	SafeRegisterForModEvent_Quest(self, _GetGameLoadedEvent(), "_slt_OnSLTGameLoaded")
-	SafeRegisterForModEvent_Quest(self, _GetSettingsUpdateEvent(), "OnSLTSettingsUpdated")
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_OPEN_REGISTRATION(), "OnSLTOpenRegistration")
+	;SafeRegisterForModEvent_Quest(self, _slt_GetHeartbeatEvent(), "_slt_OnSLTHeartbeat")
+	SafeRegisterForModEvent_Quest(self, _slt_GetGameLoadedEvent(), "_slt_OnSLTGameLoaded")
+	SafeRegisterForModEvent_Quest(self, _slt_GetSettingsUpdateEvent(), "_slt_OnSLTSettingsUpdated")
+	;SafeRegisterForModEvent_Quest(self, _slt_GetOpenRegistrationEvent(), "_slt_OnSLTOpenRegistration")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_POPULATE_MCM(), "OnSLTPopulateMCM")
 EndFunction
 
 ; some helper methods
@@ -180,66 +177,57 @@ Int Function DayTime()
 	Return 2
 EndFunction
 
-; SetCurrentTriggerId
-; OPTIONAL
-; This is a potentially dangerous convenience option. When you set it, your extension keeps a pointer
-; to the specified triggerKey. Any Trigger_ function that does not specify a triggerKey will use this value.
-; Note the concerns about reentrancy if you do this.
-Function SetCurrentTriggerId(string _newTriggerId)
-	currentTriggerId = _newTriggerId
-EndFunction
-
 ; RequestCommand
 ; Actor _theActor: the Actor who will receive the magic effect to run the script
 ; string _theCommand: the SLT command file to execute
 ; This queues up a command to an Actor.
 ; returns: the instanceId created
 string Function RequestCommand(Actor _theActor, string _theCommand)
-	return SLT.startCommand(_theActor, _theCommand, self)
+	return SLT.StartCommand(_theActor, _theCommand, self)
 EndFunction
 
 ; DescribeSliderAttribute
 ; Tells setup to render the attribute via a Slider
 ; _formatString is optional
 ; _ptype accepted values: PTYPE_INT(), PTYPE_FLOAT()
-Function DescribeSliderAttribute(sl_triggersSetup mcm, string _attributeName, int _ptype, string _label, float _minValue, float _maxValue, float _interval, string _formatString = "", float _defaultValue = 0.0)
-	mcm.DescribeSliderAttribute(GetExtensionKey(), _attributeName, _ptype, _label, _minValue, _maxValue, _interval, _formatString, _defaultValue)
+Function DescribeSliderAttribute(string _attributeName, int _ptype, string _label, float _minValue, float _maxValue, float _interval, string _formatString = "", float _defaultValue = 0.0)
+	SLTMCM.DescribeSliderAttribute(GetExtensionKey(), _attributeName, _ptype, _label, _minValue, _maxValue, _interval, _formatString, _defaultValue)
 EndFunction
 
 ; DescribeMenuAttribute
 ; Tells setup to render the attribute via a menu
 ; _ptype accepted values: PTYPE_INT(), PTYPE_STRING()
-Function DescribeMenuAttribute(sl_triggersSetup mcm, string _attributeName, int _ptype, string _label, int _defaultIndex, string[] _menuSelections)
-	mcm.DescribeMenuAttribute(GetExtensionKey(), _attributeName, _ptype, _label, _defaultIndex, _menuSelections)
+Function DescribeMenuAttribute(string _attributeName, int _ptype, string _label, int _defaultIndex, string[] _menuSelections)
+	SLTMCM.DescribeMenuAttribute(GetExtensionKey(), _attributeName, _ptype, _label, _defaultIndex, _menuSelections)
 EndFunction
 
 ; DescribeKeymapAttribute
 ; Tells setup to render the attribute via a keymap
 ; _ptype accepted values: PTYPE_INT()
-Function DescribeKeymapAttribute(sl_triggersSetup mcm, string _attributeName, int _ptype, string _label, int _defaultValue = -1)
-	mcm.DescribeKeymapAttribute(GetExtensionKey(), _attributeName, _ptype, _label, _defaultValue)
+Function DescribeKeymapAttribute(string _attributeName, int _ptype, string _label, int _defaultValue = -1)
+	SLTMCM.DescribeKeymapAttribute(GetExtensionKey(), _attributeName, _ptype, _label, _defaultValue)
 EndFunction
 
 ; DescribeToggleAttribute
 ; Tells setup to render the attribute via a toggle
 ; _ptype accepted values: PTYPE_INT()
-Function DescribeToggleAttribute(sl_triggersSetup mcm, string _attributeName, int _ptype, string _label, int _defaultValue = 0)
-	mcm.DescribeToggleAttribute(GetExtensionKey(), _attributeName, _ptype, _label, _defaultValue)
+Function DescribeToggleAttribute(string _attributeName, int _ptype, string _label, int _defaultValue = 0)
+	SLTMCM.DescribeToggleAttribute(GetExtensionKey(), _attributeName, _ptype, _label, _defaultValue)
 EndFunction
 
 ; DescribeInputAttribute
 ; Tells setup to render the attribute via an input
 ; _ptype accepted values: Any
-Function DescribeInputAttribute(sl_triggersSetup mcm, string _attributeName, int _ptype, string _label, string _defaultValue = "")
-	mcm.DescribeInputAttribute(GetExtensionKey(), _attributeName, _ptype, _label, _defaultValue)
+Function DescribeInputAttribute(string _attributeName, int _ptype, string _label, string _defaultValue = "")
+	SLTMCM.DescribeInputAttribute(GetExtensionKey(), _attributeName, _ptype, _label, _defaultValue)
 EndFunction
 
 ; AddCommandList
 ; Tells setup to render a dropdown list of available commands.
 ; You can call this multiple times to add the option of running
 ; multiple commands from the same trigger (i.e. 3 was legacy setting)
-Function AddCommandList(sl_triggersSetup mcm, string _attributeName, string _label)
-	mcm.AddCommandList(GetExtensionKey(), _attributeName, _label)
+Function AddCommandList(string _attributeName, string _label)
+	SLTMCM.AddCommandList(GetExtensionKey(), _attributeName, _label)
 EndFunction
 
 ; SetVisibilityKeyAttribute
@@ -250,8 +238,8 @@ EndFunction
 ;
 ; This is NOT required if, for example, the same set of attributes will be displayed 
 ; for each trigger.
-Function SetVisibilityKeyAttribute(sl_triggersSetup mcm, string _attributeName)
-	mcm.SetVisibilityKeyAttribute(GetExtensionKey(), _attributeName)
+Function SetVisibilityKeyAttribute(string _attributeName)
+	SLTMCM.SetVisibilityKeyAttribute(GetExtensionKey(), _attributeName)
 EndFunction
 
 ; SetVisibleOnlyIf
@@ -260,14 +248,23 @@ EndFunction
 ; have no effect if SetVisibilityKeyAttribute() is not also called.
 ;
 ; If the PTYPE of the key attribute is int, cast to string for this call.
-Function SetVisibleOnlyIf(sl_triggersSetup mcm, string _attributeName, string _requiredKeyAttributeValue)
-	mcm.SetVisibleOnlyIf(GetExtensionKey(), _attributeName, _requiredKeyAttributeValue)
+Function SetVisibleOnlyIf(string _attributeName, string _requiredKeyAttributeValue)
+	SLTMCM.SetVisibleOnlyIf(GetExtensionKey(), _attributeName, _requiredKeyAttributeValue)
 EndFunction
 
 ; SetHighlightText
 ; Tells setup what to display when the attribute is highlighted in the MCM.
-Function SetHighlightText(sl_triggersSetup mcm, string _attributeName, string _highlightText)
-	mcm.SetHighlightText(GetExtensionKey(), _attributeName, _highlightText)
+Function SetHighlightText(string _attributeName, string _highlightText)
+	SLTMCM.SetHighlightText(GetExtensionKey(), _attributeName, _highlightText)
+EndFunction
+
+; SetCurrentTriggerId
+; OPTIONAL
+; This is a potentially dangerous convenience option. When you set it, your extension keeps a pointer
+; to the specified triggerKey. Any Trigger_ function that does not specify a triggerKey will use this value.
+; Note the concerns about reentrancy if you do this.
+Function SetCurrentTriggerId(string _newTriggerId)
+	currentTriggerId = _newTriggerId
 EndFunction
 
 ; bool IsEnabled
@@ -342,47 +339,58 @@ EndProperty
 ; note: SLT also has these properties defined
 bool				Property bEnabled = true Auto Hidden ; enable/disable our extension
 bool				Property bDebugMsg = false Auto Hidden ; enable/disable debug logging for our extension
-
 string				Property currentTriggerId Auto Hidden ; used for simple iteration
 
 
 ; used to generate a stream of unique ids for each sl_triggersCmd
 int		oneupnumber
 bool	deferredInitHandled
-string	heartbeatEvent ; uniquely generated each launch and sent during registration to receive heartbeats
+;string	heartbeatEvent ; uniquely generated each launch and sent during registration to receive heartbeats
 string	settingsUpdateEvent ; uniquely generated each launch and sent during registration to receive settings update
 string	gameLoadedEvent ; uniquely generated each launch and sent during registration to receive game loaded events
+;string	openRegistrationEvent ; uniquely generated each launch and sent during registration to receive open registration events
 
-string Function _GetHeartbeatEvent()
+;/
+string Function _slt_GetHeartbeatEvent()
 	if !heartbeatEvent
-		heartbeatEvent = "sl_triggers_SLT_HEARTBEAT_" + (Utility.RandomInt(100000, 999999) as string)
+		heartbeatEvent = "_slt_SLT_HEARTBEAT_" + (Utility.RandomInt(100000, 999999) as string)
 	endif
 	return heartbeatEvent
 EndFunction
+/;
 
-string Function _GetSettingsUpdateEvent()
+string Function _slt_GetSettingsUpdateEvent()
 	if !settingsUpdateEvent
-		settingsUpdateEvent = "sl_triggers_SLT_SETTINGS_UPDATE_" + (Utility.RandomInt(100000, 999999) as string)
+		settingsUpdateEvent = "_slt_SLT_SETTINGS_UPDATE_" + (Utility.RandomInt(100000, 999999) as string)
 	endif
 	return settingsUpdateEvent
 EndFunction
 
-string Function _GetGameLoadedEvent()
+string Function _slt_GetGameLoadedEvent()
 	if !gameLoadedEvent
-		gameLoadedEvent = "sl_triggers_SLT_GAME_LOADED_" + (Utility.RandomInt(100000, 999999) as string)
+		gameLoadedEvent = "_slt_EVENT_SLT_GAME_LOADED_" + (Utility.RandomInt(100000, 999999) as string)
 	endif
 	return gameLoadedEvent
 EndFunction
 
-bool Function _HasPool()
+;/
+string Function _slt_GetOpenRegistrationEvent()
+	if !openRegistrationEvent
+		openRegistrationEvent = "_slt_EVENT_SLT_OPEN_REGISTRATION_" + (Utility.RandomInt(100000, 999999) as string)
+	endif
+	return openRegistrationEvent
+EndFunction
+/;
+
+bool Function _slt_HasPool()
 	return SpellPool.Length > 0 && EffectPool.Length > 0
 EndFunction
 
-bool Function _HasTriggers()
+bool Function _slt_HasTriggers()
 	return TriggerKeys.Length > 0
 EndFunction
 
-Spell Function _NextPooledSpellForActor(Actor _theActor)
+Spell Function _slt_NextPooledSpellForActor(Actor _theActor)
 	if !_theActor
 		Debug.Trace("sl_triggersExtension.NextPooledSpellForActor: _theActor is none")
 		return none
@@ -407,7 +415,7 @@ EndFunction
 ; int oneupmax = 30000
 ; returns: the next value in the cycle; if the max is exceeded, the cycle resets to min
 ; 	if you get 60000 of these launched in your game, you win /sarcasm
-int Function _NextCycledInstanceNumber(int oneupmin = -30000, int oneupmax = 30000)
+int Function _slt_NextCycledInstanceNumber(int oneupmin = -30000, int oneupmax = 30000)
 	Utility.Wait(0)
 	
 	int nextup = oneupnumber
@@ -422,11 +430,11 @@ EndFunction
 ; DO NOT OVERRIDE
 ; returns: an instanceId derived from this extension, typically as a result
 ; 	of requesting a command be executed in response to an event
-string Function _NextInstanceId()
-	return GetExtensionKey() + "(" + _NextCycledInstanceNumber() + ")"
+string Function _slt_NextInstanceId()
+	return GetExtensionKey() + "(" + _slt_NextCycledInstanceNumber() + ")"
 EndFunction
 
-Function _RefreshTriggers()
+Function _slt_RefreshTriggers()
 	string triggerFolder = ExtensionTriggersFolder(GetExtensionKey())
 	TriggerKeys = JsonUtil.JsonInFolder(triggerFolder)
 	
@@ -434,41 +442,12 @@ Function _RefreshTriggers()
 		int i = 0
 		while i < TriggerKeys.Length
 			JsonUtil.Load(triggerFolder + TriggerKeys[i])
-			
-			if Trigger_IsDeletedT(TriggerKeys[i])
-				JsonUtil.Unload(triggerFolder + TriggerKeys[i])
-				; we are shortening the list by 1, so the index should still be correct for the next pass
-				if i == 0
-					TriggerKeys = PapyrusUtil.SliceStringArray(TriggerKeys, 1)
-				elseif i == TriggerKeys.Length - 1
-					TriggerKeys = PapyrusUtil.SliceStringArray(TriggerKeys, 0, i - 1)
-				else
-					TriggerKeys = PapyrusUtil.MergeStringArray(PapyrusUtil.SliceStringArray(TriggerKeys, 0, i - 1), PapyrusUtil.SliceStringArray(TriggerKeys, i + 1, TriggerKeys.Length - 1))
-				endif
-			else
-				i += 1
-			endif
 		endwhile
 	endif
 EndFunction
 
-Event OnSLTHeartbeat(string eventName, string strArg, float numArg, Form sender)
-	if !deferredInitHandled
-		deferredInitHandled = true
-		
-		; Load our triggers
-		_RefreshTriggers()
-		
-		SafeRegisterForModEvent_Quest(self, _GetSettingsUpdateEvent(), "OnSLTSettingsUpdated")
-	endif
-EndEvent
-
-Event OnSLTOpenRegistration(string eventName, string strArg, float numArg, Form sender)
-	SLT.RegisterExtension(self)
-EndEvent
-
-Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
-	_RefreshTriggers()
+Event _slt_OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
+	_slt_RefreshTriggers()
 EndEvent
 
 Event _slt_OnSLTGameLoaded(string eventName, string strArg, float numArg, Form sender)
@@ -476,15 +455,10 @@ Event _slt_OnSLTGameLoaded(string eventName, string strArg, float numArg, Form s
 	if "true" == strArg
 		firstTime = true
 	endif
-	if !firstTime
-		_RefreshTriggers()
-	endif
-EndEvent
 
-Function _InternalPopulateMCM(sl_triggersSetup mcm)
-	SLTMCM = mcm
-	SLTMCM.SetTriggers(GetExtensionKey(), TriggerKeys)
-EndFunction
+	sl_triggersMain.RegisterExtension(self)
+	_slt_RefreshTriggers()
+EndEvent
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -507,6 +481,8 @@ EndFunction
 ;; <extensionkey>.json. These will be
 ;; settings specific to your mod.
 ;;
+;; Strongly recommended that you DO NOT
+;; override anything below this line.
 ;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

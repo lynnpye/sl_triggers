@@ -9,6 +9,7 @@ int			CARDS_PER_PAGE = 5
 string		SLTSETUPCONST = "sl_triggersSetup"
 string		ADD_BUTTON = "--ADDNEWITEM--"
 string		DELETE_BUTTON = "--DELETETHISITEM--"
+string		RESTORE_BUTTON = "--RESTORETHISITEM--"
 
 ; Properties
 sl_TriggersMain		Property SLT Auto
@@ -264,9 +265,13 @@ Event OnOptionSelect(int option)
 	if attrName == DELETE_BUTTON
 		extensionKey = CurrentExtensionKey
 		triggerKey = GetOidTriggerKey(option)
-		JsonUtil.ClearAll(ExtensionTriggersFolder(extensionKey) + triggerKey)
 		
 		Trigger_StringSetX(extensionKey, triggerKey, DELETED_ATTRIBUTE(), "true")
+	elseif attrName == RESTORE_BUTTON
+		extensionKey = CurrentExtensionKey
+		triggerKey = GetOidTriggerKey(option)
+		
+		Trigger_StringUnsetX(extensionKey, triggerKey, DELETED_ATTRIBUTE())
 	endif
 EndEvent
 
@@ -476,129 +481,133 @@ Function ShowExtensionPage()
 	int _oid
 	string visibilityKeyAttribute = GetExtensionVisibilityKey(extensionKey)
 	bool allowedVisible
+	bool triggerIsSoftDeleted
 	
 	while i < displayCount
 		string triggerKey = GetTrigger(extensionKey, i)
-		if !Trigger_IsDeletedT(extensionKey, triggerKey)
+		triggerIsSoftDeleted = Trigger_IsDeletedT(extensionKey, triggerKey)
+		;if !Trigger_IsDeletedT(extensionKey, triggerKey)
 			AddHeaderOption("==] " + triggerKey + " [==")
 			AddEmptyOption()
-			
+
 			needsEmpty = false
-			int aidx = 0
-			while aidx < attributeNames.Length
-				string attrName = attributeNames[aidx]
-				allowedVisible = true
-				
-				if visibilityKeyAttribute && HasAttrVisibleOnlyIf(extensionKey, attrName)
-					string visibleOnlyIfValueIs = GetAttrVisibleOnlyIf(extensionKey, attrName)
+			if !triggerIsSoftDeleted
+				int aidx = 0
+				while aidx < attributeNames.Length
+					string attrName = attributeNames[aidx]
+					allowedVisible = true
 					
-					string tval
-					if Trigger_IntHasX(extensionKey, triggerKey, visibilityKeyAttribute)
-						tval = Trigger_IntGetX(extensionKey, triggerKey, visibilityKeyAttribute) as string
-					elseif Trigger_StringHasX(extensionKey, triggerKey, visibilityKeyAttribute)
-						tval = Trigger_StringGetX(extensionKey, triggerKey, visibilityKeyAttribute)
-					else
-						; they specified it, it somehow got past, and now we have to deal with it
-						; or ignore it
-						Debug.Trace("MCM: visibilityKeyAttribute (" + visibilityKeyAttribute + ") specified but neither int nor string available for current trigger")
-					endif
-					
-					if !tval || tval != visibleOnlyIfValueIs
-						allowedVisible = false
-					endif
-				endif
-				
-				if allowedVisible
-					needsEmpty = !needsEmpty
-					
-					int widg = GetAttrWidget(extensionKey, attrName)
-					string label = GetAttrLabel(extensionKey, attrName)
-					if widg == WIDG_SLIDER
-						float _defval = GetAttrDefaultFloat(extensionKey, attrName)
-						if Trigger_FloatHasX(extensionKey, triggerKey, attrName)
-							_defval = Trigger_FloatGetX(extensionKey, triggerKey, attrName)
-						endif
-						_oid = AddSliderOption(label, _defval, GetAttrFormatString(extensionKey, attrName))
-						; add to list of oids to heap
-						AddOid(_oid, extensionKey, triggerKey, attrName)
-					elseif widg == WIDG_MENU
-						string[] menuSelections = GetAttrMenuSelections(extensionKey, attrName)
-						int ptype = GetAttrType(extensionKey, attrName)
-						string menuValue = ""
-						if (ptype == PTYPE_INT() && !Trigger_IntHasX(extensionKey, triggerKey, attrName)) || (ptype == PTYPE_STRING() && !Trigger_StringHasX(extensionKey, triggerKey, attrName))
-							int midx = GetAttrDefaultIndex(extensionKey, attrName)
-							if midx > -1
-								menuValue = menuSelections[midx]
-							endif
+					if visibilityKeyAttribute && HasAttrVisibleOnlyIf(extensionKey, attrName)
+						string visibleOnlyIfValueIs = GetAttrVisibleOnlyIf(extensionKey, attrName)
+						
+						string tval
+						if Trigger_IntHasX(extensionKey, triggerKey, visibilityKeyAttribute)
+							tval = Trigger_IntGetX(extensionKey, triggerKey, visibilityKeyAttribute) as string
+						elseif Trigger_StringHasX(extensionKey, triggerKey, visibilityKeyAttribute)
+							tval = Trigger_StringGetX(extensionKey, triggerKey, visibilityKeyAttribute)
 						else
-							if ptype == PTYPE_INT()
-								int midx = Trigger_IntGetX(extensionKey, triggerKey, attrName)
+							; they specified it, it somehow got past, and now we have to deal with it
+							; or ignore it
+							Debug.Trace("MCM: visibilityKeyAttribute (" + visibilityKeyAttribute + ") specified but neither int nor string available for current trigger")
+						endif
+						
+						if !tval || tval != visibleOnlyIfValueIs
+							allowedVisible = false
+						endif
+					endif
+					
+					if allowedVisible
+						needsEmpty = !needsEmpty
+						
+						int widg = GetAttrWidget(extensionKey, attrName)
+						string label = GetAttrLabel(extensionKey, attrName)
+						if widg == WIDG_SLIDER
+							float _defval = GetAttrDefaultFloat(extensionKey, attrName)
+							if Trigger_FloatHasX(extensionKey, triggerKey, attrName)
+								_defval = Trigger_FloatGetX(extensionKey, triggerKey, attrName)
+							endif
+							_oid = AddSliderOption(label, _defval, GetAttrFormatString(extensionKey, attrName))
+							; add to list of oids to heap
+							AddOid(_oid, extensionKey, triggerKey, attrName)
+						elseif widg == WIDG_MENU
+							string[] menuSelections = GetAttrMenuSelections(extensionKey, attrName)
+							int ptype = GetAttrType(extensionKey, attrName)
+							string menuValue = ""
+							if (ptype == PTYPE_INT() && !Trigger_IntHasX(extensionKey, triggerKey, attrName)) || (ptype == PTYPE_STRING() && !Trigger_StringHasX(extensionKey, triggerKey, attrName))
+								int midx = GetAttrDefaultIndex(extensionKey, attrName)
 								if midx > -1
 									menuValue = menuSelections[midx]
 								endif
-							elseif ptype == PTYPE_STRING()
-								string _tval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
-								if menuSelections.find(_tval) > -1
-									menuValue = _tval
+							else
+								if ptype == PTYPE_INT()
+									int midx = Trigger_IntGetX(extensionKey, triggerKey, attrName)
+									if midx > -1
+										menuValue = menuSelections[midx]
+									endif
+								elseif ptype == PTYPE_STRING()
+									string _tval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
+									if menuSelections.find(_tval) > -1
+										menuValue = _tval
+									endif
 								endif
 							endif
-						endif
-						_oid = AddMenuOption(label, menuValue)
-						AddOid(_oid, extensionKey, triggerKey, attrName)
-					elseif widg == WIDG_KEYMAP
-						int _defmap = GetAttrDefaultValue(extensionKey, attrName)
-						if Trigger_IntHasX(extensionKey, triggerKey, attrName)
-							_defmap = Trigger_IntGetX(extensionKey, triggerKey, attrName)
-						endif
-						_oid = AddKeyMapOption(label, _defmap)
-						AddOid(_oid, extensionKey, triggerKey, attrName)
-					elseif widg == WIDG_TOGGLE
-						bool _defval = GetAttrDefaultValue(extensionKey, attrName) != 0
-						if Trigger_IntHasX(extensionKey, triggerKey, attrName)
-							_defval = Trigger_IntGetX(extensionKey, triggerKey, attrName) != 0
-						endif
-						_oid = AddToggleOption(label, _defval)
-						AddOid(_oid, extensionKey, triggerKey, attrName)
-					elseif widg == WIDG_INPUT
-						string _defval = GetAttrDefaultString(extensionKey, attrName)
-						
-						int ptype = GetAttrType(extensionKey, attrName)
-						if ptype == PTYPE_INT()
+							_oid = AddMenuOption(label, menuValue)
+							AddOid(_oid, extensionKey, triggerKey, attrName)
+						elseif widg == WIDG_KEYMAP
+							int _defmap = GetAttrDefaultValue(extensionKey, attrName)
 							if Trigger_IntHasX(extensionKey, triggerKey, attrName)
-								_defval = Trigger_IntGetX(extensionKey, triggerKey, attrName) as string
+								_defmap = Trigger_IntGetX(extensionKey, triggerKey, attrName)
 							endif
-						elseif ptype == PTYPE_FLOAT()
-							if Trigger_FloatHasX(extensionKey, triggerKey, attrName)
-								_defval = Trigger_FloatGetX(extensionKey, triggerKey, attrName) as string
+							_oid = AddKeyMapOption(label, _defmap)
+							AddOid(_oid, extensionKey, triggerKey, attrName)
+						elseif widg == WIDG_TOGGLE
+							bool _defval = GetAttrDefaultValue(extensionKey, attrName) != 0
+							if Trigger_IntHasX(extensionKey, triggerKey, attrName)
+								_defval = Trigger_IntGetX(extensionKey, triggerKey, attrName) != 0
 							endif
-						elseif ptype == PTYPE_STRING()
+							_oid = AddToggleOption(label, _defval)
+							AddOid(_oid, extensionKey, triggerKey, attrName)
+						elseif widg == WIDG_INPUT
+							string _defval = GetAttrDefaultString(extensionKey, attrName)
+							
+							int ptype = GetAttrType(extensionKey, attrName)
+							if ptype == PTYPE_INT()
+								if Trigger_IntHasX(extensionKey, triggerKey, attrName)
+									_defval = Trigger_IntGetX(extensionKey, triggerKey, attrName) as string
+								endif
+							elseif ptype == PTYPE_FLOAT()
+								if Trigger_FloatHasX(extensionKey, triggerKey, attrName)
+									_defval = Trigger_FloatGetX(extensionKey, triggerKey, attrName) as string
+								endif
+							elseif ptype == PTYPE_STRING()
+								if Trigger_StringHasX(extensionKey, triggerKey, attrName)
+									_defval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
+								endif
+							elseif ptype == PTYPE_FORM()
+								if Trigger_FormHasX(extensionKey, triggerKey, attrName)
+									_defval = Trigger_FormGetX(extensionKey, triggerKey, attrName) as string
+								endif
+							endif
+							
+							_oid = AddInputOption(label, _defval)
+							AddOid(_oid, extensionKey, triggerKey, attrName)
+						elseif widg == WIDG_COMMANDLIST
+							string menuValue = ""
 							if Trigger_StringHasX(extensionKey, triggerKey, attrName)
-								_defval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
+								string _cval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
+								if CommandsList.find(_cval) > -1
+									menuValue = _cval
+								endif
 							endif
-						elseif ptype == PTYPE_FORM()
-							if Trigger_FormHasX(extensionKey, triggerKey, attrName)
-								_defval = Trigger_FormGetX(extensionKey, triggerKey, attrName) as string
-							endif
+							
+							_oid = AddMenuOption(label, menuValue)
+							AddOid(_oid, extensionKey, triggerKey, attrName)
 						endif
-						
-						_oid = AddInputOption(label, _defval)
-						AddOid(_oid, extensionKey, triggerKey, attrName)
-					elseif widg == WIDG_COMMANDLIST
-						string menuValue = ""
-						if Trigger_StringHasX(extensionKey, triggerKey, attrName)
-							string _cval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
-							if CommandsList.find(_cval) > -1
-								menuValue = _cval
-							endif
-						endif
-						
-						_oid = AddMenuOption(label, menuValue)
-						AddOid(_oid, extensionKey, triggerKey, attrName)
 					endif
-				endif
-				
-				aidx += 1
-			endwhile
+					
+					aidx += 1
+				endwhile
+			endif
 			
 			; for two column layout
 			if needsEmpty
@@ -609,11 +618,17 @@ Function ShowExtensionPage()
 			AddEmptyOption()
 			AddEmptyOption()
 			
-			; and option to delete
 			AddEmptyOption()
-			_oid = AddTextOption("Delete", "")
-			AddOid(_oid, extensionKey, triggerKey, DELETE_BUTTON)
-		endif
+			if !triggerIsSoftDeleted
+				; and option to delete
+				_oid = AddTextOption("Delete", "")
+				AddOid(_oid, extensionKey, triggerKey, DELETE_BUTTON)
+			else
+				; and option to undelete
+				_oid = AddTextOption("Restore", "")
+				AddOid(_oid, extensionKey, triggerKey, RESTORE_BUTTON)
+			endif
+		;endif
 	
 		i += 1
 	endwhile

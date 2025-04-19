@@ -151,6 +151,7 @@ EndFunction
 
 Event OnSLTAMEClusterEvent(string eventName, string strArg, float numArg, Form sender)
 	if strArg == "DISPEL"
+		UnregisterForAllModEvents()
 		self.Dispel()
 	elseif strArg == "EXECUTE"
 		_slt_ExecuteCmd()
@@ -321,10 +322,6 @@ endfunction
 
 String Function GetInstanceId()
 	return InstanceId
-EndFunction
-
-Function QueueUpdateLoop(float afDelay = 1.0)
-	RegisterForSingleUpdate(afDelay)
 EndFunction
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

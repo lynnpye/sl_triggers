@@ -5,165 +5,152 @@ import sl_triggersHeap
 import sl_triggersFile
 
 ; CONSTANTS
-int		REGISTRATION_STATE_PENDING		= 0
-int		REGISTRATION_STATE_OPEN			= 1
-int		REGISTRATION_STATE_CLOSED		= 1000
-float	SECONDS_FOR_CORE_INIT			= 0.1
-float	SECONDS_FOR_REGISTRATION		= 6.0 ; seconds we wait to allow registration of extensions
-float	ALLOWED_REAL_DELTA				= 2.0 ; if real time drifts more than this
-float	ALLOWED_GAME_DELTA				= 0.00001 ; and game time less than this, it's probably a game load
+int		SLT_UNDEFINED					= 0
+int		SLT_BOOTSTRAPPING				= 100
+int		SLT_POPULATING_MCM				= 200
+
+float	MCM_POPULATION_DELAY			= 1.5
+
+string	SUKEY_GLOBAL_INSTANCE			= "_slt_SUKEY_GLOBAL_INSTANCE_"
+string	SUKEY_EXTENSION_REGISTRATION_QUEUE	= "EXTENSION_REGISTRATION_QUEUE"
 string	KYPT_EXTENSION_SLT_GLOBAL		= "sl_triggers_global"
 string	KYPT_KEYNAME_GLOBALVARS_PREFIX	= "globalvars"
+
+string	PSEUDO_INSTANCE_KEY				= "SLTADHOCINSTANCEID"
+
+string	EVENT_SLT_MAIN_INIT				= "_slt_event_slt_main_init_"
+string	EVENT_SLT_REGISTER_EXTENSION	= "_slt_event_slt_register_extension_"
+
 
 ; Properties
 Actor               Property PlayerRef				Auto
 Spell[]             Property customSpells			Auto
 MagicEffect[]       Property customEffects			Auto
 sl_triggersSetup	Property SLTMCM					Auto
-Bool				Property bEnabled = true 		Auto Hidden
-Bool				Property bDebugMsg = true 		Auto Hidden
-
-; SLT sends this to itself at startup; you don't really need to listen for this though you may. It will run
-; early after OnUpdate() starts running and will be sent once per launch, similar to OnInit().
-
-string Function EVENT_SLT_GAME_LOADED_HANDLER() global
-	return "OnSLTGameLoaded"
-EndFunction
-
-string Function EVENT_SLT_CLOSE_REGISTRATION_HANDLER()
-	return "OnSLTCloseRegistration"
-EndFunction
-
-string Function EVENT_SLT_AME_HEARTBEAT_UPDATE_HANDLER()
-	return "OnSLTAMEHeartbeatUpdate"
-EndFunction
-
-string Function SETTINGS_VERSION()
-	return "version"
-EndFunction
+bool				Property bEnabled		= true	Auto Hidden
+bool				Property bDebugMsg		= false	Auto Hidden
+Form[]				Property Extensions				Auto Hidden
+Form[]				Property ExtensionBuffer		Auto Hidden
+; this is my buffer. there are many like it, but this one is mine. my buffer is my best friend. it is my life. i must master it as i must master my life.
+ActiveMagicEffect[]	Property coreCmdMailbox0		Auto Hidden
+ActiveMagicEffect[]	Property coreCmdMailbox1		Auto Hidden
+ActiveMagicEffect[]	Property coreCmdMailbox2		Auto Hidden
+ActiveMagicEffect[]	Property coreCmdMailbox3		Auto Hidden
 
 ; Variables
-int			registrationState = 0
+bool		broadcastSettingsUpdated
+int			SLTUpdateState
+int			coreCmdNextMailbox
+int 		coreCmdNextSilo
+int			coreCmdNextSlot
+float		TimeToPopulateMCM
 string[]	commandsListCache
-Form[]		extensions
-Form[]		extensionBuffer
-string[]	heartbeatEvents
+;string[]	heartbeatEvents
 string[]	settingsUpdateEvents
 string[]	gameLoadedEvents
+;string[]	openRegistrationEvents
 
-bool		sltIsReady = false
-bool		oncePerLoadCompleted = false
-bool		gameLoadedSent = false
-bool		broadcastSettingsUpdated = false
-
-; this is my buffer. there are many like it, but this one is mine. my buffer is my best friend. it is my life. i must master it as i must master my life.
-ActiveMagicEffect[]	coreCmdMailbox0
-ActiveMagicEffect[]	coreCmdMailbox1
-ActiveMagicEffect[]	coreCmdMailbox2
-ActiveMagicEffect[]	coreCmdMailbox3
-
-int		coreCmdNextMailbox = 0
-int 	coreCmdNextSilo
-int		coreCmdNextSlot
-
-; SLT settings functions
-
-int Function GetSettingsVersion()
-	return Settings_IntGet(SettingsFilename(), SETTINGS_VERSION(), GetModVersion())
+sl_triggersMain Function GetInstance() global
+	;                                            SUKEY_GLOBAL_INSTANCE
+	return (StorageUtil.GetFormValue(none, "_slt_SUKEY_GLOBAL_INSTANCE_") as sl_triggersMain)
 EndFunction
-
-Function SetSettingsVersion(int newVersion = -1)
-	if newVersion == -1
-		Settings_IntSet(SettingsFilename(), SETTINGS_VERSION(), GetModVersion())
-	else
-		Settings_IntSet(SettingsFilename(), SETTINGS_VERSION(), newVersion)
-	endif
-EndFunction
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Events
 
 Event OnInit()
 	DebMsg("Main.OnInit")
-	DoOncePerLifetime()
-	
-	QueueUpdateLoop(0.1)
+	StorageUtil.SetFormValue(none, SUKEY_GLOBAL_INSTANCE, self)
+	BootstrapSLTInit()
 EndEvent
 
 Event OnUpdate()
 	if !self
 		return
 	endif
-	
-	DebMsg("Main.OnUpdate")
-	
-	float currentRealTime = Utility.GetCurrentRealTime()
-	float currentGameTime = Utility.GetCurrentGameTime()
-	
-	; init timings
-	if !oncePerLoadCompleted && currentRealTime > SECONDS_FOR_CORE_INIT
-		oncePerLoadCompleted = true
-		DoOncePerLoad()
-		QueueUpdateLoop()
+
+	; state checks
+	if SLTUpdateState == SLT_BOOTSTRAPPING
+		SLTUpdateState = SLT_UNDEFINED
+		UnregisterForModEvent(EVENT_SLT_MAIN_INIT)
+		; on first launch, this will obviously be empty
+		; on subsequent loads, we need to iterate the extensions we are
+		; aware of and bootstrap them
+		int i = 0
+		while i < Extensions.Length
+			sl_triggersExtension sltx = Extensions[i] as sl_triggersExtension
+			if !sltx
+				; need to remove it from the list, it was removed from the game perhaps?
+				Debug.Trace("SLTMain.OnUpdate: Bootstrapping: Removed empty extension from main.Extensions")
+				DebMsg("SLTMain.OnUpdate: Bootstrapping: Removed empty extension from main.Extensions")
+				if Extensions.Length > i + 1
+					Extensions = PapyrusUtil.MergeFormArray(PapyrusUtil.SliceFormArray(Extensions, 0, i - 1), PapyrusUtil.SliceFormArray(Extensions, i + 1))
+				else
+					Extensions = PapyrusUtil.SliceFormArray(Extensions, 0, i - 1)
+				endif
+			else
+				sltx.BootstrapSLTInit()
+				i += 1
+			endif
+		endwhile
+		SendModEvent(EVENT_SLT_MAIN_INIT)
 		return
 	endif
 
-	; don't start sending heartbeats until we are ready
-	if sltIsReady
-		if !gameLoadedSent
-			SendSLTGameLoaded(gameLoadedSent)
-			gameLoadedSent = true
-		endif
+	; no specific state to take action on, check other actions
+	float currentRealTime = Utility.GetCurrentRealTime()
+	if TimeToPopulateMCM && TimeToPopulateMCM < currentRealTime && SLTMCM
+		TimeToPopulateMCM = 0.0
 		
-		if registrationState == REGISTRATION_STATE_OPEN && currentRealTime > SECONDS_FOR_REGISTRATION
-			SendSLTCloseRegistration()
-		endif
-		
-		if broadcastSettingsUpdated
-			broadcastSettingsUpdated = false
-			SendModEvent(EVENT_SLT_SETTINGS_UPDATED())
-		endif
+		SLTMCM.ClearSetupHeap()
+		SLTMCM.SetCommandsList(GetCommandsList())
 	
 		int i = 0
-		int max = heartbeatEvents.Length
-		while i < max
-			SendModEvent(heartbeatEvents[i])
+		string[] extensionFriendlyNames = PapyrusUtil.StringArray(Extensions.Length)
+		string[] extensionKeys = PapyrusUtil.StringArray(Extensions.Length)
+		while i < Extensions.Length
+			sl_triggersExtension _ext = GetExtensionByIndex(i)
+
+			_ext.SLTMCM = SLTMCM
+			extensionFriendlyNames[i] = _ext.GetFriendlyName()
+			extensionKeys[i] = _ext.GetExtensionKey()
+			
+			SLTMCM.SetTriggers(_ext.GetExtensionKey(), _ext.TriggerKeys)
+			
 			i += 1
 		endwhile
-		i = 0
-		max = CountAMEHeartbeats()
-		while i < max
-			SendModEvent(GetAMEHeartbeat(i))
-			i += 1
-		endwhile
+		
+		SLTMCM.SetExtensionPages(extensionFriendlyNames, extensionKeys)
+		
+		SendModEvent(EVENT_SLT_POPULATE_MCM())
+	endif
+
+	; Let everyone know settings changed
+	if broadcastSettingsUpdated
+		broadcastSettingsUpdated = false
+		SendModEvent(EVENT_SLT_SETTINGS_UPDATED())
 	endif
 	
+	; Heartbeats
+	;/
+	int i = 0
+	int max = heartbeatEvents.Length
+	while i < max
+		SendModEvent(heartbeatEvents[i])
+		i += 1
+	endwhile
+	/;
+	int i = 0
+	int max = CountAMEHeartbeats()
+	while i < max
+		SendModEvent(GetAMEHeartbeat(i))
+		i += 1
+	endwhile
+
 	QueueUpdateLoop()
 EndEvent
 
-Function SetSLTReady()
-	sltIsReady = true
-	SendModEvent(EVENT_SLT_READY())
-EndFunction
-
-Function JumpStart()
-	DebMsg("Main.JumpStart")
-	sltIsReady = false
-	gameLoadedSent = false
-	oncePerLoadCompleted = false
-	UnregisterForUpdate()
-	QueueUpdateLoop(0.1)
-	
-	int i = 0
-	while i < extensions.Length
-		(extensions[i] as sl_triggersExtension).JumpStart()
-		i += 1
-	endwhile
-EndFunction
-
-Function DoOncePerLifetime()
-	sltIsReady = false
-	gameLoadedSent = false
-	oncePerLoadCompleted = false
-	registrationState = REGISTRATION_STATE_PENDING
-	
+Event OnSLTMainInit(string _eventName, string _strArg, float _fltArg, Form _frmArg)
 	if !coreCmdMailbox0
 		coreCmdMailbox0 = new ActiveMagicEffect[128]
 		coreCmdMailbox1 = new ActiveMagicEffect[128]
@@ -173,22 +160,75 @@ Function DoOncePerLifetime()
 		coreCmdNextSilo = 0
 		coreCmdNextSlot = 0
 	endif
-EndFunction
 
-Function DoOncePerLoad()
-	DebMsg("Main.DoOncePerLoad")
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_GAME_LOADED(), EVENT_SLT_GAME_LOADED_HANDLER())
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_CLOSE_REGISTRATION(), EVENT_SLT_CLOSE_REGISTRATION_HANDLER())
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_AME_HEARTBEAT_UPDATE(), EVENT_SLT_AME_HEARTBEAT_UPDATE_HANDLER())
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REGISTER_EXTENSION, "OnSLTRegisterExtension")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_AME_HEARTBEAT_UPDATE(), "OnSLTAMEHeartbeatUpdate")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_COMMAND(), "OnSLTRequestCommand")
+	;;;;;
+	;;;;;
+	;;;;;
+	;;;;;
+	;;;;;
+	;;;;;  DON'T FORGET TO ADD REQUIRED EVENT REGISTRATION
+	;;;;;
+	;;;;;
+	;;;;;
+	;;;;;
+	;;;;;
 
-	if SLTMCM
-		SLTMCM.SetMCMReady(false)
+	SendSLTGameLoaded()
+
+	; get us started
+	QueueUpdateLoop()
+EndEvent
+
+Event OnSLTRegisterExtension(string _eventName, string _strArg, float _fltArg, Form _frmArg)
+	bool needSorting = false
+
+	while Heap_FormListCountX(self, PSEUDO_INSTANCE_KEY, SUKEY_EXTENSION_REGISTRATION_QUEUE) > 0
+		sl_triggersExtension sltx = Heap_FormListShiftX(self, PSEUDO_INSTANCE_KEY, SUKEY_EXTENSION_REGISTRATION_QUEUE) as sl_triggersExtension
+		if sltx
+			if PapyrusUtil.CountForm(Extensions, sltx) < 1 ; exists and not in our list already
+				if !Extensions
+					Extensions				= PapyrusUtil.FormArray(0)
+					settingsUpdateEvents	= PapyrusUtil.StringArray(0)
+					gameLoadedEvents		= PapyrusUtil.StringArray(0)
+				endif
+				Extensions				= PapyrusUtil.PushForm(Extensions, sltx)
+				settingsUpdateEvents	= PapyrusUtil.PushString(settingsUpdateEvents, sltx._slt_GetSettingsUpdateEvent())
+				gameLoadedEvents		= PapyrusUtil.PushString(gameLoadedEvents, sltx._slt_GetGameLoadedEvent())
+				needSorting = true
+			endif
+		endif
+	endwhile
+
+	if needSorting
+		; sort extensions by priority
+		if Extensions
+			sl_TriggersExtension f_j
+			sl_TriggersExtension f_i
+			Form f_swap
+			int j = 0
+			while j < Extensions.Length
+				f_j = Extensions[j] as sl_TriggersExtension
+				int i = j + 1
+				while i < Extensions.Length
+					f_i = Extensions[i] as sl_TriggersExtension
+					if f_i.GetPriority() < f_j.GetPriority()
+						f_swap = Extensions[j]
+						Extensions[j] = Extensions[i]
+						Extensions[i] = f_swap
+					endif
+					i = i + 1
+				endwhile
+				j = j + 1
+			endwhile
+		endif
 	endif
 
-	OpenRegistration()
-	
-	SetSLTReady()
-EndFunction
+	; unless we get called again to push it out even further, mcm population should be kicked off in this long
+	BumpTimeToPopulateMCM(MCM_POPULATION_DELAY)
+EndEvent
 
 Event OnSLTAMEHeartbeatUpdate(string _eventName, string _ameHeartbeat, float _addingHeartbeat, Form _theActor)
 	if !_ameHeartbeat
@@ -203,7 +243,6 @@ Event OnSLTAMEHeartbeatUpdate(string _eventName, string _ameHeartbeat, float _ad
 	endif
 EndEvent
 
-; for ad-hoc requests and perhaps more
 Event OnSLTRequestCommand(string _eventName, string _commandName, float __ignored, Form _theActor)
 	if !_commandName
 		return
@@ -214,8 +253,31 @@ Event OnSLTRequestCommand(string _eventName, string _commandName, float __ignore
 		_actualActor = PlayerRef
 	endif
 	
-	startCommand(_actualActor, _commandName, none)
+	StartCommand(_actualActor, _commandName, none)
 EndEvent
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Functions
+Function QueueUpdateLoop(float afDelay = 1.0)
+	RegisterForSingleUpdate(afDelay)
+EndFunction
+
+Function DoOnPlayerLoadGame()
+	DebMsg("Main.OnPlayerLoadGame (not really, but, you know)")
+	BootstrapSLTInit()
+EndFunction
+
+Function BootstrapSLTInit()
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_MAIN_INIT, "OnSLTMainInit")
+
+	SLTUpdateState = SLT_BOOTSTRAPPING
+	TimeToPopulateMCM = 0.0
+	broadcastSettingsUpdated = false
+
+	UnregisterForUpdate()
+	QueueUpdateLoop(0.1)
+EndFunction
 
 Function SendSLTGameLoaded(bool firstTime = false)
 	string ft = "false"
@@ -223,33 +285,66 @@ Function SendSLTGameLoaded(bool firstTime = false)
 		ft = "true"
 	endif
 	
-	int i = 0
-	while i < gameLoadedEvents.Length
-		SendModEvent(gameLoadedEvents[i], ft, 0.0)
-		i += 1
-	endwhile
 	SendModEvent(EVENT_SLT_GAME_LOADED(), ft, 0.0)
 EndFunction
 
-Function SendSLTCloseRegistration()
-	; preemptive and duplicated; sneaky extensions might register during 
-	; the event dispatch window, but I also don't want to lose track
-	; of the fact that this state needs to be set to CLOSED
-	; so kindly leave it in both locations
-	registrationState = REGISTRATION_STATE_CLOSED
-	SendModEvent(EVENT_SLT_CLOSE_REGISTRATION())
+Function SendSettingsUpdateEvents()
+	int i = 0
+	while i < settingsUpdateEvents.Length
+		SendModEvent(settingsUpdateEvents[i])
+		
+		i += 1
+	endwhile
+	broadcastSettingsUpdated = true
 EndFunction
 
-; Event OnSLTCloseRegistration
-; OPTIONAL, NOT RECOMMENDED
-; Sent by sl_triggers to indicate registration is closed and bookkeeping is required
-; Not recommended to capture as it is of dubious usefulness.
-Event OnSLTCloseRegistration(string eventName, string strArg, float numArg, Form sender)
-	CloseRegistration()
-EndEvent
+Function RegisterExtension(sl_triggersExtension newExtension) global
+	DebMsg("Main.RegisterExtension received from (" + newExtension.GetExtensionKey() + ")")
 
-Function QueueUpdateLoop(float afDelay = 1.0)
-	RegisterForSingleUpdate(afDelay)
+	sl_triggersMain sltInstance = sl_triggersMain.GetInstance()
+	if !sltInstance
+		Debug.Trace("sl_triggersMain.RegisterExtension: cannot locate global SLT instance, unable to register extension (" + newExtension.GetExtensionKey() + ")")
+		DebMsg("sl_triggersMain.RegisterExtension: cannot locate global SLT instance, unable to register extension (" + newExtension.GetExtensionKey() + ")")
+	endif
+	;                              PSEUDO_INSTANCE_KEY    SUKEY_EXTENSION_REGISTRATION_QUEUE
+	Heap_FormListAddX(sltInstance, "SLTADHOCINSTANCEID", "EXTENSION_REGISTRATION_QUEUE", newExtension)
+	;                              EVENT_SLT_REGISTER_EXTENSION
+	newExtension.SendModEvent("_slt_event_slt_register_extension_")
+EndFunction
+
+Function BumpTimeToPopulateMCM(float timeToAdvance)
+	; don't bother without SkyUI
+	if SLTMCM
+		TimeToPopulateMCM = Utility.GetCurrentRealTime() + timeToAdvance
+	endif
+EndFunction
+
+Function AddAMEHeartbeat(string heartbeatEvent)
+	Heap_StringListAddX(self, PSEUDO_INSTANCE_KEY, "AMEHEARTBEATS", heartbeatEvent, false)
+EndFunction
+
+Function RemoveAMEHeartbeat(string heartbeatEvent)
+	Heap_StringListRemoveX(self, PSEUDO_INSTANCE_KEY, "AMEHEARTBEATS", heartbeatEvent, true)
+EndFunction
+
+int Function CountAMEHeartbeats()
+	return Heap_StringListCountX(self, PSEUDO_INSTANCE_KEY, "AMEHEARTBEATS")
+EndFunction
+
+string Function GetAMEHeartbeat(int index)
+	return Heap_StringListGetX(self, PSEUDO_INSTANCE_KEY, "AMEHEARTBEATS", index)
+EndFunction
+
+int Function GetSettingsVersion()
+	return Settings_IntGet(SettingsFilename(), "version", GetModVersion())
+EndFunction
+
+Function SetSettingsVersion(int newVersion = -1)
+	if newVersion == -1
+		Settings_IntSet(SettingsFilename(), "version", GetModVersion())
+	else
+		Settings_IntSet(SettingsFilename(), "version", newVersion)
+	endif
 EndFunction
 
 int Function SiloFromMailbox(int mailbox)
@@ -338,69 +433,6 @@ Function ReleaseCoreMailbox(int mailbox)
 	endif
 EndFunction
 
-
-Function OpenRegistration()
-	registrationState = REGISTRATION_STATE_OPEN
-	SendModEvent(EVENT_SLT_OPEN_REGISTRATION())
-EndFunction
-
-Function RegisterExtension(sl_triggersExtension newExtension)
-	if registrationState == REGISTRATION_STATE_CLOSED
-		Debug.Trace("sl_triggers: extension attempted registration but registrationState is CLOSED: " + newExtension.GetId())
-		return
-	EndIf
-	
-	if !extensionBuffer
-		extensionBuffer = PapyrusUtil.FormArray(0)
-		heartbeatEvents = PapyrusUtil.StringArray(0)
-		settingsUpdateEvents = PapyrusUtil.StringArray(0)
-		gameLoadedEvents = PapyrusUtil.StringArray(0)
-	endif
-	extensionBuffer = PapyrusUtil.PushForm(extensionBuffer, newExtension)
-	heartbeatEvents = PapyrusUtil.PushString(heartbeatEvents, newExtension._GetHeartbeatEvent())
-	settingsUpdateEvents = PapyrusUtil.PushString(settingsUpdateEvents, newExtension._GetSettingsUpdateEvent())
-	gameLoadedEvents = PapyrusUtil.PushString(gameLoadedEvents, newExtension._GetGameLoadedEvent())
-EndFunction
-
-Function CloseRegistration()
-	Utility.Wait(0.1)
-	; preemptive and duplicated; sneaky extensions might register during 
-	; the event dispatch window, but I also don't want to lose track
-	; of the fact that this state needs to be set to CLOSED
-	; so kindly leave it in both locations
-	registrationState = REGISTRATION_STATE_CLOSED
-	
-	; sort extensions by priority
-	Form[] tmpBuffer = extensionBuffer
-	extensionBuffer = none
-	
-	if tmpBuffer
-		sl_TriggersExtension f_j
-		sl_TriggersExtension f_i
-		Form f_swap
-		int j = 0
-		while j < tmpBuffer.Length
-			f_j = tmpBuffer[j] as sl_TriggersExtension
-			int i = j + 1
-			while i < tmpBuffer.Length
-				f_i = tmpBuffer[i] as sl_TriggersExtension
-				if f_i.GetPriority() < f_j.GetPriority()
-					f_swap = tmpBuffer[j]
-					tmpBuffer[j] = tmpBuffer[i]
-					tmpBuffer[i] = f_swap
-				endif
-				i = i + 1
-			endwhile
-			j = j + 1
-		endwhile
-	endif
-	
-	extensions = tmpBuffer
-	
-	; update the MCM now we know what we are working with
-	PopulateMCM()
-EndFunction
-
 ; simple get handler for infini-globals
 string Function globalvars_get(int varsindex)
 	return Heap_StringGetFK(self, MakeInstanceKey(KYPT_EXTENSION_SLT_GLOBAL, KYPT_KEYNAME_GLOBALVARS_PREFIX + varsindex))
@@ -409,26 +441,6 @@ EndFunction
 ; simple set handler for infini-globals
 string Function globalvars_set(int varsindex, string value)
 	return Heap_StringSetFK(self, MakeInstanceKey(KYPT_EXTENSION_SLT_GLOBAL, KYPT_KEYNAME_GLOBALVARS_PREFIX + varsindex), value)
-EndFunction
-
-; twins, basil... twins!
-Spell Function NextPooledSpellForActor(Actor _theActor)
-	if !_theActor
-		Debug.Trace("sl_triggersMain.NextPooledSpellForActor: _theActor is none")
-		return none
-	endif
-	
-	int _i = 0
-	while _i < CustomSpells.Length && _i < CustomEffects.Length
-		if !_theActor.HasMagicEffect(CustomEffects[_i])
-			return CustomSpells[_i]
-		endif
-	
-		_i += 1
-	endwhile
-	
-	Debug.Trace("sl_triggersMain.NextPooledSpellForActor: No core effects available.")
-	return none
 EndFunction
 
 Function EnqueueAMEValues(Actor _theActor, string cmd, string instanceId, Form[] spellForms, string[] extensionInstanceIds)
@@ -452,14 +464,14 @@ sl_triggersExtension Function GetExtensionByIndex(int _index)
 	return extensions[_index] as sl_triggersExtension
 EndFunction
 
-; startCommand
+; StartCommand
 ; Actor _theActor: the Actor to attach this command to
 ; string _cmdName: the file to run; is also the triggerKey or triggerId
 ; sl_triggersExtension _sltex: the extension making the request
-string Function startCommand(Actor _theActor, string _cmdName, sl_triggersExtension _sltext)
+string Function StartCommand(Actor _theActor, string _cmdName, sl_triggersExtension _sltext)
 	string _instanceId
 	if _sltext
-		_instanceId = _sltext._NextInstanceId()
+		_instanceId = _sltext._slt_NextInstanceId()
 	else
 		_instanceId = _NextInstanceId()
 	endif
@@ -481,8 +493,8 @@ string Function startCommand(Actor _theActor, string _cmdName, sl_triggersExtens
 		int extensionIndex = 0
 		while extensionIndex < spellForms.Length
 			sl_triggersExtension _thisExt = GetExtensionByIndex(extensionIndex)
-			if _thisExt._HasPool()
-				spellForms[extensionIndex] = _thisExt._NextPooledSpellForActor(_theActor)
+			if _thisExt._slt_HasPool()
+				spellForms[extensionIndex] = _thisExt._slt_NextPooledSpellForActor(_theActor)
 				if !spellForms[extensionIndex]
 					MiscUtil.PrintConsole("Too many effects on: " + _theActor + " from extension: " + _thisExt.GetExtensionKey())
 					return ""
@@ -521,10 +533,6 @@ int Function _NextCycledInstanceNumber(int oneupmin = -30000, int oneupmax = 300
 	return nextup
 EndFunction
 
-string Function _GetPseudoInstanceKey()
-	return "SLTADHOCINSTANCEID"
-EndFunction
-
 ; NextInstanceId
 ; DO NOT OVERRIDE
 ; returns: an instanceId derived from this extension, typically as a result
@@ -538,57 +546,21 @@ string[] Function GetCommandsList()
 	return commandsListCache
 EndFunction
 
-;;;
-;; MCM stuff.. yay
-Function PopulateMCM()
-	if !SLTMCM
-		return
+Spell Function NextPooledSpellForActor(Actor _theActor)
+	if !_theActor
+		Debug.Trace("sl_triggersMain.NextPooledSpellForActor: _theActor is none")
+		return none
 	endif
 	
-	SLTMCM.ClearSetupHeap()
+	int _i = 0
+	while _i < CustomSpells.Length && _i < CustomEffects.Length
+		if !_theActor.HasMagicEffect(CustomEffects[_i])
+			return CustomSpells[_i]
+		endif
 	
-	SLTMCM.SetCommandsList(GetCommandsList())
-	
-	int i = 0
-	string[] extensionFriendlyNames = PapyrusUtil.StringArray(extensions.Length)
-	string[] extensionKeys = PapyrusUtil.StringArray(extensions.Length)
-	while i < extensions.Length
-		sl_triggersExtension _ext = GetExtensionByIndex(i)
-		extensionFriendlyNames[i] = _ext.GetFriendlyName()
-		extensionKeys[i] = _ext.GetExtensionKey()
-		
-		_ext._InternalPopulateMCM(SLTMCM)
-		
-		i += 1
+		_i += 1
 	endwhile
 	
-	SLTMCM.SetExtensionPages(extensionFriendlyNames, extensionKeys)
-	
-	SendModEvent(EVENT_SLT_POPULATE_MCM())
-EndFunction
-
-Function SendSettingsUpdateEvents()
-	int i = 0
-	while i < settingsUpdateEvents.Length
-		SendModEvent(settingsUpdateEvents[i])
-		
-		i += 1
-	endwhile
-	broadcastSettingsUpdated = true
-EndFunction
-
-Function AddAMEHeartbeat(string heartbeatEvent)
-	Heap_StringListAddX(self, _GetPseudoInstanceKey(), "AMEHEARTBEATS", heartbeatEvent, false)
-EndFunction
-
-Function RemoveAMEHeartbeat(string heartbeatEvent)
-	Heap_StringListRemoveX(self, _GetPseudoInstanceKey(), "AMEHEARTBEATS", heartbeatEvent, true)
-EndFunction
-
-int Function CountAMEHeartbeats()
-	return Heap_StringListCountX(self, _GetPseudoInstanceKey(), "AMEHEARTBEATS")
-EndFunction
-
-string Function GetAMEHeartbeat(int index)
-	return Heap_StringListGetX(self, _GetPseudoInstanceKey(), "AMEHEARTBEATS", index)
+	Debug.Trace("sl_triggersMain.NextPooledSpellForActor: No core effects available.")
+	return none
 EndFunction

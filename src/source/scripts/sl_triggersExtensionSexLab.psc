@@ -83,8 +83,8 @@ EndFunction
 
 Event OnSLTGameLoaded(string eventName, string strArg, float numArg, Form sender)
 	DebMsg("SexLab.OnGameLoaded")
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_POPULATE_MCM(), "OnPopulateMCM")
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTUpdated")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_POPULATE_MCM(), "OnSLTPopulateMCM")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTSettingsUpdated")
 	
 	UpdateSexLabStatus()
 	
@@ -93,12 +93,12 @@ Event OnSLTGameLoaded(string eventName, string strArg, float numArg, Form sender
 EndEvent
 
 ; configuration was updated mid-game
-Function OnSLTUpdated(string eventName, string strArg, float numArg, Form sender)
+Function OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
 	RefreshTriggerCache()
 	RegisterEvents()
 EndFunction
 
-Event OnPopulateMCM(string eventName, string strArg, float numArg, Form sender)
+Event OnSLTPopulateMCM(string eventName, string strArg, float numArg, Form sender)
 	DebMsg("SexLab.PopulateMCM")
 	string[] triggerIfEventNames	= PapyrusUtil.StringArray(5)
 	triggerIfEventNames[0]			= "- Select an Event -"
@@ -106,11 +106,11 @@ Event OnPopulateMCM(string eventName, string strArg, float numArg, Form sender)
 	triggerIfEventNames[2]			= "Orgasm"
 	triggerIfEventNames[3]			= "End"
 	triggerIfEventNames[4]			= "Orgasm(SLSO)"
-	DescribeMenuAttribute(SLTMCM, "event", PTYPE_INT(), "Event:", 0, triggerIfEventNames)
-	SetHighlightText(SLTMCM, "event", "Choose which type of event this trigger will use.")
+	DescribeMenuAttribute("event", PTYPE_INT(), "Event:", 0, triggerIfEventNames)
+	SetHighlightText("event", "Choose which type of event this trigger will use.")
 	
-	DescribeSliderAttribute(SLTMCM, "chance", PTYPE_FLOAT(), "Chance: ", 0.0, 100.0, 1.0, "{0}")
-	SetHighlightText(SLTMCM, "chance", "The chance the trigger will run when all prerequisites are met.")
+	DescribeSliderAttribute("chance", PTYPE_FLOAT(), "Chance: ", 0.0, 100.0, 1.0, "{0}")
+	SetHighlightText("chance", "The chance the trigger will run when all prerequisites are met.")
 	
 	string[] triggerIfRaceNames = new string[7]
 	triggerIfRaceNames[0] = "Any"
@@ -120,14 +120,14 @@ Event OnPopulateMCM(string eventName, string strArg, float numArg, Form sender)
 	triggerIfRaceNames[4] = "Partner Humanoid"
 	triggerIfRaceNames[5] = "Partner Creature"
 	triggerIfRaceNames[6] = "Partner Undead"
-	DescribeMenuAttribute(SLTMCM, "race", PTYPE_INT(), "Race:", 0, triggerIfRaceNames)
+	DescribeMenuAttribute("race", PTYPE_INT(), "Race:", 0, triggerIfRaceNames)
 	
 	string[] triggerIfRoleNames = new string[4]
 	triggerIfRoleNames[0] = "Any"
 	triggerIfRoleNames[1] = "Aggressor"
 	triggerIfRoleNames[2] = "Victim"
 	triggerIfRoleNames[3] = "Not part of rape"
-	DescribeMenuAttribute(SLTMCM, "role", PTYPE_INT(), "Role:", 0, triggerIfRoleNames)
+	DescribeMenuAttribute("role", PTYPE_INT(), "Role:", 0, triggerIfRoleNames)
 	
 	string[] triggerIfPlayerNames = new string[5]
 	triggerIfPlayerNames[0] = "Any"
@@ -135,32 +135,32 @@ Event OnPopulateMCM(string eventName, string strArg, float numArg, Form sender)
 	triggerIfPlayerNames[2] = "Not Player"
 	triggerIfPlayerNames[3] = "Partner Player"
 	triggerIfPlayerNames[4] = "Partner Not Player"
-	DescribeMenuAttribute(SLTMCM, "player", PTYPE_INT(), "Player Status:", 0, triggerIfPlayerNames)
+	DescribeMenuAttribute("player", PTYPE_INT(), "Player Status:", 0, triggerIfPlayerNames)
 	
 	string[] triggerIfGenderNames = new string[3]
 	triggerIfGenderNames[0] = "Any"
 	triggerIfGenderNames[1] = "Male"
 	triggerIfGenderNames[2] = "Female"
-	DescribeMenuAttribute(SLTMCM, "gender", PTYPE_INT(), "Gender:", 0, triggerIfGenderNames)
+	DescribeMenuAttribute("gender", PTYPE_INT(), "Gender:", 0, triggerIfGenderNames)
 	
 	string[] triggerIfTagNames = new String[4]
 	triggerIfTagNames[0] = "Any"
 	triggerIfTagNames[1] = "Vaginal"
 	triggerIfTagNames[2] = "Anal"
 	triggerIfTagNames[3] = "Oral"
-	DescribeMenuAttribute(SLTMCM, "tag", PTYPE_INT(), "SL Tag:", 0, triggerIfTagNames)
+	DescribeMenuAttribute("tag", PTYPE_INT(), "SL Tag:", 0, triggerIfTagNames)
 	
 	string[] triggerIfDaytimeNames = new String[3]
 	triggerIfDaytimeNames[0] = "Any"
 	triggerIfDaytimeNames[1] = "Day"
 	triggerIfDaytimeNames[2] = "Night"
-	DescribeMenuAttribute(SLTMCM, "daytime", PTYPE_INT(), "Time of Day:", 0, triggerIfDaytimeNames)
+	DescribeMenuAttribute("daytime", PTYPE_INT(), "Time of Day:", 0, triggerIfDaytimeNames)
 	
 	string[] triggerIfLocationNames = new String[3]
 	triggerIfLocationNames[0] = "Any"
 	triggerIfLocationNames[1] = "Inside"
 	triggerIfLocationNames[2] = "Outside"
-	DescribeMenuAttribute(SLTMCM, "location", PTYPE_INT(), "Location:", 0, triggerIfLocationNames)
+	DescribeMenuAttribute("location", PTYPE_INT(), "Location:", 0, triggerIfLocationNames)
 	
 	string[] triggerIfPosition = new string[6]
 	triggerIfPosition[0] = "Any"
@@ -169,13 +169,13 @@ Event OnPopulateMCM(string eventName, string strArg, float numArg, Form sender)
 	triggerIfPosition[3] = "3"
 	triggerIfPosition[4] = "4"
 	triggerIfPosition[5] = "5"
-	DescribeMenuAttribute(SLTMCM, "position", PTYPE_INT(), "SL Position:", 0, triggerIfPosition)
+	DescribeMenuAttribute("position", PTYPE_INT(), "SL Position:", 0, triggerIfPosition)
 	
 	; technically you could add as many as you wanted here but of course
 	; that could cause performance issues
-	AddCommandList(SLTMCM, "do_1", "Command 1:")
-	AddCommandList(SLTMCM, "do_2", "Command 2:")
-	AddCommandList(SLTMCM, "do_3", "Command 3:")
+	AddCommandList("do_1", "Command 1:")
+	AddCommandList("do_2", "Command 2:")
+	AddCommandList("do_3", "Command 3:")
 EndEvent
 
 ; selectively enables only events with triggers

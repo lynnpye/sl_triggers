@@ -83,8 +83,8 @@ EndFunction
 
 Event OnSLTGameLoaded(string eventName, string strArg, float numArg, Form sender)
 	DebMsg("Core.OnGameLoaded")
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_POPULATE_MCM(), "OnPopulateMCM")
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTUpdated")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_POPULATE_MCM(), "OnSLTPopulateMCM")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTSettingsUpdated")
 	
 	UpdateDAKStatus()
 	
@@ -93,7 +93,7 @@ Event OnSLTGameLoaded(string eventName, string strArg, float numArg, Form sender
 EndEvent
 
 ; configuration was updated mid-game
-Function OnSLTUpdated(string eventName, string strArg, float numArg, Form sender)
+Function OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
 	RefreshTriggerCache()
 	RegisterEvents()
 EndFunction
@@ -194,45 +194,45 @@ Function UnregisterForKeyEvents()
 	UnregisterForAllKeys()
 EndFunction
 
-Event OnPopulateMCM(string eventName, string strArg, float numArg, Form sender)
+Event OnSLTPopulateMCM(string eventName, string strArg, float numArg, Form sender)
 	DebMsg("Core.PopulateMCM")
 	string[] triggerIfEventNames	= PapyrusUtil.StringArray(3)
 	triggerIfEventNames[0]			= "- Select an Event -"
 	triggerIfEventNames[1]			= "Keymapping"
 	triggerIfEventNames[2]			= "Top of the Hour"
-	DescribeMenuAttribute(SLTMCM, "event", PTYPE_INT(), "Event:", 0, triggerIfEventNames)
-	SetHighlightText(SLTMCM, "event", "Choose which type of event this trigger will use.")
+	DescribeMenuAttribute("event", PTYPE_INT(), "Event:", 0, triggerIfEventNames)
+	SetHighlightText("event", "Choose which type of event this trigger will use.")
 	
 	; Only for Keymapping
-	DescribeKeymapAttribute(SLTMCM, "keymapping", PTYPE_INT(), "Keymapping: ")
-	SetHighlightText(SLTMCM, "keymapping", "Choose the key to map to the action.")
-	DescribeKeymapAttribute(SLTMCM, "modifierkeymapping", PTYPE_INT(), "Modifier Key: ")
-	SetHighlightText(SLTMCM, "modifierkeymapping", "(Optional) If specified, will be required to be pressed to trigger the action.")
-	DescribeToggleAttribute(SLTMCM, "usedak", PTYPE_INT(), "Use DAK? ")
-	SetHighlightText(SLTMCM, "usedak", "(Optional) If enabled, will use the Dynamic Activation Key instead of the Modifier key (if selected)")
+	DescribeKeymapAttribute("keymapping", PTYPE_INT(), "Keymapping: ")
+	SetHighlightText("keymapping", "Choose the key to map to the action.")
+	DescribeKeymapAttribute("modifierkeymapping", PTYPE_INT(), "Modifier Key: ")
+	SetHighlightText("modifierkeymapping", "(Optional) If specified, will be required to be pressed to trigger the action.")
+	DescribeToggleAttribute("usedak", PTYPE_INT(), "Use DAK? ")
+	SetHighlightText("usedak", "(Optional) If enabled, will use the Dynamic Activation Key instead of the Modifier key (if selected)")
 	
 	; Only for Top of the Hour
-	DescribeSliderAttribute(SLTMCM, "chance", PTYPE_FLOAT(), "Chance: ", 0.0, 100.0, 1.0, "{0}")
-	SetHighlightText(SLTMCM, "chance", "The chance the trigger will run when all prerequisites are met.")
+	DescribeSliderAttribute("chance", PTYPE_FLOAT(), "Chance: ", 0.0, 100.0, 1.0, "{0}")
+	SetHighlightText("chance", "The chance the trigger will run when all prerequisites are met.")
 	
 	; technically you could add as many as you wanted here but of course
 	; that could cause performance issues
-	AddCommandList(SLTMCM, "do_1", "Command 1:")
-	SetHighlightText(SLTMCM, "do_1", "You can run up to 3 commands associated with this keymapping. This is the first.")
-	AddCommandList(SLTMCM, "do_2", "Command 2:")
-	SetHighlightText(SLTMCM, "do_2", "You can run up to 3 commands associated with this keymapping. This is the second.")
-	AddCommandList(SLTMCM, "do_3", "Command 3:")
-	SetHighlightText(SLTMCM, "do_3", "You can run up to 3 commands associated with this keymapping. This is the third.")
+	AddCommandList("do_1", "Command 1:")
+	SetHighlightText("do_1", "You can run up to 3 commands associated with this keymapping. This is the first.")
+	AddCommandList("do_2", "Command 2:")
+	SetHighlightText("do_2", "You can run up to 3 commands associated with this keymapping. This is the second.")
+	AddCommandList("do_3", "Command 3:")
+	SetHighlightText("do_3", "You can run up to 3 commands associated with this keymapping. This is the third.")
 	
 	; placing these at the end just to point out that the position of the calls doesn't matter, so feel free 
 	; to place these calls wherever in this function call you would want for organizational purposes
-	SetVisibilityKeyAttribute(SLTMCM, "event")
+	SetVisibilityKeyAttribute("event")
 	
-	SetVisibleOnlyIf(SLTMCM, "keymapping", "1")
-	SetVisibleOnlyIf(SLTMCM, "modifierkeymapping", "1")
-	SetVisibleOnlyIf(SLTMCM, "usedak", "1")
+	SetVisibleOnlyIf("keymapping", "1")
+	SetVisibleOnlyIf("modifierkeymapping", "1")
+	SetVisibleOnlyIf("usedak", "1")
 	
-	SetVisibleOnlyIf(SLTMCM, "chance", "2")
+	SetVisibleOnlyIf("chance", "2")
 	
 EndEvent
 
@@ -249,7 +249,6 @@ Event OnTopOfTheHour(String eventName, string strArg, Float fltArg, Form sender)
 	HandleTopOfTheHour()
 	;checkEvents(-1, 4, PlayerRef)
 EndEvent
-
 
 Event OnKeyDown(Int KeyCode)
 	DebMsg("Core.OnKeyDown")
