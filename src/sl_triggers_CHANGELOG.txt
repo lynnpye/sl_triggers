@@ -1,3 +1,6 @@
+24
+	bugfix: Fraying9981 was right, there was a problem with the SLSO orgasm handling. It is fixed now.
+
 23
 	bugfix: fixed sl_isinslot - now appropriately checks parameter 2 for the slot number rather than expecting the Actor in parameter 1 to also be a slot number. The insanity.
 

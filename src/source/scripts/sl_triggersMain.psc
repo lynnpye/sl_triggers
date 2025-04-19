@@ -460,7 +460,7 @@ Event OnSexLabOrgasmS(Form ActorRef, Int Thread)
     int tid = Thread
     ;sslThreadController thread = Sexlab.GetController(tid)
     
-	HandleSexLabCheckEvents(tid, none, _trigger_cache_OnSexLabOrgasmS)
+	HandleSexLabCheckEvents(tid, ActorRef as Actor, _trigger_cache_OnSexLabOrgasmS)
     ;checkEvents(tid, 3, ActorRef as Actor)
 	
 EndEvent
