@@ -72,7 +72,7 @@ Event OnUpdate()
 	; state checks
 	if SLTUpdateState == SLT_BOOTSTRAPPING
 		SLTUpdateState = SLT_UNDEFINED
-		UnregisterForModEvent(EVENT_SLT_MAIN_INIT)
+
 		; on first launch, this will obviously be empty
 		; on subsequent loads, we need to iterate the extensions we are
 		; aware of and bootstrap them
@@ -89,7 +89,7 @@ Event OnUpdate()
 					Extensions = PapyrusUtil.SliceFormArray(Extensions, 0, i - 1)
 				endif
 			else
-				sltx.BootstrapSLTInit()
+				sltx._slt_BootstrapSLTInit()
 				i += 1
 			endif
 		endwhile
@@ -151,6 +151,8 @@ Event OnUpdate()
 EndEvent
 
 Event OnSLTMainInit(string _eventName, string _strArg, float _fltArg, Form _frmArg)
+	UnregisterForModEvent(EVENT_SLT_MAIN_INIT)
+	
 	if !coreCmdMailbox0
 		coreCmdMailbox0 = new ActiveMagicEffect[128]
 		coreCmdMailbox1 = new ActiveMagicEffect[128]
@@ -236,8 +238,9 @@ Event OnSLTAMEHeartbeatUpdate(string _eventName, string _ameHeartbeat, float _ad
 		return
 	endif
 	
-	if _addingHeartbeat
+	if _addingHeartbeat != 0.0
 		AddAMEHeartbeat(_ameHeartbeat)
+		SendModEvent(_ameHeartbeat)
 	else
 		RemoveAMEHeartbeat(_ameHeartbeat)
 	endif

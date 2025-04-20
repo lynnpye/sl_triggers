@@ -127,8 +127,8 @@ endFunction
 Function SLTOnEffectStart(Actor akCaster)
 	aCaster = akCaster ;"sl_triggersCmd(" + SLT.NextOneUp() + ")"
 	
-	SafeRegisterForModEvent_AME(self, _slt_GetHeartbeatEvent(), "OnSLTHeartbeat")
-	
+	; these two lines combined should be enough to get in the game
+	SafeRegisterForModEvent_AME(self, _slt_GetHeartbeatEvent(), "_slt_OnSLTHeartbeat")
 	SendModEvent(EVENT_SLT_AME_HEARTBEAT_UPDATE(), _slt_GetHeartbeatEvent(), 1.0)
 	
 	; we are a Cmd extension; we need to find our primary AME and report in
@@ -153,8 +153,6 @@ Event OnSLTAMEClusterEvent(string eventName, string strArg, float numArg, Form s
 	if strArg == "DISPEL"
 		UnregisterForAllModEvents()
 		self.Dispel()
-	elseif strArg == "EXECUTE"
-		_slt_ExecuteCmd()
 	endif
 EndEvent
 
@@ -324,6 +322,10 @@ String Function GetInstanceId()
 	return InstanceId
 EndFunction
 
+Function QueueUpdateLoop(float afDelay = 1.0)
+	RegisterForSingleUpdate(afDelay)
+EndFunction
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -356,11 +358,8 @@ bool _isSupportCmdVal
 string	heartbeatEvent
 string clusterEvent
 
-Event OnSLTHeartbeat(string eventName, string strArg, float numArg, Form sender)
+Event _slt_OnSLTHeartbeat(string eventName, string strArg, float numArg, Form sender)
 EndEvent
-
-Function _slt_ExecuteCmd()
-EndFunction
 
 string Function _slt_GetHeartbeatEvent()
 	if !heartbeatEvent
@@ -372,6 +371,13 @@ EndFunction
 string Function _slt_GetClusterEvent()
 	if !clusterEvent
 		clusterEvent = "sl_triggers_SLT_CLUSTER_" + _slt_getActualInstanceId()
+	endif
+	return clusterEvent
+EndFunction
+
+string Function _slt_GetClusterBeginExecutionEvent()
+	if !clusterEvent
+		clusterEvent = "sl_triggers_SLT_CLUSTER_BEGIN_EXECUTION_" + _slt_getActualInstanceId()
 	endif
 	return clusterEvent
 EndFunction

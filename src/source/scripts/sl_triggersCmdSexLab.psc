@@ -55,15 +55,11 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
 		actorIdx += 1
 	endWhile
 	
-	KeepAlive()
+	QueueUpdateLoop(0.1)
 EndEvent
 
-Function KeepAlive()
-	RegisterForSingleUpdate(5)
-EndFunction
-
 Event OnUpdate()
-	KeepAlive()
+	QueueUpdateLoop(DefaultGetKeepAliveTimeWithJitter(15.0))
 EndEvent
 
 sl_triggersExtensionSexLab Function MyExtension()

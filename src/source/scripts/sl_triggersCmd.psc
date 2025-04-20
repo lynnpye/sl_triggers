@@ -47,6 +47,7 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
    	cmdName = Heap_StringGetFK(aCaster, MakeInstanceKey(instanceId, "cmd"))
 	
 	SLTOnEffectStart(akCaster)
+	SafeRegisterForModEvent_AME(self, _slt_GetClusterBeginExecutionEvent(), "OnSLTAMEClusterBeginExecutionEvent")
 	
 	QueueUpdateLoop(0.1)
 EndEvent
@@ -60,10 +61,10 @@ Function SendClusterDispel()
 EndFunction
 
 Function SendClusterExecute() ; really just to me
-	SendModEvent(_slt_GetClusterEvent(), "EXECUTE")
+	SendModEvent(_slt_GetClusterBeginExecutionEvent())
 EndFunction
 
-Function _slt_ExecuteCmd()
+Event OnSLTAMEClusterBeginExecutionEvent(string eventName, string strArg, float numArg, Form sender)
 	; sort supportCmds if necessary
 	if supportCmdsCheckedIn > 0 && supportCmds
 		ActiveMagicEffect[] tmpBuffer = supportCmds
@@ -97,7 +98,7 @@ Function _slt_ExecuteCmd()
 	Heap_ClearPrefixF(aCaster, MakeInstanceKeyPrefix(instanceId))
     
 	SendClusterDispel()
-EndFunction
+EndEvent
 
 Event OnUpdate()
 	; when we start receiving these, we are assuming we are ready

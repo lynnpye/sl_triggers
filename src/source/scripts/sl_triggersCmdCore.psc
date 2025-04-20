@@ -10,15 +10,11 @@ endFunction
 Event OnEffectStart(Actor akTarget, Actor akCaster)
 	SLTOnEffectStart(akCaster)
 	
-	KeepAlive()
+	QueueUpdateLoop(0.1)
 EndEvent
 
-Function KeepAlive()
-	RegisterForSingleUpdate(5)
-EndFunction
-
 Event OnUpdate()
-	KeepAlive()
+	QueueUpdateLoop(DefaultGetKeepAliveTimeWithJitter(15.0))
 EndEvent
 
 ;; This is probably one of the most minimal implementations of this one can expect

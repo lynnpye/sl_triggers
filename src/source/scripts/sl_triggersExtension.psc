@@ -119,29 +119,35 @@ EndFunction
 ; run into problems.
 Function SLTInit()
 	DebMsg("Extension.SLTInit")
-	BootstrapSLTInit()
+	_slt_BootstrapSLTInit()
 EndFunction
 
-Function BootstrapSLTInit()
-	DebMsg("Extension.BootstrapSLTInit")
-	; fetch and store some key properties dynamically
-	if !SLT
-		SLT = Game.GetFormFromFile(0xD62, "sl_triggers.esp") as sl_triggersMain
-	endif
-	if !ActorTypeNPC
-		ActorTypeNPC = Game.GetFormFromFile(0x13794, "Skyrim.esm") as Keyword
-	endif
-	if !ActorTypeUndead
-		ActorTypeUndead = Game.GetFormFromFile(0x13796, "Skyrim.esm") as Keyword
-	endif
 
-	deferredInitHandled = false
-	;SafeRegisterForModEvent_Quest(self, _slt_GetHeartbeatEvent(), "_slt_OnSLTHeartbeat")
-	SafeRegisterForModEvent_Quest(self, _slt_GetGameLoadedEvent(), "_slt_OnSLTGameLoaded")
-	SafeRegisterForModEvent_Quest(self, _slt_GetSettingsUpdateEvent(), "_slt_OnSLTSettingsUpdated")
-	;SafeRegisterForModEvent_Quest(self, _slt_GetOpenRegistrationEvent(), "_slt_OnSLTOpenRegistration")
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_POPULATE_MCM(), "OnSLTPopulateMCM")
-EndFunction
+; bool IsEnabled
+; enabled status for this extension
+; returns - true if BOTH sl_triggers AND this extension are enabled; false otherwise
+bool				Property IsEnabled
+	bool Function Get()
+		return bEnabled && SLT.bEnabled
+	EndFunction
+	
+	Function Set(bool value)
+		bEnabled = value
+	EndFunction
+EndProperty
+
+; bool IsDebugMsg
+; debug logging status for this extension
+; returns - true if BOTH sl_triggers AND this extension have debug logging enabled; false otherwise
+bool				Property IsDebugMsg
+	bool Function Get()
+		return bDebugMsg && SLT.bDebugMsg
+	EndFunction
+	
+	Function Set(bool value)
+		bDebugMsg = value
+	EndFunction
+EndProperty
 
 ; some helper methods
 Int Function ActorRace(Actor _actor)
@@ -267,32 +273,6 @@ Function SetCurrentTriggerId(string _newTriggerId)
 	currentTriggerId = _newTriggerId
 EndFunction
 
-; bool IsEnabled
-; enabled status for this extension
-; returns - true if BOTH sl_triggers AND this extension are enabled; false otherwise
-bool				Property IsEnabled
-	bool Function Get()
-		return bEnabled && SLT.bEnabled
-	EndFunction
-	
-	Function Set(bool value)
-		bEnabled = value
-	EndFunction
-EndProperty
-
-; bool IsDebugMsg
-; debug logging status for this extension
-; returns - true if BOTH sl_triggers AND this extension have debug logging enabled; false otherwise
-bool				Property IsDebugMsg
-	bool Function Get()
-		return bDebugMsg && SLT.bDebugMsg
-	EndFunction
-	
-	Function Set(bool value)
-		bDebugMsg = value
-	EndFunction
-EndProperty
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -349,6 +329,42 @@ bool	deferredInitHandled
 string	settingsUpdateEvent ; uniquely generated each launch and sent during registration to receive settings update
 string	gameLoadedEvent ; uniquely generated each launch and sent during registration to receive game loaded events
 ;string	openRegistrationEvent ; uniquely generated each launch and sent during registration to receive open registration events
+
+
+Event _slt_OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
+	_slt_RefreshTriggers()
+EndEvent
+
+Event _slt_OnSLTGameLoaded(string eventName, string strArg, float numArg, Form sender)
+	bool firstTime = false
+	if "true" == strArg
+		firstTime = true
+	endif
+
+	sl_triggersMain.RegisterExtension(self)
+	_slt_RefreshTriggers()
+EndEvent
+
+Function _slt_BootstrapSLTInit()
+	DebMsg("Extension._slt_BootstrapSLTInit")
+	; fetch and store some key properties dynamically
+	if !SLT
+		SLT = Game.GetFormFromFile(0xD62, "sl_triggers.esp") as sl_triggersMain
+	endif
+	if !ActorTypeNPC
+		ActorTypeNPC = Game.GetFormFromFile(0x13794, "Skyrim.esm") as Keyword
+	endif
+	if !ActorTypeUndead
+		ActorTypeUndead = Game.GetFormFromFile(0x13796, "Skyrim.esm") as Keyword
+	endif
+
+	deferredInitHandled = false
+	;SafeRegisterForModEvent_Quest(self, _slt_GetHeartbeatEvent(), "_slt_OnSLTHeartbeat")
+	SafeRegisterForModEvent_Quest(self, _slt_GetGameLoadedEvent(), "_slt_OnSLTGameLoaded")
+	SafeRegisterForModEvent_Quest(self, _slt_GetSettingsUpdateEvent(), "_slt_OnSLTSettingsUpdated")
+	;SafeRegisterForModEvent_Quest(self, _slt_GetOpenRegistrationEvent(), "_slt_OnSLTOpenRegistration")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_POPULATE_MCM(), "OnSLTPopulateMCM")
+EndFunction
 
 ;/
 string Function _slt_GetHeartbeatEvent()
@@ -445,20 +461,6 @@ Function _slt_RefreshTriggers()
 		endwhile
 	endif
 EndFunction
-
-Event _slt_OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
-	_slt_RefreshTriggers()
-EndEvent
-
-Event _slt_OnSLTGameLoaded(string eventName, string strArg, float numArg, Form sender)
-	bool firstTime = false
-	if "true" == strArg
-		firstTime = true
-	endif
-
-	sl_triggersMain.RegisterExtension(self)
-	_slt_RefreshTriggers()
-EndEvent
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

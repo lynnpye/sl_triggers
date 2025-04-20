@@ -80,7 +80,7 @@ string[]	_commandsList
 string		currentSLTPage
 string		_currentExtensionKey
 
-bool 		readinessCheck
+;bool 		readinessCheck
 int			headerIndex
 int			extensionIndex
 int			currentCardination
@@ -120,9 +120,11 @@ event OnConfigClose()
 	SLT.SendSettingsUpdateEvents()
 endEvent
 
+;/
 Function SetMCMReady(bool _readiness = true)
 	readinessCheck = _readiness
 EndFunction
+/;
 
 Function ClearSetupHeap()
 	Heap_ClearPrefixF(self, "sl_triggersSetup")

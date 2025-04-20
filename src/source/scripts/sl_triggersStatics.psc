@@ -143,8 +143,6 @@ string Function CommandsFolder() global
 	return SettingsFolder() + "commands/"
 EndFunction
 
-; I know it's tempting, but don't.
-; You know what I'm talking about.
 string Function ExtensionTriggersFolder(string extensionId) global
 	return SettingsFolder() + extensionId + "/"
 EndFunction
@@ -155,6 +153,17 @@ EndFunction
 
 ;;;;;;;;
 ; Utility functions
+float Function GetKeepAliveTimeWithJitter(float _time, float _jitter) global
+	float maxJitter = _jitter
+	float minJitter = -1 * maxJitter
+	return _time + Utility.RandomFloat(minJitter, maxJitter)
+EndFunction
+
+float Function DefaultGetKeepAliveTimeWithJitter(float _time) global
+	float jitter = _time * 0.1
+	return GetKeepAliveTimeWithJitter(_time, jitter)
+EndFunction
+
 string Function MakeExtensionInstanceId(string extensionKey) global
 	return extensionKey + "_instanceId"
 EndFunction
