@@ -90,15 +90,16 @@ int Function GetVersion()
 EndFunction
 
 Event OnConfigInit()
+	DebMsg("Setup.OnConfigInit")
 	; set my pages
 	headerPages = new string[1]
 	headerPages[0] = "SL Triggers"
 EndEvent
 
+;/
 Event OnVersionUpdate(int version)
 EndEvent
 
-;/
 Event OnGameReload
 	parent.OnGameReload()
 EndEvent
@@ -109,6 +110,7 @@ Function SaveDirtyTrigger(string _extensionKey, string _triggerKey)
 EndFunction
 
 Event OnConfigOpen()
+	DebMsg("Setup.OnConfigOpen")
 	if extensionPages.Length > 0
 		Pages = PapyrusUtil.MergeStringArray(headerPages, extensionPages)
 	else
@@ -117,7 +119,8 @@ Event OnConfigOpen()
 EndEvent
 
 event OnConfigClose()
-	SLT.SendSettingsUpdateEvents()
+	DebMsg("Setup.OnConfigClose")
+	SLT.SendInternalSettingsUpdateEvents()
 endEvent
 
 ;/
@@ -126,8 +129,19 @@ Function SetMCMReady(bool _readiness = true)
 EndFunction
 /;
 
-Function ClearSetupHeap()
-	Heap_ClearPrefixF(self, "sl_triggersSetup")
+int Function ClearSetupHeap()
+	return Heap_ClearPrefixF(self, "sl_triggersSetup")
+EndFunction
+
+int Function ClearSetupOidHeap()
+	return Heap_ClearPrefixF(self, "sl_triggersSetup:oid")
+EndFunction
+
+int Function ClearSetupExtensionKeyHeap(string extensionKey)
+	if !extensionKey
+		return 0
+	endif
+	return Heap_ClearPrefixF(self, "sl_triggersSetup:ek-" + extensionKey)
 EndFunction
 
 Function SetCommandsList(string[] __commandsList)
@@ -135,6 +149,7 @@ Function SetCommandsList(string[] __commandsList)
 EndFunction
 
 Event OnPageReset(string page)
+	DebMsg("Setup.OnPageReset")
 	SetSLTCurrentPage(page)
 	
 	if IsHeaderPage()
@@ -228,6 +243,10 @@ Event OnOptionDefault(int option)
 	endif
 	
 	SaveDirtyTrigger(extKey, triKey)
+
+	if IsOidVisibilityKey(option)
+		ForcePageReset()
+	endif
 EndEvent
 
 ; Text (buttons?)
@@ -245,11 +264,13 @@ Event OnOptionSelect(int option)
 		return
 	elseIf option == oidCardinatePrevious
 		currentCardination -= 1
+		DebMsg("Setup.OnOptionSelect: Prev: currentCardination(" + currentCardination + ")")
 		ForcePageReset()
 		
 		return
 	elseIf option == oidCardinateNext
 		currentCardination += 1
+		DebMsg("Setup.OnOptionSelect: Next: currentCardination(" + currentCardination + ")")
 		ForcePageReset()
 		
 		return
@@ -269,11 +290,13 @@ Event OnOptionSelect(int option)
 		triggerKey = GetOidTriggerKey(option)
 		
 		Trigger_StringSetX(extensionKey, triggerKey, DELETED_ATTRIBUTE(), "true")
+		ForcePageReset()
 	elseif attrName == RESTORE_BUTTON
 		extensionKey = CurrentExtensionKey
 		triggerKey = GetOidTriggerKey(option)
 		
 		Trigger_StringUnsetX(extensionKey, triggerKey, DELETED_ATTRIBUTE())
+		ForcePageReset()
 	endif
 EndEvent
 
@@ -298,6 +321,10 @@ Event OnOptionSliderAccept(int option, float value)
 	SetSliderOptionValue(option, value, GetAttrFormatString(extKey, attrName))
 	
 	SaveDirtyTrigger(extKey, triKey)
+
+	if IsOidVisibilityKey(option)
+		ForcePageReset()
+	endif
 EndEvent
 
 ; Menu
@@ -363,6 +390,10 @@ Event OnOptionMenuAccept(int option, int index)
 	endif
 	
 	SaveDirtyTrigger(extKey, triKey)
+
+	if IsOidVisibilityKey(option)
+		ForcePageReset()
+	endif
 EndEvent
 
 ; Keymap
@@ -392,6 +423,10 @@ Event OnOptionKeyMapChange(int option, int keyCode, string conflictControl, stri
 		SetKeyMapOptionValue(option, keyCode)
 		
 		SaveDirtyTrigger(extKey, triKey)
+
+		if IsOidVisibilityKey(option)
+			ForcePageReset()
+		endif
 	endif
 EndEvent
 
@@ -419,6 +454,10 @@ Event OnOptionInputAccept(int option, string _input)
 	SetInputOptionValue(option, _input)
 	
 	SaveDirtyTrigger(extKey, triKey)
+
+	if IsOidVisibilityKey(option)
+		ForcePageReset()
+	endif
 EndEvent
 
 Function ShowExtensionPage()
@@ -428,10 +467,6 @@ Function ShowExtensionPage()
 	; I have an extensionIndex with which I can retrieve an extensionKey
 	; if I'm going to paginate I need to have a concept of where in the order
 	; I am in for triggerKeys
-	;
-	; Heap_StringListAddX(self, "sl_triggersSetup", "extensionKey-" + extensionKey + "-triggerKeys", triggerKey)
-	; Heap_StringListAddX(self, "sl_triggersSetup", "extensionKey-" + extensionKey + "-attributeNames", attributeName)
-	; Heap_StringListAddX(self, "sl_triggersSetup", "extensionKey-" + extensionKey + "-attributeTypes", attributeType)
 	string extensionKey = extensionKeys[extensionIndex]
 	int triggerCount = GetTriggerCount(extensionKey)
 	
@@ -441,6 +476,8 @@ Function ShowExtensionPage()
 	if triggerCount > CARDS_PER_PAGE
 		cardinate = true
 	endif
+
+	DebMsg("Setup: extensionKey(" + extensionKey + ") triggerCount(" + triggerCount + ")  CARDS_PER_PAGE(" + CARDS_PER_PAGE + ")  cardinate(" + cardinate + ")")
 	
 	; what do we want this to look like?
 	SetCursorFillMode(LEFT_TO_RIGHT)
@@ -456,44 +493,59 @@ Function ShowExtensionPage()
 			hasNextCardinate = true
 		endif
 	endif
+	DebMsg("Setup: triggerCount(" + triggerCount + ")  CARDS_PER_PAGE(" + CARDS_PER_PAGE + ")  cardinate(" + cardinate + ")")
 	
 	if cardinate
 		; set startIndex appropriately
-		startIndex = currentCardination * displayCount
+		startIndex = currentCardination * CARDS_PER_PAGE
 		
 		; display cardination buttons
+		DebMsg("Setup: currentCardination(" + currentCardination + ") hasNextCardinate(" + hasNextCardinate + ")")
 		if currentCardination > 0
-			oidCardinatePrevious = AddTextOption("<< Prev", "")
+			oidCardinatePrevious = AddTextOption("&lt;&lt; Previous", "")
 		else
-			oidCardinatePrevious = AddTextOption("<< Prev", "", OPTION_FLAG_DISABLED)
+			oidCardinatePrevious = AddTextOption("&lt;&lt; Previous", "", OPTION_FLAG_DISABLED)
 		endif
 		
 		if hasNextCardinate
-			oidCardinateNext = AddTextOption("Next >>", "")
+			oidCardinateNext = AddTextOption("Next &gt;&gt;", "")
 		else
-			oidCardinateNext = AddTextOption("Next >>", "", OPTION_FLAG_DISABLED)
+			oidCardinateNext = AddTextOption("Next &gt;&gt;", "", OPTION_FLAG_DISABLED)
 		endif
 	endif
 	
 	oidAddTop = AddTextOption("Add New Item", "")
 	AddEmptyOption()
 	
-	int i = startIndex
+	int displayIndexer = 0
 	bool needsEmpty = false
 	int _oid
 	string visibilityKeyAttribute = GetExtensionVisibilityKey(extensionKey)
 	bool allowedVisible
 	bool triggerIsSoftDeleted
+	string triggerKey
+
+	DebMsg("Setup: startIndex(" + startIndex + ")  visibilityKeyAttribute(" + visibilityKeyAttribute + ")")
 	
-	while i < displayCount
-		string triggerKey = GetTrigger(extensionKey, i)
+	while displayIndexer < displayCount
+		triggerKey = GetTrigger(extensionKey, displayIndexer + startIndex)
 		triggerIsSoftDeleted = Trigger_IsDeletedT(extensionKey, triggerKey)
+		DebMsg("Setup: triggerKey(" + triggerKey + ")  triggerIsSoftDeleted(" + triggerIsSoftDeleted + ")")
 		;if !Trigger_IsDeletedT(extensionKey, triggerKey)
 			AddHeaderOption("==] " + triggerKey + " [==")
 			AddEmptyOption()
 
 			needsEmpty = false
-			if !triggerIsSoftDeleted
+			int widgetOptions = OPTION_FLAG_NONE
+			if triggerIsSoftDeleted
+				widgetOptions = OPTION_FLAG_DISABLED
+				AddHeaderOption("This trigger has been soft deleted.")
+				AddHeaderOption("It can be restored.")
+				AddHeaderOption("Or it can be fully removed by removing the file between games.")
+				AddHeaderOption("Until restored, the trigger will not run.")
+			endif
+
+			;if !triggerIsSoftDeleted
 				int aidx = 0
 				while aidx < attributeNames.Length
 					string attrName = attributeNames[aidx]
@@ -528,7 +580,7 @@ Function ShowExtensionPage()
 							if Trigger_FloatHasX(extensionKey, triggerKey, attrName)
 								_defval = Trigger_FloatGetX(extensionKey, triggerKey, attrName)
 							endif
-							_oid = AddSliderOption(label, _defval, GetAttrFormatString(extensionKey, attrName))
+							_oid = AddSliderOption(label, _defval, GetAttrFormatString(extensionKey, attrName), widgetOptions)
 							; add to list of oids to heap
 							AddOid(_oid, extensionKey, triggerKey, attrName)
 						elseif widg == WIDG_MENU
@@ -553,21 +605,25 @@ Function ShowExtensionPage()
 									endif
 								endif
 							endif
-							_oid = AddMenuOption(label, menuValue)
+							_oid = AddMenuOption(label, menuValue, widgetOptions)
 							AddOid(_oid, extensionKey, triggerKey, attrName)
 						elseif widg == WIDG_KEYMAP
 							int _defmap = GetAttrDefaultValue(extensionKey, attrName)
 							if Trigger_IntHasX(extensionKey, triggerKey, attrName)
 								_defmap = Trigger_IntGetX(extensionKey, triggerKey, attrName)
 							endif
-							_oid = AddKeyMapOption(label, _defmap)
+							int keymapOptions = OPTION_FLAG_WITH_UNMAP
+							if triggerIsSoftDeleted
+								keymapOptions = OPTION_FLAG_DISABLED
+							endif
+							_oid = AddKeyMapOption(label, _defmap, keymapOptions)
 							AddOid(_oid, extensionKey, triggerKey, attrName)
 						elseif widg == WIDG_TOGGLE
 							bool _defval = GetAttrDefaultValue(extensionKey, attrName) != 0
 							if Trigger_IntHasX(extensionKey, triggerKey, attrName)
 								_defval = Trigger_IntGetX(extensionKey, triggerKey, attrName) != 0
 							endif
-							_oid = AddToggleOption(label, _defval)
+							_oid = AddToggleOption(label, _defval, widgetOptions)
 							AddOid(_oid, extensionKey, triggerKey, attrName)
 						elseif widg == WIDG_INPUT
 							string _defval = GetAttrDefaultString(extensionKey, attrName)
@@ -591,7 +647,7 @@ Function ShowExtensionPage()
 								endif
 							endif
 							
-							_oid = AddInputOption(label, _defval)
+							_oid = AddInputOption(label, _defval, widgetOptions)
 							AddOid(_oid, extensionKey, triggerKey, attrName)
 						elseif widg == WIDG_COMMANDLIST
 							string menuValue = ""
@@ -602,14 +658,14 @@ Function ShowExtensionPage()
 								endif
 							endif
 							
-							_oid = AddMenuOption(label, menuValue)
+							_oid = AddMenuOption(label, menuValue, widgetOptions)
 							AddOid(_oid, extensionKey, triggerKey, attrName)
 						endif
 					endif
 					
 					aidx += 1
 				endwhile
-			endif
+			;endif
 			
 			; for two column layout
 			if needsEmpty
@@ -632,7 +688,7 @@ Function ShowExtensionPage()
 			endif
 		;endif
 	
-		i += 1
+		displayIndexer += 1
 	endwhile
 	
 	if displayCount > 2
@@ -1233,6 +1289,19 @@ EndFunction
 
 string Function GetOidAttributeName(int _oid)
 	return Heap_StringGetX(self, SLTSETUPCONST, "oid-" + _oid + "-att")
+EndFunction
+
+bool Function IsOidVisibilityKey(int _oid)
+	if extensionIndex < 0
+		return false
+	endif
+	string extensionKey = extensionKeys[extensionIndex]
+	if !HasExtensionVisibilityKey(extensionKey)
+		return false
+	endif
+	string visibilityKeyAttrName = GetExtensionVisibilityKey(extensionKey)
+	string _oidAttrName = GetOidAttributeName(_oid)
+	return _oidAttrName == visibilityKeyAttrName
 EndFunction
 
 bool Function HasExtensionVisibilityKey(string _extensionKey)

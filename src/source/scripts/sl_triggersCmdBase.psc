@@ -40,7 +40,7 @@ sl_triggersCmd			Property CmdPrimary Auto Hidden
 string					Property InstanceId Auto Hidden
 
 ;
-Actor			Property aCaster Auto Hidden
+Actor			Property CmdTargetActor Auto Hidden
 string[]		Property stack Auto Hidden
 
 
@@ -80,7 +80,7 @@ endFunction
 ; Only override this in your Cmd extension if you are expanding or overriding
 ; Resolve() behavior.
 string Function CustomResolve(string _code)
-	return none
+	return ""
 EndFunction
 
 ; CustomResolveActor
@@ -125,35 +125,64 @@ endFunction
 ; REQUIRED CALL
 ; It MUST be called during OnEffectStart(), the earlier the better.
 Function SLTOnEffectStart(Actor akCaster)
-	aCaster = akCaster ;"sl_triggersCmd(" + SLT.NextOneUp() + ")"
+	DebMsg("CmdBase.SLTOnEffectStart (" + self.GetBaseObject().GetName() + ")")
+	CmdTargetActor = akCaster ;"sl_triggersCmd(" + SLT.NextOneUp() + ")"
 	
 	; these two lines combined should be enough to get in the game
-	SafeRegisterForModEvent_AME(self, _slt_GetHeartbeatEvent(), "_slt_OnSLTHeartbeat")
-	SendModEvent(EVENT_SLT_AME_HEARTBEAT_UPDATE(), _slt_GetHeartbeatEvent(), 1.0)
+	SafeRegisterForModEvent_AME(self, EVENT_SLT_HEARTBEAT(), "_slt_OnSLTHeartbeat")
+	
+	;SendModEvent(EVENT_SLT_AME_HEARTBEAT_UPDATE(), _slt_GetHeartbeatEvent(), 1.0)
 	
 	; we are a Cmd extension; we need to find our primary AME and report in
 	if CmdExtension
 		_isSupportCmdVal = true
-		string coreInstanceId = Heap_StringListShiftFK(aCaster, MakeExtensionInstanceId(CmdExtension.GetExtensionKey()))
+		string coreInstanceId = Heap_StringListShiftFK(CmdTargetActor, MakeExtensionInstanceId(CmdExtension.GetExtensionKey()))
 		; something has gone wrong
 		if !coreInstanceId
 			Debug.Trace("sl_triggers: CmdBase: Effect dispatched but extension queue is empty on Actor, extension key: " + CmdExtension.GetExtensionKey())
 			return
 		endif
+
+		ActiveMagicEffect[] ames = sl_triggers_internal.GetActiveMagicEffectsForActor(CmdTargetActor)
+		int i = 0
+		while i < ames.Length
+			sl_triggersCmd cmdp = ames[i] as sl_triggersCmd
+			if cmdp && coreInstanceId == cmdp.InstanceId
+				CmdPrimary = cmdp
+				CmdPrimary.SupportCheckin(self)
+				i = ames.Length
+			endif
+			i += 1
+		endwhile
+
+		if !CmdPrimary
+			DebMsg("no cmdprimary found")
+			UnregisterForAllModEvents()
+			self.Dispel()
+			return
+		endif
 		
-		int CmdPrimaryMailbox = Heap_IntGetFK(aCaster, MakeInstanceKey(coreInstanceId, "CmdPrimaryMailbox"))
+		;/
+		int CmdPrimaryMailbox = Heap_IntGetFK(CmdTargetActor, MakeInstanceKey(coreInstanceId, "CmdPrimaryMailbox"))
 		CmdPrimary = SLT.GetCoreCmdFromMailbox(CmdPrimaryMailbox)
+		if !CmdPrimary
+			DebMsg("didn't get CmdPrimary back")
+		endif
 		CmdPrimary.SupportCheckin(self)
+		/;
 	Endif
 	
-	SafeRegisterForModEvent_AME(self, _slt_GetClusterEvent(), "OnSLTAMEClusterEvent")
+	SafeRegisterForModEvent_AME(self, _slt_GetClusterEvent(), "_slt_OnSLTAMEClusterEvent")
 EndFunction
 
-Event OnSLTAMEClusterEvent(string eventName, string strArg, float numArg, Form sender)
+Event _slt_OnSLTAMEClusterEvent(string eventName, string strArg, float numArg, Form sender)
 	if strArg == "DISPEL"
 		UnregisterForAllModEvents()
 		self.Dispel()
 	endif
+EndEvent
+
+Event _slt_OnSLTHeartbeat(string eventName, string strArg, float numArg, Form sender)
 EndEvent
 
 ; vars_get
@@ -166,7 +195,7 @@ EndEvent
 ; This function is not expected to operate correctly until
 ; all AMEs have synced and execution has begun.
 string Function vars_get(int varsindex)
-	return Heap_StringGetFK(aCaster, MakeInstanceKey(_slt_getActualInstanceId(), "vars" + varsindex))
+	return Heap_StringGetFK(CmdTargetActor, MakeInstanceKey(_slt_getActualInstanceId(), "vars" + varsindex))
 EndFunction
 
 ; vars_set
@@ -179,7 +208,7 @@ EndFunction
 ; This function is not expected to operate correctly until
 ; all AMEs have synced and execution has begun.
 string Function vars_set(int varsindex, string value)
-	return Heap_StringSetFK(aCaster, MakeInstanceKey(_slt_getActualInstanceId(), "vars" + varsindex), value)
+	return Heap_StringSetFK(CmdTargetActor, MakeInstanceKey(_slt_getActualInstanceId(), "vars" + varsindex), value)
 EndFunction
 
 ; Resolve
@@ -187,9 +216,12 @@ EndFunction
 ; returns: the value as a string; none if unable to resolve
 ; DO NOT OVERRIDE
 string Function Resolve(string _code)
+	DebMsg("resolving")
 	if _slt_isSupportCmd()
+		DebMsg("requesting from primary")
 		return CmdPrimary.ActualResolve(_code)
 	else
+		DebMsg("trying myself via actual")
 		return (self as sl_triggersCmd).ActualResolve(_code)
 	endif
 EndFunction
@@ -239,28 +271,7 @@ Int Function actorGender(Actor _actor)
 EndFunction
 
 int Function hexToInt(string _value)
-    int retVal
-    int idx
-    int iDigit
-    int pos
-    string sChar
-    string hexChars = "0123456789ABCDEF"
-    
-    idx = StringUtil.GetLength(_value) - 1
-    while idx >= 0
-        sChar = StringUtil.GetNthChar(_value, idx)
-        iDigit = StringUtil.Find(hexChars, sChar, 0)
-        if iDigit >= 0
-            iDigit = Math.LeftShift(iDigit, 4 * pos)
-            retVal = Math.LogicalOr(retVal, iDigit)
-            idx -= 1
-            pos += 1
-        else 
-            idx = -1
-        endIf
-    endWhile
-    
-    return retVal
+	return GlobalHexToInt(_value)
 EndFunction
 
 Form Function getFormId(string _data)
@@ -358,9 +369,6 @@ bool _isSupportCmdVal
 string	heartbeatEvent
 string clusterEvent
 
-Event _slt_OnSLTHeartbeat(string eventName, string strArg, float numArg, Form sender)
-EndEvent
-
 string Function _slt_GetHeartbeatEvent()
 	if !heartbeatEvent
 		heartbeatEvent = "sl_triggers_SLT_HEARTBEAT_" + (Utility.RandomInt(100000, 999999) as string)
@@ -419,8 +427,10 @@ int Function _slt_getActualPriority()
 EndFunction
 
 bool Function _slt_oper_driver(string[] param, string code)
+	DebMsg("I am inside myself (" + "cmd_" + code + ")")
 	GotoState("cmd_" + code)
 	bool oresult = oper(param)
+	DebMsg(oresult)
 	GotoState("")
 	return oresult
 EndFunction

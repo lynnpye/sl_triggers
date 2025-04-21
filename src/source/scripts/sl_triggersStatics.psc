@@ -2,7 +2,11 @@ scriptname sl_triggersStatics
 
 ; DebMsg
 ; Shouts to the rooftops.
-function DebMsg(string msg, bool shouldIDoAnything = true) global
+function DebMsg(string msg) global
+	DebMsgForce(msg, true)
+endfunction
+
+function DebMsgForce(string msg, bool shouldIDoAnything) global
 	if !shouldIDoAnything
 		return
 	endif
@@ -18,23 +22,6 @@ EndFunction
 
 ;;;;;;;;;
 ; ModEvent names
-
-; SLT sends this any time the game is loaded (fresh character or save reload)
-string Function EVENT_SLT_GAME_LOADED() global
-	return "sl_triggers_SLTGameLoaded"
-EndFunction
-
-; SLT sends to all listeners; extensions should be auto-registered
-; Do not mask this with your own handler; the base Extension script
-; must be able to handle this event.
-string Function EVENT_SLT_OPEN_REGISTRATION() global
-	return "sl_triggers_SLTOpenRegistration"
-EndFunction
-
-; SLT sends this to itself; registration will fail if attempted once this is sent
-string Function EVENT_SLT_CLOSE_REGISTRATION() global
-	return "sl_triggers_SLTCloseRegistration"
-EndFunction
 
 ; SLT sends this when settings have been updated
 string Function EVENT_SLT_SETTINGS_UPDATED() global
@@ -61,6 +48,11 @@ EndFunction
 ; SLT uses these to update the hearbeat registry for the AMEs
 string Function EVENT_SLT_AME_HEARTBEAT_UPDATE() global
 	return "sl_triggers_SLTAMEHeartbeatUpdate"
+EndFunction
+
+; SLT receives these from extensions for registration
+string Function EVENT_SLT_REGISTER_EXTENSION() global
+	return "_slt_event_slt_register_extension_"
 EndFunction
 
 ;;;;;;;
@@ -94,7 +86,6 @@ Function SafeRegisterForModEvent_AME(ActiveMagicEffect _theSelf, String _theEven
 	_theSelf.UnregisterForModEvent(_theEvent)
 	_theSelf.RegisterForModEvent(_theEvent, _theHandler)
 EndFunction
-
 
 ;;;;;;;;;
 ; Simple constants for Papyrus types
@@ -151,8 +142,55 @@ string Function ExtensionTriggerName(string extensionId, string triggerId) globa
 	return ExtensionTriggersFolder(extensionId) + triggerId
 EndFunction
 
+; Internal use only
+; Do not apply externally
+string Function PSEUDO_INSTANCE_KEY() global
+	return "SLTADHOCINSTANCEID"
+EndFunction
+
+string Function SUKEY_GLOBAL_INSTANCE() global
+	return "_slt_SUKEY_GLOBAL_INSTANCE_"
+EndFunction
+
+string Function SUKEY_EXTENSION_REGISTRATION_QUEUE() global
+	return "EXTENSION_REGISTRATION_QUEUE"
+EndFunction
+
+string Function SLT_DOUBLE_ON_INIT_COUNTER() global
+	return "SLT_DOUBLE_ON_INIT_COUNTER"
+EndFunction
+
+string Function EVENT_SLT_HEARTBEAT() global
+	RETURN "_SLT_INTERNAL_HEARTBEAT_EVENT_DO_NOT_OVERRIDE_OR_CAPTURE_THIS_EVENT_"
+EndFunction
+
 ;;;;;;;;
 ; Utility functions
+int Function GlobalHexToInt(string _value) global
+    int retVal
+    int idx
+    int iDigit
+    int pos
+    string sChar
+    string hexChars = "0123456789ABCDEF"
+    
+    idx = StringUtil.GetLength(_value) - 1
+    while idx >= 0
+        sChar = StringUtil.GetNthChar(_value, idx)
+        iDigit = StringUtil.Find(hexChars, sChar, 0)
+        if iDigit >= 0
+            iDigit = Math.LeftShift(iDigit, 4 * pos)
+            retVal = Math.LogicalOr(retVal, iDigit)
+            idx -= 1
+            pos += 1
+        else 
+            idx = -1
+        endIf
+    endWhile
+    
+    return retVal
+EndFunction
+
 float Function GetKeepAliveTimeWithJitter(float _time, float _jitter) global
 	float maxJitter = _jitter
 	float minJitter = -1 * maxJitter

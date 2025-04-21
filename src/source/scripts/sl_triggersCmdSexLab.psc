@@ -7,25 +7,8 @@ Actor	aPartner1
 Actor	aPartner2
 Actor	aPartner3
 Actor	aPartner4
-int 	tid
+;int 	tid
 sslThreadController	thread
-
-bool function oper(string[] param)
-	return false
-endFunction
-
-Actor Function CustomResolveActor(string _code)
-    If _code == "$partner"
-        return aPartner1
-    elseIf _code == "$partner2"
-        return aPartner2
-    elseIf _code == "$partner3"
-        return aPartner3
-    elseIf _code == "$partner4"
-        return aPartner4
-    endIf
-    return none
-EndFunction
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)	
 	SLTOnEffectStart(akCaster)
@@ -35,13 +18,11 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
     aPartner3 = none
     aPartner4 = none
 	
-	tid = Heap_IntGetFK(akCaster, MakeInstanceKey(_slt_getActualInstanceId(), "tid"))
-	
-	thread = MyExtension().Sexlab.GetController(tid)
+	thread = MyExtension().Sexlab.GetActorController(CmdTargetActor)
 	int actorIdx = 0
 	while actorIdx < thread.Positions.Length
 		Actor theOther = thread.Positions[actorIdx]
-		if theOther != aCaster
+		if theOther != CmdTargetActor
 			if !aPartner1
 				aPartner1 = theOther
 			elseif !aPartner2
@@ -61,6 +42,23 @@ EndEvent
 Event OnUpdate()
 	QueueUpdateLoop(DefaultGetKeepAliveTimeWithJitter(15.0))
 EndEvent
+
+bool function oper(string[] param)
+	return false
+endFunction
+
+Actor Function CustomResolveActor(string _code)
+    If _code == "$partner"
+        return aPartner1
+    elseIf _code == "$partner2"
+        return aPartner2
+    elseIf _code == "$partner3"
+        return aPartner3
+    elseIf _code == "$partner4"
+        return aPartner4
+    endIf
+    return none
+EndFunction
 
 sl_triggersExtensionSexLab Function MyExtension()
 	return CmdExtension as sl_triggersExtensionSexLab
@@ -174,7 +172,7 @@ bool function oper(string[] param)
 
     cnt = param.length
 
-    if (aCaster != PlayerRef) || (cnt <= 1) || !(PlayerRef.GetFactionRank(MyExtension().SexLabAnimatingFaction) >= 0)
+    if (CmdTargetActor != PlayerRef) || (cnt <= 1) || !(PlayerRef.GetFactionRank(MyExtension().SexLabAnimatingFaction) >= 0)
         stack[0] = "-1"
         return false
     endIf

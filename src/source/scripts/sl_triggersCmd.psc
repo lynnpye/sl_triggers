@@ -19,8 +19,9 @@ string		cmdName
 int[]		gotoIdx 
 string[]	gotoLabels 
 int			gotoCnt 
-bool		deferredInitCompleted
+bool		deferredInitNeeded
 bool		clusterDispelSent
+float       supportTimeoutTime
 
 ActiveMagicEffect[]		supportCmds
 
@@ -34,7 +35,8 @@ String Function _slt_getActualInstanceId()
 EndFunction
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
-	deferredInitCompleted = false
+    DebMsg("Cmd.OnEffectStart (" + self.GetBaseObject().GetName() + ")")
+	deferredInitNeeded = true
 	coreCmdMailbox = -1
     cmdIdx = 0
     stack = new string[4]
@@ -43,8 +45,8 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
     gotoIdx = new int[32]
     gotoLabels = new string[32]
 	
-	instanceId = Heap_DequeueInstanceIdF(aCaster)
-   	cmdName = Heap_StringGetFK(aCaster, MakeInstanceKey(instanceId, "cmd"))
+	instanceId = Heap_DequeueInstanceIdF(akCaster)
+   	cmdName = Heap_StringGetFK(akCaster, MakeInstanceKey(instanceId, "cmd"))
 	
 	SLTOnEffectStart(akCaster)
 	SafeRegisterForModEvent_AME(self, _slt_GetClusterBeginExecutionEvent(), "OnSLTAMEClusterBeginExecutionEvent")
@@ -52,19 +54,88 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
 	QueueUpdateLoop(0.1)
 EndEvent
 
-Function SendClusterDispel()
-	if clusterDispelSent
-		return
-	endif
-	clusterDispelSent = true
-	SendModEvent(_slt_GetClusterEvent(), "DISPEL")
-EndFunction
+Event OnUpdate()
+	; when we start receiving these, we are assuming we are ready
+	If !Self
+		Return
+	EndIf
+	
+	float currentRealTime = Utility.GetCurrentRealTime()
+	
+	if deferredInitNeeded
+		deferredInitNeeded = false
+		
+		;coreCmdMailbox = SLT.RequestCoreMailbox(self)
+	
+		;Heap_IntSetFK(CmdTargetActor, MakeInstanceKey(instanceId, "coreCmdMailbox"), coreCmdMailbox)
+		
+		; retrieve the formSpells if present
+		supportCmds = new ActiveMagicEffect[128] ; implicit 128 extension limit but I mean c'mon
+		
+		expectedSupportCmds = 0
+		if Heap_FormListCountFK(CmdTargetActor, MakeInstanceKey(InstanceId, "spellForms"))
+			while Heap_FormListCountFK(CmdTargetActor, MakeInstanceKey(InstanceId, "spellForms")) > 0
+				Spell spellForm = Heap_FormListShiftFK(CmdTargetActor, MakeInstanceKey(instanceId, "spellForms")) as Spell
+				
+				; only if there was actually a Spell from the extension
+				if spellForm
+					expectedSupportCmds += 1
+                    DebMsg("Attaching (" + spellForm.GetName() + ") to actor for support")
+					spellForm.RemoteCast(CmdTargetActor, CmdTargetActor, CmdTargetActor)
+				endif
+			endwhile
+		endif
 
-Function SendClusterExecute() ; really just to me
-	SendModEvent(_slt_GetClusterBeginExecutionEvent())
-EndFunction
+        SendClusterExecute()
+		
+        ;/
+		if expectedSupportCmds < 1
+            DebMsg("going forward now")
+			SendClusterExecute()
+        else
+            DebMsg("need to launch support commands")
+            supportTimeoutTime = currentRealTime + SECONDS_FOR_TIMEOUT_WAITING_FOR_SUPPORT * 10
+            SendClusterExecute()
+		endif
+        /;
+	endif
+	
+;/
+	; not good that we ended up here
+	if expectedSupportCmds > supportCmdsCheckedIn
+        if currentRealTime > supportTimeoutTime
+            Debug.Trace("sl_trigger: Cmd: failed to start execution")
+            DebMsg("sl_trigger: Cmd: failed to start execution")
+            SendClusterDispel()
+            return
+        endif
+	endif
+
+    QueueUpdateLoop()
+    /;
+EndEvent
 
 Event OnSLTAMEClusterBeginExecutionEvent(string eventName, string strArg, float numArg, Form sender)
+    UnregisterForModEvent(_slt_GetClusterBeginExecutionEvent())
+    DebMsg("executing cluster instanceid(" + GetInstanceId() + ")  extkey(" + CmdExtension.GetExtensionKey() + ")")
+
+    if !self
+        return
+    endif
+
+    int count = 25
+    while supportCmdsCheckedIn < expectedSupportCmds && count > 0
+        Utility.Wait(0.1)
+        count -= 1
+    endwhile
+    
+    if supportCmdsCheckedIn < expectedSupportCmds
+        DebMsg("Waited 2.5 seconds plus, and not right, bailing")
+        SendClusterDispel()
+        return
+    endif
+
+    DebMsg("sorting supportCmds")
 	; sort supportCmds if necessary
 	if supportCmdsCheckedIn > 0 && supportCmds
 		ActiveMagicEffect[] tmpBuffer = supportCmds
@@ -92,60 +163,17 @@ Event OnSLTAMEClusterBeginExecutionEvent(string eventName, string strArg, float 
 		
 		supportCmds = tmpBuffer
 	endif
+
+
+
+
 	
+    DebMsg("exec called")
     exec()
 	
-	Heap_ClearPrefixF(aCaster, MakeInstanceKeyPrefix(instanceId))
+	Heap_ClearPrefixF(CmdTargetActor, MakeInstanceKeyPrefix(instanceId))
     
 	SendClusterDispel()
-EndEvent
-
-Event OnUpdate()
-	; when we start receiving these, we are assuming we are ready
-	If !Self
-		Return
-	EndIf
-	
-	float currentRealTime = Utility.GetCurrentRealTime()
-	
-	if !deferredInitCompleted
-		deferredInitCompleted = true
-		
-		coreCmdMailbox = SLT.RequestCoreMailbox(self)
-	
-		Heap_IntSetFK(aCaster, MakeInstanceKey(instanceId, "coreCmdMailbox"), coreCmdMailbox)
-		
-		; retrieve the formSpells if present
-		int spellFormsCount = Heap_IntGetFK(aCaster, MakeInstanceKey(instanceId, "spellFormsLength"))
-		supportCmds = new ActiveMagicEffect[128] ; implicit 128 extension limit but I mean c'mon
-		
-		expectedSupportCmds = 0
-		if spellFormsCount > 0
-			int sfi = 0
-			while sfi < spellFormsCount
-				Spell spellForm = Heap_FormListGetFK(aCaster, MakeInstanceKey(instanceId, "spellForms"), sfi) as Spell
-				
-				; only if there was actually a Spell from the extension
-				if spellForm
-					expectedSupportCmds += 1
-					spellForm.RemoteCast(aCaster, aCaster, aCaster)
-				endif
-				
-				sfi += 1
-			endwhile
-		endif
-		
-		if expectedSupportCmds < 1
-			SendClusterExecute()
-		endif
-	endif
-	
-	; not good that we ended up here
-	if expectedSupportCmds > supportCmdsCheckedIn && currentRealTime > SECONDS_FOR_TIMEOUT_WAITING_FOR_SUPPORT
-		Debug.Trace("sl_trigger: Cmd: failed to start execution")
-		SendClusterDispel()
-		return
-	endif
 EndEvent
 
 Event OnKeyDown(Int keyCode)
@@ -153,13 +181,29 @@ Event OnKeyDown(Int keyCode)
     ;MiscUtil.PrintConsole("KeyDown: " + lastKey)
 EndEvent
 
+Function SendClusterDispel()
+	if clusterDispelSent
+		return
+	endif
+	clusterDispelSent = true
+	SendModEvent(_slt_GetClusterEvent(), "DISPEL")
+EndFunction
+
+Function SendClusterExecute() ; really just to me
+    DebMsg("Sending cluster execute")
+	SendModEvent(_slt_GetClusterBeginExecutionEvent())
+EndFunction
+
 Function SupportCheckin(sl_triggersCmdBase supportCmd)
 	supportCmds[supportCmdsCheckedIn] = supportCmd
 	supportCmdsCheckedIn += 1
 	
+    DebMsg("support checking checkedin(" + supportCmdsCheckedIn + ")  expected(" + expectedSupportCmds + ")")
+    ;/
 	if supportCmdsCheckedIn >= expectedSupportCmds
 		SendClusterExecute()
 	endif
+    /;
 EndFunction
 
 
@@ -225,7 +269,14 @@ EndFunction
 ;/
 opens the command file, loops through the commands, and runs them
 /;
+bool EXEC_GUARDIAN
 string Function exec()
+    if EXEC_GUARDIAN
+        Debug.Trace("EXEC_GUARDIAN SAYS FUCK RIGHT THE FUCK OFF")
+        DebMsg("EXEC_GUARDIAN SAYS FUCK RIGHT THE FUCK OFF!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        return ""
+    endif
+    EXEC_GUARDIAN = true
     string[] cmdLine
     string   code
     string   p1
@@ -234,13 +285,15 @@ string Function exec()
     bool     ifTrue
     
     cmdNum = JsonUtil.PathCount(cmdName, ".cmd")
+    DebMsg("Cmd.exec: cmdNum(" + cmdNum + ")")
     cmdIdx = 0
     ;MiscUtil.PrintConsole("Lines: " + cmdNum)
     while cmdIdx < cmdNum
         cmdLine = JsonUtil.PathStringElements(cmdName, ".cmd[" + cmdIdx + "]")
+        DebMsg("cmdLine[0](" + cmdLine[0] + ")")
         if cmdLine.Length
             code = resolve(cmdLine[0])
-            ;MiscUtil.PrintConsole("Cmd: " + code)
+            DebMsg("code(" + code + ")")
 
             if code == ":"
                 _addGoto(cmdIdx, cmdLine[1])
@@ -263,6 +316,7 @@ string Function exec()
             elseIf code == "return"
                 return ""
             else
+                DebMsg("ActualOper cmdLine(" + cmdLine + ")  code(" + code + ")")
 				ActualOper(cmdLine, code)
                 cmdIdx += 1
             endIf
@@ -272,11 +326,13 @@ string Function exec()
     return ""
 EndFunction
 
-string Function ActualResolve(string _code)
+string Function ActualResolve(string _code)\
 	; try negative priority resolve
 	; try our resolve
 	; try positive priority resolve
+    DebMsg("Cmd.ActualResolve: _code(" + _code + ")")
 	if supportCmdsCheckedIn < 1
+        DebMsg("actual going custom")
 		return self.CustomResolve(_code)
 	endif
 	
@@ -284,25 +340,31 @@ string Function ActualResolve(string _code)
 	bool readyForCore = true
 	int i = 0
 	sl_triggersCmdBase currCmd
-	while i < supportCmdsCheckedIn
+	while i < supportCmdsCheckedIn && !_value
 		currCmd = supportCmds[i] as sl_triggersCmdBase
 		
-		if currCmd._slt_getActualPriority() < 0 || !readyForCore
+		if currCmd._slt_getActualPriority() < 0
 			_value = currCmd.CustomResolve(_code)
-			if _value
-				return _value
-			endif
+            DebMsg("gotneg (" + _value + ")")
 		elseif readyForCore
 			readyForCore = false
 			_value = self.CustomResolve(_code)
-			if _value
-				return _value
-			endif
+            DebMsg("gotbase (" + _value + ")")
+            i -= 1
+        elseif currCmd._slt_getActualPriority() > 0
+			_value = currCmd.CustomResolve(_code)
+            DebMsg("gotpos (" + _value + ")")
 		endif
 	
 		i += 1
 	endwhile
+
+    if _value
+        DebMsg("returning (" + _value + ")")
+        return _value
+    endif
 	
+    DebMsg("returning _code(" + _code + ")")
 	return _code
 EndFunction
 
@@ -323,7 +385,7 @@ string Function CustomResolve(string _code)
 			endif
         endIf
     endIf
-    return none    
+    return ""    
 EndFunction
 
 Actor Function ActualResolveActor(string _code)
@@ -341,11 +403,14 @@ Actor Function ActualResolveActor(string _code)
 		while i < supportCmdsCheckedIn && !_value
 			currCmd = supportCmds[i] as sl_triggersCmdBase
 			
-			if currCmd._slt_getActualPriority() < 0 || !readyForCore
+			if currCmd._slt_getActualPriority() < 0
 				_value = currCmd.CustomResolveActor(_code)
 			elseif readyForCore
 				readyForCore = false
 				_value = self.CustomResolveActor(_code)
+                i -= 1
+            elseif currCmd._slt_getActualPriority() > 0
+				_value = currCmd.CustomResolveActor(_code)
 			endif
 		
 			i += 1
@@ -355,12 +420,12 @@ Actor Function ActualResolveActor(string _code)
 	if _value
 		return _value
 	endif
-	return aCaster
+	return CmdTargetActor
 EndFunction
 
 Actor Function CustomResolveActor(string _code)
     if _code == "$self"
-        return aCaster
+        return CmdTargetActor
     elseIf _code == "$player"
         return PlayerRef
     elseIf _code == "$actor"
@@ -384,11 +449,14 @@ bool Function ActualResolveCond(string _p1, string _p2, string _oper)
 		while i < supportCmdsCheckedIn && !_value
 			currCmd = supportCmds[i] as sl_triggersCmdBase
 			
-			if currCmd._slt_getActualPriority() < 0 || !readyForCore
+			if currCmd._slt_getActualPriority() < 0
 				_value = currCmd.CustomResolveCond(_p1, _p2, _oper)
 			elseif readyForCore
 				readyForCore = false
 				_value = self.CustomResolveCond(_p1, _p2, _oper)
+                i -= 1
+            elseif currCmd._slt_getActualPriority() > 0
+				_value = currCmd.CustomResolveCond(_p1, _p2, _oper)
 			endif
 		
 			i += 1
@@ -447,15 +515,25 @@ Function ActualOper(string[] param, string code)
 		bool readyForCore = true
 		int i = 0
 		sl_triggersCmdBase currCmd
+        DebMsg("in da guts")
 		while i < supportCmdsCheckedIn && !cmdSuccess
 			currCmd = supportCmds[i] as sl_triggersCmdBase
 			
-			if currCmd._slt_getActualPriority() < 0 || !readyForCore
+            DebMsg("garg[" + i + "](" + currCmd.GetInstanceId() + ")")
+
+			if currCmd._slt_getActualPriority() < 0
+                DebMsg("trying a neg")
 				cmdSuccess = currCmd._slt_oper_driver(param, code)
-			elseif readyForCore
-				readyForCore = false
-				cmdSuccess = self._slt_oper_driver(param, code)
-			endif
+            elseif readyForCore
+                DebMsg("trying base")
+                readyForCore = false
+                cmdSuccess = self._slt_oper_driver(param, code)
+                i -= 1
+            elseif currCmd._slt_getActualPriority() > 0
+                DebMsg("trying a pos")
+				cmdSuccess = currCmd._slt_oper_driver(param, code)
+            endif
+            DebMsg("cmdSuccess(" + cmdSuccess + ")")
 		
 			i += 1
 		endwhile
@@ -801,7 +879,7 @@ bool function oper(string[] param)
                         ;MiscUtil.PrintConsole("thisSlot good armor")
                         If itemSlots.Find(thisArmor) < 0
                             ;MiscUtil.PrintConsole("thisSlot gone armor")
-                            aCaster.UnequipItemEx(thisArmor, 0)
+                            CmdTargetActor.UnequipItemEx(thisArmor, 0)
                         EndIf
                         slotsChecked += (thisArmor as Armor).GetSlotMask()
                         ;MiscUtil.PrintConsole("checkedSlot: " + slotsChecked)
@@ -1997,7 +2075,7 @@ bool function oper(string[] param)
 
     cnt = param.length
 
-    if (aCaster != PlayerRef) || (cnt <= 1)
+    if (CmdTargetActor != PlayerRef) || (cnt <= 1)
         stack[0] = "-1"
         return false
     endIf

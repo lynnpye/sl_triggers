@@ -25,80 +25,55 @@ string[]	triggerKeys_Stop
 string[]	triggerKeys_Orgasm_S
 
 
-; GetExtensionKey
-; OVERRIDE REQUIRED
-; returns: the unique string identifier for this extension
-string Function GetExtensionKey()
-	return "sl_triggersExtensionSexLab"
-EndFunction
-
-string Function GetFriendlyName()
-	return "SLT SexLab"
-EndFunction
-
-Function UpdateSexLabStatus()
-	SexLabAnimatingFaction = none
-	SexLab = none
-	
-	SexLab = Game.GetFormFromFile(0xD62, "SexLab.esm") as SexLabFramework
-	if SexLab
-		SexLabAnimatingFaction = Game.GetFormFromFile(0xE50F, "SexLab.esm") as Faction
-	endif
-EndFunction
-
-;/
-we have a negative priority here because we are going to be overriding
-some core functions, to expand them in the case when SexLab is present
-/;
-int Function GetPriority()
-	return -500
-EndFunction
+string	EVENT_ID_START 			= "1"
+string	EVENT_ID_ORGASM			= "2"
+string	EVENT_ID_STOP			= "3"
+string	EVENT_ID_ORGASM_SLSO	= "4"
+string	ATTR_EVENT				= "event"
+string	ATTR_CHANCE				= "chance"
+string	ATTR_RACE				= "race"
+string	ATTR_ROLE				= "role"
+string	ATTR_PLAYER				= "player"
+string	ATTR_GENDER				= "gender"
+string	ATTR_TAG				= "tag"
+string	ATTR_DAYTIME			= "daytime"
+string	ATTR_LOCATION			= "location"
+string	ATTR_POSITION			= "position"
+string	ATTR_DO_1				= "do_1"
+string	ATTR_DO_2				= "do_2"
+string	ATTR_DO_3				= "do_3"
 
 Event OnInit()
+	if !self
+		return
+	endif
 	DebMsg("SexLab.OnInit")
 	SLTInit()
 EndEvent
 
-Function RefreshTriggerCache()
-	triggerKeys_Start = PapyrusUtil.StringArray(0)
-	triggerKeys_Orgasm = PapyrusUtil.StringArray(0)
-	triggerKeys_Stop = PapyrusUtil.StringArray(0)
-	triggerKeys_Orgasm_S = PapyrusUtil.StringArray(0)
-	int i = 0
-	while i < TriggerKeys.Length
-		int eventCode = GetEventCode(TriggerKeys[i])
-		if eventCode == 0
-			triggerKeys_Start = PapyrusUtil.PushString(triggerKeys_Start, TriggerKeys[i])
-		elseif eventCode == 1
-			triggerKeys_Orgasm = PapyrusUtil.PushString(triggerKeys_Orgasm, TriggerKeys[i])
-		elseif eventCode == 2
-			triggerKeys_Stop = PapyrusUtil.PushString(triggerKeys_Stop, TriggerKeys[i])
-		elseif eventCode == 3
-			triggerKeys_Orgasm_S = PapyrusUtil.PushString(triggerKeys_Orgasm_S, TriggerKeys[i])
-		endif
-		
-		i += 1
-	endwhile
+Function SLTReady()
+	DebMsg("SexLab.SLTReady")
+	UpdateSexLabStatus()
+	RefreshData()
 EndFunction
 
-Event OnSLTGameLoaded(string eventName, string strArg, float numArg, Form sender)
-	DebMsg("SexLab.OnGameLoaded")
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_POPULATE_MCM(), "OnSLTPopulateMCM")
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTSettingsUpdated")
-	
-	UpdateSexLabStatus()
-	
+Function RefreshData()
 	RefreshTriggerCache()
 	RegisterEvents()
-EndEvent
+EndFunction
 
 ; configuration was updated mid-game
-Function OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
-	RefreshTriggerCache()
-	RegisterEvents()
-EndFunction
+Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
+	if !self
+		return
+	endif
+	RefreshData()
+EndEvent
 
-Event OnSLTPopulateMCM(string eventName, string strArg, float numArg, Form sender)
+Function PopulateMCM()
+	if !self
+		return
+	endif
 	DebMsg("SexLab.PopulateMCM")
 	string[] triggerIfEventNames	= PapyrusUtil.StringArray(5)
 	triggerIfEventNames[0]			= "- Select an Event -"
@@ -106,11 +81,11 @@ Event OnSLTPopulateMCM(string eventName, string strArg, float numArg, Form sende
 	triggerIfEventNames[2]			= "Orgasm"
 	triggerIfEventNames[3]			= "End"
 	triggerIfEventNames[4]			= "Orgasm(SLSO)"
-	DescribeMenuAttribute("event", PTYPE_INT(), "Event:", 0, triggerIfEventNames)
-	SetHighlightText("event", "Choose which type of event this trigger will use.")
+	DescribeMenuAttribute(ATTR_EVENT, PTYPE_INT(), "Event:", 0, triggerIfEventNames)
+	SetHighlightText(ATTR_EVENT, "Choose which type of event this trigger will use.")
 	
-	DescribeSliderAttribute("chance", PTYPE_FLOAT(), "Chance: ", 0.0, 100.0, 1.0, "{0}")
-	SetHighlightText("chance", "The chance the trigger will run when all prerequisites are met.")
+	DescribeSliderAttribute(ATTR_CHANCE, PTYPE_FLOAT(), "Chance: ", 0.0, 100.0, 1.0, "{0}")
+	SetHighlightText(ATTR_CHANCE, "The chance the trigger will run when all prerequisites are met.")
 	
 	string[] triggerIfRaceNames = new string[7]
 	triggerIfRaceNames[0] = "Any"
@@ -120,14 +95,14 @@ Event OnSLTPopulateMCM(string eventName, string strArg, float numArg, Form sende
 	triggerIfRaceNames[4] = "Partner Humanoid"
 	triggerIfRaceNames[5] = "Partner Creature"
 	triggerIfRaceNames[6] = "Partner Undead"
-	DescribeMenuAttribute("race", PTYPE_INT(), "Race:", 0, triggerIfRaceNames)
+	DescribeMenuAttribute(ATTR_RACE, PTYPE_INT(), "Race:", 0, triggerIfRaceNames)
 	
 	string[] triggerIfRoleNames = new string[4]
 	triggerIfRoleNames[0] = "Any"
 	triggerIfRoleNames[1] = "Aggressor"
 	triggerIfRoleNames[2] = "Victim"
 	triggerIfRoleNames[3] = "Not part of rape"
-	DescribeMenuAttribute("role", PTYPE_INT(), "Role:", 0, triggerIfRoleNames)
+	DescribeMenuAttribute(ATTR_ROLE, PTYPE_INT(), "Role:", 0, triggerIfRoleNames)
 	
 	string[] triggerIfPlayerNames = new string[5]
 	triggerIfPlayerNames[0] = "Any"
@@ -135,32 +110,32 @@ Event OnSLTPopulateMCM(string eventName, string strArg, float numArg, Form sende
 	triggerIfPlayerNames[2] = "Not Player"
 	triggerIfPlayerNames[3] = "Partner Player"
 	triggerIfPlayerNames[4] = "Partner Not Player"
-	DescribeMenuAttribute("player", PTYPE_INT(), "Player Status:", 0, triggerIfPlayerNames)
+	DescribeMenuAttribute(ATTR_PLAYER, PTYPE_INT(), "Player Status:", 0, triggerIfPlayerNames)
 	
 	string[] triggerIfGenderNames = new string[3]
 	triggerIfGenderNames[0] = "Any"
 	triggerIfGenderNames[1] = "Male"
 	triggerIfGenderNames[2] = "Female"
-	DescribeMenuAttribute("gender", PTYPE_INT(), "Gender:", 0, triggerIfGenderNames)
+	DescribeMenuAttribute(ATTR_GENDER, PTYPE_INT(), "Gender:", 0, triggerIfGenderNames)
 	
 	string[] triggerIfTagNames = new String[4]
 	triggerIfTagNames[0] = "Any"
 	triggerIfTagNames[1] = "Vaginal"
 	triggerIfTagNames[2] = "Anal"
 	triggerIfTagNames[3] = "Oral"
-	DescribeMenuAttribute("tag", PTYPE_INT(), "SL Tag:", 0, triggerIfTagNames)
+	DescribeMenuAttribute(ATTR_TAG, PTYPE_INT(), "SL Tag:", 0, triggerIfTagNames)
 	
 	string[] triggerIfDaytimeNames = new String[3]
 	triggerIfDaytimeNames[0] = "Any"
 	triggerIfDaytimeNames[1] = "Day"
 	triggerIfDaytimeNames[2] = "Night"
-	DescribeMenuAttribute("daytime", PTYPE_INT(), "Time of Day:", 0, triggerIfDaytimeNames)
+	DescribeMenuAttribute(ATTR_DAYTIME, PTYPE_INT(), "Time of Day:", 0, triggerIfDaytimeNames)
 	
 	string[] triggerIfLocationNames = new String[3]
 	triggerIfLocationNames[0] = "Any"
 	triggerIfLocationNames[1] = "Inside"
 	triggerIfLocationNames[2] = "Outside"
-	DescribeMenuAttribute("location", PTYPE_INT(), "Location:", 0, triggerIfLocationNames)
+	DescribeMenuAttribute(ATTR_LOCATION, PTYPE_INT(), "Location:", 0, triggerIfLocationNames)
 	
 	string[] triggerIfPosition = new string[6]
 	triggerIfPosition[0] = "Any"
@@ -169,40 +144,13 @@ Event OnSLTPopulateMCM(string eventName, string strArg, float numArg, Form sende
 	triggerIfPosition[3] = "3"
 	triggerIfPosition[4] = "4"
 	triggerIfPosition[5] = "5"
-	DescribeMenuAttribute("position", PTYPE_INT(), "SL Position:", 0, triggerIfPosition)
+	DescribeMenuAttribute(ATTR_POSITION, PTYPE_INT(), "SL Position:", 0, triggerIfPosition)
 	
 	; technically you could add as many as you wanted here but of course
 	; that could cause performance issues
-	AddCommandList("do_1", "Command 1:")
-	AddCommandList("do_2", "Command 2:")
-	AddCommandList("do_3", "Command 3:")
-EndEvent
-
-; selectively enables only events with triggers
-Function RegisterEvents()
-    if bDebugMsg
-        Debug.Notification("SL Triggers SL: register events")
-    endIf
-	
-	UnregisterForModEvent(EVENT_SEXLAB_START)
-	if bEnabled && triggerKeys_Start.Length > 0 && SexLab
-		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_START, EVENT_SEXLAB_START_HANDLER)
-	endif
-	
-	UnregisterForModEvent(EVENT_SEXLAB_END)
-	if bEnabled && triggerKeys_Stop.Length > 0 && SexLab
-		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_END, EVENT_SEXLAB_END_HANDLER)
-	endif
-	
-	UnregisterForModEvent(EVENT_SEXLAB_ORGASM)
-	if bEnabled && triggerKeys_Orgasm.Length > 0 && SexLab
-		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_ORGASM, EVENT_SEXLAB_ORGASM_HANDLER)
-	endif
-    
-	UnregisterForModEvent(EVENT_SEXLAB_ORGASM_SLSO)
-	if bEnabled && triggerKeys_Orgasm_S.Length > 0 && SexLab
-		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_ORGASM_SLSO, EVENT_SEXLAB_ORGASM_SLSO_HANDLER)
-	endif
+	AddCommandList(ATTR_DO_1, "Command 1:")
+	AddCommandList(ATTR_DO_2, "Command 2:")
+	AddCommandList(ATTR_DO_3, "Command 3:")
 EndFunction
 
 
@@ -281,6 +229,84 @@ Event OnSexLabOrgasmS(Form ActorRef, Int Thread)
     ;checkEvents(tid, 3, ActorRef as Actor)
 	
 EndEvent
+
+Function RefreshTriggerCache()
+	triggerKeys_Start = PapyrusUtil.StringArray(0)
+	triggerKeys_Orgasm = PapyrusUtil.StringArray(0)
+	triggerKeys_Stop = PapyrusUtil.StringArray(0)
+	triggerKeys_Orgasm_S = PapyrusUtil.StringArray(0)
+	int i = 0
+	while i < TriggerKeys.Length
+		int eventCode = GetEventCode(TriggerKeys[i])
+		if eventCode == 0
+			triggerKeys_Start = PapyrusUtil.PushString(triggerKeys_Start, TriggerKeys[i])
+		elseif eventCode == 1
+			triggerKeys_Orgasm = PapyrusUtil.PushString(triggerKeys_Orgasm, TriggerKeys[i])
+		elseif eventCode == 2
+			triggerKeys_Stop = PapyrusUtil.PushString(triggerKeys_Stop, TriggerKeys[i])
+		elseif eventCode == 3
+			triggerKeys_Orgasm_S = PapyrusUtil.PushString(triggerKeys_Orgasm_S, TriggerKeys[i])
+		endif
+		
+		i += 1
+	endwhile
+EndFunction
+
+; GetExtensionKey
+; OVERRIDE REQUIRED
+; returns: the unique string identifier for this extension
+string Function GetExtensionKey()
+	return "sl_triggersExtensionSexLab"
+EndFunction
+
+string Function GetFriendlyName()
+	return "SLT SexLab"
+EndFunction
+
+Function UpdateSexLabStatus()
+	SexLabAnimatingFaction = none
+	SexLab = none
+	
+	SexLab = Game.GetFormFromFile(0xD62, "SexLab.esm") as SexLabFramework
+	if SexLab
+		SexLabAnimatingFaction = Game.GetFormFromFile(0xE50F, "SexLab.esm") as Faction
+	endif
+EndFunction
+
+;/
+we have a negative priority here because we are going to be overriding
+some core functions, to expand them in the case when SexLab is present
+/;
+int Function GetPriority()
+	return -500
+EndFunction
+
+; selectively enables only events with triggers
+Function RegisterEvents()
+    if bDebugMsg
+        Debug.Notification("SL Triggers SL: register events")
+    endIf
+	
+	UnregisterForModEvent(EVENT_SEXLAB_START)
+	if bEnabled && triggerKeys_Start.Length > 0 && SexLab
+		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_START, EVENT_SEXLAB_START_HANDLER)
+	endif
+	
+	UnregisterForModEvent(EVENT_SEXLAB_END)
+	if bEnabled && triggerKeys_Stop.Length > 0 && SexLab
+		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_END, EVENT_SEXLAB_END_HANDLER)
+	endif
+	
+	UnregisterForModEvent(EVENT_SEXLAB_ORGASM)
+	if bEnabled && triggerKeys_Orgasm.Length > 0 && SexLab
+		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_ORGASM, EVENT_SEXLAB_ORGASM_HANDLER)
+	endif
+    
+	UnregisterForModEvent(EVENT_SEXLAB_ORGASM_SLSO)
+	if bEnabled && triggerKeys_Orgasm_S.Length > 0 && SexLab
+		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_ORGASM_SLSO, EVENT_SEXLAB_ORGASM_SLSO_HANDLER)
+	endif
+EndFunction
 
 
 Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTriggerKeys)
@@ -489,105 +515,105 @@ EndFunction
 
 
 float Function GetChance(string _triggerKey)
-	return Trigger_FloatGetT(_triggerKey, "chance")
+	return Trigger_FloatGetT(_triggerKey, ATTR_CHANCE)
 EndFunction
 
 Function SetChance(string _triggerKey, float value)
-	Trigger_FloatSetT(_triggerKey, "chance", value)
+	Trigger_FloatSetT(_triggerKey, ATTR_CHANCE, value)
 EndFunction
 
 int Function GetEventCode(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, "event")
+	return Trigger_IntGetT(_triggerKey, ATTR_EVENT)
 EndFunction
 
 int Function SetEventCode(string _triggerKey, int value)
-	return Trigger_IntSetT(_triggerKey, "event", value)
+	return Trigger_IntSetT(_triggerKey, ATTR_EVENT, value)
 EndFunction
 
 int Function GetRace(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, "race")
+	return Trigger_IntGetT(_triggerKey, ATTR_RACE)
 EndFunction
 
 int Function SetRace(string _triggerKey, int value)
-	return Trigger_IntSetT(_triggerKey, "race", value)
+	return Trigger_IntSetT(_triggerKey, ATTR_RACE, value)
 EndFunction
 
 int Function GetRole(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, "role")
+	return Trigger_IntGetT(_triggerKey, ATTR_ROLE)
 EndFunction
 
 int Function SetRole(string _triggerKey, int value)
-	return Trigger_IntSetT(_triggerKey, "role", value)
+	return Trigger_IntSetT(_triggerKey, ATTR_ROLE, value)
 EndFunction
 
 int Function GetGender(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, "gender")
+	return Trigger_IntGetT(_triggerKey, ATTR_GENDER)
 EndFunction
 
 int Function SetGender(string _triggerKey, int value)
-	return Trigger_IntSetT(_triggerKey, "gender", value)
+	return Trigger_IntSetT(_triggerKey, ATTR_GENDER, value)
 EndFunction
 
 int Function GetTag(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, "tag")
+	return Trigger_IntGetT(_triggerKey, ATTR_TAG)
 EndFunction
 
 int Function SetTag(string _triggerKey, int value)
-	return Trigger_IntSetT(_triggerKey, "tag", value)
+	return Trigger_IntSetT(_triggerKey, ATTR_TAG, value)
 EndFunction
 
 int Function GetDaytime(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, "daytime")
+	return Trigger_IntGetT(_triggerKey, ATTR_DAYTIME)
 EndFunction
 
 int Function SetDaytime(string _triggerKey, int value)
-	return Trigger_IntSetT(_triggerKey, "daytime", value)
+	return Trigger_IntSetT(_triggerKey, ATTR_DAYTIME, value)
 EndFunction
 
 int Function GetLocation(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, "location")
+	return Trigger_IntGetT(_triggerKey, ATTR_LOCATION)
 EndFunction
 
 int Function SetLocation(string _triggerKey, int value)
-	return Trigger_IntSetT(_triggerKey, "location", value)
+	return Trigger_IntSetT(_triggerKey, ATTR_LOCATION, value)
 EndFunction
 
 int Function GetPlayer(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, "player")
+	return Trigger_IntGetT(_triggerKey, ATTR_PLAYER)
 EndFunction
 
 int Function SetPlayer(string _triggerKey, int value)
-	return Trigger_IntSetT(_triggerKey, "player", value)
+	return Trigger_IntSetT(_triggerKey, ATTR_PLAYER, value)
 EndFunction
 
 int Function GetPosition(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, "position")
+	return Trigger_IntGetT(_triggerKey, ATTR_POSITION)
 EndFunction
 
 int Function SetPosition(string _triggerKey, int value)
-	return Trigger_IntSetT(_triggerKey, "position", value)
+	return Trigger_IntSetT(_triggerKey, ATTR_POSITION, value)
 EndFunction
 
 string Function GetCommand1(string _triggerKey)
-	return Trigger_StringGetT(_triggerKey, "command_1")
+	return Trigger_StringGetT(_triggerKey, ATTR_DO_1)
 EndFunction
 
 Function SetCommand1(string _triggerKey, string _command)
-	Trigger_StringSetT(_triggerKey, "command_1", _command)
+	Trigger_StringSetT(_triggerKey, ATTR_DO_1, _command)
 EndFunction
 
 string Function GetCommand2(string _triggerKey)
-	return Trigger_StringGetT(_triggerKey, "command_2")
+	return Trigger_StringGetT(_triggerKey, ATTR_DO_2)
 EndFunction
 
 Function SetCommand2(string _triggerKey, string _command)
-	Trigger_StringSetT(_triggerKey, "command_2", _command)
+	Trigger_StringSetT(_triggerKey, ATTR_DO_2, _command)
 EndFunction
 
 string Function GetCommand3(string _triggerKey)
-	return Trigger_StringGetT(_triggerKey, "command_3")
+	return Trigger_StringGetT(_triggerKey, ATTR_DO_3)
 EndFunction
 
 Function SetCommand3(string _triggerKey, string _command)
-	Trigger_StringSetT(_triggerKey, "command_3", _command)
+	Trigger_StringSetT(_triggerKey, ATTR_DO_3, _command)
 EndFunction

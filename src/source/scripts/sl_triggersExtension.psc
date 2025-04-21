@@ -2,6 +2,7 @@ scriptname sl_triggersExtension extends Quest
 
 import sl_triggersStatics
 import sl_triggersFile
+import sl_triggersHeap
 
 ; Properties
 Actor               Property PlayerRef Auto
@@ -118,10 +119,29 @@ EndFunction
 ; to be first or last at the time of this writing, take that into consideration if you
 ; run into problems.
 Function SLTInit()
-	DebMsg("Extension.SLTInit")
+	if !self
+		return
+	endif
+
+	DebMsg("Extension.SLTInit: extensionKey(" + GetExtensionKey() + ")")
 	_slt_BootstrapSLTInit()
 EndFunction
 
+
+; SLTReady
+; OPTIONAL
+; This stub gets called at the point the extension is registered. You can insert your own logic here.
+Function SLTReady()
+EndFunction
+
+;/
+; PopulateMCM
+; OPTIONAL
+; Override if you wish to have the MCM automatically manage your trigger attributes. Will automatically
+; be called as needed.
+/;
+Function PopulateMCM()
+EndFunction
 
 ; bool IsEnabled
 ; enabled status for this extension
@@ -189,6 +209,12 @@ EndFunction
 ; This queues up a command to an Actor.
 ; returns: the instanceId created
 string Function RequestCommand(Actor _theActor, string _theCommand)
+	if !self
+		return ""
+	endif
+
+	DebMsg("Extension.RequestCommand: command(" + _theCommand + ")")
+	
 	return SLT.StartCommand(_theActor, _theCommand, self)
 EndFunction
 
@@ -321,32 +347,46 @@ bool				Property bEnabled = true Auto Hidden ; enable/disable our extension
 bool				Property bDebugMsg = false Auto Hidden ; enable/disable debug logging for our extension
 string				Property currentTriggerId Auto Hidden ; used for simple iteration
 
-
 ; used to generate a stream of unique ids for each sl_triggersCmd
 int		oneupnumber
-bool	deferredInitHandled
-;string	heartbeatEvent ; uniquely generated each launch and sent during registration to receive heartbeats
-string	settingsUpdateEvent ; uniquely generated each launch and sent during registration to receive settings update
-string	gameLoadedEvent ; uniquely generated each launch and sent during registration to receive game loaded events
-;string	openRegistrationEvent ; uniquely generated each launch and sent during registration to receive open registration events
-
+;string	heartbeatEvent 
+string	settingsUpdateEvent 
+string	gameLoadedEvent 
+string internalReadyEvent 
 
 Event _slt_OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
+	if !self
+		return
+	endif
+	;DebMsg("Extension._slt_OnSLTSettingsUpdated: extensionKey(" + GetExtensionKey() + ")")
 	_slt_RefreshTriggers()
 EndEvent
 
-Event _slt_OnSLTGameLoaded(string eventName, string strArg, float numArg, Form sender)
-	bool firstTime = false
-	if "true" == strArg
-		firstTime = true
+Event _slt_OnSLTInternalReady(string eventName, string strArg, float numArg, Form sender)
+	if !self
+		return
 	endif
-
-	sl_triggersMain.RegisterExtension(self)
+	UnregisterForModEvent("SLT_INTERNAL_READY_EVENT")
+	;DebMsg("Extension._slt_OnSLTInternalReady: extensionKey(" + GetExtensionKey() + ")")
 	_slt_RefreshTriggers()
+	;DebMsg("Extension._slt_OnSLTInternalReady: back from _slt_RefreshTriggers: extensionKey(" + GetExtensionKey() + ")")
+	_slt_RegisterExtension()
+
+	SLTReady()
+EndEvent
+
+Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
+	if !self
+		return
+	endif
+	DebMsg("Extension.OnSLTSettingsUpdated: should not be here: extensionKey(" + GetExtensionKey() + ")")
 EndEvent
 
 Function _slt_BootstrapSLTInit()
-	DebMsg("Extension._slt_BootstrapSLTInit")
+	if !self
+		return
+	endif
+	;DebMsg("Extension._slt_BootstrapSLTInit: extensionKey(" + GetExtensionKey() + ")")
 	; fetch and store some key properties dynamically
 	if !SLT
 		SLT = Game.GetFormFromFile(0xD62, "sl_triggers.esp") as sl_triggersMain
@@ -358,12 +398,35 @@ Function _slt_BootstrapSLTInit()
 		ActorTypeUndead = Game.GetFormFromFile(0x13796, "Skyrim.esm") as Keyword
 	endif
 
-	deferredInitHandled = false
 	;SafeRegisterForModEvent_Quest(self, _slt_GetHeartbeatEvent(), "_slt_OnSLTHeartbeat")
-	SafeRegisterForModEvent_Quest(self, _slt_GetGameLoadedEvent(), "_slt_OnSLTGameLoaded")
+	
+	;SafeRegisterForModEvent_Quest(self, _slt_GetInternalReadyEvent(), "_slt_OnSLTInternalReady")
+	SafeRegisterForModEvent_Quest(self, "SLT_INTERNAL_READY_EVENT", "_slt_OnSLTInternalReady")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTSettingsUpdated")
 	SafeRegisterForModEvent_Quest(self, _slt_GetSettingsUpdateEvent(), "_slt_OnSLTSettingsUpdated")
-	;SafeRegisterForModEvent_Quest(self, _slt_GetOpenRegistrationEvent(), "_slt_OnSLTOpenRegistration")
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_POPULATE_MCM(), "OnSLTPopulateMCM")
+EndFunction
+
+Function _slt_RegisterExtension()
+	if !self
+		return
+	endif
+	;DebMsg("Extension.RegisterExtension: extensionKey(" + GetExtensionKey() + ")")
+
+	if !SLT
+		Debug.Trace("Extension.RegisterExtension: cannot locate global SLT instance, unable to register extension (" + GetExtensionKey() + ")")
+		;DebMsg("Extension.RegisterExtension: cannot locate global SLT instance, unable to register extension (" + GetExtensionKey() + ")")
+	endif
+	Heap_FormSetX(SLT, PSEUDO_INSTANCE_KEY(), SUKEY_EXTENSION_REGISTRATION_QUEUE() + GetExtensionKey(), self)
+	;Heap_FormListAddX(SLT, PSEUDO_INSTANCE_KEY(), SUKEY_EXTENSION_REGISTRATION_QUEUE(), self, false)
+	SendModEvent(EVENT_SLT_REGISTER_EXTENSION(), GetExtensionKey())
+EndFunction
+
+Function _slt_PopulateMCM()
+	if !self
+		return
+	endif
+	SLTMCM.ClearSetupExtensionKeyHeap(GetExtensionKey())
+	PopulateMCM()
 EndFunction
 
 ;/
@@ -382,21 +445,12 @@ string Function _slt_GetSettingsUpdateEvent()
 	return settingsUpdateEvent
 EndFunction
 
-string Function _slt_GetGameLoadedEvent()
-	if !gameLoadedEvent
-		gameLoadedEvent = "_slt_EVENT_SLT_GAME_LOADED_" + (Utility.RandomInt(100000, 999999) as string)
+string Function _slt_GetInternalReadyEvent()
+	if !internalReadyEvent
+		internalReadyEvent = "_slt_SLT_INTERNAL_READY_" + (Utility.RandomInt(100000, 999999) as string)
 	endif
-	return gameLoadedEvent
+	return internalReadyEvent
 EndFunction
-
-;/
-string Function _slt_GetOpenRegistrationEvent()
-	if !openRegistrationEvent
-		openRegistrationEvent = "_slt_EVENT_SLT_OPEN_REGISTRATION_" + (Utility.RandomInt(100000, 999999) as string)
-	endif
-	return openRegistrationEvent
-EndFunction
-/;
 
 bool Function _slt_HasPool()
 	return SpellPool.Length > 0 && EffectPool.Length > 0
@@ -415,6 +469,7 @@ Spell Function _slt_NextPooledSpellForActor(Actor _theActor)
 	int _i = 0
 	while _i < SpellPool.Length && _i < EffectPool.Length
 		if !_theActor.HasMagicEffect(EffectPool[_i])
+			DebMsg("returning spellpool index(" + _i + ")")
 			return SpellPool[_i]
 		endif
 	
@@ -432,8 +487,6 @@ EndFunction
 ; returns: the next value in the cycle; if the max is exceeded, the cycle resets to min
 ; 	if you get 60000 of these launched in your game, you win /sarcasm
 int Function _slt_NextCycledInstanceNumber(int oneupmin = -30000, int oneupmax = 30000)
-	Utility.Wait(0)
-	
 	int nextup = oneupnumber
 	oneupnumber += 1
 	if oneupnumber > oneupmax
@@ -451,6 +504,10 @@ string Function _slt_NextInstanceId()
 EndFunction
 
 Function _slt_RefreshTriggers()
+	if !self
+		return
+	endif
+	;DebMsg("Extension._slt_RefreshTriggers: extensionKey(" + GetExtensionKey() + ")")
 	string triggerFolder = ExtensionTriggersFolder(GetExtensionKey())
 	TriggerKeys = JsonUtil.JsonInFolder(triggerFolder)
 	
@@ -458,6 +515,8 @@ Function _slt_RefreshTriggers()
 		int i = 0
 		while i < TriggerKeys.Length
 			JsonUtil.Load(triggerFolder + TriggerKeys[i])
+
+			i += 1
 		endwhile
 	endif
 EndFunction
