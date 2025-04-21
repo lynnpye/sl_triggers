@@ -56,12 +56,10 @@ Event OnInit()
 	if !self
 		return
 	endif
-	DebMsg("Core.OnInit")
 	SLTInit()
 EndEvent
 
 Function SLTReady()
-	DebMsg("Core.SLTReady")
 	UpdateDAKStatus()
 	RefreshData()
 EndFunction
@@ -76,7 +74,6 @@ Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form s
 	if !self
 		return
 	endif
-	DebMsg("Core.OnSLTSettingsUpdated")
 	RefreshData()
 EndEvent
 
@@ -84,7 +81,6 @@ Function PopulateMCM()
 	if !self
 		return
 	endif
-	DebMsg("Core.PopulateMCM")
 	string[] triggerIfEventNames	= PapyrusUtil.StringArray(3)
 	triggerIfEventNames[0]			= "- Select an Event -"
 	triggerIfEventNames[1]			= "Keymapping"
@@ -163,7 +159,6 @@ Event OnTopOfTheHour(String eventName, string strArg, Float fltArg, Form sender)
 EndEvent
 
 Event OnKeyDown(Int KeyCode)
-	DebMsg("Core.OnKeyDown KeyCode(" + KeyCode + ")")
 	if !self
 		Debug.Notification("Triggers: Critical error")
 		Return
@@ -186,7 +181,6 @@ Event OnKeyDown(Int KeyCode)
 	while i < _keycodes_of_interest.Length
 		int kcode = _keycodes_of_interest[i]
 		_keycode_status[i] = Input.IsKeyPressed(kcode)
-		DebMsg("kcode(" + kcode + ")  status(" + _keycode_status[i] + ")")
 		i += 1
 	endwhile
 	
@@ -214,24 +208,20 @@ int Function GetPriority()
 EndFunction
 
 Function RefreshTriggerCache()
-	DebMsg("Core.RefreshTriggerCache")
 	triggerKeys_topOfTheHour = PapyrusUtil.StringArray(0)
 	triggerKeys_keyDown = PapyrusUtil.StringArray(0)
 	int i = 0
-	DebMsg("TriggerKeys.Length(" + TriggerKeys.Length + ")")
 	while i < TriggerKeys.Length
 		int eventCode = GetEventCode(TriggerKeys[i])
 
 		if eventCode == 2 ; topofthehour
 			triggerKeys_topOfTheHour = PapyrusUtil.PushString(triggerKeys_topOfTheHour, TriggerKeys[i])
 		elseif eventCode == 1
-			DebMsg("Core adding keydown")
 			triggerKeys_keyDown = PapyrusUtil.PushString(triggerKeys_keyDown, TriggerKeys[i])
 		endif
 		i += 1
 	endwhile
 
-	DebMsg("Done with triggerkey caching: triggerKeys_keyDown.Length(" + triggerKeys_keyDown.Length + ")")
 	_keycodes_of_interest = PapyrusUtil.IntArray(0)
 	_keycode_status = PapyrusUtil.BoolArray(0)
 	if triggerKeys_keyDown.Length > 0
@@ -244,23 +234,18 @@ Function RefreshTriggerCache()
 
 			if _keycodes_of_interest.Find(keycode) < 0
 				_keycodes_of_interest = PapyrusUtil.PushInt(_keycodes_of_interest, keycode)
-				DebMsg("After push    (" + triggerKey + ")  got keycode(" + keycode + ")  _keycodes_of_interest.Length(" + _keycodes_of_interest.Length + ")  [0](" + _keycodes_of_interest[i] + ")")
 			endif
 			if HasModifierKeycode(triggerKey)
 				keycode = GetModifierKeycode(triggerKey)
 				if _keycodes_of_interest.Find(keycode) < 0
 					_keycodes_of_interest = PapyrusUtil.PushInt(_keycodes_of_interest, keycode)
-					DebMsg("After push    (" + triggerKey + ")  got keycode(" + keycode + ")  _keycodes_of_interest.Length(" + _keycodes_of_interest.Length + ")  [0](" + _keycodes_of_interest[i] + ")")
 				endif
 			endif
 			i += 1
 		endwhile
 
 		_keycode_status = PapyrusUtil.BoolArray(_keycodes_of_interest.Length)
-
-		DebMsg("_keycodes_of_interest.Length(" + _keycodes_of_interest.Length + ")  [0](" + _keycodes_of_interest[0] + ")")
 	endif
-	DebMsg("Core.RefreshTriggerCache: keydown length(" + triggerKeys_keyDown.Length + ")  top length(" + triggerKeys_topOfTheHour.Length + ")")
 EndFunction
 
 ; this function attempts to trigger a SingleUpdateGameTime just in time for the 
@@ -305,7 +290,6 @@ EndFunction
 
 ; selectively enables only events with triggers
 Function RegisterEvents()
-	DebMsg("Core.RegisterEvents")
     if bDebugMsg
         Debug.Notification("SL Triggers Core: register events")
     endIf
@@ -313,7 +297,6 @@ Function RegisterEvents()
 	UnregisterForModEvent(EVENT_TOP_OF_THE_HOUR)
 	handlingTopOfTheHour = false
 	if bEnabled && triggerKeys_topOfTheHour.Length > 0
-		DebMsg("Core.RegisterEvents: registering for top of the hour")
 		SafeRegisterForModEvent_Quest(self, EVENT_TOP_OF_THE_HOUR, EVENT_TOP_OF_THE_HOUR_HANDLER)
 		AlignToNextHour()
 		handlingTopOfTheHour = true
@@ -321,7 +304,6 @@ Function RegisterEvents()
 	
 	UnregisterForKeyEvents()
 	if bEnabled && triggerKeys_keyDown.Length > 0
-		DebMsg("Core.RegisterEvents: registering for key events")
 		RegisterForKeyEvents()
 	endif
 	
@@ -333,7 +315,6 @@ EndFunction
 Function RegisterForKeyEvents()
 	int i = 0
 	while i < _keycodes_of_interest.Length
-		DebMsg("registering for keycode(" + _keycodes_of_interest[i] + ")")
 		RegisterForKey(_keycodes_of_interest[i])
 		i += 1
 	endwhile
@@ -367,7 +348,6 @@ Function HandleTopOfTheHour()
 EndFunction
 
 Function HandleOnKeyDown()
-	DebMsg("Core.HandleOnKeyDown")
 	; all we know at this point is that at least one of the keys of interest were pressed
 	; now we iterate all of the triggers (by slotnoprefix), check the status array against their
 	; settings, and execute or skip
@@ -382,8 +362,6 @@ Function HandleOnKeyDown()
 	
 	while i < triggerKeys_keyDown.Length
 		triggerKey = triggerKeys_keyDown[i]
-
-		DebMsg("checking triggerKey(" + triggerKey + ")")
 		
 		doRun = true
 		dakused = false
@@ -397,8 +375,6 @@ Function HandleOnKeyDown()
 		else
 			doRun = _keycode_status[statusidx]
 		endif
-
-		DebMsg("checkpoint 1 doRun(" + doRun + ")")
 		
 		; check dynamic activation key if in use and specified
 		if doRun && DAKAvailable && HasUseDAK(triggerKey)
@@ -410,7 +386,6 @@ Function HandleOnKeyDown()
 				doRun = DAKStatus.GetValue() as bool
 			endif
 		endif
-		DebMsg("checkpoint 2 doRun(" + doRun + ")")
 		
 		; check modifier status only if specified
 		; if dakused, we do not try to manage via modifier
@@ -428,8 +403,6 @@ Function HandleOnKeyDown()
 				endif
 			endif
 		endif
-		
-		DebMsg("checkpoint 3 doRun(" + doRun + ")")
 		
 		if doRun
 			command = GetCommand1(triggerKey)

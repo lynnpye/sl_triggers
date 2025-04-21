@@ -60,7 +60,6 @@ Event OnInit()
 		return
 	endif
 
-	DebMsg("Main.OnInit")
 	StorageUtil.SetFormValue(none, SUKEY_GLOBAL_INSTANCE(), self)
 	BootstrapSLTInit()
 EndEvent
@@ -103,7 +102,6 @@ Event OnSLTRequestCommand(string _eventName, string _commandName, float __ignore
 	if !self
 		return
 	endif
-	;DebMsg("Main.OnSLTRequestCommand")
 	if !_commandName
 		return
 	endif
@@ -123,37 +121,6 @@ Event OnSLTDelayedSettingsBroadcast(string _eventName, string _commandName, floa
 	SendSettingsUpdateBroadcast()
 EndEvent
 
-;/
-Event OnSLTMainPopulateMCM(string _eventName, string _commandName, float __ignored, Form _theActor)
-	;DebMsg("Main.Update: Time to populate MCM")
-	
-	SLTMCM.ClearSetupHeap()
-	SLTMCM.SetCommandsList(GetCommandsList())
-
-	int i = 0
-	string[] extensionFriendlyNames = PapyrusUtil.StringArray(Extensions.Length)
-	string[] extensionKeys = PapyrusUtil.StringArray(Extensions.Length)
-	while i < Extensions.Length
-		sl_triggersExtension _ext = GetExtensionByIndex(i)
-
-		_ext.SLTMCM = SLTMCM
-		extensionFriendlyNames[i] = _ext.GetFriendlyName()
-		extensionKeys[i] = _ext.GetExtensionKey()
-		
-		DebMsg("Main.Update: Setting extension triggers for extensionKey(" + _ext.GetExtensionKey() + ")")
-		SLTMCM.SetTriggers(_ext.GetExtensionKey(), _ext.TriggerKeys)
-		
-		i += 1
-	endwhile
-	
-	;DebMsg("Main.Update: Sending extension pages")
-	SLTMCM.SetExtensionPages(extensionFriendlyNames, extensionKeys)
-	
-	DebMsg("Main.Update: Sending populate MCM event")
-	SendPopulateMCMBroadcast()
-EndEvent
-/;
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Functions
@@ -161,7 +128,6 @@ Function BootstrapSLTInit()
 	if !self
 		return
 	endif
-	DebMsg("Main.BootstrapSLTInit")
 	SLTUpdateState = SLT_BOOTSTRAPPING
 	_registrationBeaconCount = REGISTRATION_BEACON_COUNT
 
@@ -173,7 +139,6 @@ Function DoOnPlayerLoadGame()
 	if !self
 		return
 	endif
-	;DebMsg("Main.OnPlayerLoadGame (not really, but, you know)")
 	BootstrapSLTInit()
 EndFunction
 
@@ -181,7 +146,6 @@ Function DoBootstrapActivity()
 	if !self
 		return
 	endif
-	;DebMsg("Main.Update: Bootstrapping")
 	if !coreCmdMailbox0
 		coreCmdMailbox0 = new ActiveMagicEffect[128]
 		coreCmdMailbox1 = new ActiveMagicEffect[128]
@@ -197,7 +161,6 @@ Function DoBootstrapActivity()
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_COMMAND(), "OnSLTRequestCommand")
 
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_DELAYED_SETTINGS_BROADCAST, "OnSLTDelayedSettingsBroadcast")
-	;SafeRegisterForModEvent_Quest(self, EVENT_SLT_MAIN_POPULATE_MCM, "OnSLTMainPopulateMCM")
 
 	; on first launch, this will obviously be empty
 	; on subsequent loads, we need to iterate the extensions we are
@@ -207,15 +170,12 @@ Function DoBootstrapActivity()
 		sl_triggersExtension sltx = Extensions[i] as sl_triggersExtension
 		if !sltx
 			; need to remove it from the list, it was removed from the game perhaps?
-			Debug.Trace("SLTMain.OnUpdate: Bootstrapping: Removed empty extension from main.Extensions")
-			;DebMsg("SLTMain.OnUpdate: Bootstrapping: Removed empty extension from main.Extensions")
 			if Extensions.Length > i + 1
 				Extensions = PapyrusUtil.MergeFormArray(PapyrusUtil.SliceFormArray(Extensions, 0, i - 1), PapyrusUtil.SliceFormArray(Extensions, i + 1))
 			else
 				Extensions = PapyrusUtil.SliceFormArray(Extensions, 0, i - 1)
 			endif
 		else
-			;DebMsg("Main.Update: Sending bootstrap to registered extension")
 			sltx._slt_BootstrapSLTInit()
 			i += 1
 		endif
@@ -239,7 +199,6 @@ Function DoRegistrationActivity(string _extensionKeyToRegister)
 	if !self
 		return
 	endif
-	;DebMsg("Main.DoRegistrationActivity(" + _extensionKeyToRegister + ")")
 	bool needSorting = false
 
 	Form _fetch = Heap_FormGetX(self, PSEUDO_INSTANCE_KEY(), SUKEY_EXTENSION_REGISTRATION_QUEUE() + _extensionKeyToRegister)
@@ -313,7 +272,6 @@ Function DoRegistrationActivity(string _extensionKeyToRegister)
 			i += 1
 		endwhile
 		
-		;DebMsg("Main.Update: Sending extension pages")
 		SLTMCM.SetExtensionPages(extensionFriendlyNames, extensionKeys)
 	endif
 EndFunction
@@ -325,60 +283,20 @@ Function QueueUpdateLoop(float afDelay = 1.0)
 	RegisterForSingleUpdate(afDelay)
 EndFunction
 
-;/
-Function SendSLTHeartbeats()
-	int i = 0
-	int max = heartbeatEvents.Length
-	while i < max
-		SendModEvent(heartbeatEvents[i])
-		i += 1
-	endwhile
-EndFunction
-/;
-
 Function SendSLTHeartbeats()
 	if !self
 		return
 	endif
 
-	;/
-	int i = 0
-	int max = CountAMEHeartbeats()
-	while i < max
-		SendModEvent(GetAMEHeartbeat(i))
-		i += 1
-	endwhile
-	/;
-
 	SendModEvent(EVENT_SLT_HEARTBEAT())
 EndFunction
-
-;/
-Function SendSLTMainPopulateMCM()
-	SendModEvent(EVENT_SLT_MAIN_POPULATE_MCM)
-EndFunction
-/;
 
 Function SendSLTInternalReady()
 	if !self
 		return
 	endif
-	;DebMsg("Main.SendSLTInternalReady")
-	;/
-	int i = 0
-	while i < extensionInternalReadyEvents.Length
-		SendModEvent(extensionInternalReadyEvents[i])
-		i += 1
-	endwhile
-	/;
 	SendModEvent("SLT_INTERNAL_READY_EVENT")
 EndFunction
-
-;/
-Function SendPopulateMCMBroadcast()
-	SendModEvent(EVENT_SLT_POPULATE_MCM())
-EndFunction
-/;
 
 Function SendDelayedSettingsUpdateEvent()
 	if !self
@@ -406,15 +324,6 @@ Function SendInternalSettingsUpdateEvents()
 	endwhile
 	SendDelayedSettingsUpdateEvent()
 EndFunction
-
-;/
-Function BumpTimeToPopulateMCM(float timeToAdvance)
-	; don't bother without SkyUI
-	if SLTMCM
-		TimeToPopulateMCM = Utility.GetCurrentRealTime() + timeToAdvance
-	endif
-EndFunction
-/;
 
 Function AddAMEHeartbeat(string heartbeatEvent)
 	Heap_StringListAddX(self, PSEUDO_INSTANCE_KEY(), "AMEHEARTBEATS", heartbeatEvent, false)
@@ -550,7 +459,6 @@ Function EnqueueAMEValues(Actor _theActor, string cmd, string instanceId, Form[]
 		int sfi = 0
 		while sfi < spellForms.Length
 			if spellForms[sfi] && extensionInstanceIds[sfi]
-				DebMsg("adding to heap form list (" + extensionInstanceIds[sfi] + ")")
 				Heap_FormListAddFK(_theActor, MakeInstanceKey(instanceId, "spellForms"), spellForms[sfi])
 				Heap_StringListAddFK(_theActor, extensionInstanceIds[sfi], instanceId)
 				count += 1
@@ -573,14 +481,7 @@ EndFunction
 ; sl_triggersExtension _sltex: the extension making the request
 string Function StartCommand(Actor _theActor, string _cmdName, sl_triggersExtension _sltext)
 	if !self
-		DebMsg("Main.StartCommand: self is none, exiting")
 		return ""
-	endif
-
-	DebMSg("Main.StartCommand: starting")
-
-	if !_theActor
-		DebMsg("Main.StartCommand: actor is none")
 	endif
 
 	string _instanceId
@@ -589,8 +490,6 @@ string Function StartCommand(Actor _theActor, string _cmdName, sl_triggersExtens
 	else
 		_instanceId = _NextInstanceId()
 	endif
-
-	DebMsg("instanceid is (" + _instanceId + ")")
     
 	Spell coreSpell = NextPooledSpellForActor(_theActor)
 	
@@ -603,23 +502,19 @@ string Function StartCommand(Actor _theActor, string _cmdName, sl_triggersExtens
 	string[] extensionInstanceIds
 	; certain things only need to be done if we have extensions
 	if extensions.Length > 0
-		DebMsg("handling spellforms")
 		spellForms = PapyrusUtil.FormArray(extensions.Length)
 		extensionInstanceIds = PapyrusUtil.StringArray(extensions.Length)
 		
 		int extensionIndex = 0
 		while extensionIndex < spellForms.Length
 			sl_triggersExtension _thisExt = GetExtensionByIndex(extensionIndex)
-			DebMsg("Checking (" + _thisExt.GetExtensionKey() + ") for spellforms")
 			if _thisExt._slt_HasPool()
-				DebMsg("has pool")
 				spellForms[extensionIndex] = _thisExt._slt_NextPooledSpellForActor(_theActor)
 				if !spellForms[extensionIndex]
 					MiscUtil.PrintConsole("Too many effects on: " + _theActor + " from extension: " + _thisExt.GetExtensionKey())
 					return ""
 				endif
 				string asdfasdf = MakeExtensionInstanceId(_thisExt.GetExtensionKey())
-				DebMsg("made extensioninstanceid(" + asdfasdf + ")")
 				extensionInstanceIds[extensionIndex] = MakeExtensionInstanceId(_thisExt.GetExtensionKey())
 			endif
 			
@@ -631,10 +526,8 @@ string Function StartCommand(Actor _theActor, string _cmdName, sl_triggersExtens
 	EnqueueAMEValues(_theActor, CommandsFolder() + _cmdName, _instanceId, spellForms, extensionInstanceIds)
 	
 	; cast the core AME
-	DebMsg("casting spell now")
 	coreSpell.RemoteCast(_theActor, _theActor, _theActor)
 
-	DebMsg("returning (" + _instanceId +")")
 	return _instanceId
 EndFunction
 

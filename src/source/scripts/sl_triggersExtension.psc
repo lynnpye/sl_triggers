@@ -123,7 +123,6 @@ Function SLTInit()
 		return
 	endif
 
-	DebMsg("Extension.SLTInit: extensionKey(" + GetExtensionKey() + ")")
 	_slt_BootstrapSLTInit()
 EndFunction
 
@@ -212,8 +211,6 @@ string Function RequestCommand(Actor _theActor, string _theCommand)
 	if !self
 		return ""
 	endif
-
-	DebMsg("Extension.RequestCommand: command(" + _theCommand + ")")
 	
 	return SLT.StartCommand(_theActor, _theCommand, self)
 EndFunction
@@ -358,7 +355,6 @@ Event _slt_OnSLTSettingsUpdated(string eventName, string strArg, float numArg, F
 	if !self
 		return
 	endif
-	;DebMsg("Extension._slt_OnSLTSettingsUpdated: extensionKey(" + GetExtensionKey() + ")")
 	_slt_RefreshTriggers()
 EndEvent
 
@@ -367,9 +363,8 @@ Event _slt_OnSLTInternalReady(string eventName, string strArg, float numArg, For
 		return
 	endif
 	UnregisterForModEvent("SLT_INTERNAL_READY_EVENT")
-	;DebMsg("Extension._slt_OnSLTInternalReady: extensionKey(" + GetExtensionKey() + ")")
+
 	_slt_RefreshTriggers()
-	;DebMsg("Extension._slt_OnSLTInternalReady: back from _slt_RefreshTriggers: extensionKey(" + GetExtensionKey() + ")")
 	_slt_RegisterExtension()
 
 	SLTReady()
@@ -379,14 +374,12 @@ Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form s
 	if !self
 		return
 	endif
-	DebMsg("Extension.OnSLTSettingsUpdated: should not be here: extensionKey(" + GetExtensionKey() + ")")
 EndEvent
 
 Function _slt_BootstrapSLTInit()
 	if !self
 		return
 	endif
-	;DebMsg("Extension._slt_BootstrapSLTInit: extensionKey(" + GetExtensionKey() + ")")
 	; fetch and store some key properties dynamically
 	if !SLT
 		SLT = Game.GetFormFromFile(0xD62, "sl_triggers.esp") as sl_triggersMain
@@ -410,11 +403,9 @@ Function _slt_RegisterExtension()
 	if !self
 		return
 	endif
-	;DebMsg("Extension.RegisterExtension: extensionKey(" + GetExtensionKey() + ")")
 
 	if !SLT
 		Debug.Trace("Extension.RegisterExtension: cannot locate global SLT instance, unable to register extension (" + GetExtensionKey() + ")")
-		;DebMsg("Extension.RegisterExtension: cannot locate global SLT instance, unable to register extension (" + GetExtensionKey() + ")")
 	endif
 	Heap_FormSetX(SLT, PSEUDO_INSTANCE_KEY(), SUKEY_EXTENSION_REGISTRATION_QUEUE() + GetExtensionKey(), self)
 	;Heap_FormListAddX(SLT, PSEUDO_INSTANCE_KEY(), SUKEY_EXTENSION_REGISTRATION_QUEUE(), self, false)
@@ -469,7 +460,6 @@ Spell Function _slt_NextPooledSpellForActor(Actor _theActor)
 	int _i = 0
 	while _i < SpellPool.Length && _i < EffectPool.Length
 		if !_theActor.HasMagicEffect(EffectPool[_i])
-			DebMsg("returning spellpool index(" + _i + ")")
 			return SpellPool[_i]
 		endif
 	
@@ -507,7 +497,6 @@ Function _slt_RefreshTriggers()
 	if !self
 		return
 	endif
-	;DebMsg("Extension._slt_RefreshTriggers: extensionKey(" + GetExtensionKey() + ")")
 	string triggerFolder = ExtensionTriggersFolder(GetExtensionKey())
 	TriggerKeys = JsonUtil.JsonInFolder(triggerFolder)
 	

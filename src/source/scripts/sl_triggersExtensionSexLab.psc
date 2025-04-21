@@ -47,12 +47,10 @@ Event OnInit()
 	if !self
 		return
 	endif
-	DebMsg("SexLab.OnInit")
 	SLTInit()
 EndEvent
 
 Function SLTReady()
-	DebMsg("SexLab.SLTReady")
 	UpdateSexLabStatus()
 	RefreshData()
 EndFunction
@@ -74,7 +72,6 @@ Function PopulateMCM()
 	if !self
 		return
 	endif
-	DebMsg("SexLab.PopulateMCM")
 	string[] triggerIfEventNames	= PapyrusUtil.StringArray(5)
 	triggerIfEventNames[0]			= "- Select an Event -"
 	triggerIfEventNames[1]			= "Begin"

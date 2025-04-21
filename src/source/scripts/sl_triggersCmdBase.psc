@@ -125,7 +125,6 @@ endFunction
 ; REQUIRED CALL
 ; It MUST be called during OnEffectStart(), the earlier the better.
 Function SLTOnEffectStart(Actor akCaster)
-	DebMsg("CmdBase.SLTOnEffectStart (" + self.GetBaseObject().GetName() + ")")
 	CmdTargetActor = akCaster ;"sl_triggersCmd(" + SLT.NextOneUp() + ")"
 	
 	; these two lines combined should be enough to get in the game
@@ -156,7 +155,6 @@ Function SLTOnEffectStart(Actor akCaster)
 		endwhile
 
 		if !CmdPrimary
-			DebMsg("no cmdprimary found")
 			UnregisterForAllModEvents()
 			self.Dispel()
 			return
@@ -165,9 +163,6 @@ Function SLTOnEffectStart(Actor akCaster)
 		;/
 		int CmdPrimaryMailbox = Heap_IntGetFK(CmdTargetActor, MakeInstanceKey(coreInstanceId, "CmdPrimaryMailbox"))
 		CmdPrimary = SLT.GetCoreCmdFromMailbox(CmdPrimaryMailbox)
-		if !CmdPrimary
-			DebMsg("didn't get CmdPrimary back")
-		endif
 		CmdPrimary.SupportCheckin(self)
 		/;
 	Endif
@@ -216,12 +211,9 @@ EndFunction
 ; returns: the value as a string; none if unable to resolve
 ; DO NOT OVERRIDE
 string Function Resolve(string _code)
-	DebMsg("resolving")
 	if _slt_isSupportCmd()
-		DebMsg("requesting from primary")
 		return CmdPrimary.ActualResolve(_code)
 	else
-		DebMsg("trying myself via actual")
 		return (self as sl_triggersCmd).ActualResolve(_code)
 	endif
 EndFunction
@@ -427,10 +419,8 @@ int Function _slt_getActualPriority()
 EndFunction
 
 bool Function _slt_oper_driver(string[] param, string code)
-	DebMsg("I am inside myself (" + "cmd_" + code + ")")
 	GotoState("cmd_" + code)
 	bool oresult = oper(param)
-	DebMsg(oresult)
 	GotoState("")
 	return oresult
 EndFunction

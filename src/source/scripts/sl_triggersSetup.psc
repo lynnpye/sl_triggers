@@ -90,7 +90,6 @@ int Function GetVersion()
 EndFunction
 
 Event OnConfigInit()
-	DebMsg("Setup.OnConfigInit")
 	; set my pages
 	headerPages = new string[1]
 	headerPages[0] = "SL Triggers"
@@ -110,7 +109,6 @@ Function SaveDirtyTrigger(string _extensionKey, string _triggerKey)
 EndFunction
 
 Event OnConfigOpen()
-	DebMsg("Setup.OnConfigOpen")
 	if extensionPages.Length > 0
 		Pages = PapyrusUtil.MergeStringArray(headerPages, extensionPages)
 	else
@@ -119,7 +117,6 @@ Event OnConfigOpen()
 EndEvent
 
 event OnConfigClose()
-	DebMsg("Setup.OnConfigClose")
 	SLT.SendInternalSettingsUpdateEvents()
 endEvent
 
@@ -149,7 +146,6 @@ Function SetCommandsList(string[] __commandsList)
 EndFunction
 
 Event OnPageReset(string page)
-	DebMsg("Setup.OnPageReset")
 	SetSLTCurrentPage(page)
 	
 	if IsHeaderPage()
@@ -264,13 +260,11 @@ Event OnOptionSelect(int option)
 		return
 	elseIf option == oidCardinatePrevious
 		currentCardination -= 1
-		DebMsg("Setup.OnOptionSelect: Prev: currentCardination(" + currentCardination + ")")
 		ForcePageReset()
 		
 		return
 	elseIf option == oidCardinateNext
 		currentCardination += 1
-		DebMsg("Setup.OnOptionSelect: Next: currentCardination(" + currentCardination + ")")
 		ForcePageReset()
 		
 		return
@@ -476,8 +470,6 @@ Function ShowExtensionPage()
 	if triggerCount > CARDS_PER_PAGE
 		cardinate = true
 	endif
-
-	DebMsg("Setup: extensionKey(" + extensionKey + ") triggerCount(" + triggerCount + ")  CARDS_PER_PAGE(" + CARDS_PER_PAGE + ")  cardinate(" + cardinate + ")")
 	
 	; what do we want this to look like?
 	SetCursorFillMode(LEFT_TO_RIGHT)
@@ -493,14 +485,12 @@ Function ShowExtensionPage()
 			hasNextCardinate = true
 		endif
 	endif
-	DebMsg("Setup: triggerCount(" + triggerCount + ")  CARDS_PER_PAGE(" + CARDS_PER_PAGE + ")  cardinate(" + cardinate + ")")
 	
 	if cardinate
 		; set startIndex appropriately
 		startIndex = currentCardination * CARDS_PER_PAGE
 		
 		; display cardination buttons
-		DebMsg("Setup: currentCardination(" + currentCardination + ") hasNextCardinate(" + hasNextCardinate + ")")
 		if currentCardination > 0
 			oidCardinatePrevious = AddTextOption("&lt;&lt; Previous", "")
 		else
@@ -524,13 +514,10 @@ Function ShowExtensionPage()
 	bool allowedVisible
 	bool triggerIsSoftDeleted
 	string triggerKey
-
-	DebMsg("Setup: startIndex(" + startIndex + ")  visibilityKeyAttribute(" + visibilityKeyAttribute + ")")
 	
 	while displayIndexer < displayCount
 		triggerKey = GetTrigger(extensionKey, displayIndexer + startIndex)
 		triggerIsSoftDeleted = Trigger_IsDeletedT(extensionKey, triggerKey)
-		DebMsg("Setup: triggerKey(" + triggerKey + ")  triggerIsSoftDeleted(" + triggerIsSoftDeleted + ")")
 		;if !Trigger_IsDeletedT(extensionKey, triggerKey)
 			AddHeaderOption("==] " + triggerKey + " [==")
 			AddEmptyOption()
