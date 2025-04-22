@@ -10,11 +10,17 @@ int		SLT_BOOTSTRAPPING				= 100
 
 int		REGISTRATION_BEACON_COUNT		= 30
 
-float	MCM_POPULATION_DELAY			= 1.5
-float	SLT_INTERNAL_READY_DELAY		= 2.5
+string	Function GLOBAL_PSEUDO_INSTANCE_KEY() global
+	return "_slt_global_pseudo_instance_key_sl_triggersMain_"
+EndFunction
 
-string	KYPT_EXTENSION_SLT_GLOBAL		= "sl_triggers_global"
-string	KYPT_KEYNAME_GLOBALVARS_PREFIX	= "globalvars"
+string Property PSEUDO_INSTANCE_KEY
+	string Function Get()
+		return sl_triggersMain.GLOBAL_PSEUDO_INSTANCE_KEY()
+	EndFunction
+EndProperty
+
+string	GLOBALVARS_KEYNAME_PREFIX	= "globalvars"
 
 string	EVENT_SLT_DELAYED_SETTINGS_BROADCAST = "_slt_event_slt_delayed_settings_broadcast_"
 
@@ -40,7 +46,6 @@ int 		coreCmdNextSilo
 int			coreCmdNextSlot
 int			_registrationBeaconCount
 string[]	commandsListCache
-;string[]	heartbeatEvents
 string[]	settingsUpdateEvents
 string[]	extensionInternalReadyEvents
 
@@ -158,7 +163,6 @@ Function DoBootstrapActivity()
 	endif
 
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REGISTER_EXTENSION(), "OnSLTRegisterExtension")
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_AME_HEARTBEAT_UPDATE(), "OnSLTAMEHeartbeatUpdate")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_COMMAND(), "OnSLTRequestCommand")
 
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_DELAYED_SETTINGS_BROADCAST, "OnSLTDelayedSettingsBroadcast")
@@ -339,21 +343,6 @@ Function SendInternalSettingsUpdateEvents()
 	SendDelayedSettingsUpdateEvent()
 EndFunction
 
-Function AddAMEHeartbeat(string heartbeatEvent)
-	Heap_StringListAddX(self, PSEUDO_INSTANCE_KEY(), "AMEHEARTBEATS", heartbeatEvent, false)
-EndFunction
-
-Function RemoveAMEHeartbeat(string heartbeatEvent)
-	Heap_StringListRemoveX(self, PSEUDO_INSTANCE_KEY(), "AMEHEARTBEATS", heartbeatEvent, true)
-EndFunction
-
-int Function CountAMEHeartbeats()
-	return Heap_StringListCountX(self, PSEUDO_INSTANCE_KEY(), "AMEHEARTBEATS")
-EndFunction
-
-string Function GetAMEHeartbeat(int index)
-	return Heap_StringListGetX(self, PSEUDO_INSTANCE_KEY(), "AMEHEARTBEATS", index)
-EndFunction
 
 int Function GetSettingsVersion()
 	return Settings_IntGet(SettingsFilename(), "version", GetModVersion())
@@ -455,12 +444,12 @@ EndFunction
 
 ; simple get handler for infini-globals
 string Function globalvars_get(int varsindex)
-	return Heap_StringGetFK(self, MakeInstanceKey(KYPT_EXTENSION_SLT_GLOBAL, KYPT_KEYNAME_GLOBALVARS_PREFIX + varsindex))
+	return Heap_StringGetFK(self, MakeInstanceKey(PSEUDO_INSTANCE_KEY, GLOBALVARS_KEYNAME_PREFIX + varsindex))
 EndFunction
 
 ; simple set handler for infini-globals
 string Function globalvars_set(int varsindex, string value)
-	return Heap_StringSetFK(self, MakeInstanceKey(KYPT_EXTENSION_SLT_GLOBAL, KYPT_KEYNAME_GLOBALVARS_PREFIX + varsindex), value)
+	return Heap_StringSetFK(self, MakeInstanceKey(PSEUDO_INSTANCE_KEY, GLOBALVARS_KEYNAME_PREFIX + varsindex), value)
 EndFunction
 
 Function EnqueueAMEValues(Actor _theActor, string cmd, string instanceId, Form[] spellForms, string[] extensionInstanceIds)
