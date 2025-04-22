@@ -11,6 +11,16 @@ string		ADD_BUTTON = "--ADDNEWITEM--"
 string		DELETE_BUTTON = "--DELETETHISITEM--"
 string		RESTORE_BUTTON = "--RESTORETHISITEM--"
 
+
+
+int			WIDG_SLIDER			= 1
+int			WIDG_MENU			= 2
+int			WIDG_KEYMAP			= 3
+int			WIDG_TOGGLE			= 4
+int			WIDG_INPUT			= 5
+int			WIDG_COMMANDLIST	= 6
+
+
 ; Properties
 sl_TriggersMain		Property SLT Auto
 
@@ -21,42 +31,6 @@ string				Property CurrentExtensionKey Hidden
 EndProperty
 
 string[] Property CommandsList Auto Hidden
-
-int	Property WIDG_SLIDER Hidden
-	int Function Get()
-		return 1
-	EndFunction
-EndProperty
-
-int	Property WIDG_MENU Hidden
-	int Function Get()
-		return 2
-	EndFunction
-EndProperty
-
-int	Property WIDG_KEYMAP Hidden
-	int Function Get()
-		return 3
-	EndFunction
-EndProperty
-
-int	Property WIDG_TOGGLE Hidden
-	int Function Get()
-		return 4
-	EndFunction
-EndProperty
-
-int	Property WIDG_INPUT Hidden
-	int Function Get()
-		return 5
-	EndFunction
-EndProperty
-
-int	Property WIDG_COMMANDLIST Hidden
-	int Function Get()
-		return 6
-	EndFunction
-EndProperty
 
 
 ; Variables
@@ -87,23 +61,9 @@ int Function GetVersion()
 EndFunction
 
 Event OnConfigInit()
-	; set my pages
 	headerPages = new string[1]
 	headerPages[0] = "SL Triggers"
 EndEvent
-
-;/
-Event OnVersionUpdate(int version)
-EndEvent
-
-Event OnGameReload
-	parent.OnGameReload()
-EndEvent
-/;
-
-Function SaveDirtyTrigger(string _extensionKey, string _triggerKey)
-	JsonUtil.Save(ExtensionTriggerName(_extensionKey, _triggerKey))
-EndFunction
 
 Event OnConfigOpen()
 	if extensionPages.Length > 0
@@ -121,11 +81,510 @@ event OnConfigClose()
 	endif
 endEvent
 
-;/
-Function SetMCMReady(bool _readiness = true)
-	readinessCheck = _readiness
+
+
+
+
+
+
+
+
+
+; DescribeSliderAttribute
+; Tells setup to render the attribute via a Slider
+; _formatString is optional
+; _ptype accepted values: PTYPE_INT(), PTYPE_FLOAT()
+Function DescribeSliderAttribute(string _extensionKey, string _attributeName, int _ptype, string _label, float _minValue, float _maxValue, float _interval, string _formatString = "", float _defaultFloat = 0.0)
+	if !_extensionKey
+		Debug.Trace("Setup: _extensionKey is required but was not provided")
+		return
+	endif
+	if !_attributeName
+		Debug.Trace("Setup: _attributeName is required but was not provided")
+		return
+	endif
+	if _ptype != PTYPE_INT() && _ptype != PTYPE_FLOAT()
+		Debug.Trace("Setup: Slider: requires int or float")
+		return
+	endif
+	if !_label
+		Debug.Trace("Setup: _label is required but was not provided")
+		return
+	endif
+	if _minValue >= _maxValue
+		Debug.Trace("Setup: Slider: _minValue >= _maxValue is not allowed")
+		return
+	endif
+	if _minValue > _defaultFloat || _defaultFloat > _maxValue
+		Debug.Trace("Setup: Slider: _defaultFloat outside of _min/_max range")
+		return
+	endif
+	
+	SetAttrWidget(_extensionKey, _attributeName, WIDG_SLIDER)
+	SetAttrType(_extensionKey, _attributeName, _ptype)
+	SetAttrLabel(_extensionKey, _attributeName, _label)
+	SetAttrMinValue(_extensionKey, _attributeName, _minValue)
+	SetAttrMaxValue(_extensionKey, _attributeName, _maxValue)
+	SetAttrInterval(_extensionKey, _attributeName, _interval)
+	SetAttrDefaultFloat(_extensionKey, _attributeName, _defaultFloat)
+	if _formatString
+		SetAttrFormatString(_extensionKey, _attributeName, _formatString)
+	endif
 EndFunction
+
+; DescribeMenuAttribute
+; Tells setup to render the attribute via a menu
+; _ptype accepted values: PTYPE_INT(), PTYPE_STRING()
+Function DescribeMenuAttribute(string _extensionKey, string _attributeName, int _ptype, string _label, int _defaultIndex, string[] _menuSelections)
+	if !_extensionKey
+		Debug.Trace("Setup: _extensionKey is required but was not provided")
+		return
+	endif
+	if !_attributeName
+		Debug.Trace("Setup: _attributeName is required but was not provided")
+		return
+	endif
+	if _ptype != PTYPE_INT() && _ptype != PTYPE_STRING()
+		Debug.Trace("Setup: Menu requires int or string")
+		return
+	endif
+	if !_label
+		Debug.Trace("Setup: _label is required but was not provided")
+		return
+	endif
+	
+	SetAttrWidget(_extensionKey, _attributeName, WIDG_MENU)
+	SetAttrType(_extensionKey, _attributeName, _ptype)
+	SetAttrLabel(_extensionKey, _attributeName, _label)
+	SetAttrDefaultIndex(_extensionKey, _attributeName, _defaultIndex)
+	SetAttrMenuSelections(_extensionKey, _attributeName, _menuSelections)
+EndFunction
+
+; DescribeKeymapAttribute
+; Tells setup to render the attribute via a keymap
+; _ptype accepted values: PTYPE_INT()
+Function DescribeKeymapAttribute(string _extensionKey, string _attributeName, int _ptype, string _label, int _defaultValue = -1)
+	if !_extensionKey
+		Debug.Trace("Setup: _extensionKey is required but was not provided")
+		return
+	endif
+	if !_attributeName
+		Debug.Trace("Setup: _attributeName is required but was not provided")
+		return
+	endif
+	if _ptype != PTYPE_INT()
+		Debug.Trace("Setup: Keymap requires int")
+		return
+	endif
+	if !_label
+		Debug.Trace("Setup: _label is required but was not provided")
+		return
+	endif
+	
+	SetAttrWidget(_extensionKey, _attributeName, WIDG_KEYMAP)
+	SetAttrLabel(_extensionKey, _attributeName, _label)
+	SetAttrDefaultValue(_extensionKey, _attributeName, _defaultValue)
+EndFunction
+
+; DescribeToggleAttribute
+; Tells setup to render the attribute via a toggle
+; _ptype accepted values: PTYPE_INT()
+Function DescribeToggleAttribute(string _extensionKey, string _attributeName, int _ptype, string _label, int _defaultValue = 0)
+	if !_extensionKey
+		Debug.Trace("Setup: _extensionKey is required but was not provided")
+		return
+	endif
+	if !_attributeName
+		Debug.Trace("Setup: _attributeName is required but was not provided")
+		return
+	endif
+	if _ptype != PTYPE_INT()
+		Debug.Trace("Setup: Toggle requires int")
+		return
+	endif
+	if !_label
+		Debug.Trace("Setup: _label is required but was not provided")
+		return
+	endif
+	
+	SetAttrWidget(_extensionKey, _attributeName, WIDG_TOGGLE)
+	SetAttrLabel(_extensionKey, _attributeName, _label)
+	SetAttrDefaultValue(_extensionKey, _attributeName, _defaultValue)
+EndFunction
+
+; DescribeInputAttribute
+; Tells setup to render the attribute via an input
+; _ptype accepted values: Any
+Function DescribeInputAttribute(string _extensionKey, string _attributeName, int _ptype, string _label, string _defaultValue = "")
+	if !_extensionKey
+		Debug.Trace("Setup: _extensionKey is required but was not provided")
+		return
+	endif
+	if !_attributeName
+		Debug.Trace("Setup: _attributeName is required but was not provided")
+		return
+	endif
+	if !_label
+		Debug.Trace("Setup: _label is required but was not provided")
+		return
+	endif
+	
+	SetAttrWidget(_extensionKey, _attributeName, WIDG_INPUT)
+	SetAttrLabel(_extensionKey, _attributeName, _label)
+	SetAttrDefaultString(_extensionKey, _attributeName, _defaultValue)
+EndFunction
+
+; AddCommandList
+; Tells setup to render a dropdown list of available commands.
+; You can call this multiple times to add the option of running
+; multiple commands from the same trigger (i.e. 3 was legacy setting)
+Function AddCommandList(string _extensionKey, string _attributeName, string _label)
+	if !_extensionKey
+		Debug.Trace("Setup: _extensionKey is required but was not provided")
+		return
+	endif
+	if !_attributeName
+		Debug.Trace("Setup: _attributeName is required but was not provided")
+		return
+	endif
+	if !_label
+		Debug.Trace("Setup: _label is required but was not provided")
+		return
+	endif
+	
+	SetAttrWidget(_extensionKey, _attributeName, WIDG_COMMANDLIST)
+	SetAttrType(_extensionKey, _attributeName, PTYPE_STRING())
+	SetAttrLabel(_extensionKey, _attributeName, _label)
+	SetAttrDefaultIndex(_extensionKey, _attributeName, -1)
+	SetAttrMenuSelections(_extensionKey, _attributeName, CommandsList)
+EndFunction
+
+Function SetVisibilityKeyAttribute(string _extensionKey, string _attributeName)
+	if !_extensionKey
+		Debug.Trace("Setup: _extensionKey is required but was not provided")
+		return
+	endif
+	if !_attributeName
+		Debug.Trace("Setup: _attributeName is required but was not provided")
+		return
+	endif
+	int _attrType = GetAttrType(_extensionKey, _attributeName)
+	if _attrType != PTYPE_INT() && _attrType != PTYPE_STRING()
+		Debug.Trace("Setup: _attributeName must be PTYPE_INT or PTYPE_STRING")
+		return
+	endif
+	
+	SetExtensionVisibilityKey(_extensionKey, _attributeName)
+EndFunction
+
+; SetVisibleOnlyIf
+; Tells setup that the specified attribute should only be displayed in the MCM if the
+; visibility key attribute has the specified value. Note that this function will
+; have no effect if SetVisibilityKeyAttribute() is not also called.
+;
+; If the PTYPE of the key attribute is int, cast to string for this call.
+Function SetVisibleOnlyIf(string _extensionKey, string _attributeName, string _requiredKeyAttributeValue)
+	if !_extensionKey
+		Debug.Trace("Setup: _extensionKey is required but was not provided")
+		return
+	endif
+	if !_attributeName
+		Debug.Trace("Setup: _attributeName is required but was not provided")
+		return
+	endif
+	if !_requiredKeyAttributeValue
+		Debug.Trace("Setup: _requiredKeyAttributeValue is required but was not provided")
+		return
+	endif
+	
+	SetAttrVisibleOnlyIf(_extensionKey, _attributeName, _requiredKeyAttributeValue)
+EndFunction
+
+; SetHighlightText
+; Tells setup what to display when the attribute is highlighted in the MCM.
+Function SetHighlightText(string _extensionKey, string _attributeName, string _highlightText)
+	if !_extensionKey
+		Debug.Trace("Setup: _extensionKey is required but was not provided")
+		return
+	endif
+	if !_attributeName
+		Debug.Trace("Setup: _attributeName is required but was not provided")
+		return
+	endif
+	if !_highlightText
+		Debug.Trace("Setup: _highlightText is required but was not provided")
+		return
+	endif
+	
+	SetAttrHighlight(_extensionKey, _attributeName, _highlightText)
+EndFunction
+
+
+
+
+
+Function ShowExtensionPage()
+	if extensionPages.Length < 1
+		return
+	endif
+	; I have an extensionIndex with which I can retrieve an extensionKey
+	; if I'm going to paginate I need to have a concept of where in the order
+	; I am in for triggerKeys
+	string extensionKey = extensionKeys[extensionIndex]
+	int triggerCount = GetTriggerCount(extensionKey)
+	
+	bool cardinate = false
+	bool hasNextCardinate = false
+	
+	if triggerCount > CARDS_PER_PAGE
+		cardinate = true
+	endif
+	
+	; what do we want this to look like?
+	SetCursorFillMode(LEFT_TO_RIGHT)
+	
+	int startIndex = 0
+	int displayCount = CARDS_PER_PAGE
+	if !cardinate
+		displayCount = triggerCount
+	else
+		displayCount = triggerCount - currentCardination * displayCount
+		if displayCount > CARDS_PER_PAGE
+			displayCount = CARDS_PER_PAGE
+			hasNextCardinate = true
+		endif
+	endif
+	
+	if cardinate
+		; set startIndex appropriately
+		startIndex = currentCardination * CARDS_PER_PAGE
+		
+		; display cardination buttons
+		if currentCardination > 0
+			oidCardinatePrevious = AddTextOption("&lt;&lt; Previous", "")
+		else
+			oidCardinatePrevious = AddTextOption("&lt;&lt; Previous", "", OPTION_FLAG_DISABLED)
+		endif
+		
+		if hasNextCardinate
+			oidCardinateNext = AddTextOption("Next &gt;&gt;", "")
+		else
+			oidCardinateNext = AddTextOption("Next &gt;&gt;", "", OPTION_FLAG_DISABLED)
+		endif
+	endif
+	
+	oidAddTop = AddTextOption("Add New Item", "")
+	AddEmptyOption()
+	
+	int displayIndexer = 0
+	bool needsEmpty = false
+	int _oid
+	string visibilityKeyAttribute = GetExtensionVisibilityKey(extensionKey)
+	bool allowedVisible
+	bool triggerIsSoftDeleted
+	string triggerKey
+	
+	while displayIndexer < displayCount
+		triggerKey = GetTrigger(extensionKey, displayIndexer + startIndex)
+		triggerIsSoftDeleted = Trigger_IsDeletedT(extensionKey, triggerKey)
+		;if !Trigger_IsDeletedT(extensionKey, triggerKey)
+			AddHeaderOption("==] " + triggerKey + " [==")
+			AddEmptyOption()
+
+			needsEmpty = false
+			int widgetOptions = OPTION_FLAG_NONE
+			if triggerIsSoftDeleted
+				widgetOptions = OPTION_FLAG_DISABLED
+				AddHeaderOption("This trigger has been soft deleted.")
+				AddHeaderOption("It can be restored.")
+				AddHeaderOption("Or it can be fully removed by removing the file between games.")
+				AddHeaderOption("Until restored, the trigger will not run.")
+			endif
+
+			;if !triggerIsSoftDeleted
+				int aidx = 0
+				while aidx < attributeNames.Length
+					string attrName = attributeNames[aidx]
+					allowedVisible = true
+					
+					if visibilityKeyAttribute && HasAttrVisibleOnlyIf(extensionKey, attrName)
+						string visibleOnlyIfValueIs = GetAttrVisibleOnlyIf(extensionKey, attrName)
+						
+						allowedVisible = false
+
+						string tval
+						if Trigger_IntHasX(extensionKey, triggerKey, visibilityKeyAttribute)
+							tval = Trigger_IntGetX(extensionKey, triggerKey, visibilityKeyAttribute) as string
+							allowedVisible = (tval == visibleOnlyIfValueIs)
+						elseif Trigger_StringHasX(extensionKey, triggerKey, visibilityKeyAttribute)
+							tval = Trigger_StringGetX(extensionKey, triggerKey, visibilityKeyAttribute)
+							allowedVisible = (tval == visibleOnlyIfValueIs)
+						else
+							; they specified it, it somehow got past, and now we have to deal with it
+							; or ignore it
+						endif
+					endif
+					
+					if allowedVisible
+						needsEmpty = !needsEmpty
+						
+						int widg = GetAttrWidget(extensionKey, attrName)
+						string label = GetAttrLabel(extensionKey, attrName)
+						if widg == WIDG_SLIDER
+							float _defval = GetAttrDefaultFloat(extensionKey, attrName)
+							if Trigger_FloatHasX(extensionKey, triggerKey, attrName)
+								_defval = Trigger_FloatGetX(extensionKey, triggerKey, attrName)
+							endif
+							_oid = AddSliderOption(label, _defval, GetAttrFormatString(extensionKey, attrName), widgetOptions)
+							; add to list of oids to heap
+							AddOid(_oid, extensionKey, triggerKey, attrName)
+						elseif widg == WIDG_MENU
+							string[] menuSelections = GetAttrMenuSelections(extensionKey, attrName)
+							int ptype = GetAttrType(extensionKey, attrName)
+							string menuValue = ""
+							if (ptype == PTYPE_INT() && !Trigger_IntHasX(extensionKey, triggerKey, attrName)) || (ptype == PTYPE_STRING() && !Trigger_StringHasX(extensionKey, triggerKey, attrName))
+								int midx = GetAttrDefaultIndex(extensionKey, attrName)
+								if midx > -1
+									menuValue = menuSelections[midx]
+								endif
+							else
+								if ptype == PTYPE_INT()
+									int midx = Trigger_IntGetX(extensionKey, triggerKey, attrName)
+									if midx > -1
+										menuValue = menuSelections[midx]
+									endif
+								elseif ptype == PTYPE_STRING()
+									string _tval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
+									if menuSelections.find(_tval) > -1
+										menuValue = _tval
+									endif
+								endif
+							endif
+							_oid = AddMenuOption(label, menuValue, widgetOptions)
+							AddOid(_oid, extensionKey, triggerKey, attrName)
+						elseif widg == WIDG_KEYMAP
+							int _defmap = GetAttrDefaultValue(extensionKey, attrName)
+							if Trigger_IntHasX(extensionKey, triggerKey, attrName)
+								_defmap = Trigger_IntGetX(extensionKey, triggerKey, attrName)
+							endif
+							int keymapOptions = OPTION_FLAG_WITH_UNMAP
+							if triggerIsSoftDeleted
+								keymapOptions = OPTION_FLAG_DISABLED
+							endif
+							_oid = AddKeyMapOption(label, _defmap, keymapOptions)
+							AddOid(_oid, extensionKey, triggerKey, attrName)
+						elseif widg == WIDG_TOGGLE
+							bool _defval = GetAttrDefaultValue(extensionKey, attrName) != 0
+							if Trigger_IntHasX(extensionKey, triggerKey, attrName)
+								_defval = Trigger_IntGetX(extensionKey, triggerKey, attrName) != 0
+							endif
+							_oid = AddToggleOption(label, _defval, widgetOptions)
+							AddOid(_oid, extensionKey, triggerKey, attrName)
+						elseif widg == WIDG_INPUT
+							string _defval = GetAttrDefaultString(extensionKey, attrName)
+							
+							int ptype = GetAttrType(extensionKey, attrName)
+							if ptype == PTYPE_INT()
+								if Trigger_IntHasX(extensionKey, triggerKey, attrName)
+									_defval = Trigger_IntGetX(extensionKey, triggerKey, attrName) as string
+								endif
+							elseif ptype == PTYPE_FLOAT()
+								if Trigger_FloatHasX(extensionKey, triggerKey, attrName)
+									_defval = Trigger_FloatGetX(extensionKey, triggerKey, attrName) as string
+								endif
+							elseif ptype == PTYPE_STRING()
+								if Trigger_StringHasX(extensionKey, triggerKey, attrName)
+									_defval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
+								endif
+							elseif ptype == PTYPE_FORM()
+								if Trigger_FormHasX(extensionKey, triggerKey, attrName)
+									_defval = Trigger_FormGetX(extensionKey, triggerKey, attrName) as string
+								endif
+							endif
+							
+							_oid = AddInputOption(label, _defval, widgetOptions)
+							AddOid(_oid, extensionKey, triggerKey, attrName)
+						elseif widg == WIDG_COMMANDLIST
+							string menuValue = ""
+							if Trigger_StringHasX(extensionKey, triggerKey, attrName)
+								string _cval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
+								if CommandsList.find(_cval) > -1
+									menuValue = _cval
+								endif
+							endif
+							
+							_oid = AddMenuOption(label, menuValue, widgetOptions)
+							AddOid(_oid, extensionKey, triggerKey, attrName)
+						endif
+					endif
+					
+					aidx += 1
+				endwhile
+			;endif
+			
+			; for two column layout
+			if needsEmpty
+				AddEmptyOption()
+			endif
+			
+			; blank row
+			AddEmptyOption()
+			AddEmptyOption()
+			
+			AddEmptyOption()
+			if !triggerIsSoftDeleted
+				; and option to delete
+				_oid = AddTextOption("Delete", "")
+				AddOid(_oid, extensionKey, triggerKey, DELETE_BUTTON)
+			else
+				; and option to undelete
+				_oid = AddTextOption("Restore", "")
+				AddOid(_oid, extensionKey, triggerKey, RESTORE_BUTTON)
+			endif
+		;endif
+	
+		displayIndexer += 1
+	endwhile
+	
+	if displayCount > 2
+		; blank row
+		AddEmptyOption()
+		AddEmptyOption()
+		
+		oidAddBottom = AddTextOption("Add New Item", "")
+		AddEmptyOption()
+	endif
+	
+;/
+
+[=======  Extension Settings ======]
+[=======  Add  Trigger       ======]
+[= Prev =]				  [= Next =]
+[=======  Trigger-foo        ======]
+ asdf asdf
+ asdf asdf
+						[= Delete =]
+[=======  Trigger-bar        ======]
+ asdf asdf
+ asdf asdf
+						[= Delete =]
+	
 /;
+
+	
+EndFunction
+
+
+
+
+
+
+
+
+
+Function SaveDirtyTrigger(string _extensionKey, string _triggerKey)
+	JsonUtil.Save(ExtensionTriggerName(_extensionKey, _triggerKey))
+EndFunction
 
 int Function ClearSetupHeap()
 	return Heap_ClearPrefixF(self, "sl_triggersSetup")
@@ -158,6 +617,8 @@ Event OnPageReset(string page)
 	; obviously it should be one or the other and yet here we are
 	Debug.Trace("SLT: Setup: Page is neither header nor extension")
 EndEvent
+
+
 
 ; All
 Event OnOptionHighlight(int option)
@@ -469,256 +930,6 @@ Event OnOptionInputAccept(int option, string _input)
 	endif
 EndEvent
 
-Function ShowExtensionPage()
-	if extensionPages.Length < 1
-		return
-	endif
-	; I have an extensionIndex with which I can retrieve an extensionKey
-	; if I'm going to paginate I need to have a concept of where in the order
-	; I am in for triggerKeys
-	string extensionKey = extensionKeys[extensionIndex]
-	int triggerCount = GetTriggerCount(extensionKey)
-	
-	bool cardinate = false
-	bool hasNextCardinate = false
-	
-	if triggerCount > CARDS_PER_PAGE
-		cardinate = true
-	endif
-	
-	; what do we want this to look like?
-	SetCursorFillMode(LEFT_TO_RIGHT)
-	
-	int startIndex = 0
-	int displayCount = CARDS_PER_PAGE
-	if !cardinate
-		displayCount = triggerCount
-	else
-		displayCount = triggerCount - currentCardination * displayCount
-		if displayCount > CARDS_PER_PAGE
-			displayCount = CARDS_PER_PAGE
-			hasNextCardinate = true
-		endif
-	endif
-	
-	if cardinate
-		; set startIndex appropriately
-		startIndex = currentCardination * CARDS_PER_PAGE
-		
-		; display cardination buttons
-		if currentCardination > 0
-			oidCardinatePrevious = AddTextOption("&lt;&lt; Previous", "")
-		else
-			oidCardinatePrevious = AddTextOption("&lt;&lt; Previous", "", OPTION_FLAG_DISABLED)
-		endif
-		
-		if hasNextCardinate
-			oidCardinateNext = AddTextOption("Next &gt;&gt;", "")
-		else
-			oidCardinateNext = AddTextOption("Next &gt;&gt;", "", OPTION_FLAG_DISABLED)
-		endif
-	endif
-	
-	oidAddTop = AddTextOption("Add New Item", "")
-	AddEmptyOption()
-	
-	int displayIndexer = 0
-	bool needsEmpty = false
-	int _oid
-	string visibilityKeyAttribute = GetExtensionVisibilityKey(extensionKey)
-	bool allowedVisible
-	bool triggerIsSoftDeleted
-	string triggerKey
-	
-	while displayIndexer < displayCount
-		triggerKey = GetTrigger(extensionKey, displayIndexer + startIndex)
-		triggerIsSoftDeleted = Trigger_IsDeletedT(extensionKey, triggerKey)
-		;if !Trigger_IsDeletedT(extensionKey, triggerKey)
-			AddHeaderOption("==] " + triggerKey + " [==")
-			AddEmptyOption()
-
-			needsEmpty = false
-			int widgetOptions = OPTION_FLAG_NONE
-			if triggerIsSoftDeleted
-				widgetOptions = OPTION_FLAG_DISABLED
-				AddHeaderOption("This trigger has been soft deleted.")
-				AddHeaderOption("It can be restored.")
-				AddHeaderOption("Or it can be fully removed by removing the file between games.")
-				AddHeaderOption("Until restored, the trigger will not run.")
-			endif
-
-			;if !triggerIsSoftDeleted
-				int aidx = 0
-				while aidx < attributeNames.Length
-					string attrName = attributeNames[aidx]
-					allowedVisible = true
-					
-					if visibilityKeyAttribute && HasAttrVisibleOnlyIf(extensionKey, attrName)
-						string visibleOnlyIfValueIs = GetAttrVisibleOnlyIf(extensionKey, attrName)
-						
-						allowedVisible = false
-
-						string tval
-						if Trigger_IntHasX(extensionKey, triggerKey, visibilityKeyAttribute)
-							tval = Trigger_IntGetX(extensionKey, triggerKey, visibilityKeyAttribute) as string
-							allowedVisible = (tval == visibleOnlyIfValueIs)
-						elseif Trigger_StringHasX(extensionKey, triggerKey, visibilityKeyAttribute)
-							tval = Trigger_StringGetX(extensionKey, triggerKey, visibilityKeyAttribute)
-							allowedVisible = (tval == visibleOnlyIfValueIs)
-						else
-							; they specified it, it somehow got past, and now we have to deal with it
-							; or ignore it
-						endif
-					endif
-					
-					if allowedVisible
-						needsEmpty = !needsEmpty
-						
-						int widg = GetAttrWidget(extensionKey, attrName)
-						string label = GetAttrLabel(extensionKey, attrName)
-						if widg == WIDG_SLIDER
-							float _defval = GetAttrDefaultFloat(extensionKey, attrName)
-							if Trigger_FloatHasX(extensionKey, triggerKey, attrName)
-								_defval = Trigger_FloatGetX(extensionKey, triggerKey, attrName)
-							endif
-							_oid = AddSliderOption(label, _defval, GetAttrFormatString(extensionKey, attrName), widgetOptions)
-							; add to list of oids to heap
-							AddOid(_oid, extensionKey, triggerKey, attrName)
-						elseif widg == WIDG_MENU
-							string[] menuSelections = GetAttrMenuSelections(extensionKey, attrName)
-							int ptype = GetAttrType(extensionKey, attrName)
-							string menuValue = ""
-							if (ptype == PTYPE_INT() && !Trigger_IntHasX(extensionKey, triggerKey, attrName)) || (ptype == PTYPE_STRING() && !Trigger_StringHasX(extensionKey, triggerKey, attrName))
-								int midx = GetAttrDefaultIndex(extensionKey, attrName)
-								if midx > -1
-									menuValue = menuSelections[midx]
-								endif
-							else
-								if ptype == PTYPE_INT()
-									int midx = Trigger_IntGetX(extensionKey, triggerKey, attrName)
-									if midx > -1
-										menuValue = menuSelections[midx]
-									endif
-								elseif ptype == PTYPE_STRING()
-									string _tval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
-									if menuSelections.find(_tval) > -1
-										menuValue = _tval
-									endif
-								endif
-							endif
-							_oid = AddMenuOption(label, menuValue, widgetOptions)
-							AddOid(_oid, extensionKey, triggerKey, attrName)
-						elseif widg == WIDG_KEYMAP
-							int _defmap = GetAttrDefaultValue(extensionKey, attrName)
-							if Trigger_IntHasX(extensionKey, triggerKey, attrName)
-								_defmap = Trigger_IntGetX(extensionKey, triggerKey, attrName)
-							endif
-							int keymapOptions = OPTION_FLAG_WITH_UNMAP
-							if triggerIsSoftDeleted
-								keymapOptions = OPTION_FLAG_DISABLED
-							endif
-							_oid = AddKeyMapOption(label, _defmap, keymapOptions)
-							AddOid(_oid, extensionKey, triggerKey, attrName)
-						elseif widg == WIDG_TOGGLE
-							bool _defval = GetAttrDefaultValue(extensionKey, attrName) != 0
-							if Trigger_IntHasX(extensionKey, triggerKey, attrName)
-								_defval = Trigger_IntGetX(extensionKey, triggerKey, attrName) != 0
-							endif
-							_oid = AddToggleOption(label, _defval, widgetOptions)
-							AddOid(_oid, extensionKey, triggerKey, attrName)
-						elseif widg == WIDG_INPUT
-							string _defval = GetAttrDefaultString(extensionKey, attrName)
-							
-							int ptype = GetAttrType(extensionKey, attrName)
-							if ptype == PTYPE_INT()
-								if Trigger_IntHasX(extensionKey, triggerKey, attrName)
-									_defval = Trigger_IntGetX(extensionKey, triggerKey, attrName) as string
-								endif
-							elseif ptype == PTYPE_FLOAT()
-								if Trigger_FloatHasX(extensionKey, triggerKey, attrName)
-									_defval = Trigger_FloatGetX(extensionKey, triggerKey, attrName) as string
-								endif
-							elseif ptype == PTYPE_STRING()
-								if Trigger_StringHasX(extensionKey, triggerKey, attrName)
-									_defval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
-								endif
-							elseif ptype == PTYPE_FORM()
-								if Trigger_FormHasX(extensionKey, triggerKey, attrName)
-									_defval = Trigger_FormGetX(extensionKey, triggerKey, attrName) as string
-								endif
-							endif
-							
-							_oid = AddInputOption(label, _defval, widgetOptions)
-							AddOid(_oid, extensionKey, triggerKey, attrName)
-						elseif widg == WIDG_COMMANDLIST
-							string menuValue = ""
-							if Trigger_StringHasX(extensionKey, triggerKey, attrName)
-								string _cval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
-								if CommandsList.find(_cval) > -1
-									menuValue = _cval
-								endif
-							endif
-							
-							_oid = AddMenuOption(label, menuValue, widgetOptions)
-							AddOid(_oid, extensionKey, triggerKey, attrName)
-						endif
-					endif
-					
-					aidx += 1
-				endwhile
-			;endif
-			
-			; for two column layout
-			if needsEmpty
-				AddEmptyOption()
-			endif
-			
-			; blank row
-			AddEmptyOption()
-			AddEmptyOption()
-			
-			AddEmptyOption()
-			if !triggerIsSoftDeleted
-				; and option to delete
-				_oid = AddTextOption("Delete", "")
-				AddOid(_oid, extensionKey, triggerKey, DELETE_BUTTON)
-			else
-				; and option to undelete
-				_oid = AddTextOption("Restore", "")
-				AddOid(_oid, extensionKey, triggerKey, RESTORE_BUTTON)
-			endif
-		;endif
-	
-		displayIndexer += 1
-	endwhile
-	
-	if displayCount > 2
-		; blank row
-		AddEmptyOption()
-		AddEmptyOption()
-		
-		oidAddBottom = AddTextOption("Add New Item", "")
-		AddEmptyOption()
-	endif
-	
-;/
-
-[=======  Extension Settings ======]
-[=======  Add  Trigger       ======]
-[= Prev =]				  [= Next =]
-[=======  Trigger-foo        ======]
- asdf asdf
- asdf asdf
-						[= Delete =]
-[=======  Trigger-bar        ======]
- asdf asdf
- asdf asdf
-						[= Delete =]
-	
-/;
-
-	
-EndFunction
 
 
 Function ShowHeaderPage()
@@ -821,236 +1032,6 @@ string Function Trigger_CreateT(string _extensionKey)
 	
 	return triggerKey
 EndFunction
-
-; DescribeSliderAttribute
-; Tells setup to render the attribute via a Slider
-; _formatString is optional
-; _ptype accepted values: PTYPE_INT(), PTYPE_FLOAT()
-Function DescribeSliderAttribute(string _extensionKey, string _attributeName, int _ptype, string _label, float _minValue, float _maxValue, float _interval, string _formatString = "", float _defaultFloat = 0.0)
-	if !_extensionKey
-		Debug.Trace("Setup: _extensionKey is required but was not provided")
-		return
-	endif
-	if !_attributeName
-		Debug.Trace("Setup: _attributeName is required but was not provided")
-		return
-	endif
-	if _ptype != PTYPE_INT() && _ptype != PTYPE_FLOAT()
-		Debug.Trace("Setup: Slider: requires int or float")
-		return
-	endif
-	if !_label
-		Debug.Trace("Setup: _label is required but was not provided")
-		return
-	endif
-	if _minValue >= _maxValue
-		Debug.Trace("Setup: Slider: _minValue >= _maxValue is not allowed")
-		return
-	endif
-	if _minValue > _defaultFloat || _defaultFloat > _maxValue
-		Debug.Trace("Setup: Slider: _defaultFloat outside of _min/_max range")
-		return
-	endif
-	
-	SetAttrWidget(_extensionKey, _attributeName, WIDG_SLIDER)
-	SetAttrType(_extensionKey, _attributeName, _ptype)
-	SetAttrLabel(_extensionKey, _attributeName, _label)
-	SetAttrMinValue(_extensionKey, _attributeName, _minValue)
-	SetAttrMaxValue(_extensionKey, _attributeName, _maxValue)
-	SetAttrInterval(_extensionKey, _attributeName, _interval)
-	SetAttrDefaultFloat(_extensionKey, _attributeName, _defaultFloat)
-	if _formatString
-		SetAttrFormatString(_extensionKey, _attributeName, _formatString)
-	endif
-EndFunction
-
-; DescribeMenuAttribute
-; Tells setup to render the attribute via a menu
-; _ptype accepted values: PTYPE_INT(), PTYPE_STRING()
-Function DescribeMenuAttribute(string _extensionKey, string _attributeName, int _ptype, string _label, int _defaultIndex, string[] _menuSelections)
-	if !_extensionKey
-		Debug.Trace("Setup: _extensionKey is required but was not provided")
-		return
-	endif
-	if !_attributeName
-		Debug.Trace("Setup: _attributeName is required but was not provided")
-		return
-	endif
-	if _ptype != PTYPE_INT() && _ptype != PTYPE_STRING()
-		Debug.Trace("Setup: Menu requires int or string")
-		return
-	endif
-	if !_label
-		Debug.Trace("Setup: _label is required but was not provided")
-		return
-	endif
-	
-	SetAttrWidget(_extensionKey, _attributeName, WIDG_MENU)
-	SetAttrType(_extensionKey, _attributeName, _ptype)
-	SetAttrLabel(_extensionKey, _attributeName, _label)
-	SetAttrDefaultIndex(_extensionKey, _attributeName, _defaultIndex)
-	SetAttrMenuSelections(_extensionKey, _attributeName, _menuSelections)
-EndFunction
-
-; DescribeKeymapAttribute
-; Tells setup to render the attribute via a keymap
-; _ptype accepted values: PTYPE_INT()
-Function DescribeKeymapAttribute(string _extensionKey, string _attributeName, int _ptype, string _label, int _defaultValue = -1)
-	if !_extensionKey
-		Debug.Trace("Setup: _extensionKey is required but was not provided")
-		return
-	endif
-	if !_attributeName
-		Debug.Trace("Setup: _attributeName is required but was not provided")
-		return
-	endif
-	if _ptype != PTYPE_INT()
-		Debug.Trace("Setup: Keymap requires int")
-		return
-	endif
-	if !_label
-		Debug.Trace("Setup: _label is required but was not provided")
-		return
-	endif
-	
-	SetAttrWidget(_extensionKey, _attributeName, WIDG_KEYMAP)
-	SetAttrLabel(_extensionKey, _attributeName, _label)
-	SetAttrDefaultValue(_extensionKey, _attributeName, _defaultValue)
-EndFunction
-
-; DescribeToggleAttribute
-; Tells setup to render the attribute via a toggle
-; _ptype accepted values: PTYPE_INT()
-Function DescribeToggleAttribute(string _extensionKey, string _attributeName, int _ptype, string _label, int _defaultValue = 0)
-	if !_extensionKey
-		Debug.Trace("Setup: _extensionKey is required but was not provided")
-		return
-	endif
-	if !_attributeName
-		Debug.Trace("Setup: _attributeName is required but was not provided")
-		return
-	endif
-	if _ptype != PTYPE_INT()
-		Debug.Trace("Setup: Toggle requires int")
-		return
-	endif
-	if !_label
-		Debug.Trace("Setup: _label is required but was not provided")
-		return
-	endif
-	
-	SetAttrWidget(_extensionKey, _attributeName, WIDG_TOGGLE)
-	SetAttrLabel(_extensionKey, _attributeName, _label)
-	SetAttrDefaultValue(_extensionKey, _attributeName, _defaultValue)
-EndFunction
-
-; DescribeInputAttribute
-; Tells setup to render the attribute via an input
-; _ptype accepted values: Any
-Function DescribeInputAttribute(string _extensionKey, string _attributeName, int _ptype, string _label, string _defaultValue = "")
-	if !_extensionKey
-		Debug.Trace("Setup: _extensionKey is required but was not provided")
-		return
-	endif
-	if !_attributeName
-		Debug.Trace("Setup: _attributeName is required but was not provided")
-		return
-	endif
-	if !_label
-		Debug.Trace("Setup: _label is required but was not provided")
-		return
-	endif
-	
-	SetAttrWidget(_extensionKey, _attributeName, WIDG_INPUT)
-	SetAttrLabel(_extensionKey, _attributeName, _label)
-	SetAttrDefaultString(_extensionKey, _attributeName, _defaultValue)
-EndFunction
-
-; AddCommandList
-; Tells setup to render a dropdown list of available commands.
-; You can call this multiple times to add the option of running
-; multiple commands from the same trigger (i.e. 3 was legacy setting)
-Function AddCommandList(string _extensionKey, string _attributeName, string _label)
-	if !_extensionKey
-		Debug.Trace("Setup: _extensionKey is required but was not provided")
-		return
-	endif
-	if !_attributeName
-		Debug.Trace("Setup: _attributeName is required but was not provided")
-		return
-	endif
-	if !_label
-		Debug.Trace("Setup: _label is required but was not provided")
-		return
-	endif
-	
-	SetAttrWidget(_extensionKey, _attributeName, WIDG_COMMANDLIST)
-	SetAttrType(_extensionKey, _attributeName, PTYPE_STRING())
-	SetAttrLabel(_extensionKey, _attributeName, _label)
-	SetAttrDefaultIndex(_extensionKey, _attributeName, -1)
-	SetAttrMenuSelections(_extensionKey, _attributeName, CommandsList)
-EndFunction
-
-Function SetVisibilityKeyAttribute(string _extensionKey, string _attributeName)
-	if !_extensionKey
-		Debug.Trace("Setup: _extensionKey is required but was not provided")
-		return
-	endif
-	if !_attributeName
-		Debug.Trace("Setup: _attributeName is required but was not provided")
-		return
-	endif
-	int _attrType = GetAttrType(_extensionKey, _attributeName)
-	if _attrType != PTYPE_INT() && _attrType != PTYPE_STRING()
-		Debug.Trace("Setup: _attributeName must be PTYPE_INT or PTYPE_STRING")
-		return
-	endif
-	
-	SetExtensionVisibilityKey(_extensionKey, _attributeName)
-EndFunction
-
-; SetVisibleOnlyIf
-; Tells setup that the specified attribute should only be displayed in the MCM if the
-; visibility key attribute has the specified value. Note that this function will
-; have no effect if SetVisibilityKeyAttribute() is not also called.
-;
-; If the PTYPE of the key attribute is int, cast to string for this call.
-Function SetVisibleOnlyIf(string _extensionKey, string _attributeName, string _requiredKeyAttributeValue)
-	if !_extensionKey
-		Debug.Trace("Setup: _extensionKey is required but was not provided")
-		return
-	endif
-	if !_attributeName
-		Debug.Trace("Setup: _attributeName is required but was not provided")
-		return
-	endif
-	if !_requiredKeyAttributeValue
-		Debug.Trace("Setup: _requiredKeyAttributeValue is required but was not provided")
-		return
-	endif
-	
-	SetAttrVisibleOnlyIf(_extensionKey, _attributeName, _requiredKeyAttributeValue)
-EndFunction
-
-; SetHighlightText
-; Tells setup what to display when the attribute is highlighted in the MCM.
-Function SetHighlightText(string _extensionKey, string _attributeName, string _highlightText)
-	if !_extensionKey
-		Debug.Trace("Setup: _extensionKey is required but was not provided")
-		return
-	endif
-	if !_attributeName
-		Debug.Trace("Setup: _attributeName is required but was not provided")
-		return
-	endif
-	if !_highlightText
-		Debug.Trace("Setup: _highlightText is required but was not provided")
-		return
-	endif
-	
-	SetAttrHighlight(_extensionKey, _attributeName, _highlightText)
-EndFunction
-
 ; Specifying both triggerId and attributeName
 
 ; some conversion convenience wrappers
