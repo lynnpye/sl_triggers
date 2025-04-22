@@ -25,7 +25,6 @@ ActiveMagicEffect[]		supportCmds
 int			expectedSupportCmds
 int			supportCmdsCheckedIn
 
-int			coreCmdMailbox
 
 String Function _slt_getActualInstanceId()
 	return InstanceId
@@ -33,7 +32,6 @@ EndFunction
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
 	deferredInitNeeded = true
-	coreCmdMailbox = -1
     cmdIdx = 0
     stack = new string[4]
     

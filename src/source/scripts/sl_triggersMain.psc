@@ -24,6 +24,25 @@ string	GLOBALVARS_KEYNAME_PREFIX	= "globalvars"
 
 string	EVENT_SLT_DELAYED_SETTINGS_BROADCAST = "_slt_event_slt_delayed_settings_broadcast_"
 
+string Property SLT_MAIN_INSTANCE_KEY Hidden
+	string Function Get()
+		return sl_triggersMain.GLOBAL_SLT_MAIN_INSTANCE_KEY()
+	EndFunction
+EndProperty
+
+string Property SLT_EXTENSION_REGISTRATION_QUEUE
+	string Function Get()
+		return sl_triggersMain.GLOBAL_SLT_EXTENSION_REGISTRATION_QUEUE()
+	EndFunction
+EndProperty
+
+string Function GLOBAL_SLT_MAIN_INSTANCE_KEY() global
+	return "_slt_main_instance_key_"
+EndFunction
+
+string Function GLOBAL_SLT_EXTENSION_REGISTRATION_QUEUE() global
+	return "_slt_extension_registration_queue_"
+EndFunction
 
 ; Properties
 Actor               Property PlayerRef				Auto
@@ -33,24 +52,16 @@ sl_triggersSetup	Property SLTMCM					Auto
 bool				Property bEnabled		= true	Auto Hidden
 bool				Property bDebugMsg		= false	Auto Hidden
 Form[]				Property Extensions				Auto Hidden
-; this is my buffer. there are many like it, but this one is mine. my buffer is my best friend. it is my life. i must master it as i must master my life.
-ActiveMagicEffect[]	Property coreCmdMailbox0		Auto Hidden
-ActiveMagicEffect[]	Property coreCmdMailbox1		Auto Hidden
-ActiveMagicEffect[]	Property coreCmdMailbox2		Auto Hidden
-ActiveMagicEffect[]	Property coreCmdMailbox3		Auto Hidden
 
 ; Variables
 int			SLTUpdateState
-int			coreCmdNextMailbox
-int 		coreCmdNextSilo
-int			coreCmdNextSlot
 int			_registrationBeaconCount
 string[]	commandsListCache
 string[]	settingsUpdateEvents
 string[]	extensionInternalReadyEvents
 
 sl_triggersMain Function GetInstance() global
-	return (StorageUtil.GetFormValue(none, SUKEY_GLOBAL_INSTANCE()) as sl_triggersMain)
+	return (StorageUtil.GetFormValue(none, GLOBAL_SLT_MAIN_INSTANCE_KEY()) as sl_triggersMain)
 EndFunction
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -125,8 +136,14 @@ EndEvent
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Functions
+Function SelfRegisterExtension(sl_triggersExtension _theExtension) global
+	Heap_FormSetX(sl_triggersMain.GetInstance(), sl_triggersMain.GLOBAL_PSEUDO_INSTANCE_KEY(), GLOBAL_SLT_EXTENSION_REGISTRATION_QUEUE() + _theExtension.GetExtensionKey(), _theExtension)
+	;Heap_FormListAddX(SLT, PSEUDO_INSTANCE_KEY(), SUKEY_EXTENSION_REGISTRATION_QUEUE(), self, false)
+	_theExtension.SendModEvent(EVENT_SLT_REGISTER_EXTENSION(), _theExtension.GetExtensionKey())
+EndFunction
+
 Function OnInitBody()
-	StorageUtil.SetFormValue(none, SUKEY_GLOBAL_INSTANCE(), self)
+	StorageUtil.SetFormValue(none, SLT_MAIN_INSTANCE_KEY, self)
 	BootstrapSLTInit()
 EndFunction
 
@@ -145,21 +162,13 @@ Function DoOnPlayerLoadGame()
 	if !self
 		return
 	endif
+	StorageUtil.SetFormValue(none, SLT_MAIN_INSTANCE_KEY, self)
 	BootstrapSLTInit()
 EndFunction
 
 Function DoBootstrapActivity()
 	if !self
 		return
-	endif
-	if !coreCmdMailbox0
-		coreCmdMailbox0 = new ActiveMagicEffect[128]
-		coreCmdMailbox1 = new ActiveMagicEffect[128]
-		coreCmdMailbox2 = new ActiveMagicEffect[128]
-		coreCmdMailbox3 = new ActiveMagicEffect[128]
-		coreCmdNextMailbox = 0
-		coreCmdNextSilo = 0
-		coreCmdNextSlot = 0
 	endif
 
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REGISTER_EXTENSION(), "OnSLTRegisterExtension")
@@ -206,11 +215,11 @@ Function DoRegistrationActivity(string _extensionKeyToRegister)
 	endif
 	bool needSorting = false
 
-	Form _fetch = Heap_FormGetX(self, PSEUDO_INSTANCE_KEY(), SUKEY_EXTENSION_REGISTRATION_QUEUE() + _extensionKeyToRegister)
+	Form _fetch = Heap_FormGetX(self, PSEUDO_INSTANCE_KEY, SLT_EXTENSION_REGISTRATION_QUEUE + _extensionKeyToRegister)
 	if !_fetch
 		Return
 	endif
-	Heap_FormUnsetX(self, PSEUDO_INSTANCE_KEY(), SUKEY_EXTENSION_REGISTRATION_QUEUE() + _extensionKeyToRegister)
+	Heap_FormUnsetX(self, PSEUDO_INSTANCE_KEY, SLT_EXTENSION_REGISTRATION_QUEUE + _extensionKeyToRegister)
 	sl_triggersExtension _extensionToRegister = _fetch as sl_triggersExtension
 	if !_extensionToRegister
 		return
@@ -285,10 +294,6 @@ Function DoInMemoryReset()
 	SLTMCM.ClearSetupHeap()
 
 	commandsListCache				= none
-	coreCmdMailbox0					= none
-	coreCmdMailbox1					= none
-	coreCmdMailbox2					= none
-	coreCmdMailbox3					= none
 
 	SendModEvent(EVENT_SLT_RESET())
 	OnInitBody()
@@ -353,92 +358,6 @@ Function SetSettingsVersion(int newVersion = -1)
 		Settings_IntSet(SettingsFilename(), "version", GetModVersion())
 	else
 		Settings_IntSet(SettingsFilename(), "version", newVersion)
-	endif
-EndFunction
-
-int Function SiloFromMailbox(int mailbox)
-	return mailbox / 128
-EndFunction
-
-int Function SlotFromMailbox(int mailbox)
-	return mailbox % 128
-EndFunction
-
-int Function MailboxFromSiloAndSlot(int silo, int slot)
-	return silo * 128 + slot
-EndFunction
-
-int Function RequestCoreMailbox(sl_triggersCmd coreCmd)
-	if !coreCmdMailbox0 || !coreCmdMailbox1 || !coreCmdMailbox2 || !coreCmdMailbox3
-		Debug.Trace("sl_triggers: Main: coreCmdMailboxes not initialized")
-		return -1
-	endif
-	
-	int iterCount = 0
-	int i = coreCmdNextMailbox
-	
-	while iterCount < 512
-		int silo = SiloFromMailbox(i)
-		int slot = SlotFromMailbox(i)
-
-		if silo == 0 && !coreCmdMailbox0[slot]
-			coreCmdMailbox0[slot] = coreCmd
-			coreCmdNextMailbox = (i + 1) % 512
-			return i
-		elseif silo == 1 && !coreCmdMailbox1[slot]
-			coreCmdMailbox1[slot] = coreCmd
-			coreCmdNextMailbox = (i + 1) % 512
-			return i
-		elseif silo == 2 && !coreCmdMailbox2[slot]
-			coreCmdMailbox2[slot] = coreCmd
-			coreCmdNextMailbox = (i + 1) % 512
-			return i
-		elseif silo == 3 && !coreCmdMailbox3[slot]
-			coreCmdMailbox3[slot] = coreCmd
-			coreCmdNextMailbox = (i + 1) % 512
-			return i
-		endif
-
-		iterCount += 1
-		i = (i + 1) % 512
-	endwhile
-	
-	Debug.Trace("sl_triggers: Main: coreCmdMailbox full (unlikely?)")
-	return -1
-EndFunction
-
-sl_triggersCmd Function GetCoreCmdFromMailbox(int mailbox)
-	int silo = SiloFromMailbox(mailbox)
-	int slot = SlotFromMailbox(mailbox)
-
-	if silo == 0
-		return coreCmdMailbox0[slot] as sl_triggersCmd
-	elseif silo == 1
-		return coreCmdMailbox1[slot] as sl_triggersCmd
-	elseif silo == 2
-		return coreCmdMailbox2[slot] as sl_triggersCmd
-	elseif silo == 3
-		return coreCmdMailbox3[slot] as sl_triggersCmd
-	else
-		Debug.Trace("sl_triggers: Invalid silo in GetCoreCmdFromMailbox: " + silo)
-		return none
-	endif
-EndFunction
-
-Function ReleaseCoreMailbox(int mailbox)
-	int silo = SiloFromMailbox(mailbox)
-	int slot = SlotFromMailbox(mailbox)
-
-	if silo == 0
-		coreCmdMailbox0[slot] = none
-	elseif silo == 1
-		coreCmdMailbox1[slot] = none
-	elseif silo == 2
-		coreCmdMailbox2[slot] = none
-	elseif silo == 3
-		coreCmdMailbox3[slot] = none
-	else
-		Debug.Trace("sl_triggers: Invalid silo in ReleaseCoreMailbox: " + silo)
 	endif
 EndFunction
 

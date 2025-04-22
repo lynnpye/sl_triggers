@@ -158,12 +158,6 @@ Function SLTOnEffectStart(Actor akCaster)
 			self.Dispel()
 			return
 		endif
-		
-		;/
-		int CmdPrimaryMailbox = Heap_IntGetFK(CmdTargetActor, MakeInstanceKey(coreInstanceId, "CmdPrimaryMailbox"))
-		CmdPrimary = SLT.GetCoreCmdFromMailbox(CmdPrimaryMailbox)
-		CmdPrimary.SupportCheckin(self)
-		/;
 	Endif
 	
 	SafeRegisterForModEvent_AME(self, _slt_GetClusterEvent(), "_slt_OnSLTAMEClusterEvent")

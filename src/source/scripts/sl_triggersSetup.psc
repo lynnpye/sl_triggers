@@ -6,8 +6,8 @@ import sl_triggersHeap
 
 ; CONSTANTS
 int			CARDS_PER_PAGE = 5
-string		SLTSETUPCONST = "sl_triggersSetup"
-string		ADD_BUTTON = "--ADDNEWITEM--"
+string		PSEUDO_INSTANCE_KEY = "sl_triggersSetup"
+
 string		DELETE_BUTTON = "--DELETETHISITEM--"
 string		RESTORE_BUTTON = "--RESTORETHISITEM--"
 
@@ -51,7 +51,6 @@ string[]	attributeNames
 string		currentSLTPage
 string		_currentExtensionKey
 
-;bool 		readinessCheck
 int			headerIndex
 int			extensionIndex
 int			currentCardination
@@ -84,7 +83,10 @@ endEvent
 
 
 
-
+; Breaking from my typical format, I moved a subset of Functions toward the top
+; above a large number of, while of very slight technical interest, are, in fact, 
+; rote, Event handlers.
+; These Functions will be of use to use in crafting your own PopulateMCM().
 
 
 
@@ -1257,23 +1259,23 @@ EndFunction
 ; getters
 
 int Function GetOidCount()
-	return Heap_IntListCountX(self, SLTSETUPCONST, "oidlist")
+	return Heap_IntListCountX(self, PSEUDO_INSTANCE_KEY, "oidlist")
 EndFunction
 
 int[] Function GetOids()
-	return Heap_IntListToArrayX(self, SLTSETUPCONST, "oidlist")
+	return Heap_IntListToArrayX(self, PSEUDO_INSTANCE_KEY, "oidlist")
 EndFunction
 
 int Function GetOid(int _oidIndex)
-	return Heap_IntListGetX(self, SLTSETUPCONST, "oidlist", _oidIndex)
+	return Heap_IntListGetX(self, PSEUDO_INSTANCE_KEY, "oidlist", _oidIndex)
 EndFunction
 
 string Function GetOidTriggerKey(int _oid)
-	return Heap_StringGetX(self, SLTSETUPCONST, "oid-" + _oid + "-tri")
+	return Heap_StringGetX(self, PSEUDO_INSTANCE_KEY, "oid-" + _oid + "-tri")
 EndFunction
 
 string Function GetOidAttributeName(int _oid)
-	return Heap_StringGetX(self, SLTSETUPCONST, "oid-" + _oid + "-att")
+	return Heap_StringGetX(self, PSEUDO_INSTANCE_KEY, "oid-" + _oid + "-att")
 EndFunction
 
 bool Function IsOidVisibilityKey(int _oid)
@@ -1290,205 +1292,205 @@ bool Function IsOidVisibilityKey(int _oid)
 EndFunction
 
 bool Function HasExtensionVisibilityKey(string _extensionKey)
-	return Heap_StringHasX(self, SLTSETUPCONST, TK_visibilityKey(_extensionKey))
+	return Heap_StringHasX(self, PSEUDO_INSTANCE_KEY, TK_visibilityKey(_extensionKey))
 EndFunction
 
 string Function GetExtensionVisibilityKey(string _extensionKey)
-	return Heap_StringGetX(self, SLTSETUPCONST, TK_visibilityKey(_extensionKey))
+	return Heap_StringGetX(self, PSEUDO_INSTANCE_KEY, TK_visibilityKey(_extensionKey))
 EndFunction
 
 int Function GetTriggerCount(string _extensionKey)
-	return Heap_StringListCountX(self, SLTSETUPCONST, TK_triggerKeys(_extensionKey))
+	return Heap_StringListCountX(self, PSEUDO_INSTANCE_KEY, TK_triggerKeys(_extensionKey))
 EndFunction
 
 string[] Function GetTriggers(string _extensionKey)
-	return Heap_StringListToArrayX(self, SLTSETUPCONST, TK_triggerKeys(_extensionKey))
+	return Heap_StringListToArrayX(self, PSEUDO_INSTANCE_KEY, TK_triggerKeys(_extensionKey))
 EndFunction
 
 string Function GetTrigger(string _extensionKey, int _triggerIndex)
-	return Heap_StringListGetX(self, SLTSETUPCONST, TK_triggerKeys(_extensionKey), _triggerIndex)
+	return Heap_StringListGetX(self, PSEUDO_INSTANCE_KEY, TK_triggerKeys(_extensionKey), _triggerIndex)
 EndFunction
 
 int Function GetAttributeNameCount(string _extensionKey)
-	return Heap_StringListCountX(self, SLTSETUPCONST, TK_attributeNames(_extensionKey))
+	return Heap_StringListCountX(self, PSEUDO_INSTANCE_KEY, TK_attributeNames(_extensionKey))
 EndFunction
 
 string[] Function GetAttributeNames(string _extensionKey)
-	return Heap_StringListToArrayX(self, SLTSETUPCONST, TK_attributeNames(_extensionKey))
+	return Heap_StringListToArrayX(self, PSEUDO_INSTANCE_KEY, TK_attributeNames(_extensionKey))
 EndFunction
 
 bool Function HasAttrVisibleOnlyIf(string _extensionKey, string _attributeName)
-	return Heap_StringHasX(self, SLTSETUPCONST, TK_attr_visibleOnlyIf(_extensionKey, _attributeName))
+	return Heap_StringHasX(self, PSEUDO_INSTANCE_KEY, TK_attr_visibleOnlyIf(_extensionKey, _attributeName))
 EndFunction
 
 string Function GetAttrVisibleOnlyIf(string _extensionKey, string _attributeName)
-	return Heap_StringGetX(self, SLTSETUPCONST, TK_attr_visibleOnlyIf(_extensionKey, _attributeName))
+	return Heap_StringGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_visibleOnlyIf(_extensionKey, _attributeName))
 EndFunction
 
 int Function GetAttrWidget(string _ext, string _attr)
-	return Heap_IntGetX(self, SLTSETUPCONST, TK_attr_widget(_ext, _attr))
+	return Heap_IntGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_widget(_ext, _attr))
 EndFunction
 
 int Function GetAttrType(string _ext, string _attr)
-	return Heap_IntGetX(self, SLTSETUPCONST, TK_attr_type(_ext, _attr))
+	return Heap_IntGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_type(_ext, _attr))
 EndFunction
 
 float Function GetAttrMinValue(string _ext, string _attr)
-	return Heap_FloatGetX(self, SLTSETUPCONST, TK_attr_minValue(_ext, _attr))
+	return Heap_FloatGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_minValue(_ext, _attr))
 EndFunction
 
 float Function GetAttrMaxValue(string _ext, string _attr)
-	return Heap_FloatGetX(self, SLTSETUPCONST, TK_attr_maxValue(_ext, _attr))
+	return Heap_FloatGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_maxValue(_ext, _attr))
 EndFunction
 
 float Function GetAttrInterval(string _ext, string _attr)
-	return Heap_FloatGetX(self, SLTSETUPCONST, TK_attr_interval(_ext, _attr))
+	return Heap_FloatGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_interval(_ext, _attr))
 EndFunction
 
 int Function GetAttrDefaultValue(string _ext, string _attr)
-	return Heap_IntGetX(self, SLTSETUPCONST, TK_attr_defaultValue(_ext, _attr))
+	return Heap_IntGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_defaultValue(_ext, _attr))
 EndFunction
 
 float Function GetAttrDefaultFloat(string _ext, string _attr)
-	return Heap_FloatGetX(self, SLTSETUPCONST, TK_attr_defaultFloat(_ext, _attr))
+	return Heap_FloatGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_defaultFloat(_ext, _attr))
 EndFunction
 
 string Function GetAttrDefaultString(string _ext, string _attr)
-	return Heap_StringGetX(self, SLTSETUPCONST, TK_attr_defaultString(_ext, _attr))
+	return Heap_StringGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_defaultString(_ext, _attr))
 EndFunction
 
 string Function GetAttrLabel(string _ext, string _attr)
-	return Heap_StringGetX(self, SLTSETUPCONST, TK_attr_label(_ext, _attr))
+	return Heap_StringGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_label(_ext, _attr))
 EndFunction
 
 string Function GetAttrFormatString(string _ext, string _attr)
-	return Heap_StringGetX(self, SLTSETUPCONST, TK_attr_formatString(_ext, _attr))
+	return Heap_StringGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_formatString(_ext, _attr))
 EndFunction
 
 int Function GetAttrDefaultIndex(string _ext, string _attr)
-	return Heap_IntGetX(self, SLTSETUPCONST, TK_attr_defaultIndex(_ext, _attr))
+	return Heap_IntGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_defaultIndex(_ext, _attr))
 EndFunction
 
 int Function GetAttrMenuSelectionsCount(string _ext, string _attr)
-	return Heap_StringListCountX(self, SLTSETUPCONST, TK_attr_menuSelections(_ext, _attr))
+	return Heap_StringListCountX(self, PSEUDO_INSTANCE_KEY, TK_attr_menuSelections(_ext, _attr))
 EndFunction
 
 string[] Function GetAttrMenuSelections(string _ext, string _attr)
-	return Heap_StringListToArrayX(self, SLTSETUPCONST, TK_attr_menuSelections(_ext, _attr))
+	return Heap_StringListToArrayX(self, PSEUDO_INSTANCE_KEY, TK_attr_menuSelections(_ext, _attr))
 EndFunction
 
 string Function GetAttrMenuSelectionAt(string _ext, string _attr, int _index)
-	return Heap_StringListGetX(self, SLTSETUPCONST, TK_attr_menuSelections(_ext, _attr), _index)
+	return Heap_StringListGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_menuSelections(_ext, _attr), _index)
 EndFunction
 
 int Function GetAttrMenuSelectionIndex(string _ext, string _attr, string _selection)
-	return Heap_StringListFindX(self, SLTSETUPCONST, TK_attr_menuSelections(_ext, _attr), _selection)
+	return Heap_StringListFindX(self, PSEUDO_INSTANCE_KEY, TK_attr_menuSelections(_ext, _attr), _selection)
 EndFunction
 
 bool Function HasAttrHighlight(string _ext, string _attr)
-	return Heap_StringHasX(self, SLTSETUPCONST, TK_attr_highlight(_ext, _attr))
+	return Heap_StringHasX(self, PSEUDO_INSTANCE_KEY, TK_attr_highlight(_ext, _attr))
 EndFunction
 
 string Function GetAttrHighlight(string _ext, string _attr)
-	return Heap_StringGetX(self, SLTSETUPCONST, TK_attr_highlight(_ext, _attr))
+	return Heap_StringGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_highlight(_ext, _attr))
 EndFunction
 
 ; setters
 int Function AddOid(int _oid, string _extensionKey, string _triggerKey, string _attrName)
-	Heap_StringSetX(self, SLTSETUPCONST, "oid-" + _oid + "-tri", _triggerKey)
-	Heap_StringSetX(self, SLTSETUPCONST, "oid-" + _oid + "-att", _attrName)
-	return Heap_IntListAddX(self, SLTSETUPCONST, "oidlist", _oid)
+	Heap_StringSetX(self, PSEUDO_INSTANCE_KEY, "oid-" + _oid + "-tri", _triggerKey)
+	Heap_StringSetX(self, PSEUDO_INSTANCE_KEY, "oid-" + _oid + "-att", _attrName)
+	return Heap_IntListAddX(self, PSEUDO_INSTANCE_KEY, "oidlist", _oid)
 EndFunction
 
 int Function AddTrigger(string _extensionKey, string _value)
-	return Heap_StringListAddX(self, SLTSETUPCONST, TK_triggerKeys(_extensionKey), _value, false)
+	return Heap_StringListAddX(self, PSEUDO_INSTANCE_KEY, TK_triggerKeys(_extensionKey), _value, false)
 EndFunction
 
 ; SetTriggers
 ; Tells setup the triggerKeys specific to your extension.
 ; Overwrites any previous values.
 string Function SetExtensionVisibilityKey(string _extensionKey, string _attributeName)
-	return Heap_StringSetX(self, SLTSETUPCONST, TK_visibilityKey(_extensionKey), _attributeName)
+	return Heap_StringSetX(self, PSEUDO_INSTANCE_KEY, TK_visibilityKey(_extensionKey), _attributeName)
 EndFunction
 
 bool Function SetTriggers(string _extensionKey, string[] _triggerKeys)
-	return Heap_StringListCopyX(self, SLTSETUPCONST, TK_triggerKeys(_extensionKey), _triggerKeys)
+	return Heap_StringListCopyX(self, PSEUDO_INSTANCE_KEY, TK_triggerKeys(_extensionKey), _triggerKeys)
 EndFunction
 
 int Function AddAttributeName(string _extensionKey, string _value)
-	return Heap_StringListAddX(self, SLTSETUPCONST, TK_attributeNames(_extensionKey), _value, false)
+	return Heap_StringListAddX(self, PSEUDO_INSTANCE_KEY, TK_attributeNames(_extensionKey), _value, false)
 EndFunction
 
 bool Function SetAttributeNames(string _extensionKey, string[] _values)
-	return Heap_StringListCopyX(self, SLTSETUPCONST, TK_attributeNames(_extensionKey), _values)
+	return Heap_StringListCopyX(self, PSEUDO_INSTANCE_KEY, TK_attributeNames(_extensionKey), _values)
 EndFunction
 
 string Function SetAttrVisibleOnlyIf(string _extensionKey, string _attributeName, string _requiredKeyAttributeValue)
-	return Heap_StringSetX(self, SLTSETUPCONST, TK_attr_visibleOnlyIf(_extensionKey, _attributeName), _requiredKeyAttributeValue)
+	return Heap_StringSetX(self, PSEUDO_INSTANCE_KEY, TK_attr_visibleOnlyIf(_extensionKey, _attributeName), _requiredKeyAttributeValue)
 EndFunction
 
 int Function SetAttrWidget(string _ext, string _attr, int _value)
 	AddAttributeName(_ext, _attr)
-	return Heap_IntSetX(self, SLTSETUPCONST, TK_attr_widget(_ext, _attr), _value)
+	return Heap_IntSetX(self, PSEUDO_INSTANCE_KEY, TK_attr_widget(_ext, _attr), _value)
 EndFunction
 
 int Function SetAttrType(string _ext, string _attr, int _value)
 	AddAttributeName(_ext, _attr)
-	return Heap_IntSetX(self, SLTSETUPCONST, TK_attr_type(_ext, _attr), _value)
+	return Heap_IntSetX(self, PSEUDO_INSTANCE_KEY, TK_attr_type(_ext, _attr), _value)
 EndFunction
 
 float Function SetAttrMinValue(string _ext, string _attr, float _value)
 	AddAttributeName(_ext, _attr)
-	return Heap_FloatSetX(self, SLTSETUPCONST, TK_attr_minValue(_ext, _attr), _value)
+	return Heap_FloatSetX(self, PSEUDO_INSTANCE_KEY, TK_attr_minValue(_ext, _attr), _value)
 EndFunction
 
 float Function SetAttrMaxValue(string _ext, string _attr, float _value)
 	AddAttributeName(_ext, _attr)
-	return Heap_FloatSetX(self, SLTSETUPCONST, TK_attr_maxValue(_ext, _attr), _value)
+	return Heap_FloatSetX(self, PSEUDO_INSTANCE_KEY, TK_attr_maxValue(_ext, _attr), _value)
 EndFunction
 
 float Function SetAttrInterval(string _ext, string _attr, float _value)
 	AddAttributeName(_ext, _attr)
-	return Heap_FloatSetX(self, SLTSETUPCONST, TK_attr_interval(_ext, _attr), _value)
+	return Heap_FloatSetX(self, PSEUDO_INSTANCE_KEY, TK_attr_interval(_ext, _attr), _value)
 EndFunction
 
 int Function SetAttrDefaultValue(string _ext, string _attr, int _value)
 	AddAttributeName(_ext, _attr)
-	return Heap_IntSetX(self, SLTSETUPCONST, TK_attr_defaultValue(_ext, _attr), _value)
+	return Heap_IntSetX(self, PSEUDO_INSTANCE_KEY, TK_attr_defaultValue(_ext, _attr), _value)
 EndFunction
 
 float Function SetAttrDefaultFloat(string _ext, string _attr, float _value)
 	AddAttributeName(_ext, _attr)
-	return Heap_FloatSetX(self, SLTSETUPCONST, TK_attr_defaultFloat(_ext, _attr), _value)
+	return Heap_FloatSetX(self, PSEUDO_INSTANCE_KEY, TK_attr_defaultFloat(_ext, _attr), _value)
 EndFunction
 
 string Function SetAttrDefaultString(string _ext, string _attr, string _value)
 	AddAttributeName(_ext, _attr)
-	return Heap_StringSetX(self, SLTSETUPCONST, TK_attr_defaultString(_ext, _attr), _value)
+	return Heap_StringSetX(self, PSEUDO_INSTANCE_KEY, TK_attr_defaultString(_ext, _attr), _value)
 EndFunction
 
 string Function SetAttrLabel(string _ext, string _attr, string _value)
 	AddAttributeName(_ext, _attr)
-	return Heap_StringSetX(self, SLTSETUPCONST, TK_attr_label(_ext, _attr), _value)
+	return Heap_StringSetX(self, PSEUDO_INSTANCE_KEY, TK_attr_label(_ext, _attr), _value)
 EndFunction
 
 string Function SetAttrFormatString(string _ext, string _attr, string _value)
 	AddAttributeName(_ext, _attr)
-	return Heap_StringSetX(self, SLTSETUPCONST, TK_attr_formatString(_ext, _attr), _value)
+	return Heap_StringSetX(self, PSEUDO_INSTANCE_KEY, TK_attr_formatString(_ext, _attr), _value)
 EndFunction
 
 int Function SetAttrDefaultIndex(string _ext, string _attr, int _value)
 	AddAttributeName(_ext, _attr)
-	return Heap_IntSetX(self, SLTSETUPCONST, TK_attr_defaultIndex(_ext, _attr), _value)
+	return Heap_IntSetX(self, PSEUDO_INSTANCE_KEY, TK_attr_defaultIndex(_ext, _attr), _value)
 EndFunction
 
 bool Function SetAttrMenuSelections(string _ext, string _attr, string[] _values)
 	AddAttributeName(_ext, _attr)
-	return Heap_StringListCopyX(self, SLTSETUPCONST, TK_attr_menuSelections(_ext, _attr), _values)
+	return Heap_StringListCopyX(self, PSEUDO_INSTANCE_KEY, TK_attr_menuSelections(_ext, _attr), _values)
 EndFunction
 
 string Function SetAttrHighlight(string _ext, string _attr, string _value)
 	AddAttributeName(_ext, _attr)
-	return Heap_StringSetX(self, SLTSETUPCONST, TK_attr_highlight(_ext, _attr), _value)
+	return Heap_StringSetX(self, PSEUDO_INSTANCE_KEY, TK_attr_highlight(_ext, _attr), _value)
 EndFunction
 ; done

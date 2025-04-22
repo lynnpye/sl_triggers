@@ -380,6 +380,10 @@ Event _slt_OnSLTInternalReady(string eventName, string strArg, float numArg, For
 	_slt_RegisterExtension()
 
 	SLTReady()
+
+	if SLTMCM
+		SLTMCM.SetTriggers(GetExtensionKey(), TriggerKeys)
+	endif
 EndEvent
 
 Function _slt_BootstrapSLTInit()
@@ -410,9 +414,7 @@ Function _slt_RegisterExtension()
 	if !SLT
 		Debug.Trace("Extension.RegisterExtension: cannot locate global SLT instance, unable to register extension (" + GetExtensionKey() + ")")
 	endif
-	Heap_FormSetX(SLT, PSEUDO_INSTANCE_KEY(), SUKEY_EXTENSION_REGISTRATION_QUEUE() + GetExtensionKey(), self)
-	;Heap_FormListAddX(SLT, PSEUDO_INSTANCE_KEY(), SUKEY_EXTENSION_REGISTRATION_QUEUE(), self, false)
-	SendModEvent(EVENT_SLT_REGISTER_EXTENSION(), GetExtensionKey())
+	sl_triggersMain.SelfRegisterExtension(self)
 EndFunction
 
 Function _slt_PopulateMCM()
