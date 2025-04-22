@@ -344,3 +344,46 @@ bool function oper(string[] param)
 	return true
 endFunction
 EndState
+
+State cmd_sl_orgasm ;sl_orgasm "$partner2"
+bool function oper(string[] param)
+    if !MyExtension().SexLab || !thread
+        return true
+    endif
+
+    Actor mate = resolveActor(param[1])
+    if !mate
+        return true
+    endif
+
+    thread.ActorAlias(mate).OrgasmEffect()
+
+    return true
+endFunction
+EndState
+
+
+State cmd_hextun_test
+bool function oper(string[] param)
+    DebMsg("hextun_test")
+    ActiveMagicEffect[] ames = sl_triggers_internal.GetActiveMagicEffectsForActor(PlayerRef)
+
+    if !ames || ames.Length < 1
+        DebMsg("no ames? no dice")
+        return true
+    endif
+
+    int i = 0
+    while i < ames.Length
+        ActiveMagicEffect ame = ames[i]
+        SLSO_SpellGameScript gsc = ame as SLSO_SpellGameScript
+        if gsc
+            DebMsg("Found a match at (" + i + ")")
+        endif
+
+        i += 1
+    endwhile
+
+    return true
+endFunction
+EndState

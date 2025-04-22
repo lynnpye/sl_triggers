@@ -83,7 +83,7 @@ Function PopulateMCM()
 	endif
 	string[] triggerIfEventNames	= PapyrusUtil.StringArray(3)
 	triggerIfEventNames[0]			= "- Select an Event -"
-	triggerIfEventNames[1]			= "Keymapping"
+	triggerIfEventNames[1]			= "Key Mapping"
 	triggerIfEventNames[2]			= "Top of the Hour"
 	DescribeMenuAttribute(ATTR_EVENT, PTYPE_INT(), "Event:", 0, triggerIfEventNames)
 	SetHighlightText(ATTR_EVENT, "Choose which type of event this trigger will use.")

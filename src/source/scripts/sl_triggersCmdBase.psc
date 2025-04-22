@@ -129,6 +129,7 @@ Function SLTOnEffectStart(Actor akCaster)
 	
 	; these two lines combined should be enough to get in the game
 	SafeRegisterForModEvent_AME(self, EVENT_SLT_HEARTBEAT(), "_slt_OnSLTHeartbeat")
+	SafeRegisterForModEvent_AME(self, EVENT_SLT_RESET(), "_slt_OnSLTReset")
 	
 	;SendModEvent(EVENT_SLT_AME_HEARTBEAT_UPDATE(), _slt_GetHeartbeatEvent(), 1.0)
 	
@@ -178,6 +179,11 @@ Event _slt_OnSLTAMEClusterEvent(string eventName, string strArg, float numArg, F
 EndEvent
 
 Event _slt_OnSLTHeartbeat(string eventName, string strArg, float numArg, Form sender)
+EndEvent
+
+Event _slt_OnSLTReset(string eventName, string strArg, float numArg, Form sender)
+	UnregisterForAllModEvents()
+	self.Dispel()
 EndEvent
 
 ; vars_get

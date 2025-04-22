@@ -62,10 +62,12 @@ EndProperty
 ; Variables
 int			oidEnabled
 int			oidDebugMsg
+int			oidResetSLT
 int			oidCardinatePrevious
 int			oidCardinateNext
 int			oidAddTop
 int			oidAddBottom
+bool		refreshOnClose
 
 string[]	headerPages
 string[]	extensionPages
@@ -113,6 +115,10 @@ EndEvent
 
 event OnConfigClose()
 	SLT.SendInternalSettingsUpdateEvents()
+	if refreshOnClose
+		refreshOnClose = false
+		SLT.DoInMemoryReset()
+	endif
 endEvent
 
 ;/
@@ -248,6 +254,13 @@ Event OnOptionSelect(int option)
 		SLT.bDebugMsg = !SLT.bDebugMsg
 		SetToggleOptionValue(option, SLT.bDebugMsg)
 		
+		return
+	elseIf option == oidResetSLT
+		
+		string msg = "This should be perfectly safe, but you will have to close the MCM for the settings to take effect.\nDo you wish to proceed?"
+		
+		refreshOnClose = ShowMessage(msg, true, "$Yes", "$No")
+
 		return
 	elseIf option == oidCardinatePrevious
 		currentCardination -= 1
@@ -543,19 +556,18 @@ Function ShowExtensionPage()
 					if visibilityKeyAttribute && HasAttrVisibleOnlyIf(extensionKey, attrName)
 						string visibleOnlyIfValueIs = GetAttrVisibleOnlyIf(extensionKey, attrName)
 						
+						allowedVisible = false
+
 						string tval
 						if Trigger_IntHasX(extensionKey, triggerKey, visibilityKeyAttribute)
 							tval = Trigger_IntGetX(extensionKey, triggerKey, visibilityKeyAttribute) as string
+							allowedVisible = (tval == visibleOnlyIfValueIs)
 						elseif Trigger_StringHasX(extensionKey, triggerKey, visibilityKeyAttribute)
 							tval = Trigger_StringGetX(extensionKey, triggerKey, visibilityKeyAttribute)
+							allowedVisible = (tval == visibleOnlyIfValueIs)
 						else
 							; they specified it, it somehow got past, and now we have to deal with it
 							; or ignore it
-							Debug.Trace("MCM: visibilityKeyAttribute (" + visibilityKeyAttribute + ") specified but neither int nor string available for current trigger")
-						endif
-						
-						if !tval || tval != visibleOnlyIfValueIs
-							allowedVisible = false
 						endif
 					endif
 					
@@ -716,6 +728,9 @@ Function ShowHeaderPage()
 	AddHeaderOption("Global settings")
 	oidEnabled    = AddToggleOption("Enable", SLT.bEnabled)
 	oidDebugMsg   = AddToggleOption("Debug messages", SLT.bDebugMsg)
+	AddEmptyOption()
+	AddEmptyOption()
+	oidResetSLT		= AddTextOption("Reset SL Triggers", "")
 EndFunction
 
 Function PageChanged()

@@ -17,7 +17,7 @@ function DebMsgForce(string msg, bool shouldIDoAnything) global
 endfunction
 
 int Function GetModVersion() global
-	return 100
+	return 101
 EndFunction
 
 ;;;;;;;;;
@@ -53,6 +53,10 @@ EndFunction
 ; SLT receives these from extensions for registration
 string Function EVENT_SLT_REGISTER_EXTENSION() global
 	return "_slt_event_slt_register_extension_"
+EndFunction
+
+string Function EVENT_SLT_RESET() global
+	return "_slt_event_slt_slt_reset_all_systems_"
 EndFunction
 
 ;;;;;;;

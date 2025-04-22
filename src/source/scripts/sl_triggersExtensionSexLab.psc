@@ -25,10 +25,10 @@ string[]	triggerKeys_Stop
 string[]	triggerKeys_Orgasm_S
 
 
-string	EVENT_ID_START 			= "1"
-string	EVENT_ID_ORGASM			= "2"
-string	EVENT_ID_STOP			= "3"
-string	EVENT_ID_ORGASM_SLSO	= "4"
+int		EVENT_ID_START 			= 1
+int		EVENT_ID_ORGASM			= 2
+int		EVENT_ID_STOP			= 3
+int		EVENT_ID_ORGASM_SLSO	= 4
 string	ATTR_EVENT				= "event"
 string	ATTR_CHANCE				= "chance"
 string	ATTR_RACE				= "race"
@@ -235,13 +235,13 @@ Function RefreshTriggerCache()
 	int i = 0
 	while i < TriggerKeys.Length
 		int eventCode = GetEventCode(TriggerKeys[i])
-		if eventCode == 0
+		if eventCode == EVENT_ID_START
 			triggerKeys_Start = PapyrusUtil.PushString(triggerKeys_Start, TriggerKeys[i])
-		elseif eventCode == 1
+		elseif eventCode == EVENT_ID_ORGASM
 			triggerKeys_Orgasm = PapyrusUtil.PushString(triggerKeys_Orgasm, TriggerKeys[i])
-		elseif eventCode == 2
+		elseif eventCode == EVENT_ID_STOP
 			triggerKeys_Stop = PapyrusUtil.PushString(triggerKeys_Stop, TriggerKeys[i])
-		elseif eventCode == 3
+		elseif eventCode == EVENT_ID_ORGASM_SLSO
 			triggerKeys_Orgasm_S = PapyrusUtil.PushString(triggerKeys_Orgasm_S, TriggerKeys[i])
 		endif
 		

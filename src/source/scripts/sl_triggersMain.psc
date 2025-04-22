@@ -27,7 +27,6 @@ sl_triggersSetup	Property SLTMCM					Auto
 bool				Property bEnabled		= true	Auto Hidden
 bool				Property bDebugMsg		= false	Auto Hidden
 Form[]				Property Extensions				Auto Hidden
-Form[]				Property ExtensionBuffer		Auto Hidden
 ; this is my buffer. there are many like it, but this one is mine. my buffer is my best friend. it is my life. i must master it as i must master my life.
 ActiveMagicEffect[]	Property coreCmdMailbox0		Auto Hidden
 ActiveMagicEffect[]	Property coreCmdMailbox1		Auto Hidden
@@ -40,8 +39,6 @@ int			coreCmdNextMailbox
 int 		coreCmdNextSilo
 int			coreCmdNextSlot
 int			_registrationBeaconCount
-float		TimeToPopulateMCM
-float		TimeToSendReady
 string[]	commandsListCache
 ;string[]	heartbeatEvents
 string[]	settingsUpdateEvents
@@ -60,8 +57,7 @@ Event OnInit()
 		return
 	endif
 
-	StorageUtil.SetFormValue(none, SUKEY_GLOBAL_INSTANCE(), self)
-	BootstrapSLTInit()
+	OnInitBody()
 EndEvent
 
 Event OnUpdate()
@@ -124,6 +120,11 @@ EndEvent
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Functions
+Function OnInitBody()
+	StorageUtil.SetFormValue(none, SUKEY_GLOBAL_INSTANCE(), self)
+	BootstrapSLTInit()
+EndFunction
+
 Function BootstrapSLTInit()
 	if !self
 		return
@@ -274,6 +275,19 @@ Function DoRegistrationActivity(string _extensionKeyToRegister)
 		
 		SLTMCM.SetExtensionPages(extensionFriendlyNames, extensionKeys)
 	endif
+EndFunction
+
+Function DoInMemoryReset()
+	SLTMCM.ClearSetupHeap()
+
+	commandsListCache				= none
+	coreCmdMailbox0					= none
+	coreCmdMailbox1					= none
+	coreCmdMailbox2					= none
+	coreCmdMailbox3					= none
+
+	SendModEvent(EVENT_SLT_RESET())
+	OnInitBody()
 EndFunction
 
 Function QueueUpdateLoop(float afDelay = 1.0)
