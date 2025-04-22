@@ -4,10 +4,8 @@ import sl_triggersStatics
 import sl_triggersHeap
 import sl_triggersFile
 
-; CONSTANTS
-float	SECONDS_FOR_TIMEOUT_WAITING_FOR_SUPPORT = 1.5 ; seems really big
 
-; PropertiesProperty stack Auto Hidden
+; Properties
 int			Property lastKey Auto Hidden
 Actor		Property iterActor Auto Hidden
 
@@ -21,7 +19,6 @@ string[]	gotoLabels
 int			gotoCnt 
 bool		deferredInitNeeded
 bool		clusterDispelSent
-float       supportTimeoutTime
 
 ActiveMagicEffect[]		supportCmds
 
@@ -174,20 +171,12 @@ Function _addGoto(int _idx, string _label)
     gotoIdx[gotoCnt] = _idx
     gotoLabels[gotoCnt] = _label
     gotoCnt += 1
-    
-    ;idx = 0
-    ;while idx < gotoCnt
-    ;    MiscUtil.PrintConsole("Goto list: " + idx + ", " + gotoLabels[idx] + ", " + gotoIdx[idx])
-    ;    idx += 1
-    ;endWhile
-    
 EndFunction
 
 Int Function _findGoto(string _label, int _cmdIdx, string _cmdtype)
     int idx
     
     idx = gotoLabels.find(_label)
-    ;MiscUtil.PrintConsole("Goto find1: " + _label + ", " + idx)
     if idx >= 0
         return gotoIdx[idx]
     endIf
@@ -195,16 +184,12 @@ Int Function _findGoto(string _label, int _cmdIdx, string _cmdtype)
     string[] cmdLine1
     string   code
     
-    ;MiscUtil.PrintConsole("Label not found")
-    
     idx = _cmdIdx + 1
     while idx < cmdNum
         cmdLine1 = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), "OperationList[" + idx + "]")
         ;cmdLine1 = JsonUtil.PathStringElements(cmdName, ".cmd[" + idx + "]")
-        ;MiscUtil.PrintConsole(cmdLine1[0])
         if cmdLine1.Length
             if (_cmdtype == "json" && cmdLine1[0] == ":") || (_cmdtype == "ini" && cmdLine1.Length == 1 && StringUtil.GetNthChar(cmdLine1[0], 0) == "[" && StringUtil.GetNthChar(cmdLine1[0], StringUtil.GetLength(cmdLine1[0]) - 1) == "]")
-                ;MiscUtil.PrintConsole("add new label")
                 if _cmdtype == "json"
                     _addGoto(idx, cmdLine1[1])
                 elseif _cmdtype == "ini"
@@ -216,11 +201,9 @@ Int Function _findGoto(string _label, int _cmdIdx, string _cmdtype)
     endWhile
 
     idx = gotoLabels.find(_label)
-    ;MiscUtil.PrintConsole("Goto find2: " + _label + ", " + idx)
     if idx >= 0
         return gotoIdx[idx]
     endIf
-    ;MiscUtil.PrintConsole("Goto notfound: " + _label + ", " + idx)
     return cmdNum
 EndFunction
 
@@ -306,7 +289,6 @@ string Function exec()
                 cmdIdx += 1
             elseIf code == "goto"
                 cmdIdx = _findGoto(cmdLine[1], cmdIdx, cmdtype)
-                ;MiscUtil.PrintConsole("Goto: " + cmdIdx)
                 cmdIdx += 1
             elseIf code == "if"
                 ; ["if", "$$", "=", "0", "end"],
@@ -316,7 +298,6 @@ string Function exec()
                 ifTrue = resolveCond(p1, p2, po)
                 if ifTrue
                     cmdIdx = _findGoto(cmdLine[4], cmdIdx, cmdtype)
-                    ;MiscUtil.PrintConsole("GotoIf: " + cmdIdx)
                 endIf
                 cmdIdx += 1
             elseIf code == "return"

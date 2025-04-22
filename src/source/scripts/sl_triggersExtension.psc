@@ -142,6 +142,19 @@ EndFunction
 Function PopulateMCM()
 EndFunction
 
+;/
+OnSLTSettingsUpdated
+OPTIONAL
+All necessary updates relevant to the standard operation of the MCM is already handled.
+If you want to do anything extra though, you can override this handler. It will
+be registered at bootstrap.
+/;
+Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
+	if !self
+		return
+	endif
+EndEvent
+
 ; bool IsEnabled
 ; enabled status for this extension
 ; returns - true if BOTH sl_triggers AND this extension are enabled; false otherwise
@@ -346,7 +359,6 @@ string				Property currentTriggerId Auto Hidden ; used for simple iteration
 
 ; used to generate a stream of unique ids for each sl_triggersCmd
 int		oneupnumber
-;string	heartbeatEvent 
 string	settingsUpdateEvent 
 string	gameLoadedEvent 
 string internalReadyEvent 
@@ -370,12 +382,6 @@ Event _slt_OnSLTInternalReady(string eventName, string strArg, float numArg, For
 	SLTReady()
 EndEvent
 
-Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
-	if !self
-		return
-	endif
-EndEvent
-
 Function _slt_BootstrapSLTInit()
 	if !self
 		return
@@ -390,10 +396,7 @@ Function _slt_BootstrapSLTInit()
 	if !ActorTypeUndead
 		ActorTypeUndead = Game.GetFormFromFile(0x13796, "Skyrim.esm") as Keyword
 	endif
-
-	;SafeRegisterForModEvent_Quest(self, _slt_GetHeartbeatEvent(), "_slt_OnSLTHeartbeat")
 	
-	;SafeRegisterForModEvent_Quest(self, _slt_GetInternalReadyEvent(), "_slt_OnSLTInternalReady")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_INTERNAL_READY_EVENT(), "_slt_OnSLTInternalReady")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTSettingsUpdated")
 	SafeRegisterForModEvent_Quest(self, _slt_GetSettingsUpdateEvent(), "_slt_OnSLTSettingsUpdated")
@@ -419,15 +422,6 @@ Function _slt_PopulateMCM()
 	SLTMCM.ClearSetupExtensionKeyHeap(GetExtensionKey())
 	PopulateMCM()
 EndFunction
-
-;/
-string Function _slt_GetHeartbeatEvent()
-	if !heartbeatEvent
-		heartbeatEvent = "_slt_SLT_HEARTBEAT_" + (Utility.RandomInt(100000, 999999) as string)
-	endif
-	return heartbeatEvent
-EndFunction
-/;
 
 string Function _slt_GetSettingsUpdateEvent()
 	if !settingsUpdateEvent
