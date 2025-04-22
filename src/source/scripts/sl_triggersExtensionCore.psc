@@ -1,35 +1,27 @@
 ;/
 You can use this as a reference for building your own sl_triggers Extension.
 Required and Optional overrides have been noted.
-
-As long as your event handlers run quickly, it should be okay to have them
-all in one extension, which makes even more sense if they are related
-i.e. all from the same mod. If, however, you expect some heavy lifting to
-be performed while inside your event handler (which is generally NOT 
-recommended), then you would be advised to at least have that handler
-in it's own separate extension so that it won't block handling of the
-other events
 /;
 scriptname sl_triggersExtensionCore extends sl_triggersExtension
 
 import sl_triggersStatics
 import sl_triggersFile
 
-string EVENT_TOP_OF_THE_HOUR			= "TopOfTheHour"
-string EVENT_TOP_OF_THE_HOUR_HANDLER	= "OnTopOfTheHour"
-string	SETTINGS_DYNAMICACTIVATIONKEY_MODNAME = "DynamicActivationKey_modname"
-string	DEFAULT_DYNAMICACTIVATIONKEY_MODFILE = "Dynamic Activation Key.esp"
+string	EVENT_TOP_OF_THE_HOUR					= "TopOfTheHour"
+string	EVENT_TOP_OF_THE_HOUR_HANDLER			= "OnTopOfTheHour"
+string	SETTINGS_DYNAMICACTIVATIONKEY_MODNAME 	= "DynamicActivationKey_modname"
+string	DEFAULT_DYNAMICACTIVATIONKEY_MODFILE 	= "Dynamic Activation Key.esp"
 
-string	EVENT_ID_KEYMAPPING 		= "1"
-string	EVENT_ID_TOP_OF_THE_HOUR	= "2"
-string	ATTR_EVENT				= "event"
-string	ATTR_KEYMAPPING			= "keymapping"
-string	ATTR_MODIFIERKEYMAPPING = "modifierkeymapping"
-string	ATTR_USEDAK				= "usedak"
-string	ATTR_CHANCE				= "chance"
-string	ATTR_DO_1				= "do_1"
-string	ATTR_DO_2				= "do_2"
-string	ATTR_DO_3				= "do_3"
+string	EVENT_ID_KEYMAPPING 					= "1"
+string	EVENT_ID_TOP_OF_THE_HOUR				= "2"
+string	ATTR_EVENT								= "event"
+string	ATTR_KEYMAPPING							= "keymapping"
+string	ATTR_MODIFIERKEYMAPPING 				= "modifierkeymapping"
+string	ATTR_USEDAK								= "usedak"
+string	ATTR_CHANCE								= "chance"
+string	ATTR_DO_1								= "do_1"
+string	ATTR_DO_2								= "do_2"
+string	ATTR_DO_3								= "do_3"
 
 GlobalVariable		Property DAKStatus				Auto Hidden
 Bool				Property DAKAvailable			Auto Hidden
@@ -41,6 +33,7 @@ float				Property NextTopOfTheHour		Auto Hidden
 
 ; Variables
 bool	handlingTopOfTheHour = false ; only because the check is in a sensitive event handler
+
 ; this will contain a deduplicated list of all keycodes of interest, including modifiers
 ; so with 4 keycodes and 2 modifiers (assuming none of the modifiers are themselves also keycodes) this would be 6 in length
 int[]		_keycodes_of_interest
@@ -52,31 +45,42 @@ bool[]		_keycode_status
 string[]	triggerKeys_topOfTheHour
 string[]	triggerKeys_keyDown
 
+; GetExtensionKey
+; OVERRIDE REQUIRED
+; returns: the unique string identifier for this extension
+string Function GetExtensionKey()
+	return "sl_triggersExtensionCore"
+EndFunction
+
+; GetFriendlyName
+; OVERRIDE RECOMMENDED
+string Function GetFriendlyName()
+	return "SLT Core"
+EndFunction
+
+;/
+I chose 10000 here because I am adding minor functionality and not
+overriding anything in core. There is plenty of room between me
+and core for other extensions to slide in.
+/;
+; GetPriority
+; OPTIONAL
+; 0 is roughly "built-in"
+; <0 has higher priority (think first in line to take a crack at the operation)
+int Function GetPriority()
+	return 10000
+EndFunction
+
 Event OnInit()
 	if !self
 		return
 	endif
+	; REQUIRED CALL
 	SLTInit()
 EndEvent
 
-Function SLTReady()
-	UpdateDAKStatus()
-	RefreshData()
-EndFunction
-
-Function RefreshData()
-	RefreshTriggerCache()
-	RegisterEvents()
-EndFunction
-
-; configuration was updated mid-game
-Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
-	if !self
-		return
-	endif
-	RefreshData()
-EndEvent
-
+; PopulateMCM
+; OVERRIDE HIGHLY RECOMMENDED
 Function PopulateMCM()
 	if !self
 		return
@@ -118,8 +122,25 @@ Function PopulateMCM()
 	SetVisibleOnlyIf(ATTR_USEDAK, 				EVENT_ID_KEYMAPPING)
 	
 	SetVisibleOnlyIf(ATTR_CHANCE, EVENT_ID_TOP_OF_THE_HOUR)
-	
 EndFunction
+
+Function SLTReady()
+	UpdateDAKStatus()
+	RefreshData()
+EndFunction
+
+Function RefreshData()
+	RefreshTriggerCache()
+	RegisterEvents()
+EndFunction
+
+; configuration was updated mid-game
+Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
+	if !self
+		return
+	endif
+	RefreshData()
+EndEvent
 
 Event OnUpdateGameTime()
 	if !self
@@ -186,26 +207,6 @@ Event OnKeyDown(Int KeyCode)
 	
 	HandleOnKeyDown()
 EndEvent
-
-; GetExtensionKey
-; OVERRIDE REQUIRED
-; returns: the unique string identifier for this extension
-string Function GetExtensionKey()
-	return "sl_triggersExtensionCore"
-EndFunction
-
-string Function GetFriendlyName()
-	return "SLT Core"
-EndFunction
-
-;/
-I chose 10000 here because I am adding minor functionality and not
-overriding anything in core. There is plenty of room between me
-and core for other extensions to slide in.
-/;
-int Function GetPriority()
-	return 10000
-EndFunction
 
 Function RefreshTriggerCache()
 	triggerKeys_topOfTheHour = PapyrusUtil.StringArray(0)
@@ -306,9 +307,6 @@ Function RegisterEvents()
 	if bEnabled && triggerKeys_keyDown.Length > 0
 		RegisterForKeyEvents()
 	endif
-	
-	;UnregisterForModEvent(EVENT_SLT_GAME_LOADED())
-	;RegisterForModEvent(EVENT_SLT_GAME_LOADED(), EVENT_SLT_GAME_LOADED_HANDLER)
 EndFunction
 
 
@@ -324,7 +322,6 @@ Function UnregisterForKeyEvents()
 	UnregisterForAllKeys()
 EndFunction
 
-; WHERE WE ACTUALLY GET DOWN TO BUSINESS
 Function HandleTopOfTheHour()
 	int i = 0
 	string triggerKey

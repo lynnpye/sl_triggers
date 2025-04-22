@@ -309,7 +309,7 @@ Function SendSLTInternalReady()
 	if !self
 		return
 	endif
-	SendModEvent("SLT_INTERNAL_READY_EVENT")
+	SendModEvent(EVENT_SLT_INTERNAL_READY_EVENT())
 EndFunction
 
 Function SendDelayedSettingsUpdateEvent()

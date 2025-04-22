@@ -55,6 +55,11 @@ string Function EVENT_SLT_REGISTER_EXTENSION() global
 	return "_slt_event_slt_register_extension_"
 EndFunction
 
+;; Internal
+string Function EVENT_SLT_INTERNAL_READY_EVENT() global
+	return "_slt_event_slt_internal_ready_event_"
+EndFunction
+
 string Function EVENT_SLT_RESET() global
 	return "_slt_event_slt_slt_reset_all_systems_"
 EndFunction

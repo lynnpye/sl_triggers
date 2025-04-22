@@ -362,7 +362,7 @@ Event _slt_OnSLTInternalReady(string eventName, string strArg, float numArg, For
 	if !self
 		return
 	endif
-	UnregisterForModEvent("SLT_INTERNAL_READY_EVENT")
+	UnregisterForModEvent(EVENT_SLT_INTERNAL_READY_EVENT())
 
 	_slt_RefreshTriggers()
 	_slt_RegisterExtension()
@@ -394,7 +394,7 @@ Function _slt_BootstrapSLTInit()
 	;SafeRegisterForModEvent_Quest(self, _slt_GetHeartbeatEvent(), "_slt_OnSLTHeartbeat")
 	
 	;SafeRegisterForModEvent_Quest(self, _slt_GetInternalReadyEvent(), "_slt_OnSLTInternalReady")
-	SafeRegisterForModEvent_Quest(self, "SLT_INTERNAL_READY_EVENT", "_slt_OnSLTInternalReady")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_INTERNAL_READY_EVENT(), "_slt_OnSLTInternalReady")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTSettingsUpdated")
 	SafeRegisterForModEvent_Quest(self, _slt_GetSettingsUpdateEvent(), "_slt_OnSLTSettingsUpdated")
 EndFunction

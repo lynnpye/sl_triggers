@@ -7,7 +7,6 @@ Actor	aPartner1
 Actor	aPartner2
 Actor	aPartner3
 Actor	aPartner4
-;int 	tid
 sslThreadController	thread
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)	

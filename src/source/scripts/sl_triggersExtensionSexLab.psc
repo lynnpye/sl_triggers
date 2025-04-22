@@ -4,19 +4,34 @@ import sl_triggersStatics
 import sl_triggersHeap
 import sl_triggersFile
 
-
-string EVENT_SEXLAB_START				= "AnimationStart"
-string EVENT_SEXLAB_END					= "AnimationEnd"
-string EVENT_SEXLAB_ORGASM				= "OrgasmStart"
-string EVENT_SEXLAB_ORGASM_SLSO			= "SexLabOrgasmSeparate"
-string EVENT_SEXLAB_START_HANDLER		= "OnSexLabStart"
-string EVENT_SEXLAB_END_HANDLER			= "OnSexLabEnd"
-string EVENT_SEXLAB_ORGASM_HANDLER		= "OnSexLabOrgasm"
-string EVENT_SEXLAB_ORGASM_SLSO_HANDLER	= "OnSexLabOrgasmS"
-
-
 SexLabFramework     Property SexLab						Auto Hidden
 Faction	            Property SexLabAnimatingFaction 	Auto Hidden
+
+string	EVENT_SEXLAB_START					= "AnimationStart"
+string	EVENT_SEXLAB_END					= "AnimationEnd"
+string	EVENT_SEXLAB_ORGASM					= "OrgasmStart"
+string	EVENT_SEXLAB_ORGASM_SLSO			= "SexLabOrgasmSeparate"
+string	EVENT_SEXLAB_START_HANDLER			= "OnSexLabStart"
+string	EVENT_SEXLAB_END_HANDLER			= "OnSexLabEnd"
+string	EVENT_SEXLAB_ORGASM_HANDLER			= "OnSexLabOrgasm"
+string	EVENT_SEXLAB_ORGASM_SLSO_HANDLER	= "OnSexLabOrgasmS"
+int		EVENT_ID_START 						= 1
+int		EVENT_ID_ORGASM						= 2
+int		EVENT_ID_STOP						= 3
+int		EVENT_ID_ORGASM_SLSO				= 4
+string	ATTR_EVENT							= "event"
+string	ATTR_CHANCE							= "chance"
+string	ATTR_RACE							= "race"
+string	ATTR_ROLE							= "role"
+string	ATTR_PLAYER							= "player"
+string	ATTR_GENDER							= "gender"
+string	ATTR_TAG							= "tag"
+string	ATTR_DAYTIME						= "daytime"
+string	ATTR_LOCATION						= "location"
+string	ATTR_POSITION						= "position"
+string	ATTR_DO_1							= "do_1"
+string	ATTR_DO_2							= "do_2"
+string	ATTR_DO_3							= "do_3"
 
 
 string[]	triggerKeys_Start
@@ -24,50 +39,41 @@ string[]	triggerKeys_Orgasm
 string[]	triggerKeys_Stop
 string[]	triggerKeys_Orgasm_S
 
+; GetExtensionKey
+; OVERRIDE REQUIRED
+; returns: the unique string identifier for this extension
+string Function GetExtensionKey()
+	return "sl_triggersExtensionSexLab"
+EndFunction
 
-int		EVENT_ID_START 			= 1
-int		EVENT_ID_ORGASM			= 2
-int		EVENT_ID_STOP			= 3
-int		EVENT_ID_ORGASM_SLSO	= 4
-string	ATTR_EVENT				= "event"
-string	ATTR_CHANCE				= "chance"
-string	ATTR_RACE				= "race"
-string	ATTR_ROLE				= "role"
-string	ATTR_PLAYER				= "player"
-string	ATTR_GENDER				= "gender"
-string	ATTR_TAG				= "tag"
-string	ATTR_DAYTIME			= "daytime"
-string	ATTR_LOCATION			= "location"
-string	ATTR_POSITION			= "position"
-string	ATTR_DO_1				= "do_1"
-string	ATTR_DO_2				= "do_2"
-string	ATTR_DO_3				= "do_3"
+; GetFriendlyName
+; OVERRIDE RECOMMENDED
+string Function GetFriendlyName()
+	return "SLT SexLab"
+EndFunction
+
+;/
+we have a negative priority here because we are going to be overriding
+some core functions, to expand them in the case when SexLab is present
+/;
+; GetPriority
+; OPTIONAL
+; 0 is roughly "built-in"
+; <0 has higher priority (think first in line to take a crack at the operation)
+int Function GetPriority()
+	return -500
+EndFunction
 
 Event OnInit()
 	if !self
 		return
 	endif
+	; REQUIRED CALL
 	SLTInit()
 EndEvent
 
-Function SLTReady()
-	UpdateSexLabStatus()
-	RefreshData()
-EndFunction
-
-Function RefreshData()
-	RefreshTriggerCache()
-	RegisterEvents()
-EndFunction
-
-; configuration was updated mid-game
-Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
-	if !self
-		return
-	endif
-	RefreshData()
-EndEvent
-
+; PopulateMCM
+; OVERRIDE HIGHLY RECOMMENDED
 Function PopulateMCM()
 	if !self
 		return
@@ -150,7 +156,25 @@ Function PopulateMCM()
 	AddCommandList(ATTR_DO_3, "Command 3:")
 EndFunction
 
+; SLTReady
+; OPTIONAL
+Function SLTReady()
+	UpdateSexLabStatus()
+	RefreshData()
+EndFunction
 
+Function RefreshData()
+	RefreshTriggerCache()
+	RegisterEvents()
+EndFunction
+
+; configuration was updated mid-game
+Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
+	if !self
+		return
+	endif
+	RefreshData()
+EndEvent
 
 
 ; EXTERNAL EVENT HANDLERS
@@ -165,11 +189,8 @@ Event OnSexLabStart(String _eventName, String _args, Float _argc, Form _sender)
 	EndIf
 	
     int tid = _args as int
-    ;sslThreadController thread = Sexlab.GetController(tid)
 	
 	HandleSexLabCheckEvents(tid, none, triggerKeys_Start)
-    ;checkEvents(tid, 0, none)
-    
 EndEvent
 
 Event OnSexLabOrgasm(String _eventName, String _args, Float _argc, Form _sender)
@@ -183,11 +204,8 @@ Event OnSexLabOrgasm(String _eventName, String _args, Float _argc, Form _sender)
 	EndIf
 	
     int tid = _args as int
-    ;sslThreadController thread = Sexlab.GetController(tid)
     
 	HandleSexLabCheckEvents(tid, none, triggerKeys_Orgasm)
-    ;checkEvents(tid, 1, none)
-	
 EndEvent
 
 Event OnSexLabEnd(String _eventName, String _args, Float _argc, Form _sender)
@@ -201,11 +219,8 @@ Event OnSexLabEnd(String _eventName, String _args, Float _argc, Form _sender)
 	EndIf
 	
     int tid = _args as int
-    ;sslThreadController thread = Sexlab.GetController(tid)
     
 	HandleSexLabCheckEvents(tid, none, triggerKeys_Stop)
-    ;checkEvents(tid, 2, none)
-
 EndEvent
 
 Event OnSexLabOrgasmS(Form ActorRef, Int Thread)
@@ -220,11 +235,8 @@ Event OnSexLabOrgasmS(Form ActorRef, Int Thread)
 	EndIf
 	
     int tid = Thread
-    ;sslThreadController thread = Sexlab.GetController(tid)
     
 	HandleSexLabCheckEvents(tid, ActorRef as Actor, triggerKeys_Orgasm_S)
-    ;checkEvents(tid, 3, ActorRef as Actor)
-	
 EndEvent
 
 Function RefreshTriggerCache()
@@ -249,17 +261,6 @@ Function RefreshTriggerCache()
 	endwhile
 EndFunction
 
-; GetExtensionKey
-; OVERRIDE REQUIRED
-; returns: the unique string identifier for this extension
-string Function GetExtensionKey()
-	return "sl_triggersExtensionSexLab"
-EndFunction
-
-string Function GetFriendlyName()
-	return "SLT SexLab"
-EndFunction
-
 Function UpdateSexLabStatus()
 	SexLabAnimatingFaction = none
 	SexLab = none
@@ -268,14 +269,6 @@ Function UpdateSexLabStatus()
 	if SexLab
 		SexLabAnimatingFaction = Game.GetFormFromFile(0xE50F, "SexLab.esm") as Faction
 	endif
-EndFunction
-
-;/
-we have a negative priority here because we are going to be overriding
-some core functions, to expand them in the case when SexLab is present
-/;
-int Function GetPriority()
-	return -500
 EndFunction
 
 ; selectively enables only events with triggers
@@ -308,7 +301,6 @@ EndFunction
 
 Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTriggerKeys)
 	sslThreadController thread = Sexlab.GetController(tid)
-	;MiscUtil.PrintConsole("Chance:" + slotPre)
 	int actorCount = thread.Positions.Length
 	
 	int i = 0
@@ -330,7 +322,6 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTrigg
 				theOther = thread.Positions[ActorPos(actorIdx + 1, actorCount)]
 			endIf
 			
-			;MiscUtil.PrintConsole("Actor:" + theSelf)
 			doRun = true
 			if doRun
 				;if eventId == 3 ; spec check for separate orgasm
@@ -403,7 +394,6 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTrigg
 			
 			if doRun
 				ival = GetRole(triggerKey)
-				;MiscUtil.PrintConsole("Role: " + slotPre + ", " + value)
 				if ival != 0 ; 0 is Any
 					if ival == 1 && !thread.IsAggressor(theSelf) ; aggresor
 						doRun = false

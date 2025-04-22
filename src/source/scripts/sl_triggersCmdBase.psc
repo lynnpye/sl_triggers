@@ -131,8 +131,6 @@ Function SLTOnEffectStart(Actor akCaster)
 	SafeRegisterForModEvent_AME(self, EVENT_SLT_HEARTBEAT(), "_slt_OnSLTHeartbeat")
 	SafeRegisterForModEvent_AME(self, EVENT_SLT_RESET(), "_slt_OnSLTReset")
 	
-	;SendModEvent(EVENT_SLT_AME_HEARTBEAT_UPDATE(), _slt_GetHeartbeatEvent(), 1.0)
-	
 	; we are a Cmd extension; we need to find our primary AME and report in
 	if CmdExtension
 		_isSupportCmdVal = true
