@@ -1,3 +1,10 @@
+101
+    bugfix: sexlab compat
+    enhancement: sl_orgasm
+
+100
+    beta: the new hotness is all about modularity... I really need to write this up
+
 21
 	bugfix: position is now being handled correctly by the MCM (it was overwriting the "role" attribute)
 
