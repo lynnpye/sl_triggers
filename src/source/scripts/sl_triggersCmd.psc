@@ -41,8 +41,8 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
     stack = new string[4]
     
     gotoCnt = 0
-    gotoIdx = new int[32]
-    gotoLabels = new string[32]
+    gotoIdx = new int[127]
+    gotoLabels = new string[127]
 	
 	instanceId = Heap_DequeueInstanceIdF(akCaster)
    	cmdName = Heap_StringGetFK(akCaster, MakeInstanceKey(instanceId, "cmd"))
@@ -183,7 +183,7 @@ Function _addGoto(int _idx, string _label)
     
 EndFunction
 
-Int Function _findGoto(string _label, int _cmdIdx)
+Int Function _findGoto(string _label, int _cmdIdx, string _cmdtype)
     int idx
     
     idx = gotoLabels.find(_label)
@@ -199,12 +199,17 @@ Int Function _findGoto(string _label, int _cmdIdx)
     
     idx = _cmdIdx + 1
     while idx < cmdNum
-        cmdLine1 = JsonUtil.PathStringElements(cmdName, ".cmd[" + idx + "]")
+        cmdLine1 = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), "OperationList[" + idx + "]")
+        ;cmdLine1 = JsonUtil.PathStringElements(cmdName, ".cmd[" + idx + "]")
         ;MiscUtil.PrintConsole(cmdLine1[0])
         if cmdLine1.Length
-            if cmdLine1[0] == ":"
+            if (_cmdtype == "json" && cmdLine1[0] == ":") || (_cmdtype == "ini" && cmdLine1.Length == 1 && StringUtil.GetNthChar(cmdLine1[0], 0) == "[" && StringUtil.GetNthChar(cmdLine1[0], StringUtil.GetLength(cmdLine1[0]) - 1) == "]")
                 ;MiscUtil.PrintConsole("add new label")
-                _addGoto(idx, cmdLine1[1])
+                if _cmdtype == "json"
+                    _addGoto(idx, cmdLine1[1])
+                elseif _cmdtype == "ini"
+                    _addGoto(idx, StringUtil.Substring(cmdLine1[0], 1, StringUtil.GetLength(cmdLine1[0]) - 2))
+                endif
             endIf
         endIf
         idx += 1
@@ -217,6 +222,50 @@ Int Function _findGoto(string _label, int _cmdIdx)
     endIf
     ;MiscUtil.PrintConsole("Goto notfound: " + _label + ", " + idx)
     return cmdNum
+EndFunction
+
+string Function ParseCommandFile()
+    string _myCmdName = cmdName
+    string _last = StringUtil.Substring(_myCmdName, StringUtil.GetLength(_myCmdName) - 4)
+    string[] cmdLine
+    if _last == "json"
+        _myCmdName = CommandsFolder() + _myCmdName
+        cmdNum = JsonUtil.PathCount(_myCmdName, ".cmd")
+        cmdIdx = 0
+        while cmdIdx < cmdNum
+            cmdLine = JsonUtil.PathStringElements(_myCmdName, ".cmd[" + cmdIdx + "]")
+            if cmdLine.Length
+                Heap_IntAdjustX(CmdTargetActor, GetInstanceId(), "OperationList", 1)
+                int idx = 0
+                while idx < cmdLine.Length
+                    Heap_StringListAddX(CmdTargetActor, GetInstanceId(), "OperationList[" + cmdIdx + "]", cmdLine[idx])
+                    idx += 1
+                endwhile
+            endif
+            cmdIdx += 1
+        endwhile
+        return "json"
+    elseif _last == ".ini"
+        string cmdpath = FullCommandsFolder() + _myCmdName
+        string cmdstring = MiscUtil.ReadFromFile(cmdpath)
+        string[] cmdlines = sl_triggers_internal.SplitLines(cmdstring)
+
+        cmdNum = cmdlines.Length
+        cmdIdx = 0
+        while cmdIdx < cmdNum
+            cmdLine = sl_triggers_internal.Tokenize(cmdlines[cmdIdx])
+            if cmdLine.Length
+                Heap_IntAdjustX(CmdTargetActor, GetInstanceId(), "OperationList", 1)
+                int idx = 0
+                while idx < cmdLine.Length
+                    Heap_StringListAddX(CmdTargetActor, GetInstanceId(), "OperationList[" + cmdIdx + "]", cmdLine[idx])
+                    idx += 1
+                endwhile
+            endif
+            cmdIdx += 1
+        endwhile
+        return "ini"
+    endif
 EndFunction
 
 ;/
@@ -234,20 +283,29 @@ string Function exec()
     string   p2
     string   po
     bool     ifTrue
+
+    Heap_IntSetX(CmdTargetActor, GetInstanceId(), "OperationList", 0)
+
+    string cmdtype = ParseCommandFile()
+
+    cmdNum = Heap_IntGetX(CmdTargetActor, GetInstanceId(), "OperationList")
+    cmdidx = 0
     
-    cmdNum = JsonUtil.PathCount(cmdName, ".cmd")
-    cmdIdx = 0
-    ;MiscUtil.PrintConsole("Lines: " + cmdNum)
-    while cmdIdx < cmdNum
-        cmdLine = JsonUtil.PathStringElements(cmdName, ".cmd[" + cmdIdx + "]")
+    while cmdidx < cmdNum
+        cmdLine = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), "OperationList[" + cmdidx + "]")
+
         if cmdLine.Length
             code = resolve(cmdLine[0])
 
-            if code == ":"
-                _addGoto(cmdIdx, cmdLine[1])
+            if (cmdtype == "json" && code == ":") || (cmdtype == "ini" && cmdLine.Length == 1 && StringUtil.GetNthChar(cmdLine[0], 0) == "[" && StringUtil.GetNthChar(cmdLine[0], StringUtil.GetLength(cmdLine[0]) - 1) == "]")
+                if cmdtype == "json"
+                    _addGoto(cmdIdx, cmdLine[1])
+                elseif cmdtype == "ini"
+                    _addGoto(cmdIdx, StringUtil.Substring(cmdLine[0], 1, StringUtil.GetLength(cmdLine[0]) - 2))
+                endif
                 cmdIdx += 1
-            elseIf code == "goto"    
-                cmdIdx = _findGoto(cmdLine[1], cmdIdx)
+            elseIf code == "goto"
+                cmdIdx = _findGoto(cmdLine[1], cmdIdx, cmdtype)
                 ;MiscUtil.PrintConsole("Goto: " + cmdIdx)
                 cmdIdx += 1
             elseIf code == "if"
@@ -257,7 +315,7 @@ string Function exec()
                 po = cmdLine[2]
                 ifTrue = resolveCond(p1, p2, po)
                 if ifTrue
-                    cmdIdx = _findGoto(cmdLine[4], cmdIdx)
+                    cmdIdx = _findGoto(cmdLine[4], cmdIdx, cmdtype)
                     ;MiscUtil.PrintConsole("GotoIf: " + cmdIdx)
                 endIf
                 cmdIdx += 1
@@ -267,8 +325,8 @@ string Function exec()
 				ActualOper(cmdLine, code)
                 cmdIdx += 1
             endIf
-        endIf
-    endWhile
+        endif
+    endwhile
     
     return ""
 EndFunction

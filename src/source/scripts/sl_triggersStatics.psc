@@ -122,6 +122,10 @@ string Function SettingsFilename() global
 	return "settings"
 EndFunction
 
+string Function FullSettingsFolder() global
+	return "data/SKSE/Plugins/sl_triggers/"
+EndFunction
+
 string Function SettingsName() global
 	return SettingsFolder() + SettingsFilename()
 EndFunction
@@ -132,6 +136,10 @@ EndFunction
 
 string Function CommandsFolder() global
 	return SettingsFolder() + "commands/"
+EndFunction
+
+string Function FullCommandsFolder() global
+	return FullSettingsFolder() + "commands/"
 EndFunction
 
 string Function ExtensionTriggersFolder(string extensionId) global
@@ -214,45 +222,150 @@ string Function MakeInstanceKey(string instance, string keyname) global
 	return MakeInstanceKeyPrefix(instance) + ":" + keyname
 EndFunction
 
-string[] Function TokenizeLine(String line) Global 
-    String[] tokens = PapyrusUtil.StringArray(0)
-    String currentToken = ""
-    Bool inQuotes = False
-    Int i = 0
-    Int len = StringUtil.GetLength(line)
+bool Function IsTokenWhitespace(string _str) global
+	bool retval = (_str == " ") || (_str == "\t")
+	return retval
+EndFunction
 
-    While i < len
-        String c = StringUtil.Substring(line, i, 1)
+string Function TrimString(string _str) global
+	if !_str
+		return _str
+	endif
+	int pointer = 0
+	int start = pointer
+	int len = StringUtil.GetLength(_str)
+	int end = len - 1
+	string tch
+	bool matched = false
 
-        If inQuotes
-            If c == "\""
-                inQuotes = False
-                currentToken += c
-            Else
-                currentToken += c
-            EndIf
-        Else
-            ; Check for whitespace characters
-            If c == " " || c == "\t"
-                If currentToken != ""
-                    tokens = PapyrusUtil.PushString(tokens, currentToken)
-                    currentToken = ""
-                EndIf
-            ElseIf c == "\""
-                inQuotes = True
-                currentToken += c
-            Else
-                currentToken += c
-            EndIf
-        EndIf
+	while pointer < len && !matched
+		tch = StringUtil.GetNthChar(_str, pointer)
+		if !IsTokenWhitespace(tch)
+			start = pointer
+			matched = true
+		else
+			pointer += 1
+		endif
+	endwhile
 
-        i += 1
-    EndWhile
+	if !matched
+		return _str
+	endif
 
-    ; Push the final token if any
-    If currentToken != ""
-        tokens = PapyrusUtil.PushString(tokens, currentToken)
-    EndIf
+	matched = false
+	pointer = end
+	while pointer >= 0 && !matched
+		tch = StringUtil.GetNthChar(_str, pointer)
+		if !IsTokenWhitespace(tch)
+			end = pointer
+			matched = true
+		else
+			pointer -= 1
+		endif
+	endwhile
 
-    Return tokens
+	if !matched
+		return _str
+	endif
+
+	return StringUtil.Substring(_str, start, end - start + 1)
+EndFunction
+
+string[] Function TokenizeString(string _line) global
+	string[] result = PapyrusUtil.StringArray(0)
+	string _str = TrimString(_line)
+
+	int pointer = 0
+	int start = 0
+	int end = -1
+	int len = StringUtil.GetLength(_str)
+	string tch
+	string peek
+	bool gathering = false
+	bool inquotes = false
+	string _theToken
+	string[] summer = new string[2]
+
+	while pointer < len
+		tch = StringUtil.GetNthChar(_str, pointer)
+		if gathering
+			if !inquotes
+				if tch == "\""
+					; bad parse, found opening quote in middle of token
+					return none
+				elseif IsTokenWhitespace(tch)
+					gathering = false
+					end = pointer - 1
+					_theToken = StringUtil.Substring(_line, start, end - start + 1)
+					result = PapyrusUtil.PushString(result, _theToken)
+				endif
+			else
+				if tch == "\""
+					if (pointer + 1) >= len
+						gathering = false
+						end = pointer - 1
+						_theToken = StringUtil.Substring(_line, start, end - start + 1)
+						if summer[0]
+							summer[1] = _theToken
+							_theToken = PapyrusUtil.StringJoin(summer, "")
+						endif
+						result = PapyrusUtil.PushString(result, _theToken)
+						return result
+					else
+						peek = StringUtil.GetNthChar(_str, pointer + 1)
+						if peek != "\""
+							gathering = false
+							end = pointer - 1
+							_theToken = StringUtil.Substring(_line, start, end - start + 1)
+							start = pointer + 1
+							if summer[0]
+								summer[1] = _theToken
+								_theToken = PapyrusUtil.StringJoin(summer, "")
+							endif
+							result = PapyrusUtil.PushString(result, _theToken)
+							summer[0] = ""
+							summer[1] = ""
+						else
+							; start up to and including pointer
+							end = pointer
+							if summer[0]
+								summer[1] = StringUtil.Substring(_line, start, end - start + 1)
+								summer[0] = PapyrusUtil.StringJoin(summer, "")
+							else
+								summer[0] = StringUtil.Substring(_line, start, end - start + 1)
+							endif
+							pointer += 1
+							start = pointer + 1
+						endif
+					endif
+				endif
+			endif
+		else
+			if !IsTokenWhitespace(tch)
+				gathering = true
+				if tch == "\""
+					if (pointer + 1) >= len
+						; bad parse, found opening boundary quote but EOL
+						return none
+					endif
+					inquotes = true
+					start = pointer + 1
+				else
+					start = pointer
+				endif
+			endif
+		endif
+		pointer += 1
+	endwhile
+	
+	if end < start
+		_theToken = StringUtil.Substring(_line, start)
+		if summer[0]
+			summer[1] = _theToken
+			_theToken = PapyrusUtil.StringJoin(summer, "")
+		endif
+		result = PapyrusUtil.PushString(result, _theToken)
+	endif
+
+	return result
 EndFunction

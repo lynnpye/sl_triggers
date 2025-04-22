@@ -28,7 +28,6 @@ endFunction
 EndState
 
 
-
 State cmd_actual_hours_since_last_top
 bool function oper(string[] param)
 	GotoState("cmd_toh_elapsed_time")

@@ -9,7 +9,19 @@ bool Function SafeIsLoaded() global
     return sl_triggers_internal.IsLoaded()
 EndFunction
 
+string[] Function SafeSplitLines(string _fileString) global
+    return sl_triggers_internal.SplitLines(_fileString)
+EndFunction
+
+string[] Function SafeTokenize(string _tokenString) global
+    return sl_triggers_internal.Tokenize(_tokenString)
+EndFunction
+
 ; direct access
 ActiveMagicEffect[] Function GetActiveMagicEffectsForActor(Actor _theActor) global native
 
 bool Function IsLoaded() global native
+
+string[] Function SplitLines(string _fileString) global native
+
+string[] Function Tokenize(string _tokenString) global native

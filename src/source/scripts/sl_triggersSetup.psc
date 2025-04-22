@@ -20,11 +20,7 @@ string				Property CurrentExtensionKey Hidden
 	EndFunction
 EndProperty
 
-string[] Property CommandsList Hidden
-	string[] Function Get()
-		return _commandsList
-	EndFunction
-EndProperty
+string[] Property CommandsList Auto Hidden
 
 int	Property WIDG_SLIDER Hidden
 	int Function Get()
@@ -75,7 +71,6 @@ string[]	headerPages
 string[]	extensionPages
 string[]	extensionKeys
 string[]	attributeNames
-string[]	_commandsList
 
 string		currentSLTPage
 string		_currentExtensionKey
@@ -139,10 +134,6 @@ int Function ClearSetupExtensionKeyHeap(string extensionKey)
 		return 0
 	endif
 	return Heap_ClearPrefixF(self, "sl_triggersSetup:ek-" + extensionKey)
-EndFunction
-
-Function SetCommandsList(string[] __commandsList)
-	_commandsList = __commandsList
 EndFunction
 
 Event OnPageReset(string page)
@@ -332,7 +323,12 @@ Event OnOptionMenuOpen(int option)
 	int defaultIndex = 0
 	int menuIndex = 0
 	string menuValue = ""
-	string[] menuSelections = GetAttrMenuSelections(extKey, attrName)
+	string[] menuSelections
+	if attrWidg == WIDG_COMMANDLIST
+		menuSelections = CommandsList
+	elseif attrWidg == WIDG_MENU
+		menuSelections = GetAttrMenuSelections(extKey, attrName)
+	endif
 	SetMenuDialogOptions(menuSelections)
 	
 	if attrWidg == WIDG_COMMANDLIST
@@ -363,8 +359,14 @@ Event OnOptionMenuAccept(int option, int index)
 	string triKey = GetOidTriggerKey(option)
 	string attrName = GetOidAttributeName(option)
 	int attrType = GetAttrType(extKey, attrName)
+	int attrWidg = GetAttrWidget(extKey, attrName)
 	
-	string[] menuSelections = GetAttrMenuSelections(extKey, attrName)
+	string[] menuSelections
+	if attrWidg == WIDG_MENU
+		menuSelections = GetAttrMenuSelections(extKey, attrName)
+	elseif attrWidg == WIDG_COMMANDLIST
+		menuSelections = CommandsList
+	endif
 	
 	if index >= 0
 		if attrType == PTYPE_INT()

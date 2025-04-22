@@ -182,7 +182,7 @@ Function DoBootstrapActivity()
 	endwhile
 
 	if SLTMCM
-		SLTMCM.SetCommandsList(GetCommandsList())
+		SLTMCM.CommandsList = GetCommandsList()
 	endif
 EndFunction
 
@@ -523,7 +523,7 @@ string Function StartCommand(Actor _theActor, string _cmdName, sl_triggersExtens
 	endif
 	
 	; spells are forms, we can milk them
-	EnqueueAMEValues(_theActor, CommandsFolder() + _cmdName, _instanceId, spellForms, extensionInstanceIds)
+	EnqueueAMEValues(_theActor, _cmdName, _instanceId, spellForms, extensionInstanceIds)
 	
 	; cast the core AME
 	coreSpell.RemoteCast(_theActor, _theActor, _theActor)
@@ -556,7 +556,11 @@ string Function _NextInstanceId()
 EndFunction
 
 string[] Function GetCommandsList()
-	commandsListCache = JsonUtil.JsonInFolder(CommandsFolder())
+	string[] if1 = MiscUtil.FilesInFolder(FullCommandsFolder(), "ini")
+	string[] if2 = MiscUtil.FilesInFolder(FullCommandsFolder(), "json")
+
+	commandsListCache = PapyrusUtil.MergeStringArray(if1, if2)
+	;commandsListCache = JsonUtil.JsonInFolder(CommandsFolder())
 	return commandsListCache
 EndFunction
 
