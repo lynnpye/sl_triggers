@@ -1,6 +1,10 @@
 scriptname sl_triggers_internal Hidden
 
 ; safe access
+string Function SafeGetTranslatedString(string _translationKey) global
+    return sl_triggers_internal.GetTranslatedString(_translationKey)
+EndFunction
+
 ActiveMagicEffect[] Function SafeGetActiveMagicEffectsForActor(Actor _theActor) global
     return sl_triggers_internal.GetActiveMagicEffectsForActor(_theActor)
 EndFunction
@@ -18,6 +22,8 @@ string[] Function SafeTokenize(string _tokenString) global
 EndFunction
 
 ; direct access
+string Function GetTranslatedString(string _translationKey) global native
+
 ActiveMagicEffect[] Function GetActiveMagicEffectsForActor(Actor _theActor) global native
 
 bool Function IsLoaded() global native

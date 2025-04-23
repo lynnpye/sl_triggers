@@ -184,7 +184,7 @@ Event OnSexLabStart(String _eventName, String _args, Float _argc, Form _sender)
 		Return
 	EndIf
 	
-	If !bEnabled
+	If !IsEnabled
 		Return
 	EndIf
 	
@@ -199,7 +199,7 @@ Event OnSexLabOrgasm(String _eventName, String _args, Float _argc, Form _sender)
 		Return
 	EndIf
 	
-	If !bEnabled
+	If !IsEnabled
 		Return
 	EndIf
 	
@@ -214,7 +214,7 @@ Event OnSexLabEnd(String _eventName, String _args, Float _argc, Form _sender)
 		Return
 	EndIf
 	
-	If !bEnabled
+	If !IsEnabled
 		Return
 	EndIf
 	
@@ -230,7 +230,7 @@ Event OnSexLabOrgasmS(Form ActorRef, Int Thread)
 		Return
 	EndIf
 	
-	If !bEnabled
+	If !IsEnabled
 		Return
 	EndIf
 	
@@ -273,27 +273,27 @@ EndFunction
 
 ; selectively enables only events with triggers
 Function RegisterEvents()
-    if bDebugMsg
+    if IsDebugMsg
         Debug.Notification("SL Triggers SL: register events")
     endIf
 	
 	UnregisterForModEvent(EVENT_SEXLAB_START)
-	if bEnabled && triggerKeys_Start.Length > 0 && SexLab
+	if IsEnabled && triggerKeys_Start.Length > 0 && SexLab
 		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_START, EVENT_SEXLAB_START_HANDLER)
 	endif
 	
 	UnregisterForModEvent(EVENT_SEXLAB_END)
-	if bEnabled && triggerKeys_Stop.Length > 0 && SexLab
+	if IsEnabled && triggerKeys_Stop.Length > 0 && SexLab
 		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_END, EVENT_SEXLAB_END_HANDLER)
 	endif
 	
 	UnregisterForModEvent(EVENT_SEXLAB_ORGASM)
-	if bEnabled && triggerKeys_Orgasm.Length > 0 && SexLab
+	if IsEnabled && triggerKeys_Orgasm.Length > 0 && SexLab
 		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_ORGASM, EVENT_SEXLAB_ORGASM_HANDLER)
 	endif
     
 	UnregisterForModEvent(EVENT_SEXLAB_ORGASM_SLSO)
-	if bEnabled && triggerKeys_Orgasm_S.Length > 0 && SexLab
+	if IsEnabled && triggerKeys_Orgasm_S.Length > 0 && SexLab
 		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_ORGASM_SLSO, EVENT_SEXLAB_ORGASM_SLSO_HANDLER)
 	endif
 EndFunction

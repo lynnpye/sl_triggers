@@ -160,11 +160,11 @@ EndEvent
 ; returns - true if BOTH sl_triggers AND this extension are enabled; false otherwise
 bool				Property IsEnabled
 	bool Function Get()
-		return bEnabled && SLT.bEnabled
+		return _bEnabled && SLT.bEnabled
 	EndFunction
 	
 	Function Set(bool value)
-		bEnabled = value
+		_bEnabled = value
 	EndFunction
 EndProperty
 
@@ -173,11 +173,11 @@ EndProperty
 ; returns - true if BOTH sl_triggers AND this extension have debug logging enabled; false otherwise
 bool				Property IsDebugMsg
 	bool Function Get()
-		return bDebugMsg && SLT.bDebugMsg
+		return _bDebugMsg && SLT.bDebugMsg
 	EndFunction
 	
 	Function Set(bool value)
-		bDebugMsg = value
+		_bDebugMsg = value
 	EndFunction
 EndProperty
 
@@ -353,8 +353,8 @@ EndFunction
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; note: SLT also has these properties defined
-bool				Property bEnabled = true Auto Hidden ; enable/disable our extension
-bool				Property bDebugMsg = false Auto Hidden ; enable/disable debug logging for our extension
+bool				Property _bEnabled = true Auto Hidden ; enable/disable our extension
+bool				Property _bDebugMsg = false Auto Hidden ; enable/disable debug logging for our extension
 string				Property currentTriggerId Auto Hidden ; used for simple iteration
 
 ; used to generate a stream of unique ids for each sl_triggersCmd

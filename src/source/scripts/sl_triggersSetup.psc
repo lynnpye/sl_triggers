@@ -325,6 +325,21 @@ EndFunction
 
 
 
+;/
+
+[=======  Extension Settings ======]
+[=======  Add  Trigger       ======]
+[= Prev =]				  [= Next =]
+[=======  Trigger-foo        ======]
+ asdf asdf
+ asdf asdf
+						[= Delete =]
+[=======  Trigger-bar        ======]
+ asdf asdf
+ asdf asdf
+						[= Delete =]
+	
+/;
 Function ShowExtensionPage()
 	if extensionPages.Length < 1
 		return
@@ -363,19 +378,19 @@ Function ShowExtensionPage()
 		
 		; display cardination buttons
 		if currentCardination > 0
-			oidCardinatePrevious = AddTextOption("&lt;&lt; Previous", "")
+			oidCardinatePrevious = AddTextOption("$BTN_PREVIOUS", "")
 		else
-			oidCardinatePrevious = AddTextOption("&lt;&lt; Previous", "", OPTION_FLAG_DISABLED)
+			oidCardinatePrevious = AddTextOption("$BTN_PREVIOUS", "", OPTION_FLAG_DISABLED)
 		endif
 		
 		if hasNextCardinate
-			oidCardinateNext = AddTextOption("Next &gt;&gt;", "")
+			oidCardinateNext = AddTextOption("$BTN_NEXT", "")
 		else
-			oidCardinateNext = AddTextOption("Next &gt;&gt;", "", OPTION_FLAG_DISABLED)
+			oidCardinateNext = AddTextOption("$BTN_NEXT", "", OPTION_FLAG_DISABLED)
 		endif
 	endif
 	
-	oidAddTop = AddTextOption("Add New Item", "")
+	oidAddTop = AddTextOption("$BTN_ADD_NEW_ITEM", "")
 	AddEmptyOption()
 	
 	int displayIndexer = 0
@@ -397,10 +412,10 @@ Function ShowExtensionPage()
 			int widgetOptions = OPTION_FLAG_NONE
 			if triggerIsSoftDeleted
 				widgetOptions = OPTION_FLAG_DISABLED
-				AddHeaderOption("This trigger has been soft deleted.")
-				AddHeaderOption("It can be restored.")
-				AddHeaderOption("Or it can be fully removed by removing the file between games.")
-				AddHeaderOption("Until restored, the trigger will not run.")
+				AddHeaderOption("$MSG_SOFT_DELETE_0")
+				AddHeaderOption("$MSG_SOFT_DELETE_1")
+				AddHeaderOption("$MSG_SOFT_DELETE_2")
+				AddHeaderOption("$MSG_SOFT_DELETE_3")
 			endif
 
 			;if !triggerIsSoftDeleted
@@ -536,11 +551,11 @@ Function ShowExtensionPage()
 			AddEmptyOption()
 			if !triggerIsSoftDeleted
 				; and option to delete
-				_oid = AddTextOption("Delete", "")
+				_oid = AddTextOption("$BTN_DELETE", "")
 				AddOid(_oid, extensionKey, triggerKey, DELETE_BUTTON)
 			else
 				; and option to undelete
-				_oid = AddTextOption("Restore", "")
+				_oid = AddTextOption("$BTN_RESTORE", "")
 				AddOid(_oid, extensionKey, triggerKey, RESTORE_BUTTON)
 			endif
 		;endif
@@ -553,26 +568,9 @@ Function ShowExtensionPage()
 		AddEmptyOption()
 		AddEmptyOption()
 		
-		oidAddBottom = AddTextOption("Add New Item", "")
+		oidAddBottom = AddTextOption("$BTN_ADD_NEW_ITEM", "")
 		AddEmptyOption()
 	endif
-	
-;/
-
-[=======  Extension Settings ======]
-[=======  Add  Trigger       ======]
-[= Prev =]				  [= Next =]
-[=======  Trigger-foo        ======]
- asdf asdf
- asdf asdf
-						[= Delete =]
-[=======  Trigger-bar        ======]
- asdf asdf
- asdf asdf
-						[= Delete =]
-	
-/;
-
 	
 EndFunction
 
@@ -624,6 +622,22 @@ EndEvent
 
 ; All
 Event OnOptionHighlight(int option)
+	bool done = false
+
+	if option == oidCardinatePrevious
+	elseif option == oidCardinateNext
+	elseif (option == oidAddTop)
+	else
+		string attrName = GetOidAttributeName(option)
+		if attrName == DELETE_BUTTON
+		elseif attrName == RESTORE_BUTTON
+		endif
+	endif	
+
+	if done
+		return
+	endif
+
 	string extKey = CurrentExtensionKey
 	string attrName = GetOidAttributeName(option)
 	
@@ -719,10 +733,11 @@ Event OnOptionSelect(int option)
 		
 		return
 	elseIf option == oidResetSLT
-		
-		string msg = "This should be perfectly safe, but you will have to close the MCM for the settings to take effect.\nDo you wish to proceed?"
-		
-		refreshOnClose = ShowMessage(msg, true, "$Yes", "$No")
+		refreshOnClose = ShowMessage("$MSG_SOFT_DELETE_WARNING", true, "$Yes", "$No")
+
+		if refreshOnClose
+			ShowMessage("$MSG_SOFT_DELETE_CONFIRMATION", false)
+		endif
 
 		return
 	elseIf option == oidCardinatePrevious
@@ -937,13 +952,15 @@ EndEvent
 Function ShowHeaderPage()
 	SetCursorFillMode(TOP_TO_BOTTOM)
 	int ver = GetVersion()
-	AddHeaderOption("SL Triggers (" + (ver as string) + ")")
-	AddHeaderOption("Global settings")
-	oidEnabled    = AddToggleOption("Enable", SLT.bEnabled)
-	oidDebugMsg   = AddToggleOption("Debug messages", SLT.bDebugMsg)
+	AddHeaderOption("SL Triggers")
+	AddHeaderOption("(" + sl_triggers_internal.SafeGetTranslatedString("$LBL_VERSION") + " " + (ver as string) + ")")
+	
+	AddHeaderOption("$LBL_GLOBAL_SETTINGS")
+	oidEnabled    = AddToggleOption("$LBL_ENABLE", SLT.bEnabled)
+	oidDebugMsg   = AddToggleOption("$LBL_DEBUG_MESSAGES", SLT.bDebugMsg)
 	AddEmptyOption()
 	AddEmptyOption()
-	oidResetSLT		= AddTextOption("Reset SL Triggers", "")
+	oidResetSLT		= AddTextOption("$BTN_RESET_SL_TRIGGERS", "")
 EndFunction
 
 Function PageChanged()

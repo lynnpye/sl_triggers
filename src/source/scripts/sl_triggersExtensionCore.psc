@@ -146,7 +146,7 @@ Event OnUpdateGameTime()
 	if !self
 		return
 	endif
-	If !bEnabled
+	If !IsEnabled
 		Return
 	EndIf
 	
@@ -171,7 +171,7 @@ Event OnTopOfTheHour(String eventName, string strArg, Float fltArg, Form sender)
 		Return
 	endif
 	
-	If !bEnabled
+	If !IsEnabled
 		Return
 	EndIf
 	
@@ -185,7 +185,7 @@ Event OnKeyDown(Int KeyCode)
 		Return
 	endif
 	
-	If !bEnabled
+	If !IsEnabled
 		Return
 	Endif
 	
@@ -291,20 +291,20 @@ EndFunction
 
 ; selectively enables only events with triggers
 Function RegisterEvents()
-    if bDebugMsg
+    if IsDebugMsg
         Debug.Notification("SL Triggers Core: register events")
     endIf
 	
 	UnregisterForModEvent(EVENT_TOP_OF_THE_HOUR)
 	handlingTopOfTheHour = false
-	if bEnabled && triggerKeys_topOfTheHour.Length > 0
+	if IsEnabled && triggerKeys_topOfTheHour.Length > 0
 		SafeRegisterForModEvent_Quest(self, EVENT_TOP_OF_THE_HOUR, EVENT_TOP_OF_THE_HOUR_HANDLER)
 		AlignToNextHour()
 		handlingTopOfTheHour = true
 	endif
 	
 	UnregisterForKeyEvents()
-	if bEnabled && triggerKeys_keyDown.Length > 0
+	if IsEnabled && triggerKeys_keyDown.Length > 0
 		RegisterForKeyEvents()
 	endif
 EndFunction

@@ -1,3 +1,9 @@
+102
+    bugfix: SLT now understands that sometimes an extension's set of triggers changes from time to time
+    enhancement: QoL for your developer; lots of code clean up and trying to fix problems I introduced due to code clean up
+        .. like, a LOT of code cleanup. Refactoring. Removing comments. Adding comments.
+    enhancement: Added localization. sl_triggers doesn't have much to translate, but if you want to donate translations I'll add them
+
 101
     bugfix: sexlab compat
     enhancement: sl_orgasm
