@@ -211,9 +211,7 @@ EndState
 
 State cmd_sl_isin ;sl_isin "$self"
 bool function oper(string[] param)
-    DebMsg("sl_isin")
 	if !MyExtension().SexLab
-        DebMsg("no SexLab")
         ResultStack[0] = "0"
 		return false
 	endif
@@ -222,17 +220,11 @@ bool function oper(string[] param)
     int retVal
     
     mate = resolveActor(param[1])
-
-    if !mate
-        DebMsg("actor not resolved(" + param[1] + ")")
-    endif
     
     ;if SexLab.ValidateActor(mate) == -10 && inSameCell(mate)
     if mate.GetFactionRank(MyExtension().SexLabAnimatingFaction) >= 0 && inSameCell(mate)
-        DebMsg("setting 1")
         ResultStack[0] = "1"
     else
-        DebMsg("setting 0")
         ResultStack[0] = "0"
     endIf
 	return true

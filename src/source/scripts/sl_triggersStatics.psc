@@ -17,7 +17,7 @@ function DebMsgForce(string msg, bool shouldIDoAnything) global
 endfunction
 
 int Function GetModVersion() global
-	return 103
+	return 104
 EndFunction
 
 ;;;;;;;;;
