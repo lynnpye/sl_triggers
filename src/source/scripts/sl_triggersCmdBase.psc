@@ -141,7 +141,7 @@ Function SLTOnEffectStart(Actor akCaster)
 			return
 		endif
 
-		ActiveMagicEffect[] ames = sl_triggers_internal.GetActiveMagicEffectsForActor(CmdTargetActor)
+		ActiveMagicEffect[] ames = sl_triggers_internal.SafeGetActiveMagicEffectsForActor(CmdTargetActor)
 		int i = 0
 		while i < ames.Length
 			sl_triggersCmd cmdp = ames[i] as sl_triggersCmd

@@ -229,12 +229,12 @@ string Function ParseCommandFile()
     elseif _last == ".ini"
         string cmdpath = FullCommandsFolder() + _myCmdName
         string cmdstring = MiscUtil.ReadFromFile(cmdpath)
-        string[] cmdlines = sl_triggers_internal.SplitLines(cmdstring)
+        string[] cmdlines = sl_triggers_internal.SafeSplitLines(cmdstring)
 
         cmdNum = cmdlines.Length
         cmdIdx = 0
         while cmdIdx < cmdNum
-            cmdLine = sl_triggers_internal.Tokenize(cmdlines[cmdIdx])
+            cmdLine = sl_triggers_internal.SafeTokenize(cmdlines[cmdIdx])
             if cmdLine.Length
                 Heap_IntAdjustX(CmdTargetActor, GetInstanceId(), "OperationList", 1)
                 int idx = 0

@@ -365,7 +365,7 @@ EndState
 State cmd_hextun_test
 bool function oper(string[] param)
     DebMsg("hextun_test")
-    ActiveMagicEffect[] ames = sl_triggers_internal.GetActiveMagicEffectsForActor(PlayerRef)
+    ActiveMagicEffect[] ames = sl_triggers_internal.SafeGetActiveMagicEffectsForActor(PlayerRef)
 
     if !ames || ames.Length < 1
         DebMsg("no ames? no dice")
