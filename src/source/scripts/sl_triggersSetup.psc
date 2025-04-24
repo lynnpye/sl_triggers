@@ -1258,816 +1258,429 @@ Function Data_SetFromString(string _triggerKey, string _attributeName, string _v
 EndFunction
 
 
-
-; Data - int
-bool Function Data_IntHas(string _triggerKey, string _attributeName)
+string Function MakeDataFilename(string _triggerKey)
 	string _filename
 	if _triggerKey
 		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
 	else
 		_filename = SettingsFolder() + CurrentExtensionKey
 	endif
+	return _filename
+EndFunction
+
+
+; Data - int
+bool Function Data_IntHas(string _triggerKey, string _attributeName)
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.HasIntValue(_filename, _attributeName)
 EndFunction
 
 int Function Data_IntGet(string _triggerKey, string _attributeName, int _defaultValue = 0)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.GetIntValue(_filename, _attributeName, _defaultValue)
 EndFunction
 
 int Function Data_IntSet(string _triggerKey, string _attributeName, int _value = 0)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.SetIntValue(_filename, _attributeName, _value)
 EndFunction
 
 bool Function Data_IntUnset(string _triggerKey, string _attributeName)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.UnsetIntValue(_filename, _attributeName)
 EndFunction
 
 
 ; Data - int[]
 int Function Data_IntListAdd(string _triggerKey, string _attributeName, int _theValue, bool _allowDuplicate = true)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.IntListAdd(_filename, _attributeName, _theValue, _allowDuplicate)
 EndFunction
 
 int Function Data_IntListGet(string _triggerKey, string _attributeName, int _theIndex)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.IntListGet(_filename, _attributeName, _theIndex)
 EndFunction
 
 int Function Data_IntListSet(string _triggerKey, string _attributeName, int _theIndex, int _theValue)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.IntListSet(_filename, _attributeName, _theIndex, _theValue)
 EndFunction
 
 int Function Data_IntListRemove(string _triggerKey, string _attributeName, int _theValue, bool _allInstaces = true)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.IntListRemove(_filename, _attributeName, _theValue, _allInstaces)
 EndFunction
 
 bool Function Data_IntListInsertAt(string _triggerKey, string _attributeName, int _theIndex, int _theValue)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.IntListInsertAt(_filename, _attributeName, _theIndex, _theValue)
 EndFunction
 
 bool Function Data_IntListRemoveAt(string _triggerKey, string _attributeName, int _theIndex)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.IntListRemoveAt(_filename, _attributeName, _theIndex)
 EndFunction
 
 int Function Data_IntListClear(string _triggerKey, string _attributeName)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.IntListClear(_filename, _attributeName)
 EndFunction
 
 int Function Data_IntListCount(string _triggerKey, string _attributeName)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.IntListCount(_filename, _attributeName)
 EndFunction
 
 int Function Data_IntListCountValue(string _triggerKey, string _attributeName, int _theValue, bool _exclude = false)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.IntListCountValue(_filename, _attributeName, _theValue, _exclude)
 EndFunction
 
 int Function Data_IntListFind(string _triggerKey, string _attributeName, int _theValue)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.IntListFind(_filename, _attributeName, _theValue)
 EndFunction
 
 bool Function Data_IntListHas(string _triggerKey, string _attributeName, int _theValue)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.IntListHas(_filename, _attributeName, _theValue)
 EndFunction
 
 Function Data_IntListSlice(string _triggerKey, string _attributeName, int[] slice, int startIndex = 0)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	JsonUtil.IntListSlice(_filename, _attributeName, slice, startIndex)
 EndFunction
 
 int Function Data_IntListResize(string _triggerKey, string _attributeName, int _toLength, int _theFiller = 0)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.IntListResize(_filename, _attributeName, _toLength, _theFiller)
 EndFunction
 
 bool Function Data_IntListCopy(string _triggerKey, string _attributeName, int[] _theCopy)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.IntListCopy(_filename, _attributeName, _theCopy)
 EndFunction
 
 int[] Function Data_IntListToArray(string _triggerKey, string _attributeName)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.IntListToArray(_filename, _attributeName)
 EndFunction
 
 int function Data_IntCountPrefix(string _triggerKey, string _attributeNamePrefix)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.CountIntListPrefix(_filename, _attributeNamePrefix)
 EndFunction
 
+
 ; Data - float
 bool Function Data_FloatHas(string _triggerKey, string _attributeName)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.HasFloatValue(_filename, _attributeName)
 EndFunction
 
 float Function Data_FloatGet(string _triggerKey, string _attributeName, float _defaultValue = 0.0)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.GetFloatValue(_filename, _attributeName, _defaultValue)
 EndFunction
 
 float Function Data_FloatSet(string _triggerKey, string _attributeName, float _value = 0.0)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.SetFloatValue(_filename, _attributeName, _value)
 EndFunction
 
 bool Function Data_FloatUnset(string _triggerKey, string _attributeName)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.UnsetFloatValue(_filename, _attributeName)
 EndFunction
 
 
 ; Data - float[]
 int Function Data_FloatListAdd(string _triggerKey, string _attributeName, float _theValue, bool _allowDuplicate = true)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FloatListAdd(_filename, _attributeName, _theValue, _allowDuplicate)
 EndFunction
 
 float Function Data_FloatListGet(string _triggerKey, string _attributeName, int _theIndex)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FloatListGet(_filename, _attributeName, _theIndex)
 EndFunction
 
 float Function Data_FloatListSet(string _triggerKey, string _attributeName, int _theIndex, float _theValue)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FloatListSet(_filename, _attributeName, _theIndex, _theValue)
 EndFunction
 
 int Function Data_FloatListRemove(string _triggerKey, string _attributeName, float _theValue, bool _allInstaces = true)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FloatListRemove(_filename, _attributeName, _theValue, _allInstaces)
 EndFunction
 
 bool Function Data_FloatListInsertAt(string _triggerKey, string _attributeName, int _theIndex, float _theValue)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FloatListInsertAt(_filename, _attributeName, _theIndex, _theValue)
 EndFunction
 
 bool Function Data_FloatListRemoveAt(string _triggerKey, string _attributeName, int _theIndex)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FloatListRemoveAt(_filename, _attributeName, _theIndex)
 EndFunction
 
 int Function Data_FloatListClear(string _triggerKey, string _attributeName)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FloatListClear(_filename, _attributeName)
 EndFunction
 
 int Function Data_FloatListCount(string _triggerKey, string _attributeName)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FloatListCount(_filename, _attributeName)
 EndFunction
 
 int Function Data_FloatListCountValue(string _triggerKey, string _attributeName, float _theValue, bool _exclude = false)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FloatListCountValue(_filename, _attributeName, _theValue, _exclude)
 EndFunction
 
 int Function Data_FloatListFind(string _triggerKey, string _attributeName, float _theValue)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FloatListFind(_filename, _attributeName, _theValue)
 EndFunction
 
 bool Function Data_FloatListHas(string _triggerKey, string _attributeName, float _theValue)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FloatListHas(_filename, _attributeName, _theValue)
 EndFunction
 
 Function Data_FloatListSlice(string _triggerKey, string _attributeName, float[] slice, int startIndex = 0)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	JsonUtil.FloatListSlice(_filename, _attributeName, slice, startIndex)
 EndFunction
 
 int Function Data_FloatListResize(string _triggerKey, string _attributeName, int _toLength, float _theFiller = 0.0)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FloatListResize(_filename, _attributeName, _toLength, _theFiller)
 EndFunction
 
 bool Function Data_FloatListCopy(string _triggerKey, string _attributeName, float[] _theCopy)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FloatListCopy(_filename, _attributeName, _theCopy)
 EndFunction
 
 float[] Function Data_FloatListToArray(string _triggerKey, string _attributeName)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FloatListToArray(_filename, _attributeName)
 EndFunction
 
 int function Data_FloatCountPrefix(string _triggerKey, string _attributeNamePrefix)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.CountFloatListPrefix(_filename, _attributeNamePrefix)
 EndFunction
 
+
 ; Data - string
 bool Function Data_StringHas(string _triggerKey, string _attributeName)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.HasStringValue(_filename, _attributeName)
 EndFunction
 
 string Function Data_StringGet(string _triggerKey, string _attributeName, string _defaultValue = "")
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.GetStringValue(_filename, _attributeName, _defaultValue)
 EndFunction
 
 string Function Data_StringSet(string _triggerKey, string _attributeName, string _value = "")
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.SetStringValue(_filename, _attributeName, _value)
 EndFunction
 
 bool Function Data_StringUnset(string _triggerKey, string _attributeName)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.UnsetStringValue(_filename, _attributeName)
 EndFunction
 
 
 ; Data - string[]
 int Function Data_StringListAdd(string _triggerKey, string _attributeName, string _theValue, bool _allowDuplicate = true)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.StringListAdd(_filename, _attributeName, _theValue, _allowDuplicate)
 EndFunction
 
 string Function Data_StringListGet(string _triggerKey, string _attributeName, int _theIndex)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.StringListGet(_filename, _attributeName, _theIndex)
 EndFunction
 
 string Function Data_StringListSet(string _triggerKey, string _attributeName, int _theIndex, string _theValue)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.StringListSet(_filename, _attributeName, _theIndex, _theValue)
 EndFunction
 
 int Function Data_StringListRemove(string _triggerKey, string _attributeName, string _theValue, bool _allInstaces = true)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.StringListRemove(_filename, _attributeName, _theValue, _allInstaces)
 EndFunction
 
 bool Function Data_StringListInsertAt(string _triggerKey, string _attributeName, int _theIndex, string _theValue)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.StringListInsertAt(_filename, _attributeName, _theIndex, _theValue)
 EndFunction
 
 bool Function Data_StringListRemoveAt(string _triggerKey, string _attributeName, int _theIndex)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.StringListRemoveAt(_filename, _attributeName, _theIndex)
 EndFunction
 
 int Function Data_StringListClear(string _triggerKey, string _attributeName)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.StringListClear(_filename, _attributeName)
 EndFunction
 
 int Function Data_StringListCount(string _triggerKey, string _attributeName)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.StringListCount(_filename, _attributeName)
 EndFunction
 
 int Function Data_StringListCountValue(string _triggerKey, string _attributeName, string _theValue, bool _exclude = false)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.StringListCountValue(_filename, _attributeName, _theValue, _exclude)
 EndFunction
 
 int Function Data_StringListFind(string _triggerKey, string _attributeName, string _theValue)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.StringListFind(_filename, _attributeName, _theValue)
 EndFunction
 
 bool Function Data_StringListHas(string _triggerKey, string _attributeName, string _theValue)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.StringListHas(_filename, _attributeName, _theValue)
 EndFunction
 
 Function Data_StringListSlice(string _triggerKey, string _attributeName, string[] slice, int startIndex = 0)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	JsonUtil.StringListSlice(_filename, _attributeName, slice, startIndex)
 EndFunction
 
 int Function Data_StringListResize(string _triggerKey, string _attributeName, int _toLength, string _theFiller = "")
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.StringListResize(_filename, _attributeName, _toLength, _theFiller)
 EndFunction
 
 bool Function Data_StringListCopy(string _triggerKey, string _attributeName, string[] _theCopy)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.StringListCopy(_filename, _attributeName, _theCopy)
 EndFunction
 
 string[] Function Data_StringListToArray(string _triggerKey, string _attributeName)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.StringListToArray(_filename, _attributeName)
 EndFunction
 
 int function Data_StringCountPrefix(string _triggerKey, string _attributeNamePrefix)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.CountStringListPrefix(_filename, _attributeNamePrefix)
 EndFunction
 
+
 ; Data - Form
 bool Function Data_FormHas(string _triggerKey, string _attributeName)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.HasFormValue(_filename, _attributeName)
 EndFunction
 
 Form Function Data_FormGet(string _triggerKey, string _attributeName, Form _defaultValue = none)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.GetFormValue(_filename, _attributeName, _defaultValue)
 EndFunction
 
 Form Function Data_FormSet(string _triggerKey, string _attributeName, Form _value = none)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.SetFormValue(_filename, _attributeName, _value)
 EndFunction
 
 bool Function Data_FormUnset(string _triggerKey, string _attributeName)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.UnsetFormValue(_filename, _attributeName)
 EndFunction
 
 
 ; Data - Form[]
 int Function Data_FormListAdd(string _triggerKey, string _attributeName, Form _theValue, bool _allowDuplicate = true)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FormListAdd(_filename, _attributeName, _theValue, _allowDuplicate)
 EndFunction
 
 Form Function Data_FormListGet(string _triggerKey, string _attributeName, int _theIndex)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FormListGet(_filename, _attributeName, _theIndex)
 EndFunction
 
 Form Function Data_FormListSet(string _triggerKey, string _attributeName, int _theIndex, Form _theValue)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FormListSet(_filename, _attributeName, _theIndex, _theValue)
 EndFunction
 
 int Function Data_FormListRemove(string _triggerKey, string _attributeName, Form _theValue, bool _allInstaces = true)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FormListRemove(_filename, _attributeName, _theValue, _allInstaces)
 EndFunction
 
 bool Function Data_FormListInsertAt(string _triggerKey, string _attributeName, int _theIndex, Form _theValue)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FormListInsertAt(_filename, _attributeName, _theIndex, _theValue)
 EndFunction
 
 bool Function Data_FormListRemoveAt(string _triggerKey, string _attributeName, int _theIndex)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FormListRemoveAt(_filename, _attributeName, _theIndex)
 EndFunction
 
 int Function Data_FormListClear(string _triggerKey, string _attributeName)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FormListClear(_filename, _attributeName)
 EndFunction
 
 int Function Data_FormListCount(string _triggerKey, string _attributeName)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FormListCount(_filename, _attributeName)
 EndFunction
 
 int Function Data_FormListCountValue(string _triggerKey, string _attributeName, Form _theValue, bool _exclude = false)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FormListCountValue(_filename, _attributeName, _theValue, _exclude)
 EndFunction
 
 int Function Data_FormListFind(string _triggerKey, string _attributeName, Form _theValue)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FormListFind(_filename, _attributeName, _theValue)
 EndFunction
 
 bool Function Data_FormListHas(string _triggerKey, string _attributeName, Form _theValue)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FormListHas(_filename, _attributeName, _theValue)
 EndFunction
 
 Function Data_FormListSlice(string _triggerKey, string _attributeName, Form[] slice, int startIndex = 0)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	JsonUtil.FormListSlice(_filename, _attributeName, slice, startIndex)
 EndFunction
 
 int Function Data_FormListResize(string _triggerKey, string _attributeName, int _toLength, Form _theFiller = none)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FormListResize(_filename, _attributeName, _toLength, _theFiller)
 EndFunction
 
 bool Function Data_FormListCopy(string _triggerKey, string _attributeName, Form[] _theCopy)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FormListCopy(_filename, _attributeName, _theCopy)
 EndFunction
 
 Form[] Function Data_FormListToArray(string _triggerKey, string _attributeName)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.FormListToArray(_filename, _attributeName)
 EndFunction
 
 int function Data_FormCountPrefix(string _triggerKey, string _attributeNamePrefix)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.CountFormListPrefix(_filename, _attributeNamePrefix)
 EndFunction
 
