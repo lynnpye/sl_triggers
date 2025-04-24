@@ -391,6 +391,7 @@ Event _slt_OnSLTInternalReady(string eventName, string strArg, float numArg, For
 	SLTReady()
 
 	if SLTMCM
+		_slt_PopulateMCM()
 		SLTMCM.SetTriggers(GetExtensionKey(), TriggerKeys)
 	endif
 EndEvent
@@ -432,9 +433,9 @@ Function _slt_PopulateMCM()
 	endif
 	SLTMCM.ClearSetupExtensionKeyHeap(GetExtensionKey())
 	PopulateMCM()
-	;SLTMCM.DefaultPartition = SLTMCM.PARTITION_SETTINGS
-	;PopulateMCMSettings()
-	;SLTMCM.DefaultPartition = SLTMCM.PARTITION_EMPTY
+	SLTMCM.DefaultPartition = SLTMCM.PARTITION_SETTINGS
+	PopulateMCMSettings()
+	SLTMCM.DefaultPartition = SLTMCM.PARTITION_EMPTY
 EndFunction
 
 string Function _slt_GetSettingsUpdateEvent()

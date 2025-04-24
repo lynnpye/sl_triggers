@@ -73,6 +73,7 @@ int			oidCardinateNext
 int			oidAddTop
 int			oidAddBottom
 int			oidExtensionSettings
+int			oidExtensionEnabled
 ; Oh look, they are in the same order as the otherwise unremarkable
 ; and yet, clearly, obviously important variables declared just
 ; above.
@@ -87,6 +88,7 @@ Function CallThisToResetTheOIDValuesHextun()
 	oidAddTop				= 0
 	oidAddBottom			= 0
 	oidExtensionSettings	= 0
+	oidExtensionEnabled		= 0
 	xoidlist				= PapyrusUtil.IntArray(0)
 	xoidtriggerkeys			= PapyrusUtil.StringArray(0)
 	xoidattrnames			= PapyrusUtil.StringArray(0)
@@ -107,31 +109,18 @@ Event OnConfigOpen()
 	else
 		Pages = headerPages
 	endif
+	refreshOnClose = false
 	firstPageReset = true
-	CleanupHeap()
 EndEvent
 
 event OnConfigClose()
 	SLT.SendInternalSettingsUpdateEvents()
-
-	CleanupHeap()
 
 	if refreshOnClose
 		refreshOnClose = false
 		SLT.DoInMemoryReset()
 	endif
 endEvent
-
-
-Function CleanupHeap()
-	CallThisToResetTheOIDValuesHextun()
-	while Heap_IntListCountX(self, PSEUDO_INSTANCE_KEY, "oidlist") > 0
-		int _oldoid = Heap_IntListShiftX(self, PSEUDO_INSTANCE_KEY, "oidlist")
-
-		;Heap_StringUnsetX(self, PSEUDO_INSTANCE_KEY, "oid-" + _oldoid + "-tri")
-		;Heap_StringUnsetX(self, PSEUDO_INSTANCE_KEY, "oid-" + _oldoid + "-att")
-	endwhile
-EndFunction
 
 
 ; Breaking from my typical format, I moved a subset of Functions toward the top
@@ -391,11 +380,11 @@ bool Function ShowAttribute(string attrName, int widgetOptions, string triggerKe
 		allowedVisible = false
 
 		string tval
-		if Trigger_IntHasX(extensionKey, triggerKey, visibilityKeyAttribute)
-			tval = Trigger_IntGetX(extensionKey, triggerKey, visibilityKeyAttribute) as string
+		if Data_IntHas(triggerKey, visibilityKeyAttribute)
+			tval = Data_IntGet(triggerKey, visibilityKeyAttribute) as string
 			allowedVisible = (tval == visibleOnlyIfValueIs)
-		elseif Trigger_StringHasX(extensionKey, triggerKey, visibilityKeyAttribute)
-			tval = Trigger_StringGetX(extensionKey, triggerKey, visibilityKeyAttribute)
+		elseif Data_StringHas(triggerKey, visibilityKeyAttribute)
+			tval = Data_StringGet(triggerKey, visibilityKeyAttribute)
 			allowedVisible = (tval == visibleOnlyIfValueIs)
 		else
 			; they specified it, it somehow got past, and now we have to deal with it
@@ -409,8 +398,8 @@ bool Function ShowAttribute(string attrName, int widgetOptions, string triggerKe
 		string label = GetAttrLabel(extensionKey, attrName)
 		if widg == WIDG_SLIDER
 			float _defval = GetAttrDefaultFloat(extensionKey, attrName)
-			if Trigger_FloatHasX(extensionKey, triggerKey, attrName)
-				_defval = Trigger_FloatGetX(extensionKey, triggerKey, attrName)
+			if Data_FloatHas(triggerKey, attrName)
+				_defval = Data_FloatGet(triggerKey, attrName)
 			endif
 			_oid = AddSliderOption(label, _defval, GetAttrFormatString(extensionKey, attrName), widgetOptions)
 			; add to list of oids to heap
@@ -419,19 +408,19 @@ bool Function ShowAttribute(string attrName, int widgetOptions, string triggerKe
 			string[] menuSelections = GetAttrMenuSelections(extensionKey, attrName)
 			int ptype = GetAttrType(extensionKey, attrName)
 			string menuValue = ""
-			if (ptype == PTYPE_INT() && !Trigger_IntHasX(extensionKey, triggerKey, attrName)) || (ptype == PTYPE_STRING() && !Trigger_StringHasX(extensionKey, triggerKey, attrName))
+			if (ptype == PTYPE_INT() && !Data_IntHas(triggerKey, attrName)) || (ptype == PTYPE_STRING() && !Data_StringHas(triggerKey, attrName))
 				int midx = GetAttrDefaultIndex(extensionKey, attrName)
 				if midx > -1
 					menuValue = menuSelections[midx]
 				endif
 			else
 				if ptype == PTYPE_INT()
-					int midx = Trigger_IntGetX(extensionKey, triggerKey, attrName)
+					int midx = Data_IntGet(triggerKey, attrName)
 					if midx > -1
 						menuValue = menuSelections[midx]
 					endif
 				elseif ptype == PTYPE_STRING()
-					string _tval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
+					string _tval = Data_StringGet(triggerKey, attrName)
 					if menuSelections.find(_tval) > -1
 						menuValue = _tval
 					endif
@@ -441,8 +430,8 @@ bool Function ShowAttribute(string attrName, int widgetOptions, string triggerKe
 			AddOid(_oid, triggerKey, attrName)
 		elseif widg == WIDG_KEYMAP
 			int _defmap = GetAttrDefaultValue(extensionKey, attrName)
-			if Trigger_IntHasX(extensionKey, triggerKey, attrName)
-				_defmap = Trigger_IntGetX(extensionKey, triggerKey, attrName)
+			if Data_IntHas(triggerKey, attrName)
+				_defmap = Data_IntGet(triggerKey, attrName)
 			endif
 			int keymapOptions = OPTION_FLAG_WITH_UNMAP
 			if widgetOptions == OPTION_FLAG_DISABLED
@@ -452,8 +441,8 @@ bool Function ShowAttribute(string attrName, int widgetOptions, string triggerKe
 			AddOid(_oid, triggerKey, attrName)
 		elseif widg == WIDG_TOGGLE
 			bool _defval = GetAttrDefaultValue(extensionKey, attrName) != 0
-			if Trigger_IntHasX(extensionKey, triggerKey, attrName)
-				_defval = Trigger_IntGetX(extensionKey, triggerKey, attrName) != 0
+			if Data_IntHas(triggerKey, attrName)
+				_defval = Data_IntGet(triggerKey, attrName) != 0
 			endif
 			_oid = AddToggleOption(label, _defval, widgetOptions)
 			AddOid(_oid, triggerKey, attrName)
@@ -462,20 +451,20 @@ bool Function ShowAttribute(string attrName, int widgetOptions, string triggerKe
 			
 			int ptype = GetAttrType(extensionKey, attrName)
 			if ptype == PTYPE_INT()
-				if Trigger_IntHasX(extensionKey, triggerKey, attrName)
-					_defval = Trigger_IntGetX(extensionKey, triggerKey, attrName) as string
+				if Data_IntHas(triggerKey, attrName)
+					_defval = Data_IntGet(triggerKey, attrName) as string
 				endif
 			elseif ptype == PTYPE_FLOAT()
-				if Trigger_FloatHasX(extensionKey, triggerKey, attrName)
-					_defval = Trigger_FloatGetX(extensionKey, triggerKey, attrName) as string
+				if Data_FloatHas(triggerKey, attrName)
+					_defval = Data_FloatGet(triggerKey, attrName) as string
 				endif
 			elseif ptype == PTYPE_STRING()
-				if Trigger_StringHasX(extensionKey, triggerKey, attrName)
-					_defval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
+				if Data_StringHas(triggerKey, attrName)
+					_defval = Data_StringGet(triggerKey, attrName)
 				endif
 			elseif ptype == PTYPE_FORM()
-				if Trigger_FormHasX(extensionKey, triggerKey, attrName)
-					_defval = Trigger_FormGetX(extensionKey, triggerKey, attrName) as string
+				if Data_FormHas(triggerKey, attrName)
+					_defval = Data_FormGet(triggerKey, attrName) as string
 				endif
 			endif
 			
@@ -483,8 +472,8 @@ bool Function ShowAttribute(string attrName, int widgetOptions, string triggerKe
 			AddOid(_oid, triggerKey, attrName)
 		elseif widg == WIDG_COMMANDLIST
 			string menuValue = ""
-			if Trigger_StringHasX(extensionKey, triggerKey, attrName)
-				string _cval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
+			if Data_StringHas(triggerKey, attrName)
+				string _cval = Data_StringGet(triggerKey, attrName)
 				if CommandsList.find(_cval) > -1
 					menuValue = _cval
 				endif
@@ -502,7 +491,18 @@ EndFunction
 Function ShowExtensionSettings()
 	SetCursorFillMode(TOP_TO_BOTTOM)
 
-	oidExtensionSettings = AddTextOption("$BTN_BACK", "")
+	DefaultPartition = PARTITION_SETTINGS
+	oidExtensionSettings = AddTextOption("$SLT_BTN_BACK", "")
+	AddEmptyOption()
+
+	int _oid
+
+	; blank row
+	AddHeaderOption(currentSLTPage)
+	oidExtensionEnabled = AddToggleOption("$SLT_LBL_ENABLED_QUESTION", true)
+
+
+
 EndFunction
 
 ;/
@@ -524,6 +524,7 @@ Function ShowExtensionPage()
 	if extensionPages.Length < 1
 		return
 	endif
+	DefaultPartition = PARTITION_EMPTY
 	; I have an extensionIndex with which I can retrieve an extensionKey
 	; if I'm going to paginate I need to have a concept of where in the order
 	; I am in for triggerKeys
@@ -540,6 +541,9 @@ Function ShowExtensionPage()
 	; what do we want this to look like?
 	SetCursorFillMode(LEFT_TO_RIGHT)
 	
+	oidAddTop = AddTextOption("$SLT_BTN_ADD_NEW_ITEM", "")
+	oidExtensionSettings = AddTextOption("$SLT_BTN_EXTENSION_SETTINGS", "")
+	
 	int startIndex = 0
 	int displayCount = CARDS_PER_PAGE
 	if !cardinate
@@ -553,25 +557,26 @@ Function ShowExtensionPage()
 	endif
 	
 	if cardinate
+		; blank row to avoid accidentally creating new items
+		AddEmptyOption()
+		AddEmptyOption()
+
 		; set startIndex appropriately
 		startIndex = currentCardination * CARDS_PER_PAGE
 		
 		; display cardination buttons
 		if currentCardination > 0
-			oidCardinatePrevious = AddTextOption("$BTN_PREVIOUS", "")
+			oidCardinatePrevious = AddTextOption("$SLT_BTN_PREVIOUS", "")
 		else
-			oidCardinatePrevious = AddTextOption("$BTN_PREVIOUS", "", OPTION_FLAG_DISABLED)
+			oidCardinatePrevious = AddTextOption("$SLT_BTN_PREVIOUS", "", OPTION_FLAG_DISABLED)
 		endif
 		
 		if hasNextCardinate
-			oidCardinateNext = AddTextOption("$BTN_NEXT", "")
+			oidCardinateNext = AddTextOption("$SLT_BTN_NEXT", "")
 		else
-			oidCardinateNext = AddTextOption("$BTN_NEXT", "", OPTION_FLAG_DISABLED)
+			oidCardinateNext = AddTextOption("$SLT_BTN_NEXT", "", OPTION_FLAG_DISABLED)
 		endif
 	endif
-	
-	oidAddTop = AddTextOption("$BTN_ADD_NEW_ITEM", "")
-	oidExtensionSettings = AddTextOption("$BTN_EXTENSION_SETTINGS", "")
 	
 	int displayIndexer = 0
 	bool needsEmpty = false
@@ -581,8 +586,8 @@ Function ShowExtensionPage()
 	
 	while displayIndexer < displayCount
 		triggerKey = GetTrigger(extensionKey, displayIndexer + startIndex)
-		triggerIsSoftDeleted = Trigger_IsDeletedT(extensionKey, triggerKey)
-		;if !Trigger_IsDeletedT(extensionKey, triggerKey)
+		triggerIsSoftDeleted = Trigger_IsDeleted(triggerKey)
+		;if !Trigger_IsDeleted(triggerKey)
 			AddHeaderOption("==] " + triggerKey + " [==")
 			AddEmptyOption()
 
@@ -590,10 +595,10 @@ Function ShowExtensionPage()
 			int widgetOptions = OPTION_FLAG_NONE
 			if triggerIsSoftDeleted
 				widgetOptions = OPTION_FLAG_DISABLED
-				AddHeaderOption("$MSG_SOFT_DELETE_0")
-				AddHeaderOption("$MSG_SOFT_DELETE_1")
-				AddHeaderOption("$MSG_SOFT_DELETE_2")
-				AddHeaderOption("$MSG_SOFT_DELETE_3")
+				AddHeaderOption("$SLT_MSG_SOFT_DELETE_0")
+				AddHeaderOption("$SLT_MSG_SOFT_DELETE_1")
+				AddHeaderOption("$SLT_MSG_SOFT_DELETE_2")
+				AddHeaderOption("$SLT_MSG_SOFT_DELETE_3")
 			endif
 
 			;if !triggerIsSoftDeleted
@@ -619,11 +624,11 @@ Function ShowExtensionPage()
 			AddEmptyOption()
 			if !triggerIsSoftDeleted
 				; and option to delete
-				_oid = AddTextOption("$BTN_DELETE", "")
+				_oid = AddTextOption("$SLT_BTN_DELETE", "")
 				AddOid(_oid, triggerKey, DELETE_BUTTON)
 			else
 				; and option to undelete
-				_oid = AddTextOption("$BTN_RESTORE", "")
+				_oid = AddTextOption("$SLT_BTN_RESTORE", "")
 				AddOid(_oid, triggerKey, RESTORE_BUTTON)
 			endif
 		;endif
@@ -636,18 +641,11 @@ Function ShowExtensionPage()
 		AddEmptyOption()
 		AddEmptyOption()
 		
-		oidAddBottom = AddTextOption("$BTN_ADD_NEW_ITEM", "")
+		oidAddBottom = AddTextOption("$SLT_BTN_ADD_NEW_ITEM", "")
 		AddEmptyOption()
 	endif
 	
 EndFunction
-
-
-
-
-
-
-
 
 
 Function SaveDirtyTrigger(string _extensionKey, string _triggerKey)
@@ -686,7 +684,6 @@ Event OnPageReset(string page)
 	if doPageChanged
 		CurrentExtensionKey = ""
 		currentCardination = 0
-		DefaultPartition = PARTITION_EMPTY
 		displayExtensionSettings = false
 		extensionIndex = -1
 	endif
@@ -703,7 +700,6 @@ Event OnPageReset(string page)
 		attributeNames = GetAttributeNames(CurrentExtensionKey)
 
 		if displayExtensionSettings
-			;DefaultPartition = PARTITION_SETTINGS
 			ShowExtensionSettings()
 		else
 			ShowExtensionPage()
@@ -715,36 +711,73 @@ Event OnPageReset(string page)
 	Debug.Trace("SLT: Setup: Page is neither header nor extension")
 EndEvent
 
-
+;/
+oidEnabled				= 0
+oidDebugMsg				= 0
+oidResetSLT				= 0
+oidCardinatePrevious	= 0
+oidCardinateNext		= 0
+oidAddTop				= 0
+oidAddBottom			= 0
+oidExtensionSettings	= 0
+oidExtensionEnabled		= 0
+/;
 
 ; All
 Event OnOptionHighlight(int option)
-	bool done = false
-
-	if option == oidCardinatePrevious
+	if !option
+		Return
+	endif
+	if option == oidEnabled
+		SetInfoText("$SLT_HIGHLIGHT_OID_ENABLED")
+		return
+	elseif option == oidDebugMsg
+		SetInfoText("$SLT_HIGHLIGHT_OID_DEBUGMSG")
+		return
+	elseif option == oidResetSLT
+		SetInfoText("$SLT_HIGHLIGHT_OID_RESETSLT")
+		return
+	elseif option == oidCardinatePrevious
+		SetInfoText("$SLT_HIGHLIGHT_OID_CARDINATEPREVIOUS")
+		return
 	elseif option == oidCardinateNext
-	elseif (option == oidAddTop)
+		SetInfoText("$SLT_HIGHLIGHT_OID_CARDINATENEXT")
+		return
+	elseif (option == oidAddTop || option == oidAddBottom)
+		SetInfoText("$SLT_HIGHLIGHT_OID_ADDNEWITEM")
+		return
+	elseif option == oidExtensionSettings
+		SetInfoText("$SLT_HIGHLIGHT_OID_EXTENSIONSETTINGS")
+		return
+	elseif option == oidExtensionEnabled
+		SetInfoText("$SLT_HIGHLIGHT_OID_EXTENSIONENABLED")
+		return
 	else
 		string attrName = GetOidAttributeName(option)
 		if attrName == DELETE_BUTTON
+			SetInfoText("$SLT_HIGHLIGHT_OID_DELETEITEM")
+			return
 		elseif attrName == RESTORE_BUTTON
+			SetInfoText("$SLT_HIGHLIGHT_OID_RESTOREITEM")
+			return
 		endif
-	endif	
-
-	if done
-		return
 	endif
 
-	string extKey = CurrentExtensionKey
-	string attrName = GetOidAttributeName(option)
-	
-	if HasAttrHighlight(extKey, attrName)
-		SetInfoText(GetAttrHighlight(extKey, attrName))
+	if IsExtensionPage()
+		string extKey = CurrentExtensionKey
+		string attrName = GetOidAttributeName(option)
+		
+		if HasAttrHighlight(extKey, attrName)
+			SetInfoText(GetAttrHighlight(extKey, attrName))
+		endif
 	endif
 EndEvent
 
 ; All
 Event OnOptionDefault(int option)
+	if !option
+		Return
+	endif
 	string extKey = CurrentExtensionKey
 	string triKey = GetOidTriggerKey(option)
 	string attrName = GetOidAttributeName(option)
@@ -762,13 +795,13 @@ Event OnOptionDefault(int option)
 	; set the trigger value
 	if attrType == PTYPE_INT()
 		defInt = GetAttrDefaultValue(extKey, attrName)
-		Trigger_IntSetX(extKey, triKey, attrName, defInt)
+		Data_IntSet(triKey, attrName, defInt)
 	elseif attrType == PTYPE_STRING()
 		defStr = GetAttrDefaultString(extKey, attrName)
-		Trigger_StringSetX(extKey, triKey, attrName, defStr)
+		Data_StringSet(triKey, attrName, defStr)
 	elseif attrType == PTYPE_FLOAT()
 		defFlt = GetAttrDefaultFloat(extKey, attrName)
-		Trigger_FloatSetX(extKey, triKey, attrName, defFlt)
+		Data_FloatSet(triKey, attrName, defFlt)
 	endif
 	
 	; and set the option value
@@ -819,6 +852,9 @@ EndEvent
 ; Text (buttons?)
 ; Toggle
 Event OnOptionSelect(int option)
+	if !option
+		Return
+	endif
 	If option == oidEnabled
 		SLT.bEnabled = !SLT.bEnabled
 		SetToggleOptionValue(option, SLT.bEnabled)
@@ -830,10 +866,10 @@ Event OnOptionSelect(int option)
 		
 		return
 	elseIf option == oidResetSLT
-		refreshOnClose = ShowMessage("$MSG_SOFT_DELETE_WARNING", true, "$Yes", "$No")
+		refreshOnClose = ShowMessage("$SLT_MSG_SOFT_DELETE_WARNING", true, "$Yes", "$No")
 
 		if refreshOnClose
-			ShowMessage("$MSG_SOFT_DELETE_CONFIRMATION", false)
+			ShowMessage("$SLT_MSG_SOFT_DELETE_CONFIRMATION", false)
 		endif
 
 		return
@@ -849,7 +885,7 @@ Event OnOptionSelect(int option)
 		return
 	elseIf option == oidAddTop || option == oidAddBottom
 		; add a record
-		Trigger_CreateT(CurrentExtensionKey)
+		Trigger_Create()
 		ForcePageReset()
 	
 		return
@@ -857,6 +893,8 @@ Event OnOptionSelect(int option)
 		displayExtensionSettings = displayExtensionSettings != true
 		ForcePageReset()
 
+		return
+	elseIf option == oidExtensionEnabled
 		return
 	endIf
 	
@@ -867,35 +905,41 @@ Event OnOptionSelect(int option)
 		extensionKey = CurrentExtensionKey
 		triggerKey = GetOidTriggerKey(option)
 		
-		Trigger_StringSetX(extensionKey, triggerKey, DELETED_ATTRIBUTE(), "true")
+		Data_StringSet(triggerKey, DELETED_ATTRIBUTE(), "true")
 		ForcePageReset()
 	elseif attrName == RESTORE_BUTTON
 		extensionKey = CurrentExtensionKey
 		triggerKey = GetOidTriggerKey(option)
 		
-		Trigger_StringUnsetX(extensionKey, triggerKey, DELETED_ATTRIBUTE())
+		Data_StringUnset(triggerKey, DELETED_ATTRIBUTE())
 		ForcePageReset()
 	endif
 EndEvent
 
 ; Slider
 Event OnOptionSliderOpen(int option)
+	if !option
+		Return
+	endif
 	string extKey = CurrentExtensionKey
 	string triKey = GetOidTriggerKey(option)
 	string attrName = GetOidAttributeName(option)
 	
-	SetSliderDialogStartValue(Trigger_GetAsFloat(extKey, triKey, attrName))
+	SetSliderDialogStartValue(Data_GetAsFloat(triKey, attrName))
 	SetSliderDialogDefaultValue(GetAttrDefaultFloat(extKey, attrName))
 	SetSliderDialogRange(GetAttrMinValue(extKey, attrName), GetAttrMaxValue(extKey, attrName))
 	SetSliderDialogInterval(GetAttrInterval(extKey, attrName))
 EndEvent
 
 Event OnOptionSliderAccept(int option, float value)
+	if !option
+		Return
+	endif
 	string extKey = CurrentExtensionKey
 	string triKey = GetOidTriggerKey(option)
 	string attrName = GetOidAttributeName(option)
 	
-	Trigger_SetFromFloat(extKey, triKey, attrName, value)
+	Data_SetFromFloat(triKey, attrName, value)
 	SetSliderOptionValue(option, value, GetAttrFormatString(extKey, attrName))
 	
 	SaveDirtyTrigger(extKey, triKey)
@@ -907,6 +951,9 @@ EndEvent
 
 ; Menu
 Event OnOptionMenuOpen(int option)
+	if !option
+		Return
+	endif
 	string extKey = CurrentExtensionKey
 	string triKey = GetOidTriggerKey(option)
 	string attrName = GetOidAttributeName(option)
@@ -926,18 +973,18 @@ Event OnOptionMenuOpen(int option)
 	
 	if attrWidg == WIDG_COMMANDLIST
 		defaultIndex = -1
-		if Trigger_StringHasX(extKey, triKey, attrName)
-			menuValue = Trigger_StringGetX(extKey, triKey, attrName)
+		if Data_StringHas(triKey, attrName)
+			menuValue = Data_StringGet(triKey, attrName)
 			menuIndex = menuSelections.find(menuValue)
 		endif
 	elseif attrWidg == WIDG_MENU
 		if attrType == PTYPE_INT()
 			defaultIndex = GetAttrDefaultValue(extKey, attrName)
-			menuIndex = Trigger_IntGetX(extKey, triKey, attrName)
+			menuIndex = Data_IntGet(triKey, attrName)
 			menuValue = menuSelections[menuIndex]
 		elseif attrType == PTYPE_STRING()
 			defaultIndex = menuSelections.find(GetAttrDefaultString(extKey, attrName))
-			menuValue = Trigger_StringGetX(extKey, triKey, attrName)
+			menuValue = Data_StringGet(triKey, attrName)
 			menuIndex = menuSelections.find(menuValue)
 		endif
 	endif
@@ -948,6 +995,9 @@ Event OnOptionMenuOpen(int option)
 EndEvent
 
 Event OnOptionMenuAccept(int option, int index)
+	if !option
+		Return
+	endif
 	string extKey = CurrentExtensionKey
 	string triKey = GetOidTriggerKey(option)
 	string attrName = GetOidAttributeName(option)
@@ -963,17 +1013,17 @@ Event OnOptionMenuAccept(int option, int index)
 	
 	if index >= 0
 		if attrType == PTYPE_INT()
-			Trigger_IntSetX(extKey, triKey, attrName, index)
+			Data_IntSet(triKey, attrName, index)
 		elseif attrType == PTYPE_STRING()
-			Trigger_StringSetX(extKey, triKey, attrName, menuSelections[index])
-			string asdf = Trigger_StringGetX(extKey, triKey, attrName)
+			Data_StringSet(triKey, attrName, menuSelections[index])
+			string asdf = Data_StringGet(triKey, attrName)
 		endif
 		SetMenuOptionValue(option, menuSelections[index])
 	else
 		if attrType == PTYPE_INT()
-			Trigger_IntUnsetX(extKey, triKey, attrName)
+			Data_IntUnset(triKey, attrName)
 		elseif attrType == PTYPE_STRING()
-			Trigger_StringUnsetX(extKey, triKey, attrName)
+			Data_StringUnset(triKey, attrName)
 		endif
 		SetMenuOptionValue(option, "")
 	endif
@@ -987,6 +1037,9 @@ EndEvent
 
 ; Keymap
 Event OnOptionKeyMapChange(int option, int keyCode, string conflictControl, string conflictName)
+	if !option
+		Return
+	endif
 	string extKey = CurrentExtensionKey
 	string triKey = GetOidTriggerKey(option)
 	string attrName = GetOidAttributeName(option)
@@ -994,10 +1047,12 @@ Event OnOptionKeyMapChange(int option, int keyCode, string conflictControl, stri
 	bool proceed = true
 	if conflictControl
 		string msg
+		string msg_thisKeyIsAlreadyMappedTo = sl_triggers_internal.SafeGetTranslatedString("$SLT_MSG_KEYMAP_CONFIRM_0")
+		string msg_areYouSureYouWantToContinue = sl_triggers_internal.SafeGetTranslatedString("$SLT_MSG_KEYMAP_CONFIRM_1")
 		if conflictName
-			msg = "This key is already mapped to:\n\"" + conflictControl + "\"\n(" + conflictName + ")\n\nAre you sure you want to continue?"
+			msg = msg_thisKeyIsAlreadyMappedTo + "\n\"" + conflictControl + "\"\n(" + conflictName + ")\n\n" + msg_areYouSureYouWantToContinue
 		else
-			msg = "This key is already mapped to:\n\"" + conflictControl + "\"\n\nAre you sure you want to continue?"
+			msg = msg_thisKeyIsAlreadyMappedTo + "\n\"" + conflictControl + "\"\n\n" + msg_areYouSureYouWantToContinue
 		endIf
 		
 		proceed = ShowMessage(msg, true, "$Yes", "$No")
@@ -1005,9 +1060,9 @@ Event OnOptionKeyMapChange(int option, int keyCode, string conflictControl, stri
 	
 	if proceed
 		if keyCode >= 0
-			Trigger_IntSetX(extKey, triKey, attrName, keyCode)
+			Data_IntSet(triKey, attrName, keyCode)
 		else
-			Trigger_IntUnsetX(extKey, triKey, attrName)
+			Data_IntUnset(triKey, attrName)
 		endif
 		SetKeyMapOptionValue(option, keyCode)
 		
@@ -1021,13 +1076,16 @@ EndEvent
 
 ; Input (string input dialog)
 Event OnOptionInputOpen(int option)
+	if !option
+		Return
+	endif
 	string extKey = CurrentExtensionKey
 	string triKey = GetOidTriggerKey(option)
 	string attrName = GetOidAttributeName(option)
 	
 	string optVal
-	if Trigger_HasAsString(extKey, triKey, attrName)
-		optVal = Trigger_GetAsString(extKey, triKey, attrName)
+	if Data_HasAsString(triKey, attrName)
+		optVal = Data_GetAsString(triKey, attrName)
 	else
 		optVal = GetAttrDefaultString(extKey, attrName)
 	endif
@@ -1035,11 +1093,14 @@ Event OnOptionInputOpen(int option)
 EndEvent
 
 Event OnOptionInputAccept(int option, string _input)
+	if !option
+		Return
+	endif
 	string extKey = CurrentExtensionKey
 	string triKey = GetOidTriggerKey(option)
 	string attrName = GetOidAttributeName(option)
 	
-	Trigger_SetFromString(extKey, triKey, attrName, _input)
+	Data_SetFromString(triKey, attrName, _input)
 	SetInputOptionValue(option, _input)
 	
 	SaveDirtyTrigger(extKey, triKey)
@@ -1055,17 +1116,14 @@ Function ShowHeaderPage()
 	SetCursorFillMode(TOP_TO_BOTTOM)
 	int ver = GetVersion()
 	AddHeaderOption("SL Triggers")
-	AddHeaderOption("(" + sl_triggers_internal.SafeGetTranslatedString("$LBL_VERSION") + " " + (ver as string) + ")")
+	AddHeaderOption("(" + sl_triggers_internal.SafeGetTranslatedString("$SLT_LBL_VERSION") + " " + (ver as string) + ")")
 	
-	AddHeaderOption("$LBL_GLOBAL_SETTINGS")
-	oidEnabled    = AddToggleOption("$LBL_ENABLE", SLT.bEnabled)
-	oidDebugMsg   = AddToggleOption("$LBL_DEBUG_MESSAGES", SLT.bDebugMsg)
+	AddHeaderOption("$SLT_LBL_GLOBAL_SETTINGS")
+	oidEnabled    = AddToggleOption("$SLT_LBL_ENABLED_QUESTION", SLT.bEnabled)
+	oidDebugMsg   = AddToggleOption("$SLT_LBL_DEBUG_MESSAGES", SLT.bDebugMsg)
 	AddEmptyOption()
 	AddEmptyOption()
-	oidResetSLT		= AddTextOption("$BTN_RESET_SL_TRIGGERS", "")
-EndFunction
-
-Function PageChanged()
+	oidResetSLT		= AddTextOption("$SLT_BTN_RESET_SL_TRIGGERS", "")
 EndFunction
 
 bool Function IsExtensionPage()
@@ -1082,11 +1140,17 @@ EndFunction
 
 
 ; Trigger Data Convenience Functions
-bool Function Trigger_IsDeletedT(string _extensionKey, string _triggerKey)
-	return JsonUtil.HasStringValue(ExtensionTriggerName(_extensionKey, _triggerKey), DELETED_ATTRIBUTE())
+bool Function Trigger_IsDeleted(string _triggerKey)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.HasStringValue(_filename, DELETED_ATTRIBUTE())
 EndFunction
 
-string Function Trigger_CreateT(string _extensionKey)
+string Function Trigger_Create()
 	string triggerKey
 	string triggerFileName
 	int triggerNum = 1
@@ -1100,7 +1164,7 @@ string Function Trigger_CreateT(string _extensionKey)
 			triggerKey = "trigger" + triggerNum
 		endif
 		
-		triggerFileName = ExtensionTriggerName(_extensionKey, triggerKey)
+		triggerFileName = ExtensionTriggerName(CurrentExtensionKey, triggerKey)
 		if !JsonUtil.JsonExists(triggerFileName)
 			found = false
 		else
@@ -1111,9 +1175,9 @@ string Function Trigger_CreateT(string _extensionKey)
 	if found
 		Debug.Trace("SLT: Setup: Unable to create new trigger: '" + triggerFileName + "'")
 	else
-		AddTrigger(_extensionKey, triggerKey)
-		Trigger_IntSetX(_extensionKey, triggerKey, "__slt_mod_version__", GetModVersion())
-		SaveDirtyTrigger(_extensionKey, triggerKey)
+		AddTrigger(CurrentExtensionKey, triggerKey)
+		Data_IntSet(triggerKey, "__slt_mod_version__", GetModVersion())
+		SaveDirtyTrigger(CurrentExtensionKey, triggerKey)
 	endif
 	
 	return triggerKey
@@ -1121,149 +1185,897 @@ EndFunction
 ; Specifying both triggerId and attributeName
 
 ; some conversion convenience wrappers
-float Function Trigger_GetAsFloat(string _extensionKey, string _triggerKey, string _attributeName)
-	int attrType = GetAttrType(_extensionKey, _attributeName)
+float Function Data_GetAsFloat(string _triggerKey, string _attributeName)
+	int attrType = GetAttrType(CurrentExtensionKey, _attributeName)
 	if attrType == PTYPE_FLOAT()
-		return Trigger_FloatGetX(_extensionKey, _triggerKey, _attributeName)
+		return Data_FloatGet(_triggerKey, _attributeName)
 	elseif attrType == PTYPE_INT()
-		return Trigger_IntGetX(_extensionKey, _triggerKey, _attributeName) as float
+		return Data_IntGet(_triggerKey, _attributeName) as float
 	elseif attrType == PTYPE_STRING()
-		return Trigger_StringGetX(_extensionKey, _triggerKey, _attributeName) as float
+		return Data_StringGet(_triggerKey, _attributeName) as float
 	endif
 	return 0.0
 EndFunction
 
-string Function Trigger_GetAsString(string _extensionKey, string _triggerKey, string _attributeName)
-	int attrType = GetAttrType(_extensionKey, _attributeName)
+string Function Data_GetAsString(string _triggerKey, string _attributeName)
+	int attrType = GetAttrType(CurrentExtensionKey, _attributeName)
 	if attrType == PTYPE_STRING()
-		return Trigger_StringGetX(_extensionKey, _triggerKey, _attributeName)
+		return Data_StringGet(_triggerKey, _attributeName)
 	elseif attrType == PTYPE_INT()
-		return Trigger_IntGetX(_extensionKey, _triggerKey, _attributeName) as string
+		return Data_IntGet(_triggerKey, _attributeName) as string
 	elseif attrType == PTYPE_FLOAT()
-		return Trigger_FloatGetX(_extensionKey, _triggerKey, _attributeName) as string
+		return Data_FloatGet(_triggerKey, _attributeName) as string
 	endif
 	return ""
 EndFunction
 
-bool Function Trigger_HasAsString(string _extensionKey, string _triggerKey, string _attributeName)
-	int attrType = GetAttrType(_extensionKey, _attributeName)
+bool Function Data_HasAsString(string _triggerKey, string _attributeName)
+	int attrType = GetAttrType(CurrentExtensionKey, _attributeName)
 	if attrType == PTYPE_STRING()
-		return Trigger_StringHasX(_extensionKey, _triggerKey, _attributeName)
+		return Data_StringHas(_triggerKey, _attributeName)
 	elseif attrType == PTYPE_INT()
-		return Trigger_IntHasX(_extensionKey, _triggerKey, _attributeName)
+		return Data_IntHas(_triggerKey, _attributeName)
 	elseif attrType == PTYPE_FLOAT()
-		return Trigger_FloatHasX(_extensionKey, _triggerKey, _attributeName)
+		return Data_FloatHas(_triggerKey, _attributeName)
 	endif
 	return false
 EndFunction
 
-Function Trigger_SetFromFloat(string _extensionKey, string _triggerKey, string _attributeName, float _value)
-	int attrType = GetAttrType(_extensionKey, _attributeName)
+Function Data_SetFromFloat(string _triggerKey, string _attributeName, float _value)
+	int attrType = GetAttrType(CurrentExtensionKey, _attributeName)
 	if attrType == PTYPE_FLOAT()
-		Trigger_FloatSetX(_extensionKey, _triggerKey, _attributeName, _value)
+		Data_FloatSet(_triggerKey, _attributeName, _value)
 	elseif attrType == PTYPE_INT()
-		Trigger_IntSetX(_extensionKey, _triggerKey, _attributeName, _value as int)
+		Data_IntSet(_triggerKey, _attributeName, _value as int)
 	elseif attrType == PTYPE_STRING()
-		Trigger_StringSetX(_extensionKey, _triggerKey, _attributeName, _value as string)
+		Data_StringSet(_triggerKey, _attributeName, _value as string)
 	endif
 EndFunction
 
-Function Trigger_SetFromString(string _extensionKey, string _triggerKey, string _attributeName, string _value)
-	int attrType = GetAttrType(_extensionKey, _attributeName)
+Function Data_SetFromString(string _triggerKey, string _attributeName, string _value)
+	int attrType = GetAttrType(CurrentExtensionKey, _attributeName)
 	if attrType == PTYPE_STRING()
 		if !_value
-			Trigger_StringUnsetX(_extensionKey, _triggerKey, _attributeName)
+			Data_StringUnset(_triggerKey, _attributeName)
 		else
-			Trigger_StringSetX(_extensionKey, _triggerKey, _attributeName, _value)
+			Data_StringSet(_triggerKey, _attributeName, _value)
 		endif
 	elseif attrType == PTYPE_INT()
 		if !_value
-			Trigger_IntUnsetX(_extensionKey, _triggerKey, _attributeName)
+			Data_IntUnset(_triggerKey, _attributeName)
 		else
-			Trigger_IntSetX(_extensionKey, _triggerKey, _attributeName, _value as int)
+			Data_IntSet(_triggerKey, _attributeName, _value as int)
 		endif
 	elseif attrType == PTYPE_FLOAT()
 		if !_value
-			Trigger_FloatUnsetX(_extensionKey, _triggerKey, _attributeName)
+			Data_FloatUnset(_triggerKey, _attributeName)
 		else
-			Trigger_FloatSetX(_extensionKey, _triggerKey, _attributeName, _value as float)
+			Data_FloatSet(_triggerKey, _attributeName, _value as float)
 		endif
 	endif
 EndFunction
 
-; string
-bool Function Trigger_StringHasX(string _extensionKey, string _triggerKey, string _attributeName)
-	return JsonUtil.HasStringValue(ExtensionTriggerName(_extensionKey, _triggerKey), _attributeName)
+
+
+; Data - int
+bool Function Data_IntHas(string _triggerKey, string _attributeName)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.HasIntValue(_filename, _attributeName)
 EndFunction
 
-string Function Trigger_StringGetX(string _extensionKey, string _triggerKey, string _attributeName, string _defaultValue = "")
-	return JsonUtil.GetStringValue(ExtensionTriggerName(_extensionKey, _triggerKey), _attributeName, _defaultValue)
+int Function Data_IntGet(string _triggerKey, string _attributeName, int _defaultValue = 0)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.GetIntValue(_filename, _attributeName, _defaultValue)
 EndFunction
 
-string Function Trigger_StringSetX(string _extensionKey, string _triggerKey, string _attributeName, string _value = "")
-	return JsonUtil.SetStringValue(ExtensionTriggerName(_extensionKey, _triggerKey), _attributeName, _value)
+int Function Data_IntSet(string _triggerKey, string _attributeName, int _value = 0)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.SetIntValue(_filename, _attributeName, _value)
 EndFunction
 
-bool Function Trigger_StringUnsetX(string _extensionKey, string _triggerKey, string _attributeName)
-	return JsonUtil.UnsetStringValue(ExtensionTriggerName(_extensionKey, _triggerKey), _attributeName)
-EndFunction
-
-
-; Form
-bool Function Trigger_FormHasX(string _extensionKey, string _triggerKey, string _attributeName)
-	return JsonUtil.HasFormValue(ExtensionTriggerName(_extensionKey, _triggerKey), _attributeName)
-EndFunction
-
-Form Function Trigger_FormGetX(string _extensionKey, string _triggerKey, string _attributeName, Form _defaultValue = None)
-	return JsonUtil.GetFormValue(ExtensionTriggerName(_extensionKey, _triggerKey), _attributeName, _defaultValue)
-EndFunction
-
-Form Function Trigger_FormSetX(string _extensionKey, string _triggerKey, string _attributeName, Form _value = None)
-	return JsonUtil.SetFormValue(ExtensionTriggerName(_extensionKey, _triggerKey), _attributeName, _value)
-EndFunction
-
-bool Function Trigger_FormUnsetX(string _extensionKey, string _triggerKey, string _attributeName)
-	return JsonUtil.UnsetFormValue(ExtensionTriggerName(_extensionKey, _triggerKey), _attributeName)
-EndFunction
-
-
-; float
-bool Function Trigger_FloatHasX(string _extensionKey, string _triggerKey, string _attributeName)
-	return JsonUtil.HasFloatValue(ExtensionTriggerName(_extensionKey, _triggerKey), _attributeName)
-EndFunction
-
-float Function Trigger_FloatGetX(string _extensionKey, string _triggerKey, string _attributeName, float _defaultValue = 0.0)
-	return JsonUtil.GetFloatValue(ExtensionTriggerName(_extensionKey, _triggerKey), _attributeName, _defaultValue)
-EndFunction
-
-float Function Trigger_FloatSetX(string _extensionKey, string _triggerKey, string _attributeName, float _value = 0.0)
-	return JsonUtil.SetFloatValue(ExtensionTriggerName(_extensionKey, _triggerKey), _attributeName, _value)
-EndFunction
-
-bool Function Trigger_FloatUnsetX(string _extensionKey, string _triggerKey, string _attributeName)
-	return JsonUtil.UnsetFloatValue(ExtensionTriggerName(_extensionKey, _triggerKey), _attributeName)
+bool Function Data_IntUnset(string _triggerKey, string _attributeName)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.UnsetIntValue(_filename, _attributeName)
 EndFunction
 
 
-; int
-bool Function Trigger_IntHasX(string _extensionKey, string _triggerKey, string _attributeName)
-	return JsonUtil.HasIntValue(ExtensionTriggerName(_extensionKey, _triggerKey), _attributeName)
+; Data - int[]
+int Function Data_IntListAdd(string _triggerKey, string _attributeName, int _theValue, bool _allowDuplicate = true)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.IntListAdd(_filename, _attributeName, _theValue, _allowDuplicate)
 EndFunction
 
-int Function Trigger_IntGetX(string _extensionKey, string _triggerKey, string _attributeName, int _defaultValue = 0)
-	return JsonUtil.GetIntValue(ExtensionTriggerName(_extensionKey, _triggerKey), _attributeName, _defaultValue)
+int Function Data_IntListGet(string _triggerKey, string _attributeName, int _theIndex)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.IntListGet(_filename, _attributeName, _theIndex)
 EndFunction
 
-int Function Trigger_IntSetX(string _extensionKey, string _triggerKey, string _attributeName, int _value = 0)
-	return JsonUtil.SetIntValue(ExtensionTriggerName(_extensionKey, _triggerKey), _attributeName, _value)
+int Function Data_IntListSet(string _triggerKey, string _attributeName, int _theIndex, int _theValue)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.IntListSet(_filename, _attributeName, _theIndex, _theValue)
 EndFunction
 
-bool Function Trigger_IntUnsetX(string _extensionKey, string _triggerKey, string _attributeName)
-	return JsonUtil.UnsetIntValue(ExtensionTriggerName(_extensionKey, _triggerKey), _attributeName)
+int Function Data_IntListRemove(string _triggerKey, string _attributeName, int _theValue, bool _allInstaces = true)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.IntListRemove(_filename, _attributeName, _theValue, _allInstaces)
+EndFunction
+
+bool Function Data_IntListInsertAt(string _triggerKey, string _attributeName, int _theIndex, int _theValue)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.IntListInsertAt(_filename, _attributeName, _theIndex, _theValue)
+EndFunction
+
+bool Function Data_IntListRemoveAt(string _triggerKey, string _attributeName, int _theIndex)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.IntListRemoveAt(_filename, _attributeName, _theIndex)
+EndFunction
+
+int Function Data_IntListClear(string _triggerKey, string _attributeName)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.IntListClear(_filename, _attributeName)
+EndFunction
+
+int Function Data_IntListCount(string _triggerKey, string _attributeName)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.IntListCount(_filename, _attributeName)
+EndFunction
+
+int Function Data_IntListCountValue(string _triggerKey, string _attributeName, int _theValue, bool _exclude = false)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.IntListCountValue(_filename, _attributeName, _theValue, _exclude)
+EndFunction
+
+int Function Data_IntListFind(string _triggerKey, string _attributeName, int _theValue)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.IntListFind(_filename, _attributeName, _theValue)
+EndFunction
+
+bool Function Data_IntListHas(string _triggerKey, string _attributeName, int _theValue)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.IntListHas(_filename, _attributeName, _theValue)
+EndFunction
+
+Function Data_IntListSlice(string _triggerKey, string _attributeName, int[] slice, int startIndex = 0)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	JsonUtil.IntListSlice(_filename, _attributeName, slice, startIndex)
+EndFunction
+
+int Function Data_IntListResize(string _triggerKey, string _attributeName, int _toLength, int _theFiller = 0)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.IntListResize(_filename, _attributeName, _toLength, _theFiller)
+EndFunction
+
+bool Function Data_IntListCopy(string _triggerKey, string _attributeName, int[] _theCopy)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.IntListCopy(_filename, _attributeName, _theCopy)
+EndFunction
+
+int[] Function Data_IntListToArray(string _triggerKey, string _attributeName)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.IntListToArray(_filename, _attributeName)
+EndFunction
+
+int function Data_IntCountPrefix(string _triggerKey, string _attributeNamePrefix)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.CountIntListPrefix(_filename, _attributeNamePrefix)
+EndFunction
+
+; Data - float
+bool Function Data_FloatHas(string _triggerKey, string _attributeName)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.HasFloatValue(_filename, _attributeName)
+EndFunction
+
+float Function Data_FloatGet(string _triggerKey, string _attributeName, float _defaultValue = 0.0)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.GetFloatValue(_filename, _attributeName, _defaultValue)
+EndFunction
+
+float Function Data_FloatSet(string _triggerKey, string _attributeName, float _value = 0.0)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.SetFloatValue(_filename, _attributeName, _value)
+EndFunction
+
+bool Function Data_FloatUnset(string _triggerKey, string _attributeName)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.UnsetFloatValue(_filename, _attributeName)
+EndFunction
+
+
+; Data - float[]
+int Function Data_FloatListAdd(string _triggerKey, string _attributeName, float _theValue, bool _allowDuplicate = true)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FloatListAdd(_filename, _attributeName, _theValue, _allowDuplicate)
+EndFunction
+
+float Function Data_FloatListGet(string _triggerKey, string _attributeName, int _theIndex)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FloatListGet(_filename, _attributeName, _theIndex)
+EndFunction
+
+float Function Data_FloatListSet(string _triggerKey, string _attributeName, int _theIndex, float _theValue)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FloatListSet(_filename, _attributeName, _theIndex, _theValue)
+EndFunction
+
+int Function Data_FloatListRemove(string _triggerKey, string _attributeName, float _theValue, bool _allInstaces = true)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FloatListRemove(_filename, _attributeName, _theValue, _allInstaces)
+EndFunction
+
+bool Function Data_FloatListInsertAt(string _triggerKey, string _attributeName, int _theIndex, float _theValue)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FloatListInsertAt(_filename, _attributeName, _theIndex, _theValue)
+EndFunction
+
+bool Function Data_FloatListRemoveAt(string _triggerKey, string _attributeName, int _theIndex)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FloatListRemoveAt(_filename, _attributeName, _theIndex)
+EndFunction
+
+int Function Data_FloatListClear(string _triggerKey, string _attributeName)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FloatListClear(_filename, _attributeName)
+EndFunction
+
+int Function Data_FloatListCount(string _triggerKey, string _attributeName)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FloatListCount(_filename, _attributeName)
+EndFunction
+
+int Function Data_FloatListCountValue(string _triggerKey, string _attributeName, float _theValue, bool _exclude = false)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FloatListCountValue(_filename, _attributeName, _theValue, _exclude)
+EndFunction
+
+int Function Data_FloatListFind(string _triggerKey, string _attributeName, float _theValue)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FloatListFind(_filename, _attributeName, _theValue)
+EndFunction
+
+bool Function Data_FloatListHas(string _triggerKey, string _attributeName, float _theValue)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FloatListHas(_filename, _attributeName, _theValue)
+EndFunction
+
+Function Data_FloatListSlice(string _triggerKey, string _attributeName, float[] slice, int startIndex = 0)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	JsonUtil.FloatListSlice(_filename, _attributeName, slice, startIndex)
+EndFunction
+
+int Function Data_FloatListResize(string _triggerKey, string _attributeName, int _toLength, float _theFiller = 0.0)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FloatListResize(_filename, _attributeName, _toLength, _theFiller)
+EndFunction
+
+bool Function Data_FloatListCopy(string _triggerKey, string _attributeName, float[] _theCopy)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FloatListCopy(_filename, _attributeName, _theCopy)
+EndFunction
+
+float[] Function Data_FloatListToArray(string _triggerKey, string _attributeName)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FloatListToArray(_filename, _attributeName)
+EndFunction
+
+int function Data_FloatCountPrefix(string _triggerKey, string _attributeNamePrefix)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.CountFloatListPrefix(_filename, _attributeNamePrefix)
+EndFunction
+
+; Data - string
+bool Function Data_StringHas(string _triggerKey, string _attributeName)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.HasStringValue(_filename, _attributeName)
+EndFunction
+
+string Function Data_StringGet(string _triggerKey, string _attributeName, string _defaultValue = "")
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.GetStringValue(_filename, _attributeName, _defaultValue)
+EndFunction
+
+string Function Data_StringSet(string _triggerKey, string _attributeName, string _value = "")
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.SetStringValue(_filename, _attributeName, _value)
+EndFunction
+
+bool Function Data_StringUnset(string _triggerKey, string _attributeName)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.UnsetStringValue(_filename, _attributeName)
+EndFunction
+
+
+; Data - string[]
+int Function Data_StringListAdd(string _triggerKey, string _attributeName, string _theValue, bool _allowDuplicate = true)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.StringListAdd(_filename, _attributeName, _theValue, _allowDuplicate)
+EndFunction
+
+string Function Data_StringListGet(string _triggerKey, string _attributeName, int _theIndex)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.StringListGet(_filename, _attributeName, _theIndex)
+EndFunction
+
+string Function Data_StringListSet(string _triggerKey, string _attributeName, int _theIndex, string _theValue)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.StringListSet(_filename, _attributeName, _theIndex, _theValue)
+EndFunction
+
+int Function Data_StringListRemove(string _triggerKey, string _attributeName, string _theValue, bool _allInstaces = true)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.StringListRemove(_filename, _attributeName, _theValue, _allInstaces)
+EndFunction
+
+bool Function Data_StringListInsertAt(string _triggerKey, string _attributeName, int _theIndex, string _theValue)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.StringListInsertAt(_filename, _attributeName, _theIndex, _theValue)
+EndFunction
+
+bool Function Data_StringListRemoveAt(string _triggerKey, string _attributeName, int _theIndex)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.StringListRemoveAt(_filename, _attributeName, _theIndex)
+EndFunction
+
+int Function Data_StringListClear(string _triggerKey, string _attributeName)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.StringListClear(_filename, _attributeName)
+EndFunction
+
+int Function Data_StringListCount(string _triggerKey, string _attributeName)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.StringListCount(_filename, _attributeName)
+EndFunction
+
+int Function Data_StringListCountValue(string _triggerKey, string _attributeName, string _theValue, bool _exclude = false)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.StringListCountValue(_filename, _attributeName, _theValue, _exclude)
+EndFunction
+
+int Function Data_StringListFind(string _triggerKey, string _attributeName, string _theValue)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.StringListFind(_filename, _attributeName, _theValue)
+EndFunction
+
+bool Function Data_StringListHas(string _triggerKey, string _attributeName, string _theValue)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.StringListHas(_filename, _attributeName, _theValue)
+EndFunction
+
+Function Data_StringListSlice(string _triggerKey, string _attributeName, string[] slice, int startIndex = 0)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	JsonUtil.StringListSlice(_filename, _attributeName, slice, startIndex)
+EndFunction
+
+int Function Data_StringListResize(string _triggerKey, string _attributeName, int _toLength, string _theFiller = "")
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.StringListResize(_filename, _attributeName, _toLength, _theFiller)
+EndFunction
+
+bool Function Data_StringListCopy(string _triggerKey, string _attributeName, string[] _theCopy)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.StringListCopy(_filename, _attributeName, _theCopy)
+EndFunction
+
+string[] Function Data_StringListToArray(string _triggerKey, string _attributeName)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.StringListToArray(_filename, _attributeName)
+EndFunction
+
+int function Data_StringCountPrefix(string _triggerKey, string _attributeNamePrefix)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.CountStringListPrefix(_filename, _attributeNamePrefix)
+EndFunction
+
+; Data - Form
+bool Function Data_FormHas(string _triggerKey, string _attributeName)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.HasFormValue(_filename, _attributeName)
+EndFunction
+
+Form Function Data_FormGet(string _triggerKey, string _attributeName, Form _defaultValue = none)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.GetFormValue(_filename, _attributeName, _defaultValue)
+EndFunction
+
+Form Function Data_FormSet(string _triggerKey, string _attributeName, Form _value = none)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.SetFormValue(_filename, _attributeName, _value)
+EndFunction
+
+bool Function Data_FormUnset(string _triggerKey, string _attributeName)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.UnsetFormValue(_filename, _attributeName)
+EndFunction
+
+
+; Data - Form[]
+int Function Data_FormListAdd(string _triggerKey, string _attributeName, Form _theValue, bool _allowDuplicate = true)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FormListAdd(_filename, _attributeName, _theValue, _allowDuplicate)
+EndFunction
+
+Form Function Data_FormListGet(string _triggerKey, string _attributeName, int _theIndex)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FormListGet(_filename, _attributeName, _theIndex)
+EndFunction
+
+Form Function Data_FormListSet(string _triggerKey, string _attributeName, int _theIndex, Form _theValue)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FormListSet(_filename, _attributeName, _theIndex, _theValue)
+EndFunction
+
+int Function Data_FormListRemove(string _triggerKey, string _attributeName, Form _theValue, bool _allInstaces = true)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FormListRemove(_filename, _attributeName, _theValue, _allInstaces)
+EndFunction
+
+bool Function Data_FormListInsertAt(string _triggerKey, string _attributeName, int _theIndex, Form _theValue)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FormListInsertAt(_filename, _attributeName, _theIndex, _theValue)
+EndFunction
+
+bool Function Data_FormListRemoveAt(string _triggerKey, string _attributeName, int _theIndex)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FormListRemoveAt(_filename, _attributeName, _theIndex)
+EndFunction
+
+int Function Data_FormListClear(string _triggerKey, string _attributeName)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FormListClear(_filename, _attributeName)
+EndFunction
+
+int Function Data_FormListCount(string _triggerKey, string _attributeName)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FormListCount(_filename, _attributeName)
+EndFunction
+
+int Function Data_FormListCountValue(string _triggerKey, string _attributeName, Form _theValue, bool _exclude = false)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FormListCountValue(_filename, _attributeName, _theValue, _exclude)
+EndFunction
+
+int Function Data_FormListFind(string _triggerKey, string _attributeName, Form _theValue)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FormListFind(_filename, _attributeName, _theValue)
+EndFunction
+
+bool Function Data_FormListHas(string _triggerKey, string _attributeName, Form _theValue)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FormListHas(_filename, _attributeName, _theValue)
+EndFunction
+
+Function Data_FormListSlice(string _triggerKey, string _attributeName, Form[] slice, int startIndex = 0)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	JsonUtil.FormListSlice(_filename, _attributeName, slice, startIndex)
+EndFunction
+
+int Function Data_FormListResize(string _triggerKey, string _attributeName, int _toLength, Form _theFiller = none)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FormListResize(_filename, _attributeName, _toLength, _theFiller)
+EndFunction
+
+bool Function Data_FormListCopy(string _triggerKey, string _attributeName, Form[] _theCopy)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FormListCopy(_filename, _attributeName, _theCopy)
+EndFunction
+
+Form[] Function Data_FormListToArray(string _triggerKey, string _attributeName)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.FormListToArray(_filename, _attributeName)
+EndFunction
+
+int function Data_FormCountPrefix(string _triggerKey, string _attributeNamePrefix)
+	string _filename
+	if _triggerKey
+		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
+	else
+		_filename = SettingsFolder() + CurrentExtensionKey
+	endif
+	return JsonUtil.CountFormListPrefix(_filename, _attributeNamePrefix)
 EndFunction
 
 
 
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Accessors and functions for handling the automated MCM plumbing
 string Function TK_extension(string _extensionKey, string _partitionName = "")
 	string ek = "ek-" + _extensionKey
 	if !_partitionName
@@ -1350,31 +2162,16 @@ EndFunction
 
 ; getters
 
-;/
-int Function GetOidCount()
-	return Heap_IntListCountX(self, PSEUDO_INSTANCE_KEY, "oidlist")
-EndFunction
-
-int[] Function GetOids()
-	return Heap_IntListToArrayX(self, PSEUDO_INSTANCE_KEY, "oidlist")
-EndFunction
-
-int Function GetOid(int _oidIndex)
-	return Heap_IntListGetX(self, PSEUDO_INSTANCE_KEY, "oidlist", _oidIndex)
-EndFunction
-/;
 
 string Function GetOidTriggerKey(int _oid)
 	string value = ""
 
 	int oidx = xoidlist.Find(_oid)
 	if oidx > -1 && oidx < xoidlist.Length && xoidlist.Length == xoidtriggerkeys.Length
-		int _tidx = xoidlist[oidx]
-		value = xoidtriggerkeys[_tidx]
+		value = xoidtriggerkeys[oidx]
 	endif
 
 	return value
-	;return Heap_StringGetX(self, PSEUDO_INSTANCE_KEY, "oid-" + _oid + "-tri")
 EndFunction
 
 string Function GetOidAttributeName(int _oid)
@@ -1382,12 +2179,10 @@ string Function GetOidAttributeName(int _oid)
 
 	int oidx = xoidlist.Find(_oid)
 	if oidx > -1 && oidx < xoidlist.Length && xoidlist.Length == xoidattrnames.Length
-		int _tidx = xoidlist[oidx]
-		value = xoidattrnames[_tidx]
+		value = xoidattrnames[oidx]
 	endif
 
 	return value
-	;return Heap_StringGetX(self, PSEUDO_INSTANCE_KEY, "oid-" + _oid + "-att")
 EndFunction
 
 bool Function IsOidVisibilityKey(int _oid)
@@ -1510,11 +2305,10 @@ string Function GetAttrHighlight(string _ext, string _attr)
 EndFunction
 
 ; setters
-int Function AddOid(int _oid, string _triggerKey, string _attrName)
+Function AddOid(int _oid, string _triggerKey, string _attrName)
 	xoidlist		= PapyrusUtil.PushInt(xoidlist, _oid)
 	xoidtriggerkeys	= PapyrusUtil.PushString(xoidtriggerkeys, _triggerKey)
 	xoidattrnames	= PapyrusUtil.PushString(xoidattrnames, _attrName)
-	return xoidlist.Length - 1
 EndFunction
 
 int Function AddTrigger(string _extensionKey, string _value)
