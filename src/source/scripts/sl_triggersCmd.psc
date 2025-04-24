@@ -43,6 +43,7 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
    	cmdName = Heap_StringGetFK(akCaster, MakeInstanceKey(instanceId, "cmd"))
 	
 	SLTOnEffectStart(akCaster)
+    
 	SafeRegisterForModEvent_AME(self, _slt_GetClusterBeginExecutionEvent(), "OnSLTAMEClusterBeginExecutionEvent")
 	
 	QueueUpdateLoop(0.1)
@@ -53,9 +54,7 @@ Event OnUpdate()
 	If !Self
 		Return
 	EndIf
-	
-	float currentRealTime = Utility.GetCurrentRealTime()
-	
+    
 	if deferredInitNeeded
 		deferredInitNeeded = false
 		
@@ -143,6 +142,8 @@ Function SendClusterDispel()
 	endif
 	clusterDispelSent = true
 	SendModEvent(_slt_GetClusterEvent(), "DISPEL")
+    UnregisterForAllModEvents()
+    Self.Dispel()
 EndFunction
 
 Function SendClusterExecute() ; really just to me

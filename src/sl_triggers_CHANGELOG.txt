@@ -1,3 +1,6 @@
+103
+    bugfix: trigger primes were not dispelling themselves at end of service
+
 102
     bugfix: fixed problem where available triggers would not reset between launches of the game
     bugfix: fixed problem with MCM OID handling (might not have noticed it; it could be subtle)

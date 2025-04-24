@@ -768,6 +768,11 @@ Event OnOptionHighlight(int option)
 		string attrName = GetOidAttributeName(option)
 		
 		if HasAttrHighlight(extKey, attrName)
+			;/
+			string[] info = GetExtensionAttributeInfo(true, attrName, "info")
+			string hitext = info[0]
+			DebMsg("hitext(" + hitext + ")")
+			/;
 			SetInfoText(GetAttrHighlight(extKey, attrName))
 		endif
 	endif
@@ -1141,14 +1146,93 @@ EndFunction
 
 
 
+
+
+
+
+string[] Function GetExtensionAttributes(bool _isTriggerAttribute)
+	string _attributeType
+	if _isTriggerAttribute
+		_attributeType = "trigger"
+	else
+		_attributeType = "settings"
+	endif
+	string _filename = MakeDataFilename("")
+
+	string k_attrlist = "." + _attributeType + "_attributes"
+	string k_attr_header = "." + _attributeType + "attribute_" ; <attribute name> i.e. ".settingsattribute_test_toggle" is for attribute 'test_toggle'
+	string k_layout_header = "." + _attributeType + "layout_" ; "<layoutname>" i.e. ".settingslayout_test_toggle_on" would be settings type for layout named 'test_toggle_on'
+	string k_layoutconditions = "." + _attributeType + "_layoutconditions"
+
+	string[] attributes
+	int listcount = JsonUtil.PathCount(_filename, k_attrlist)
+	int idx = 0
+	string[] list
+	string item
+	while idx < listcount
+		list = JsonUtil.PathStringElements(_filename, k_attrlist + "[" + idx + "]")
+		if list.Length
+			item = StringUtil.GetNthChar(list[0], 0)
+			if item != "#"
+				if !attributes
+					attributes = PapyrusUtil.StringArray(0)
+				endif
+				attributes = PapyrusUtil.PushString(attributes, list[0])
+			endif
+		endif
+		idx += 1
+	endwhile
+
+	return attributes
+EndFunction
+
+
+string[] Function GetExtensionAttributeInfo(bool _isTriggerAttribute, string _attrname, string _info)
+	if !_attrname || !_info
+		Debug.Trace("attrname and _info are required")
+		return none
+	endif
+
+	string _filename = MakeDataFilename("")
+	string k_attr_header
+	if _isTriggerAttribute
+		k_attr_header = ".triggerattribute_" + _attrname
+	else
+		k_attr_header = ".settingsattribute_" + _attrname
+	endif
+	
+	int listcount = JsonUtil.PathCount(_filename, k_attr_header)
+	DebMsg("k_attr_header(" + k_attr_header + ") count(" + listcount + ")")
+	int idx = 0
+	string[] list
+	string item
+	while idx < listcount
+		list = JsonUtil.PathStringElements(_filename, k_attr_header + "[" + idx + "]")
+		DebMsg("list[0](" + list[0] + ") length(" + list.Length + ")")
+		if list.Length
+			if list[0] == _info
+				return PapyrusUtil.SliceStringArray(list, 1)
+			endif
+		endif
+		idx += 1
+	endwhile
+
+	return none
+EndFunction
+
+
+
+
+
+
+
+
+
+
+
 ; Trigger Data Convenience Functions
 bool Function Trigger_IsDeleted(string _triggerKey)
-	string _filename
-	if _triggerKey
-		_filename = SettingsFolder() + CurrentExtensionKey + "/" + _triggerKey
-	else
-		_filename = SettingsFolder() + CurrentExtensionKey
-	endif
+	string _filename = MakeDataFilename(_triggerKey)
 	return JsonUtil.HasStringValue(_filename, DELETED_ATTRIBUTE())
 EndFunction
 
