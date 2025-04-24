@@ -41,7 +41,19 @@ string					Property InstanceId Auto Hidden
 
 ;
 Actor			Property CmdTargetActor Auto Hidden
-string[]		Property stack Auto Hidden
+
+string[]		Property ResultStack Hidden
+	string[] Function Get()
+		if CmdPrimary
+			return CmdPrimary.ResultStack
+		endif
+		return _slt_GetResultStack()
+	EndFunction
+EndProperty
+
+string[]	Function _slt_GetResultStack()
+	return none
+EndFunction
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -132,7 +144,9 @@ Function SLTOnEffectStart(Actor akCaster)
 	SafeRegisterForModEvent_AME(self, EVENT_SLT_RESET(), "_slt_OnSLTReset")
 	
 	; we are a Cmd extension; we need to find our primary AME and report in
-	if CmdExtension
+	sl_triggersCmd cmdme = self as sl_triggersCmd
+
+	if !cmdme
 		_isSupportCmdVal = true
 		string coreInstanceId = Heap_StringListShiftFK(CmdTargetActor, MakeExtensionInstanceId(CmdExtension.GetExtensionKey()))
 		; something has gone wrong

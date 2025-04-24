@@ -30,10 +30,18 @@ String Function _slt_getActualInstanceId()
 	return InstanceId
 EndFunction
 
+string[]	_resultStack
+
+string[]	Function _slt_GetResultStack()
+    if !_resultStack
+        _resultStack = new string[128]
+    endif
+	return _resultStack
+EndFunction
+
 Event OnEffectStart(Actor akTarget, Actor akCaster)
 	deferredInitNeeded = true
     cmdIdx = 0
-    stack = new string[4]
     
     gotoCnt = 0
     gotoIdx = new int[127]
@@ -350,7 +358,7 @@ string Function CustomResolve(string _code)
 	int varindex = -1
     if StringUtil.getNthChar(_code, 0) == "$"
         if _code == "$$"
-            return stack[0]
+            return ResultStack[0]
         else
 			varindex = isVarString(_code)
 			if varindex >= 0
@@ -649,7 +657,7 @@ bool function oper(string[] param)
     mate = resolveActor(param[1])
     val = mate.GetBaseActorValue(resolve(param[2]))
     
-    stack[0] = val as string
+    ResultStack[0] = val as string
     ;MiscUtil.PrintConsole("Return: " + stack[0])
 
 	return true
@@ -664,7 +672,7 @@ bool function oper(string[] param)
     mate = resolveActor(param[1])
     val = mate.GetActorValue(resolve(param[2]))
     
-    stack[0] = val as string
+    ResultStack[0] = val as string
     ;MiscUtil.PrintConsole("Return: " + stack[0])
 
 	return true
@@ -679,7 +687,7 @@ bool function oper(string[] param)
     mate = resolveActor(param[1])
     val = mate.GetActorValueMax(resolve(param[2]))
     
-    stack[0] = val as string
+    ResultStack[0] = val as string
 
 	return true
 endFunction
@@ -695,7 +703,7 @@ bool function oper(string[] param)
     val = mate.GetActorValuePercentage(resolve(param[2]))
     val = val * 100.0
     
-    stack[0] = val as string
+    ResultStack[0] = val as string
 
 	return true
 endFunction
@@ -975,7 +983,7 @@ bool function oper(string[] param)
     thing = getFormId(resolve(param[2]))
     if thing
         retVal = mate.GetItemCount(thing)
-        stack[0] = retVal as string
+        ResultStack[0] = retVal as string
     endIf
 
 	return true
@@ -1034,7 +1042,7 @@ bool function oper(string[] param)
     cnt = param.length
     idx = utility.RandomInt(1, cnt - 1)
     ss = resolve(param[idx])
-    stack[0] = ss
+    ResultStack[0] = ss
     ;MiscUtil.PrintConsole("rnd_list: " + cnt + "," + idx + ", " + ss + ", " + stack[0])
 
 	return true
@@ -1054,7 +1062,7 @@ bool function oper(string[] param)
     p2 = ss as int
     
     idx = utility.RandomInt(p1, p2)
-    stack[0] = idx as string
+    ResultStack[0] = idx as string
     
 
 	return true
@@ -1210,9 +1218,9 @@ bool function oper(string[] param)
     
     mate = resolveActor(param[1])
     if mate && mate.isEnabled() && !mate.isDead() && !mate.isInCombat() && !mate.IsUnconscious() && mate.Is3DLoaded() && cc == mate.getParentCell()
-        stack[0] = "1"
+        ResultStack[0] = "1"
     else
-        stack[0] = "0"
+        ResultStack[0] = "0"
     endIf
 
 
@@ -1228,9 +1236,9 @@ bool function oper(string[] param)
     mate = resolveActor(param[1])
     mate2 = resolveActor(param[2])
     if mate.hasLOS(mate2)
-        stack[0] = "1"
+        ResultStack[0] = "1"
     else
-        stack[0] = "0"
+        ResultStack[0] = "0"
     endIf
 
 
@@ -1243,7 +1251,7 @@ bool function oper(string[] param)
     Actor mate
     
     mate = resolveActor(param[1])
-    stack[0] = actorName(mate)
+    ResultStack[0] = actorName(mate)
 
 
 	return true
@@ -1288,9 +1296,9 @@ bool function oper(string[] param)
     
     mate = resolveActor(param[1])
     if mate.IsGuard()
-        stack[0] = "1"
+        ResultStack[0] = "1"
     else
-        stack[0] = "0"
+        ResultStack[0] = "0"
     endIf
     
 
@@ -1311,9 +1319,9 @@ bool function oper(string[] param)
     
     mate = resolveActor(param[1])
     if mate == PlayerRef
-        stack[0] = "1"
+        ResultStack[0] = "1"
     else
-        stack[0] = "0"
+        ResultStack[0] = "0"
     endIf
     
 
@@ -1329,7 +1337,7 @@ bool function oper(string[] param)
     mate = resolveActor(param[1])
     gender = actorGender(mate)
     
-    stack[0] = gender as int
+    ResultStack[0] = gender as int
 
 	return true
 endFunction
@@ -1362,9 +1370,9 @@ bool function oper(string[] param)
     keyw = Keyword.GetKeyword(ss)
     
     if keyw && mate.HasKeyword(keyw)
-        stack[0] = "1"
+        ResultStack[0] = "1"
     else
-        stack[0] = "0"
+        ResultStack[0] = "0"
     endIf
 
 	return true
@@ -1380,9 +1388,9 @@ bool function oper(string[] param)
 	thing = getFormId(resolve(param[2]))
 	
 	if thing && mate.IsEquipped(thing)
-        stack[0] = "1"
+        ResultStack[0] = "1"
     else
-        stack[0] = "0"
+        ResultStack[0] = "0"
     endIf
 	
 
@@ -1397,9 +1405,9 @@ bool function oper(string[] param)
 	
 	mate = resolveActor(param[1])
 	if mate && mate.GetEquippedArmorInSlot(slot)
-		stack[0] = "1"
+		ResultStack[0] = "1"
 	else
-		stack[0] = "0"
+		ResultStack[0] = "0"
 	endIf
 
 	return true
@@ -1418,9 +1426,9 @@ bool function oper(string[] param)
     keyw = Keyword.GetKeyword(ss)
     
     if keyw && mate.WornHasKeyword(keyw)
-        stack[0] = "1"
+        ResultStack[0] = "1"
     else
-        stack[0] = "0"
+        ResultStack[0] = "0"
     endIf
     
 
@@ -1440,9 +1448,9 @@ bool function oper(string[] param)
     keyw = Keyword.GetKeyword(ss)
     
     if keyw && mate.GetCurrentLocation().HasKeyword(keyw)
-        stack[0] = "1"
+        ResultStack[0] = "1"
     else
-        stack[0] = "0"
+        ResultStack[0] = "0"
     endIf
     
 
@@ -1460,7 +1468,7 @@ bool function oper(string[] param)
     mate2 = resolveActor(param[2])
     
     ret = mate1.GetRelationshipRank(mate2)
-    stack[0] = ret as int
+    ResultStack[0] = ret as int
     
 
 	return true
@@ -1494,10 +1502,10 @@ bool function oper(string[] param)
     mate = resolveActor(param[1])
     thing = getFormId(resolve(param[2])) as Faction
     
-    stack[0] = "0"
+    ResultStack[0] = "0"
     if thing
         if mate.IsInFaction(thing)
-            stack[0] = "1"
+            ResultStack[0] = "1"
         endif
     endif
     
@@ -1516,10 +1524,10 @@ bool function oper(string[] param)
     mate = resolveActor(param[1])
     thing = getFormId(resolve(param[2])) as Faction
     
-    stack[0] = "0"
+    ResultStack[0] = "0"
     if thing
         retVal = mate.GetFactionRank(thing)
-        stack[0] = retVal as Int
+        ResultStack[0] = retVal as Int
     endif
     
 
@@ -1555,7 +1563,7 @@ bool function oper(string[] param)
 	
 	mate = resolveActor(param[1])
 	if !mate
-		stack[0] = "0"
+		ResultStack[0] = "0"
 		return true
 	endif
 	
@@ -1565,9 +1573,9 @@ bool function oper(string[] param)
 	MagicEffect mgef = thing as MagicEffect
 	if mgef
 		if mate.HasMagicEffect(mgef)
-			stack[0] = "1"
+			ResultStack[0] = "1"
 		else
-			stack[0] = "0"
+			ResultStack[0] = "0"
 		endif
 		return true
 	endif
@@ -1580,7 +1588,7 @@ bool function oper(string[] param)
 		while i < numeffs
 			mgef = spel.GetNthEffectMagicEffect(i)
 			if mate.HasMagicEffect(mgef)
-				stack[0] = "1"
+				ResultStack[0] = "1"
 				return true
 			endif
 			
@@ -1589,7 +1597,7 @@ bool function oper(string[] param)
 	endif
 	
 	; it was nothing :(
-	stack[0] = "0"
+	ResultStack[0] = "0"
 	return true
 endFunction
 EndState
@@ -1657,20 +1665,20 @@ bool function oper(string[] param)
     mate = resolveActor(param[1])
     ss1 = resolve(param[2])
     
-    stack[0] = ""
+    ResultStack[0] = ""
     if mate 
         if ss1 == "GetCombatState"
-            stack[0] = mate.GetCombatState() as string
+            ResultStack[0] = mate.GetCombatState() as string
         elseif ss1 == "GetLevel"
-            stack[0] = mate.GetLevel() as string
+            ResultStack[0] = mate.GetLevel() as string
         elseif ss1 == "GetSleepState"
-            stack[0] = mate.GetSleepState() as string
+            ResultStack[0] = mate.GetSleepState() as string
         elseif ss1 == "IsAlerted"
-            stack[0] = mate.IsAlerted() as string
+            ResultStack[0] = mate.IsAlerted() as string
         elseif ss1 == "IsAlarmed"
-            stack[0] = mate.IsAlarmed() as string
+            ResultStack[0] = mate.IsAlarmed() as string
         elseif ss1 == "IsPlayerTeammate"
-            stack[0] = mate.IsPlayerTeammate() as string
+            ResultStack[0] = mate.IsPlayerTeammate() as string
         elseif ss1 == "SetPlayerTeammate"
             int p3
             p3 = resolve(param[3]) as int
@@ -1694,14 +1702,14 @@ bool function oper(string[] param)
     mate = resolveActor(param[1])
     ss1 = resolve(param[2])
     
-    stack[0] = ""
+    ResultStack[0] = ""
     if mate 
         if ss1 == "ClearExtraArrows"
             mate.ClearExtraArrows()
         elseif ss1 == "RegenerateHead"
             mate.RegenerateHead()
         elseif ss1 == "GetWeight"
-            stack[0] = mate.GetActorBase().GetWeight() as string
+            ResultStack[0] = mate.GetActorBase().GetWeight() as string
         elseif ss1 == "SetWeight"
             float baseW
             float newW
@@ -1738,12 +1746,12 @@ bool function oper(string[] param)
     mate = resolveActor(param[1])
     ss1 = resolve(param[2])
     
-    stack[0] = ""
+    ResultStack[0] = ""
     if mate 
         if ss1 == ""
-            stack[0] = mate.GetRace().GetName()
+            ResultStack[0] = mate.GetRace().GetName()
         elseIf ss1 == "SL"
-            stack[0] = sslCreatureAnimationSlots.GetRaceKey(mate.GetRace())
+            ResultStack[0] = sslCreatureAnimationSlots.GetRaceKey(mate.GetRace())
         endIf
     endIf
 
@@ -1862,7 +1870,7 @@ State cmd_util_getgametime ;
 bool function oper(string[] param)
     float dayTime = Utility.GetCurrentGameTime()
     
-    stack[0] = dayTime as string
+    ResultStack[0] = dayTime as string
     
 
 	return true
@@ -1878,7 +1886,7 @@ bool function oper(string[] param)
     
     int theHour = dayTime as int
     
-    stack[0] = theHour as string
+    ResultStack[0] = theHour as string
     
 
 	return true
@@ -1897,7 +1905,7 @@ bool function oper(string[] param)
         Game.IncrementStat(p2, iModAmount)
     elseIf p1 == "QueryStat"
         p2 = resolve(param[2])
-        stack[0] = Game.QueryStat(p2) as string
+        ResultStack[0] = Game.QueryStat(p2) as string
     endIf
     
 
@@ -1916,7 +1924,7 @@ bool function oper(string[] param)
     ;MiscUtil.PrintConsole("snd:play: " + thing)
     if thing
         retVal = thing.Play(mate)
-        stack[0] = retVal as string
+        ResultStack[0] = retVal as string
     endIf
 
 
@@ -2029,7 +2037,7 @@ bool function oper(string[] param)
     p2 = resolve(param[3]) as Int
     
     retVal = sl_TriggersMfg.mfg_GetPhonemeModifier(mate, p1, p2)
-    stack[0] = retVal as string
+    ResultStack[0] = retVal as string
     
 
 	return true
@@ -2047,7 +2055,7 @@ bool function oper(string[] param)
     cnt = param.length
 
     if (CmdTargetActor != PlayerRef) || (cnt <= 1)
-        stack[0] = "-1"
+        ResultStack[0] = "-1"
         return false
     endIf
 
@@ -2072,7 +2080,7 @@ bool function oper(string[] param)
 		timeoutcheck += 1
     endWhile
     
-    stack[0] = lastKey as string
+    ResultStack[0] = lastKey as string
     
     ;MiscUtil.PrintConsole("RetKey: " + lastKey)
     
@@ -2097,15 +2105,15 @@ bool function oper(string[] param)
     if ptype == "int"
         int iRet
         iRet = JsonUtil.GetIntValue(pname, pkey, pdef as int)
-        stack[0] = iRet as string
+        ResultStack[0] = iRet as string
     elseif ptype == "float"
         float fRet
         fRet = JsonUtil.GetFloatValue(pname, pkey, pdef as float)
-        stack[0] = fRet as string
+        ResultStack[0] = fRet as string
     else
         string sRet
         sRet = JsonUtil.GetStringValue(pname, pkey, pdef)
-        stack[0] = sRet
+        ResultStack[0] = sRet
     endIf
     
 
@@ -2158,11 +2166,11 @@ bool function oper(string[] param)
     
     ss1 = resolve(param[1])
     
-    stack[0] = ""
+    ResultStack[0] = ""
     if ss1 == "GetClassification"
         Weather curr = Weather.GetCurrentWeather()
         if curr
-            stack[0] = curr.GetClassification() as string
+            ResultStack[0] = curr.GetClassification() as string
         endIf
     endIf
 
@@ -2180,7 +2188,7 @@ bool function oper(string[] param)
     
     ss1 = resolve(param[1])
     
-    stack[0] = ""
+    ResultStack[0] = ""
     if ss1 == "asint"
         ss2 = resolve(param[2])
         if ss2 
@@ -2188,19 +2196,19 @@ bool function oper(string[] param)
         else
             ii1 = 0
         endIf
-        stack[0] = ii1 as string
+        ResultStack[0] = ii1 as string
     elseIf ss1 == "floor"
         ss1 = resolve(param[2])
         ii1 = Math.floor(ss1 as float)
-        stack[0] = ii1 as string
+        ResultStack[0] = ii1 as string
     elseIf ss1 == "ceiling"
         ss1 = resolve(param[2])
         ii1 = Math.Ceiling(ss1 as float)
-        stack[0] = ii1 as string
+        ResultStack[0] = ii1 as string
     elseIf ss1 == "abs"
         ss1 = resolve(param[2])
         ff1 = Math.abs(ss1 as float)
-        stack[0] = ff1 as string
+        ResultStack[0] = ff1 as string
     elseIf ss1 == "toint"
         ss2 = resolve(param[2])
         if ss2 && (StringUtil.GetNthChar(ss2, 0) == "0")
@@ -2210,7 +2218,7 @@ bool function oper(string[] param)
         else 
             ii1 = 0
         endIf
-        stack[0] = ii1 as string
+        ResultStack[0] = ii1 as string
     endIf
 
 

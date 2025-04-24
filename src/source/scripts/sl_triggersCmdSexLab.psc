@@ -159,7 +159,7 @@ EndState
 State cmd_util_waitforkbd ;util_waitfokbd "keycode", "keycode", ...
 bool function oper(string[] param)
 	if !MyExtension().SexLab
-        stack[0] = "-1"
+        ResultStack[0] = "-1"
 		return false
 	endif
 	
@@ -172,7 +172,7 @@ bool function oper(string[] param)
     cnt = param.length
 
     if (CmdTargetActor != PlayerRef) || (cnt <= 1) || !(PlayerRef.GetFactionRank(MyExtension().SexLabAnimatingFaction) >= 0)
-        stack[0] = "-1"
+        ResultStack[0] = "-1"
         return false
     endIf
 
@@ -196,9 +196,9 @@ bool function oper(string[] param)
     endWhile
     
     if !(PlayerRef.GetFactionRank(MyExtension().SexLabAnimatingFaction) >= 0)
-        stack[0] = "-1"
+        ResultStack[0] = "-1"
     else
-        stack[0] = CmdPrimary.lastKey as string
+        ResultStack[0] = CmdPrimary.lastKey as string
     endIf
     
     ;MiscUtil.PrintConsole("RetKey: " + lastKey)
@@ -211,8 +211,10 @@ EndState
 
 State cmd_sl_isin ;sl_isin "$self"
 bool function oper(string[] param)
+    DebMsg("sl_isin")
 	if !MyExtension().SexLab
-        stack[0] = "0"
+        DebMsg("no SexLab")
+        ResultStack[0] = "0"
 		return false
 	endif
 	
@@ -220,12 +222,18 @@ bool function oper(string[] param)
     int retVal
     
     mate = resolveActor(param[1])
+
+    if !mate
+        DebMsg("actor not resolved(" + param[1] + ")")
+    endif
     
     ;if SexLab.ValidateActor(mate) == -10 && inSameCell(mate)
     if mate.GetFactionRank(MyExtension().SexLabAnimatingFaction) >= 0 && inSameCell(mate)
-        stack[0] = "1"
+        DebMsg("setting 1")
+        ResultStack[0] = "1"
     else
-        stack[0] = "0"
+        DebMsg("setting 0")
+        ResultStack[0] = "0"
     endIf
 	return true
 endFunction
@@ -233,7 +241,7 @@ EndState
 
 State cmd_sl_hastag ;sl_hastag "tag_name"
 bool function oper(string[] param)
-    stack[0] = "0"
+    ResultStack[0] = "0"
 	
 	if !MyExtension().SexLab
 		return false
@@ -244,7 +252,7 @@ bool function oper(string[] param)
     if thread
         ss = resolve(param[1])
         if thread.Animation.HasTag(ss)
-            stack[0] = "1"
+            ResultStack[0] = "1"
         endIf
     endIf
 
@@ -254,7 +262,7 @@ EndState
 
 State cmd_sl_animname ;sl_animname
 bool function oper(string[] param)
-    stack[0] = ""
+    ResultStack[0] = ""
 	
 	if !MyExtension().SexLab
 		return false
@@ -263,7 +271,7 @@ bool function oper(string[] param)
     string ss
     
     if thread
-        stack[0] = thread.Animation.Name
+        ResultStack[0] = thread.Animation.Name
         ;MiscUtil.PrintConsole("animname: " + stack[0])
     endIf
 
@@ -273,7 +281,7 @@ EndState
 
 State cmd_sl_getprop ;sl_getprop
 bool function oper(string[] param)
-    stack[0] = ""
+    ResultStack[0] = ""
 	
 	if !MyExtension().SexLab
 		return false
@@ -284,9 +292,9 @@ bool function oper(string[] param)
     if thread
         ss = resolve(param[1])
         if ss == "Stage"
-            stack[0] = thread.Stage as string
+            ResultStack[0] = thread.Stage as string
         elseif ss == "ActorCount"
-            stack[0] = thread.ActorCount as string
+            ResultStack[0] = thread.ActorCount as string
         endIf
         ;MiscUtil.PrintConsole("animname: " + stack[0])
     endIf
@@ -309,7 +317,7 @@ EndState
 
 State cmd_sl_isinslot ;sl_isinslot "$self", "1" (SexLab slots numbered 1-5)
 bool function oper(string[] param)
-	stack[0] = "0"
+	ResultStack[0] = "0"
 	
 	if !MyExtension().SexLab || !thread
 		return true
@@ -334,7 +342,7 @@ bool function oper(string[] param)
 		; the assumption is that slPosition is 1-based and actorIdx is 0-based
 		if slActor == mate
 			if (actorIdx + 1) == slPosition
-				stack[0] = "1"
+				ResultStack[0] = "1"
 			endif
 			return true
 		endif
