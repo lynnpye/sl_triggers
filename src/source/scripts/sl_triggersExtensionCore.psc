@@ -124,6 +124,16 @@ Function PopulateMCM()
 	SetVisibleOnlyIf(ATTR_CHANCE, EVENT_ID_TOP_OF_THE_HOUR)
 EndFunction
 
+string ATTR_TEST_TOGGLE = "testtoggle"
+Function PopulateMCMSettings()
+	if !self
+		return
+	endif
+
+	DescribeToggleAttribute(ATTR_TEST_TOGGLE, PTYPE_INT(), "Test: ")
+	SetHighlightText(ATTR_TEST_TOGGLE, "This is test text for your simple testing test.")
+EndFunction
+
 Function SLTReady()
 	UpdateDAKStatus()
 	RefreshData()

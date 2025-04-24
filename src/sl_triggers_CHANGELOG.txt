@@ -1,5 +1,6 @@
 102
-    bugfix: SLT now understands that sometimes an extension's set of triggers changes from time to time
+    bugfix: fixed problem where available triggers would not reset between launches of the game
+    bugfix: fixed problem with MCM OID handling (might not have noticed it; it could be subtle)
     enhancement: QoL for your developer; lots of code clean up and trying to fix problems I introduced due to code clean up
         .. like, a LOT of code cleanup. Refactoring. Removing comments. Adding comments.
     enhancement: Added localization. sl_triggers doesn't have much to translate, but if you want to donate translations I'll add them

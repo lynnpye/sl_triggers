@@ -24,24 +24,28 @@ int			WIDG_COMMANDLIST	= 6
 ; Properties
 sl_TriggersMain		Property SLT Auto
 
-string				Property CurrentExtensionKey Hidden
+string				Property CurrentExtensionKey Auto Hidden
+
+string	Property PARTITION_EMPTY Hidden
 	string Function Get()
-		return _currentExtensionKey
+		return ""
 	EndFunction
 EndProperty
+string	Property PARTITION_SETTINGS Hidden
+	string Function Get()
+		return "SETTINGS"
+	EndFunction
+EndProperty
+
+string	Property DefaultPartition Auto Hidden
 
 string[] Property CommandsList Auto Hidden
 
 
 ; Variables
-int			oidEnabled
-int			oidDebugMsg
-int			oidResetSLT
-int			oidCardinatePrevious
-int			oidCardinateNext
-int			oidAddTop
-int			oidAddBottom
 bool		refreshOnClose
+bool		displayExtensionSettings
+bool		firstPageReset
 
 string[]	headerPages
 string[]	extensionPages
@@ -49,11 +53,44 @@ string[]	extensionKeys
 string[]	attributeNames
 
 string		currentSLTPage
-string		_currentExtensionKey
-
-int			headerIndex
-int			extensionIndex
 int			currentCardination
+
+
+int[]		xoidlist
+string[]	xoidtriggerkeys
+string[]	xoidattrnames
+
+; These are used to cache "well-known" OIDs for the UI
+; i.e. "standard" components used by SLT itself. They
+; must be reset correctly OnPageReset, so make sure to update
+; convenient function which is stored so very, very
+; closely that you can't miss it, hextun, ol' chap, ol' buddy, ol' pal.
+int			oidEnabled
+int			oidDebugMsg
+int			oidResetSLT
+int			oidCardinatePrevious
+int			oidCardinateNext
+int			oidAddTop
+int			oidAddBottom
+int			oidExtensionSettings
+; Oh look, they are in the same order as the otherwise unremarkable
+; and yet, clearly, obviously important variables declared just
+; above.
+;
+; I wonder....
+Function CallThisToResetTheOIDValuesHextun()
+	oidEnabled				= 0
+	oidDebugMsg				= 0
+	oidResetSLT				= 0
+	oidCardinatePrevious	= 0
+	oidCardinateNext		= 0
+	oidAddTop				= 0
+	oidAddBottom			= 0
+	oidExtensionSettings	= 0
+	xoidlist				= PapyrusUtil.IntArray(0)
+	xoidtriggerkeys			= PapyrusUtil.StringArray(0)
+	xoidattrnames			= PapyrusUtil.StringArray(0)
+EndFunction
 
 int Function GetVersion()
 	return GetModVersion()
@@ -70,10 +107,15 @@ Event OnConfigOpen()
 	else
 		Pages = headerPages
 	endif
+	firstPageReset = true
+	CleanupHeap()
 EndEvent
 
 event OnConfigClose()
 	SLT.SendInternalSettingsUpdateEvents()
+
+	CleanupHeap()
+
 	if refreshOnClose
 		refreshOnClose = false
 		SLT.DoInMemoryReset()
@@ -81,6 +123,15 @@ event OnConfigClose()
 endEvent
 
 
+Function CleanupHeap()
+	CallThisToResetTheOIDValuesHextun()
+	while Heap_IntListCountX(self, PSEUDO_INSTANCE_KEY, "oidlist") > 0
+		int _oldoid = Heap_IntListShiftX(self, PSEUDO_INSTANCE_KEY, "oidlist")
+
+		;Heap_StringUnsetX(self, PSEUDO_INSTANCE_KEY, "oid-" + _oldoid + "-tri")
+		;Heap_StringUnsetX(self, PSEUDO_INSTANCE_KEY, "oid-" + _oldoid + "-att")
+	endwhile
+EndFunction
 
 
 ; Breaking from my typical format, I moved a subset of Functions toward the top
@@ -261,6 +312,10 @@ Function AddCommandList(string _extensionKey, string _attributeName, string _lab
 	SetAttrMenuSelections(_extensionKey, _attributeName, CommandsList)
 EndFunction
 
+; SetVisibilityKeyAttribute
+; Tells setup the attribute that will be used to dynamically determine
+; visibility of other attributes on the MCM. Note that this function
+; will have no effect if SetVisibleOnlyIf() is not also called.
 Function SetVisibilityKeyAttribute(string _extensionKey, string _attributeName)
 	if !_extensionKey
 		Debug.Trace("Setup: _extensionKey is required but was not provided")
@@ -322,8 +377,133 @@ Function SetHighlightText(string _extensionKey, string _attributeName, string _h
 EndFunction
 
 
+bool Function ShowAttribute(string attrName, int widgetOptions, string triggerKey)
+	string extensionKey = CurrentExtensionKey
+	bool allowedVisible
+	string visibilityKeyAttribute = GetExtensionVisibilityKey(extensionKey)
+	int _oid
+
+	allowedVisible = true
+	
+	if visibilityKeyAttribute && HasAttrVisibleOnlyIf(extensionKey, attrName)
+		string visibleOnlyIfValueIs = GetAttrVisibleOnlyIf(extensionKey, attrName)
+		
+		allowedVisible = false
+
+		string tval
+		if Trigger_IntHasX(extensionKey, triggerKey, visibilityKeyAttribute)
+			tval = Trigger_IntGetX(extensionKey, triggerKey, visibilityKeyAttribute) as string
+			allowedVisible = (tval == visibleOnlyIfValueIs)
+		elseif Trigger_StringHasX(extensionKey, triggerKey, visibilityKeyAttribute)
+			tval = Trigger_StringGetX(extensionKey, triggerKey, visibilityKeyAttribute)
+			allowedVisible = (tval == visibleOnlyIfValueIs)
+		else
+			; they specified it, it somehow got past, and now we have to deal with it
+			; or ignore it
+		endif
+	endif
+	
+	if allowedVisible
+		
+		int widg = GetAttrWidget(extensionKey, attrName)
+		string label = GetAttrLabel(extensionKey, attrName)
+		if widg == WIDG_SLIDER
+			float _defval = GetAttrDefaultFloat(extensionKey, attrName)
+			if Trigger_FloatHasX(extensionKey, triggerKey, attrName)
+				_defval = Trigger_FloatGetX(extensionKey, triggerKey, attrName)
+			endif
+			_oid = AddSliderOption(label, _defval, GetAttrFormatString(extensionKey, attrName), widgetOptions)
+			; add to list of oids to heap
+			AddOid(_oid, triggerKey, attrName)
+		elseif widg == WIDG_MENU
+			string[] menuSelections = GetAttrMenuSelections(extensionKey, attrName)
+			int ptype = GetAttrType(extensionKey, attrName)
+			string menuValue = ""
+			if (ptype == PTYPE_INT() && !Trigger_IntHasX(extensionKey, triggerKey, attrName)) || (ptype == PTYPE_STRING() && !Trigger_StringHasX(extensionKey, triggerKey, attrName))
+				int midx = GetAttrDefaultIndex(extensionKey, attrName)
+				if midx > -1
+					menuValue = menuSelections[midx]
+				endif
+			else
+				if ptype == PTYPE_INT()
+					int midx = Trigger_IntGetX(extensionKey, triggerKey, attrName)
+					if midx > -1
+						menuValue = menuSelections[midx]
+					endif
+				elseif ptype == PTYPE_STRING()
+					string _tval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
+					if menuSelections.find(_tval) > -1
+						menuValue = _tval
+					endif
+				endif
+			endif
+			_oid = AddMenuOption(label, menuValue, widgetOptions)
+			AddOid(_oid, triggerKey, attrName)
+		elseif widg == WIDG_KEYMAP
+			int _defmap = GetAttrDefaultValue(extensionKey, attrName)
+			if Trigger_IntHasX(extensionKey, triggerKey, attrName)
+				_defmap = Trigger_IntGetX(extensionKey, triggerKey, attrName)
+			endif
+			int keymapOptions = OPTION_FLAG_WITH_UNMAP
+			if widgetOptions == OPTION_FLAG_DISABLED
+				keymapOptions = OPTION_FLAG_DISABLED
+			endif
+			_oid = AddKeyMapOption(label, _defmap, keymapOptions)
+			AddOid(_oid, triggerKey, attrName)
+		elseif widg == WIDG_TOGGLE
+			bool _defval = GetAttrDefaultValue(extensionKey, attrName) != 0
+			if Trigger_IntHasX(extensionKey, triggerKey, attrName)
+				_defval = Trigger_IntGetX(extensionKey, triggerKey, attrName) != 0
+			endif
+			_oid = AddToggleOption(label, _defval, widgetOptions)
+			AddOid(_oid, triggerKey, attrName)
+		elseif widg == WIDG_INPUT
+			string _defval = GetAttrDefaultString(extensionKey, attrName)
+			
+			int ptype = GetAttrType(extensionKey, attrName)
+			if ptype == PTYPE_INT()
+				if Trigger_IntHasX(extensionKey, triggerKey, attrName)
+					_defval = Trigger_IntGetX(extensionKey, triggerKey, attrName) as string
+				endif
+			elseif ptype == PTYPE_FLOAT()
+				if Trigger_FloatHasX(extensionKey, triggerKey, attrName)
+					_defval = Trigger_FloatGetX(extensionKey, triggerKey, attrName) as string
+				endif
+			elseif ptype == PTYPE_STRING()
+				if Trigger_StringHasX(extensionKey, triggerKey, attrName)
+					_defval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
+				endif
+			elseif ptype == PTYPE_FORM()
+				if Trigger_FormHasX(extensionKey, triggerKey, attrName)
+					_defval = Trigger_FormGetX(extensionKey, triggerKey, attrName) as string
+				endif
+			endif
+			
+			_oid = AddInputOption(label, _defval, widgetOptions)
+			AddOid(_oid, triggerKey, attrName)
+		elseif widg == WIDG_COMMANDLIST
+			string menuValue = ""
+			if Trigger_StringHasX(extensionKey, triggerKey, attrName)
+				string _cval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
+				if CommandsList.find(_cval) > -1
+					menuValue = _cval
+				endif
+			endif
+			
+			_oid = AddMenuOption(label, menuValue, widgetOptions)
+			AddOid(_oid, triggerKey, attrName)
+		endif
+	endif
+
+	return allowedVisible
+EndFunction
 
 
+Function ShowExtensionSettings()
+	SetCursorFillMode(TOP_TO_BOTTOM)
+
+	oidExtensionSettings = AddTextOption("$BTN_BACK", "")
+EndFunction
 
 ;/
 
@@ -347,7 +527,7 @@ Function ShowExtensionPage()
 	; I have an extensionIndex with which I can retrieve an extensionKey
 	; if I'm going to paginate I need to have a concept of where in the order
 	; I am in for triggerKeys
-	string extensionKey = extensionKeys[extensionIndex]
+	string extensionKey = CurrentExtensionKey
 	int triggerCount = GetTriggerCount(extensionKey)
 	
 	bool cardinate = false
@@ -391,13 +571,11 @@ Function ShowExtensionPage()
 	endif
 	
 	oidAddTop = AddTextOption("$BTN_ADD_NEW_ITEM", "")
-	AddEmptyOption()
+	oidExtensionSettings = AddTextOption("$BTN_EXTENSION_SETTINGS", "")
 	
 	int displayIndexer = 0
 	bool needsEmpty = false
 	int _oid
-	string visibilityKeyAttribute = GetExtensionVisibilityKey(extensionKey)
-	bool allowedVisible
 	bool triggerIsSoftDeleted
 	string triggerKey
 	
@@ -421,118 +599,8 @@ Function ShowExtensionPage()
 			;if !triggerIsSoftDeleted
 				int aidx = 0
 				while aidx < attributeNames.Length
-					string attrName = attributeNames[aidx]
-					allowedVisible = true
-					
-					if visibilityKeyAttribute && HasAttrVisibleOnlyIf(extensionKey, attrName)
-						string visibleOnlyIfValueIs = GetAttrVisibleOnlyIf(extensionKey, attrName)
-						
-						allowedVisible = false
-
-						string tval
-						if Trigger_IntHasX(extensionKey, triggerKey, visibilityKeyAttribute)
-							tval = Trigger_IntGetX(extensionKey, triggerKey, visibilityKeyAttribute) as string
-							allowedVisible = (tval == visibleOnlyIfValueIs)
-						elseif Trigger_StringHasX(extensionKey, triggerKey, visibilityKeyAttribute)
-							tval = Trigger_StringGetX(extensionKey, triggerKey, visibilityKeyAttribute)
-							allowedVisible = (tval == visibleOnlyIfValueIs)
-						else
-							; they specified it, it somehow got past, and now we have to deal with it
-							; or ignore it
-						endif
-					endif
-					
-					if allowedVisible
+					if ShowAttribute(attributeNames[aidx], widgetOptions, triggerKey)
 						needsEmpty = !needsEmpty
-						
-						int widg = GetAttrWidget(extensionKey, attrName)
-						string label = GetAttrLabel(extensionKey, attrName)
-						if widg == WIDG_SLIDER
-							float _defval = GetAttrDefaultFloat(extensionKey, attrName)
-							if Trigger_FloatHasX(extensionKey, triggerKey, attrName)
-								_defval = Trigger_FloatGetX(extensionKey, triggerKey, attrName)
-							endif
-							_oid = AddSliderOption(label, _defval, GetAttrFormatString(extensionKey, attrName), widgetOptions)
-							; add to list of oids to heap
-							AddOid(_oid, extensionKey, triggerKey, attrName)
-						elseif widg == WIDG_MENU
-							string[] menuSelections = GetAttrMenuSelections(extensionKey, attrName)
-							int ptype = GetAttrType(extensionKey, attrName)
-							string menuValue = ""
-							if (ptype == PTYPE_INT() && !Trigger_IntHasX(extensionKey, triggerKey, attrName)) || (ptype == PTYPE_STRING() && !Trigger_StringHasX(extensionKey, triggerKey, attrName))
-								int midx = GetAttrDefaultIndex(extensionKey, attrName)
-								if midx > -1
-									menuValue = menuSelections[midx]
-								endif
-							else
-								if ptype == PTYPE_INT()
-									int midx = Trigger_IntGetX(extensionKey, triggerKey, attrName)
-									if midx > -1
-										menuValue = menuSelections[midx]
-									endif
-								elseif ptype == PTYPE_STRING()
-									string _tval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
-									if menuSelections.find(_tval) > -1
-										menuValue = _tval
-									endif
-								endif
-							endif
-							_oid = AddMenuOption(label, menuValue, widgetOptions)
-							AddOid(_oid, extensionKey, triggerKey, attrName)
-						elseif widg == WIDG_KEYMAP
-							int _defmap = GetAttrDefaultValue(extensionKey, attrName)
-							if Trigger_IntHasX(extensionKey, triggerKey, attrName)
-								_defmap = Trigger_IntGetX(extensionKey, triggerKey, attrName)
-							endif
-							int keymapOptions = OPTION_FLAG_WITH_UNMAP
-							if triggerIsSoftDeleted
-								keymapOptions = OPTION_FLAG_DISABLED
-							endif
-							_oid = AddKeyMapOption(label, _defmap, keymapOptions)
-							AddOid(_oid, extensionKey, triggerKey, attrName)
-						elseif widg == WIDG_TOGGLE
-							bool _defval = GetAttrDefaultValue(extensionKey, attrName) != 0
-							if Trigger_IntHasX(extensionKey, triggerKey, attrName)
-								_defval = Trigger_IntGetX(extensionKey, triggerKey, attrName) != 0
-							endif
-							_oid = AddToggleOption(label, _defval, widgetOptions)
-							AddOid(_oid, extensionKey, triggerKey, attrName)
-						elseif widg == WIDG_INPUT
-							string _defval = GetAttrDefaultString(extensionKey, attrName)
-							
-							int ptype = GetAttrType(extensionKey, attrName)
-							if ptype == PTYPE_INT()
-								if Trigger_IntHasX(extensionKey, triggerKey, attrName)
-									_defval = Trigger_IntGetX(extensionKey, triggerKey, attrName) as string
-								endif
-							elseif ptype == PTYPE_FLOAT()
-								if Trigger_FloatHasX(extensionKey, triggerKey, attrName)
-									_defval = Trigger_FloatGetX(extensionKey, triggerKey, attrName) as string
-								endif
-							elseif ptype == PTYPE_STRING()
-								if Trigger_StringHasX(extensionKey, triggerKey, attrName)
-									_defval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
-								endif
-							elseif ptype == PTYPE_FORM()
-								if Trigger_FormHasX(extensionKey, triggerKey, attrName)
-									_defval = Trigger_FormGetX(extensionKey, triggerKey, attrName) as string
-								endif
-							endif
-							
-							_oid = AddInputOption(label, _defval, widgetOptions)
-							AddOid(_oid, extensionKey, triggerKey, attrName)
-						elseif widg == WIDG_COMMANDLIST
-							string menuValue = ""
-							if Trigger_StringHasX(extensionKey, triggerKey, attrName)
-								string _cval = Trigger_StringGetX(extensionKey, triggerKey, attrName)
-								if CommandsList.find(_cval) > -1
-									menuValue = _cval
-								endif
-							endif
-							
-							_oid = AddMenuOption(label, menuValue, widgetOptions)
-							AddOid(_oid, extensionKey, triggerKey, attrName)
-						endif
 					endif
 					
 					aidx += 1
@@ -552,11 +620,11 @@ Function ShowExtensionPage()
 			if !triggerIsSoftDeleted
 				; and option to delete
 				_oid = AddTextOption("$BTN_DELETE", "")
-				AddOid(_oid, extensionKey, triggerKey, DELETE_BUTTON)
+				AddOid(_oid, triggerKey, DELETE_BUTTON)
 			else
 				; and option to undelete
 				_oid = AddTextOption("$BTN_RESTORE", "")
-				AddOid(_oid, extensionKey, triggerKey, RESTORE_BUTTON)
+				AddOid(_oid, triggerKey, RESTORE_BUTTON)
 			endif
 		;endif
 	
@@ -602,15 +670,44 @@ int Function ClearSetupExtensionKeyHeap(string extensionKey)
 EndFunction
 
 Event OnPageReset(string page)
-	SetSLTCurrentPage(page)
+	CallThisToResetTheOIDValuesHextun()
+
+	bool doPageChanged = false
+
+	if page != currentSLTPage
+		doPageChanged = true
+	endif
+
+	if firstPageReset
+		doPageChanged = true
+		firstPageReset = false
+	endif
+
+	if doPageChanged
+		CurrentExtensionKey = ""
+		currentCardination = 0
+		DefaultPartition = PARTITION_EMPTY
+		displayExtensionSettings = false
+		extensionIndex = -1
+	endif
 	
-	if IsHeaderPage()
+	if page == ""
 		ShowHeaderPage()
 		return
 	endif
-	
-	if IsExtensionPage()
-		ShowExtensionPage()
+
+	int extensionIndex = extensionPages.find(page)
+	if extensionIndex > -1
+		CurrentExtensionKey = extensionKeys[extensionIndex]
+
+		attributeNames = GetAttributeNames(CurrentExtensionKey)
+
+		if displayExtensionSettings
+			;DefaultPartition = PARTITION_SETTINGS
+			ShowExtensionSettings()
+		else
+			ShowExtensionPage()
+		endif
 		return
 	endif
 	
@@ -752,9 +849,14 @@ Event OnOptionSelect(int option)
 		return
 	elseIf option == oidAddTop || option == oidAddBottom
 		; add a record
-		Trigger_CreateT(extensionKeys[extensionIndex])
+		Trigger_CreateT(CurrentExtensionKey)
 		ForcePageReset()
 	
+		return
+	elseIf option == oidExtensionSettings
+		displayExtensionSettings = displayExtensionSettings != true
+		ForcePageReset()
+
 		return
 	endIf
 	
@@ -964,45 +1066,10 @@ Function ShowHeaderPage()
 EndFunction
 
 Function PageChanged()
-	currentCardination = 0
-EndFunction
-
-Function SetSLTCurrentPage(string _page)
-	bool pageDidChange
-	if _page != currentSLTPage
-		pageDidChange = true
-		PageChanged()
-	endif
-	
-	currentSLTPage = _page
-	
-	if currentSLTPage == ""
-		extensionIndex = -1
-		headerIndex = 0
-		_currentExtensionKey = ""
-	else
-		extensionIndex = extensionPages.find(currentSLTPage)
-		if extensionIndex > -1
-			headerIndex = -1
-			_currentExtensionKey = extensionKeys[extensionIndex]
-		else
-			headerIndex = headerPages.find(_page)
-			_currentExtensionKey = ""
-		endif
-	endif
-	
-	if pageDidChange && IsExtensionPage()
-		attributeNames = GetAttributeNames(extensionKeys[extensionIndex])
-	endif
-	
-EndFunction
-
-bool Function IsHeaderPage()
-	return headerIndex > -1
 EndFunction
 
 bool Function IsExtensionPage()
-	return extensionIndex > -1
+	return (CurrentExtensionKey != "")
 EndFunction
 
 
@@ -1197,8 +1264,16 @@ EndFunction
 
 
 
-string Function TK_extension(string _extensionKey)
-	return "ek-" + _extensionKey
+string Function TK_extension(string _extensionKey, string _partitionName = "")
+	string ek = "ek-" + _extensionKey
+	if !_partitionName
+		if DefaultPartition
+			ek += "-pn-" + DefaultPartition
+		endif
+	else
+		ek += "-pn-" + _partitionName
+	endif
+	return ek
 EndFunction
 
 string Function TK_visibilityKey(string _extensionKey)
@@ -1275,6 +1350,7 @@ EndFunction
 
 ; getters
 
+;/
 int Function GetOidCount()
 	return Heap_IntListCountX(self, PSEUDO_INSTANCE_KEY, "oidlist")
 EndFunction
@@ -1286,20 +1362,39 @@ EndFunction
 int Function GetOid(int _oidIndex)
 	return Heap_IntListGetX(self, PSEUDO_INSTANCE_KEY, "oidlist", _oidIndex)
 EndFunction
+/;
 
 string Function GetOidTriggerKey(int _oid)
-	return Heap_StringGetX(self, PSEUDO_INSTANCE_KEY, "oid-" + _oid + "-tri")
+	string value = ""
+
+	int oidx = xoidlist.Find(_oid)
+	if oidx > -1 && oidx < xoidlist.Length && xoidlist.Length == xoidtriggerkeys.Length
+		int _tidx = xoidlist[oidx]
+		value = xoidtriggerkeys[_tidx]
+	endif
+
+	return value
+	;return Heap_StringGetX(self, PSEUDO_INSTANCE_KEY, "oid-" + _oid + "-tri")
 EndFunction
 
 string Function GetOidAttributeName(int _oid)
-	return Heap_StringGetX(self, PSEUDO_INSTANCE_KEY, "oid-" + _oid + "-att")
+	string value = ""
+
+	int oidx = xoidlist.Find(_oid)
+	if oidx > -1 && oidx < xoidlist.Length && xoidlist.Length == xoidattrnames.Length
+		int _tidx = xoidlist[oidx]
+		value = xoidattrnames[_tidx]
+	endif
+
+	return value
+	;return Heap_StringGetX(self, PSEUDO_INSTANCE_KEY, "oid-" + _oid + "-att")
 EndFunction
 
 bool Function IsOidVisibilityKey(int _oid)
-	if extensionIndex < 0
+	if !IsExtensionPage()
 		return false
 	endif
-	string extensionKey = extensionKeys[extensionIndex]
+	string extensionKey = CurrentExtensionKey
 	if !HasExtensionVisibilityKey(extensionKey)
 		return false
 	endif
@@ -1320,9 +1415,11 @@ int Function GetTriggerCount(string _extensionKey)
 	return Heap_StringListCountX(self, PSEUDO_INSTANCE_KEY, TK_triggerKeys(_extensionKey))
 EndFunction
 
+;/
 string[] Function GetTriggers(string _extensionKey)
 	return Heap_StringListToArrayX(self, PSEUDO_INSTANCE_KEY, TK_triggerKeys(_extensionKey))
 EndFunction
+/;
 
 string Function GetTrigger(string _extensionKey, int _triggerIndex)
 	return Heap_StringListGetX(self, PSEUDO_INSTANCE_KEY, TK_triggerKeys(_extensionKey), _triggerIndex)
@@ -1413,23 +1510,24 @@ string Function GetAttrHighlight(string _ext, string _attr)
 EndFunction
 
 ; setters
-int Function AddOid(int _oid, string _extensionKey, string _triggerKey, string _attrName)
-	Heap_StringSetX(self, PSEUDO_INSTANCE_KEY, "oid-" + _oid + "-tri", _triggerKey)
-	Heap_StringSetX(self, PSEUDO_INSTANCE_KEY, "oid-" + _oid + "-att", _attrName)
-	return Heap_IntListAddX(self, PSEUDO_INSTANCE_KEY, "oidlist", _oid)
+int Function AddOid(int _oid, string _triggerKey, string _attrName)
+	xoidlist		= PapyrusUtil.PushInt(xoidlist, _oid)
+	xoidtriggerkeys	= PapyrusUtil.PushString(xoidtriggerkeys, _triggerKey)
+	xoidattrnames	= PapyrusUtil.PushString(xoidattrnames, _attrName)
+	return xoidlist.Length - 1
 EndFunction
 
 int Function AddTrigger(string _extensionKey, string _value)
 	return Heap_StringListAddX(self, PSEUDO_INSTANCE_KEY, TK_triggerKeys(_extensionKey), _value, false)
 EndFunction
 
-; SetTriggers
-; Tells setup the triggerKeys specific to your extension.
-; Overwrites any previous values.
 string Function SetExtensionVisibilityKey(string _extensionKey, string _attributeName)
 	return Heap_StringSetX(self, PSEUDO_INSTANCE_KEY, TK_visibilityKey(_extensionKey), _attributeName)
 EndFunction
 
+; SetTriggers
+; Tells setup the triggerKeys specific to your extension.
+; Overwrites any previous values.
 bool Function SetTriggers(string _extensionKey, string[] _triggerKeys)
 	return Heap_StringListCopyX(self, PSEUDO_INSTANCE_KEY, TK_triggerKeys(_extensionKey), _triggerKeys)
 EndFunction
@@ -1511,3 +1609,4 @@ string Function SetAttrHighlight(string _ext, string _attr, string _value)
 	return Heap_StringSetX(self, PSEUDO_INSTANCE_KEY, TK_attr_highlight(_ext, _attr), _value)
 EndFunction
 ; done
+

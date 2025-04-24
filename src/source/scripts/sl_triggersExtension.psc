@@ -143,6 +143,15 @@ Function PopulateMCM()
 EndFunction
 
 ;/
+PopulateMCMSettings
+OPTIONAL
+Override if you wish to have the MCM automatically manage extension specific settings for you. Will 
+automatically be called as needed.
+/;
+Function PopulateMCMSettings()
+EndFunction
+
+;/
 OnSLTSettingsUpdated
 OPTIONAL
 All necessary updates relevant to the standard operation of the MCM is already handled.
@@ -423,6 +432,9 @@ Function _slt_PopulateMCM()
 	endif
 	SLTMCM.ClearSetupExtensionKeyHeap(GetExtensionKey())
 	PopulateMCM()
+	;SLTMCM.DefaultPartition = SLTMCM.PARTITION_SETTINGS
+	;PopulateMCMSettings()
+	;SLTMCM.DefaultPartition = SLTMCM.PARTITION_EMPTY
 EndFunction
 
 string Function _slt_GetSettingsUpdateEvent()
