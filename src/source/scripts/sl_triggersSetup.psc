@@ -648,8 +648,8 @@ Function ShowExtensionPage()
 EndFunction
 
 
-Function SaveDirtyTrigger(string _extensionKey, string _triggerKey)
-	JsonUtil.Save(ExtensionTriggerName(_extensionKey, _triggerKey))
+Function SaveDirtyTrigger(string _triggerKey)
+	JsonUtil.Save(ExtensionTriggerName(CurrentExtensionKey, _triggerKey))
 EndFunction
 
 int Function ClearSetupHeap()
@@ -842,7 +842,7 @@ Event OnOptionDefault(int option)
 		SetMenuOptionValue(option, "")
 	endif
 	
-	SaveDirtyTrigger(extKey, triKey)
+	SaveDirtyTrigger(triKey)
 
 	if IsOidVisibilityKey(option)
 		ForcePageReset()
@@ -906,12 +906,14 @@ Event OnOptionSelect(int option)
 		triggerKey = GetOidTriggerKey(option)
 		
 		Data_StringSet(triggerKey, DELETED_ATTRIBUTE(), "true")
+		SaveDirtyTrigger(triggerKey)
 		ForcePageReset()
 	elseif attrName == RESTORE_BUTTON
 		extensionKey = CurrentExtensionKey
 		triggerKey = GetOidTriggerKey(option)
 		
 		Data_StringUnset(triggerKey, DELETED_ATTRIBUTE())
+		SaveDirtyTrigger(triggerKey)
 		ForcePageReset()
 	endif
 EndEvent
@@ -942,7 +944,7 @@ Event OnOptionSliderAccept(int option, float value)
 	Data_SetFromFloat(triKey, attrName, value)
 	SetSliderOptionValue(option, value, GetAttrFormatString(extKey, attrName))
 	
-	SaveDirtyTrigger(extKey, triKey)
+	SaveDirtyTrigger(triKey)
 
 	if IsOidVisibilityKey(option)
 		ForcePageReset()
@@ -1028,7 +1030,7 @@ Event OnOptionMenuAccept(int option, int index)
 		SetMenuOptionValue(option, "")
 	endif
 	
-	SaveDirtyTrigger(extKey, triKey)
+	SaveDirtyTrigger(triKey)
 
 	if IsOidVisibilityKey(option)
 		ForcePageReset()
@@ -1066,7 +1068,7 @@ Event OnOptionKeyMapChange(int option, int keyCode, string conflictControl, stri
 		endif
 		SetKeyMapOptionValue(option, keyCode)
 		
-		SaveDirtyTrigger(extKey, triKey)
+		SaveDirtyTrigger(triKey)
 
 		if IsOidVisibilityKey(option)
 			ForcePageReset()
@@ -1103,7 +1105,7 @@ Event OnOptionInputAccept(int option, string _input)
 	Data_SetFromString(triKey, attrName, _input)
 	SetInputOptionValue(option, _input)
 	
-	SaveDirtyTrigger(extKey, triKey)
+	SaveDirtyTrigger(triKey)
 
 	if IsOidVisibilityKey(option)
 		ForcePageReset()
@@ -1177,7 +1179,7 @@ string Function Trigger_Create()
 	else
 		AddTrigger(CurrentExtensionKey, triggerKey)
 		Data_IntSet(triggerKey, "__slt_mod_version__", GetModVersion())
-		SaveDirtyTrigger(CurrentExtensionKey, triggerKey)
+		SaveDirtyTrigger(triggerKey)
 	endif
 	
 	return triggerKey
