@@ -1,5 +1,6 @@
 103
     bugfix: trigger primes were not dispelling themselves at end of service
+    bugfix: result stacks were not crossing back from extensions to core
 
 102
     bugfix: fixed problem where available triggers would not reset between launches of the game
