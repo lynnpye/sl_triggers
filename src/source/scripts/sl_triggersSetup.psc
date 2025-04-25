@@ -25,17 +25,6 @@ sl_TriggersMain		Property SLT Auto
 
 string				Property CurrentExtensionKey Auto Hidden
 
-string	Property PARTITION_EMPTY Hidden
-	string Function Get()
-		return ""
-	EndFunction
-EndProperty
-string	Property PARTITION_SETTINGS Hidden
-	string Function Get()
-		return "SETTINGS"
-	EndFunction
-EndProperty
-
 string[] Property CommandsList Auto Hidden
 
 
@@ -125,12 +114,6 @@ event OnConfigClose()
 		SLT.DoInMemoryReset()
 	endif
 endEvent
-
-
-; Breaking from my typical format, I moved a subset of Functions toward the top
-; above a large number of, while of very slight technical interest, are, in fact, 
-; rote, Event handlers.
-; These Functions will be of use to use in crafting your own PopulateMCM().
 
 
 
@@ -273,7 +256,6 @@ Function ShowExtensionSettings()
 			_oid = ShowAttribute(tlattributes[0], widgetOptions, "", _dataFile, false)
 			if _layoutData[1] && _layoutData[1] == tlattributes[0]
 				oidForcePageReset = PapyrusUtil.PushInt(oidForcePageReset, _oid)
-				int xx = oidForcePageReset.Length - 1
 			endif
 		else
 			AddEmptyOption()
@@ -291,7 +273,6 @@ Function ShowExtensionSettings()
 		tlidx += 1
 		tlattributes = GetExtensionLayoutData(false, _layout, tlidx)
 	endwhile
-
 
 EndFunction
 
@@ -379,69 +360,65 @@ Function ShowExtensionPage()
 		triggerKey = extensionTriggerKeys[etkidx]
 		string _triggerFile = FN_Trigger(extensionKey, triggerKey)
 		triggerIsSoftDeleted = JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
-		;if !Trigger_IsDeleted(triggerKey)
-			;row
-			AddHeaderOption("==] " + triggerKey + " [==")
-			AddEmptyOption()
+		
+		AddHeaderOption("==] " + triggerKey + " [==")
+		AddEmptyOption()
 
-			int widgetOptions = OPTION_FLAG_NONE
-			if triggerIsSoftDeleted
-				widgetOptions = OPTION_FLAG_DISABLED
-				; row
-				AddHeaderOption("$SLT_MSG_SOFT_DELETE_0")
-				AddHeaderOption("$SLT_MSG_SOFT_DELETE_1")
-				; row
-				AddHeaderOption("$SLT_MSG_SOFT_DELETE_2")
-				AddHeaderOption("$SLT_MSG_SOFT_DELETE_3")
-			endif
+		int widgetOptions = OPTION_FLAG_NONE
+		if triggerIsSoftDeleted
+			widgetOptions = OPTION_FLAG_DISABLED
+			; row
+			AddHeaderOption("$SLT_MSG_SOFT_DELETE_0")
+			AddHeaderOption("$SLT_MSG_SOFT_DELETE_1")
+			; row
+			AddHeaderOption("$SLT_MSG_SOFT_DELETE_2")
+			AddHeaderOption("$SLT_MSG_SOFT_DELETE_3")
+		endif
 
-			;if !triggerIsSoftDeleted
-			string _dataFile = FN_Trigger(CurrentExtensionKey, triggerKey)
-			string[] _layoutData = GetLayout(true, _dataFile)
-			string _triggerLayout = _layoutData[0]
-			int tlidx = 0
-			string[] tlattributes
+		string _dataFile = FN_Trigger(CurrentExtensionKey, triggerKey)
+		string[] _layoutData = GetLayout(true, _dataFile)
+		string _triggerLayout = _layoutData[0]
+		int tlidx = 0
+		string[] tlattributes
 
-			tlattributes = GetExtensionLayoutData(true, _triggerLayout, tlidx)
-			while tlattributes.Length > 0
-				if tlattributes[0]
-					_oid = ShowAttribute(tlattributes[0], widgetOptions, triggerKey, _triggerFile, true)
-					if _layoutData[1] && _layoutData[1] == tlattributes[0]
-						oidForcePageReset = PapyrusUtil.PushInt(oidForcePageReset, _oid)
-					endif
-				else
-					AddEmptyOption()
+		tlattributes = GetExtensionLayoutData(true, _triggerLayout, tlidx)
+		while tlattributes.Length > 0
+			if tlattributes[0]
+				_oid = ShowAttribute(tlattributes[0], widgetOptions, triggerKey, _triggerFile, true)
+				if _layoutData[1] && _layoutData[1] == tlattributes[0]
+					oidForcePageReset = PapyrusUtil.PushInt(oidForcePageReset, _oid)
 				endif
-
-				if tlattributes.Length > 1 && tlattributes[1]
-					_oid = ShowAttribute(tlattributes[1], widgetOptions, triggerKey, _triggerFile, true)
-					if _layoutData[1] && _layoutData[1] == tlattributes[1]
-						oidForcePageReset = PapyrusUtil.PushInt(oidForcePageReset, _oid)
-					endif
-				else
-					AddEmptyOption()
-				endif
-
-				tlidx += 1
-				tlattributes = GetExtensionLayoutData(true, _triggerLayout, tlidx)
-			endwhile
-			;endif
-			
-			; blank row
-			AddEmptyOption()
-			AddEmptyOption()
-			
-			AddEmptyOption()
-			if !triggerIsSoftDeleted
-				; and option to delete
-				_oid = AddTextOption("$SLT_BTN_DELETE", "")
-				AddOid(_oid, triggerKey, DELETE_BUTTON)
 			else
-				; and option to undelete
-				_oid = AddTextOption("$SLT_BTN_RESTORE", "")
-				AddOid(_oid, triggerKey, RESTORE_BUTTON)
+				AddEmptyOption()
 			endif
-		;endif
+
+			if tlattributes.Length > 1 && tlattributes[1]
+				_oid = ShowAttribute(tlattributes[1], widgetOptions, triggerKey, _triggerFile, true)
+				if _layoutData[1] && _layoutData[1] == tlattributes[1]
+					oidForcePageReset = PapyrusUtil.PushInt(oidForcePageReset, _oid)
+				endif
+			else
+				AddEmptyOption()
+			endif
+
+			tlidx += 1
+			tlattributes = GetExtensionLayoutData(true, _triggerLayout, tlidx)
+		endwhile
+		
+		; blank row
+		AddEmptyOption()
+		AddEmptyOption()
+		
+		AddEmptyOption()
+		if !triggerIsSoftDeleted
+			; and option to delete
+			_oid = AddTextOption("$SLT_BTN_DELETE", "")
+			AddOid(_oid, triggerKey, DELETE_BUTTON)
+		else
+			; and option to undelete
+			_oid = AddTextOption("$SLT_BTN_RESTORE", "")
+			AddOid(_oid, triggerKey, RESTORE_BUTTON)
+		endif
 	
 		displayIndexer += 1
 	endwhile
@@ -850,7 +827,6 @@ Event OnOptionSliderAccept(int option, float value)
 	string triKey = GetOidTriggerKey(option)
 	string attrName = GetOidAttributeName(option)
 	
-	;Data_SetFromFloat(triKey, attrName, value)
 	string _dataFile
 	bool _istk = (triKey != "")
 
@@ -1003,7 +979,6 @@ Event OnOptionMenuAccept(int option, int index)
 
 	JsonUtil.Save(_dataFile)
 
-	int xx = oidForcePageReset.Find(option)
 	if oidForcePageReset.Find(option) > -1
 		ForcePageReset()
 	endif
@@ -1125,7 +1100,6 @@ Event OnOptionInputAccept(int option, string _input)
 	string triKey = GetOidTriggerKey(option)
 	string attrName = GetOidAttributeName(option)
 	
-	;Data_SetFromString(triKey, attrName, _input)
 	string _dataFile
 	bool _istk = (triKey != "")
 
@@ -1201,15 +1175,6 @@ Function SetExtensionPages(string[] _extensionFriendlyNames, string[] _extension
 EndFunction
 
 
-
-
-
-
-
-
-
-
-
 string Function Trigger_Create()
 	string triggerKey
 	string triggerFileName
@@ -1241,23 +1206,10 @@ string Function Trigger_Create()
 	
 	return triggerKey
 EndFunction
-; Specifying both triggerId and attributeName
-
-
-
-
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; Accessors and functions for handling the automated MCM plumbing
 
 string[] Function GetExtensionTriggerKeys()
 	return JsonUtil.JsonInFolder("../sl_triggers/extensions/" + CurrentExtensionKey + "/")
 EndFunction
-
-
 
 Function AddOid(int _oid, string _triggerKey, string _attrName)
 	xoidlist		= PapyrusUtil.PushInt(xoidlist, _oid)
@@ -1287,9 +1239,6 @@ string Function GetOidAttributeName(int _oid)
 	return value
 EndFunction
 
-
-
-
 ;;;;;;;;;;;;;;;
 ;; Attribute related functions
 string[] Function GetAttributeNames(bool _istk)
@@ -1297,9 +1246,9 @@ string[] Function GetAttributeNames(bool _istk)
 
 	string jkey
 	if _istk
-		jkey = ".trigger_attributes"
+		jkey = "trigger_attributes"
 	else
-		jkey = ".settings_attributes"
+		jkey = "settings_attributes"
 	endif
 	
 	int listcount = JsonUtil.PathCount(_filename, jkey)
@@ -1318,7 +1267,6 @@ string[] Function GetAttributeNames(bool _istk)
 	endwhile
 
 	return results
-	;return Heap_StringListToArrayX(self, PSEUDO_INSTANCE_KEY, TK_attributeNames(_extensionKey))
 EndFunction
 
 int Function GetAttrWidget(bool _istk, string _attr)
@@ -1340,7 +1288,6 @@ int Function GetAttrWidget(bool _istk, string _attr)
 		endif
 	endif
 	return WIDG_ERROR
-	;return Heap_IntGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_widget(_ext, _attr))
 EndFunction
 
 int Function GetAttrType(bool _istk, string _attr)
@@ -1359,7 +1306,6 @@ int Function GetAttrType(bool _istk, string _attr)
 		endif
 	endif
 	return ptype
-	;return Heap_IntGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_type(_ext, _attr))
 EndFunction
 
 float Function GetAttrMinValue(bool _istk, string _attr)
@@ -1369,7 +1315,6 @@ float Function GetAttrMinValue(bool _istk, string _attr)
 		info = data[2] as float
 	endif
 	return info
-	;return Heap_FloatGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_minValue(_ext, _attr))
 EndFunction
 
 float Function GetAttrMaxValue(bool _istk, string _attr)
@@ -1379,7 +1324,6 @@ float Function GetAttrMaxValue(bool _istk, string _attr)
 		info = data[3] as float
 	endif
 	return info
-	;return Heap_FloatGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_maxValue(_ext, _attr))
 EndFunction
 
 float Function GetAttrInterval(bool _istk, string _attr)
@@ -1389,7 +1333,6 @@ float Function GetAttrInterval(bool _istk, string _attr)
 		info = data[4] as float
 	endif
 	return info
-	;return Heap_FloatGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_interval(_ext, _attr))
 EndFunction
 
 int Function GetAttrDefaultValue(bool _istk, string _attr)
@@ -1399,7 +1342,6 @@ int Function GetAttrDefaultValue(bool _istk, string _attr)
 		info = data[1] as int
 	endif
 	return info
-	;return Heap_IntGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_defaultValue(_ext, _attr))
 EndFunction
 
 float Function GetAttrDefaultFloat(bool _istk, string _attr)
@@ -1409,7 +1351,6 @@ float Function GetAttrDefaultFloat(bool _istk, string _attr)
 		info = data[1] as float
 	endif
 	return info
-	;return Heap_FloatGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_defaultFloat(_ext, _attr))
 EndFunction
 
 string Function GetAttrDefaultString(bool _istk, string _attr)
@@ -1419,7 +1360,6 @@ string Function GetAttrDefaultString(bool _istk, string _attr)
 		info = data[1]
 	endif
 	return info
-	;return Heap_StringGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_defaultString(_ext, _attr))
 EndFunction
 
 string Function GetAttrLabel(bool _istk, string _attr)
@@ -1429,7 +1369,6 @@ string Function GetAttrLabel(bool _istk, string _attr)
 		info = data[1]
 	endif
 	return info
-	;return Heap_StringGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_label(_ext, _attr))
 EndFunction
 
 string Function GetAttrFormatString(bool _istk, string _attr)
@@ -1439,7 +1378,6 @@ string Function GetAttrFormatString(bool _istk, string _attr)
 		info = data[5] as string
 	endif
 	return info
-	;return Heap_StringGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_formatString(_ext, _attr))
 EndFunction
 
 int Function GetAttrDefaultIndex(bool _istk, string _attr)
@@ -1449,7 +1387,6 @@ int Function GetAttrDefaultIndex(bool _istk, string _attr)
 		info = data[2] as int
 	endif
 	return info
-	;return Heap_IntGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_defaultIndex(_ext, _attr))
 EndFunction
 
 string[] Function GetAttrMenuSelections(bool _istk, string _attr)
@@ -1459,7 +1396,6 @@ string[] Function GetAttrMenuSelections(bool _istk, string _attr)
 		info = PapyrusUtil.SliceStringArray(data, 3)
 	endif
 	return info
-	;return Heap_StringListToArrayX(self, PSEUDO_INSTANCE_KEY, TK_attr_menuSelections(_ext, _attr))
 EndFunction
 
 
@@ -1470,7 +1406,6 @@ int Function GetAttrMenuSelectionIndex(bool _istk, string _attr, string _selecti
 		info = data.Find(_selection, 3)
 	endif
 	return info
-	;return Heap_StringListFindX(self, PSEUDO_INSTANCE_KEY, TK_attr_menuSelections(_ext, _attr), _selection)
 EndFunction
 
 bool Function HasAttrHighlight(bool _istk, string _attr)
@@ -1480,7 +1415,6 @@ bool Function HasAttrHighlight(bool _istk, string _attr)
 		info = data[0]
 	endif
 	return (info != "")
-	;return Heap_StringHasX(self, PSEUDO_INSTANCE_KEY, TK_attr_highlight(_ext, _attr))
 EndFunction
 
 string Function GetAttrHighlight(bool _istk, string _attr)
@@ -1490,10 +1424,7 @@ string Function GetAttrHighlight(bool _istk, string _attr)
 		info = data[0]
 	endif
 	return info
-	;return Heap_StringGetX(self, PSEUDO_INSTANCE_KEY, TK_attr_highlight(_ext, _attr))
 EndFunction
-
-
 
 
 string[] Function GetLayout(bool _istk, string _dataFile)

@@ -20,60 +20,6 @@ int Function GetModVersion() global
 	return 104
 EndFunction
 
-;;;;;;;;;
-; ModEvent names
-
-; SLT listens for this and can send ad-hoc commands. If an Actor is not
-; specified, the PlayerRef will be assumed.
-string Function EVENT_SLT_REQUEST_COMMAND() global
-	return "sl_triggers_SLTRequestCommand"
-EndFunction
-
-; SLT receives these from extensions for registration
-string Function EVENT_SLT_REGISTER_EXTENSION() global
-	return "_slt_event_slt_register_extension_"
-EndFunction
-
-;; Internal
-string Function EVENT_SLT_INTERNAL_READY_EVENT() global
-	return "_slt_event_slt_internal_ready_event_"
-EndFunction
-
-string Function EVENT_SLT_HEARTBEAT() global
-	RETURN "_SLT_INTERNAL_HEARTBEAT_EVENT_DO_NOT_OVERRIDE_OR_CAPTURE_THIS_EVENT_"
-EndFunction
-
-string Function EVENT_SLT_RESET() global
-	return "_slt_event_slt_slt_reset_all_systems_"
-EndFunction
-
-; SLT sends this when settings have been updated
-string Function EVENT_SLT_SETTINGS_UPDATED() global
-	return "sl_triggers_SLTSettingsUpdated"
-EndFunction
-
-
-
-
-
-
-;/
-; SLT sends this when it is ready to interact with and receive events
-string Function EVENT_SLT_READY() global
-	return "sl_triggers_SLTReady"
-EndFunction
-; SLT sends this event when extensions should send the shape of their
-; trigger data to Setup, if they intend to let it manage their trigger data
-string Function EVENT_SLT_POPULATE_MCM() global
-	return "sl_triggers_SLTPopulateMCM"
-EndFunction
-
-; SLT uses these to update the hearbeat registry for the AMEs
-string Function EVENT_SLT_AME_HEARTBEAT_UPDATE() global
-	return "sl_triggers_SLTAMEHeartbeatUpdate"
-EndFunction
-/;
-
 ;;;;;;;
 ; Registers a Quest for a mod event safely
 Function SafeRegisterForModEvent_Quest(Quest _theSelf, String _theEvent, String _theHandler) global
@@ -106,6 +52,39 @@ Function SafeRegisterForModEvent_AME(ActiveMagicEffect _theSelf, String _theEven
 EndFunction
 
 ;;;;;;;;;
+; ModEvent names
+
+; SLT listens for this event.
+; SendModEvent(EVENT_SLT_REQUEST_COMMAND(), "<command, required>")
+; Will run the specified command with the Player as the target.
+string Function EVENT_SLT_REQUEST_COMMAND() global
+	return "sl_triggers_SLTRequestCommand"
+EndFunction
+
+; SLT receives these from extensions for registration
+string Function EVENT_SLT_REGISTER_EXTENSION() global
+	return "_slt_event_slt_register_extension_"
+EndFunction
+
+;; Internal
+string Function EVENT_SLT_INTERNAL_READY_EVENT() global
+	return "_slt_event_slt_internal_ready_event_"
+EndFunction
+
+string Function EVENT_SLT_HEARTBEAT() global
+	RETURN "_SLT_INTERNAL_HEARTBEAT_EVENT_DO_NOT_OVERRIDE_OR_CAPTURE_THIS_EVENT_"
+EndFunction
+
+string Function EVENT_SLT_RESET() global
+	return "_slt_event_slt_slt_reset_all_systems_"
+EndFunction
+
+; SLT sends this when settings have been updated
+string Function EVENT_SLT_SETTINGS_UPDATED() global
+	return "sl_triggers_SLTSettingsUpdated"
+EndFunction
+
+;;;;;;;;;
 ; Simple constants for Papyrus types
 int Function PTYPE_STRING() global
 	return 1
@@ -132,65 +111,17 @@ EndFunction
 
 ;;;;;;;;
 ; Global general values
-string Function SettingsFolder() global
-	return "../sl_triggers/"
-EndFunction
-
-string Function SettingsFilename() global
-	return "settings"
-EndFunction
-
-string Function FullSettingsFolder() global
-	return "data/SKSE/Plugins/sl_triggers/"
-EndFunction
-
 ; SLT Global/General
-string Function SettingsName() global
-	return SettingsFolder() + SettingsFilename()
-EndFunction
-
 string Function CommandsFolder() global
-	return SettingsFolder() + "commands/"
+	return "../sl_triggers/commands/"
 EndFunction
 
 string Function FullCommandsFolder() global
-	return FullSettingsFolder() + "commands/"
-EndFunction
-
-string Function ExtensionsFolder() global
-	return SettingsFolder() + "extensions/"
-EndFunction
-
-; Extension specific
-string Function ExtensionBase(string _extensionKey) global
-	return ExtensionsFolder() + _extensionKey
-EndFunction
-
-string Function ExtensionSettingsName(string _extensionKey) global
-	return ExtensionBase(_extensionKey) + ".json"
-EndFunction
-
-string Function ExtensionAttributesName(string _extensionKey) global
-	return ExtensionBase(_extensionKey) + "/attributes"
+	return "data/SKSE/Plugins/sl_triggers/commands/"
 EndFunction
 
 string Function ExtensionTriggersFolder(string _extensionKey) global
-	return ExtensionBase(_extensionKey) + "/triggers/"
-EndFunction
-
-string Function ExtensionTriggerName(string _extensionKey, string _triggerKey) global
-	return ExtensionTriggersFolder(_extensionKey) + _triggerKey
-EndFunction
-; okay, all done
-
-
-
-Function InitSettingsFile(string filename, bool force = false) global
-	if JsonUtil.JsonExists(filename) && JsonUtil.HasIntValue(filename, "enabled") && !force
-		return
-	endif
-	JsonUtil.SetIntValue(filename, "enabled", 1)
-	JsonUtil.Save(filename)
+	return "../sl_triggers/extensions/" + _extensionKey + "/triggers/"
 EndFunction
 
 string Function FN_Settings() global
@@ -217,9 +148,16 @@ string Function FN_Trigger(string _x, string _t) global
 EndFunction
 
 
-
 ;;;;;;;;
 ; Utility functions
+Function InitSettingsFile(string filename, bool force = false) global
+	if JsonUtil.JsonExists(filename) && JsonUtil.HasIntValue(filename, "enabled") && !force
+		return
+	endif
+	JsonUtil.SetIntValue(filename, "enabled", 1)
+	JsonUtil.Save(filename)
+EndFunction
+
 int Function GlobalHexToInt(string _value) global
     int retVal
     int idx

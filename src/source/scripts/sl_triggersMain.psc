@@ -444,7 +444,6 @@ string Function StartCommand(Actor _theActor, string _cmdName, sl_triggersExtens
 					MiscUtil.PrintConsole("Too many effects on: " + _theActor + " from extension: " + _thisExt.GetExtensionKey())
 					return ""
 				endif
-				string asdfasdf = MakeExtensionInstanceId(_thisExt.GetExtensionKey())
 				extensionInstanceIds[extensionIndex] = MakeExtensionInstanceId(_thisExt.GetExtensionKey())
 			endif
 			
