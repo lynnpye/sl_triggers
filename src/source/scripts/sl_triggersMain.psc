@@ -2,7 +2,6 @@ Scriptname sl_TriggersMain extends Quest
 
 import sl_triggersStatics
 import sl_triggersHeap
-import sl_triggersFile
 
 ; CONSTANTS
 int		SLT_HEARTBEAT					= 0
@@ -49,13 +48,29 @@ Actor               Property PlayerRef				Auto
 Spell[]             Property customSpells			Auto
 MagicEffect[]       Property customEffects			Auto
 sl_triggersSetup	Property SLTMCM					Auto
-bool				Property bEnabled		= true	Auto Hidden
+bool				Property bEnabled					 Hidden
+	bool Function Get()
+		return _enabledFlag
+	EndFunction
+
+	Function Set(bool _newEnabledFlag)
+		_enabledFlag = _newEnabledFlag
+		int _newval = 0
+		if _enabledFlag
+			_newval = 1
+		endif
+		JsonUtil.SetIntValue(FN_Settings(), "enabled", _newval)
+		; AND MORE
+		DebMsg("setting enabled should do more stuff actively (new state is[" + _newEnabledFlag + "])")
+	EndFunction
+EndProperty
 bool				Property bDebugMsg		= false	Auto Hidden
 Form[]				Property Extensions				Auto Hidden
 
 ; Variables
 int			SLTUpdateState
 int			_registrationBeaconCount
+bool		_enabledFlag
 string[]	commandsListCache
 string[]	settingsUpdateEvents
 string[]	extensionInternalReadyEvents
@@ -143,6 +158,7 @@ Function SelfRegisterExtension(sl_triggersExtension _theExtension) global
 EndFunction
 
 Function OnInitBody()
+	_enabledFlag = true
 	StorageUtil.SetFormValue(none, SLT_MAIN_INSTANCE_KEY, self)
 	BootstrapSLTInit()
 EndFunction
@@ -169,6 +185,18 @@ EndFunction
 Function DoBootstrapActivity()
 	if !self
 		return
+	endif
+
+	InitSettingsFile(FN_Settings())
+
+	bool _userStoredFlag = (JsonUtil.GetIntValue(FN_Settings(), "enabled") != 0)
+	if _userStoredFlag != bEnabled
+		_enabledFlag = _userStoredFlag
+	endif
+
+	_userStoredFlag = (JsonUtil.GetIntValue(FN_Settings(), "debugmsg") != 0)
+	if _userStoredFlag != bDebugMsg
+		bDebugMsg = _userStoredFlag
 	endif
 
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REGISTER_EXTENSION(), "OnSLTRegisterExtension")
@@ -236,12 +264,6 @@ Function DoRegistrationActivity(string _extensionKeyToRegister)
 	int _xidx = Extensions.Find(_extensionToRegister)
 
 	if _xidx < 0
-		_extensionToRegister.SLTMCM = SLTMCM
-		if SLTMCM
-			_extensionToRegister._slt_PopulateMCM()
-			SLTMCM.SetTriggers(_extensionToRegister.GetExtensionKey(), _extensionToRegister.TriggerKeys)
-		endif
-
 		Extensions						= PapyrusUtil.PushForm(Extensions, _extensionToRegister)
 		settingsUpdateEvents			= PapyrusUtil.PushString(settingsUpdateEvents, _extensionToRegister._slt_GetSettingsUpdateEvent())
 		extensionInternalReadyEvents 	= PapyrusUtil.PushString(extensionInternalReadyEvents, _extensionToRegister._slt_GetInternalReadyEvent())
@@ -291,8 +313,6 @@ Function DoRegistrationActivity(string _extensionKeyToRegister)
 EndFunction
 
 Function DoInMemoryReset()
-	SLTMCM.ClearSetupHeap()
-
 	commandsListCache				= none
 
 	SendModEvent(EVENT_SLT_RESET())
@@ -348,18 +368,6 @@ Function SendInternalSettingsUpdateEvents()
 	SendDelayedSettingsUpdateEvent()
 EndFunction
 
-
-int Function GetSettingsVersion()
-	return Settings_IntGet(SettingsFilename(), "version", GetModVersion())
-EndFunction
-
-Function SetSettingsVersion(int newVersion = -1)
-	if newVersion == -1
-		Settings_IntSet(SettingsFilename(), "version", GetModVersion())
-	else
-		Settings_IntSet(SettingsFilename(), "version", newVersion)
-	endif
-EndFunction
 
 ; simple get handler for infini-globals
 string Function globalvars_get(int varsindex)

@@ -5,7 +5,6 @@ Required and Optional overrides have been noted.
 scriptname sl_triggersExtensionCore extends sl_triggersExtension
 
 import sl_triggersStatics
-import sl_triggersFile
 
 string	EVENT_TOP_OF_THE_HOUR					= "TopOfTheHour"
 string	EVENT_TOP_OF_THE_HOUR_HANDLER			= "OnTopOfTheHour"
@@ -79,6 +78,7 @@ Event OnInit()
 	SLTInit()
 EndEvent
 
+;/
 ; PopulateMCM
 ; OVERRIDE HIGHLY RECOMMENDED
 Function PopulateMCM()
@@ -133,6 +133,7 @@ Function PopulateMCMSettings()
 	DescribeToggleAttribute(ATTR_TEST_TOGGLE, PTYPE_INT(), "Test: ")
 	SetHighlightText(ATTR_TEST_TOGGLE, "This is test text for your simple testing test.")
 EndFunction
+/;
 
 Function SLTReady()
 	UpdateDAKStatus()
@@ -223,7 +224,8 @@ Function RefreshTriggerCache()
 	triggerKeys_keyDown = PapyrusUtil.StringArray(0)
 	int i = 0
 	while i < TriggerKeys.Length
-		int eventCode = GetEventCode(TriggerKeys[i])
+		string _triggerFile = FN_T(TriggerKeys[i])
+		int eventCode = JsonUtil.GetIntValue(_triggerFile, ATTR_EVENT)
 
 		if eventCode == 2 ; topofthehour
 			triggerKeys_topOfTheHour = PapyrusUtil.PushString(triggerKeys_topOfTheHour, TriggerKeys[i])
@@ -240,14 +242,15 @@ Function RefreshTriggerCache()
 
 		while i < triggerKeys_keyDown.Length
 			string triggerKey = triggerKeys_keyDown[i]
+			string _triggerFile = FN_T(triggerKey)
 			
-			int keycode = GetKeycode(triggerKey)
+			int keycode = JsonUtil.GetIntValue(_triggerFile, ATTR_KEYMAPPING)
 
 			if _keycodes_of_interest.Find(keycode) < 0
 				_keycodes_of_interest = PapyrusUtil.PushInt(_keycodes_of_interest, keycode)
 			endif
-			if HasModifierKeycode(triggerKey)
-				keycode = GetModifierKeycode(triggerKey)
+			if JsonUtil.HasIntValue(_triggerFile, ATTR_MODIFIERKEYMAPPING)
+				keycode = JsonUtil.GetIntValue(_triggerFile, ATTR_MODIFIERKEYMAPPING)
 				if _keycodes_of_interest.Find(keycode) < 0
 					_keycodes_of_interest = PapyrusUtil.PushInt(_keycodes_of_interest, keycode)
 				endif
@@ -286,7 +289,7 @@ Function AlignToNextHour(float _curTime = -1.0)
 EndFunction
 
 string Function GetDAKModname()
-	return Settings_StringGetS(SETTINGS_DYNAMICACTIVATIONKEY_MODNAME, DEFAULT_DYNAMICACTIVATIONKEY_MODFILE)
+	return JsonUtil.GetStringValue(FN_S, SETTINGS_DYNAMICACTIVATIONKEY_MODNAME, DEFAULT_DYNAMICACTIVATIONKEY_MODFILE)
 endfunction
 
 Function UpdateDAKStatus()
@@ -338,15 +341,16 @@ Function HandleTopOfTheHour()
 	string command
 	while i < triggerKeys_topOfTheHour.Length
 		triggerKey = triggerKeys_topOfTheHour[i]
-		command = GetCommand1(triggerKey)
+		string _triggerFile = FN_T(triggerKey)
+		command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
 		if command
 			RequestCommand(PlayerRef, command)
 		endIf
-		command = GetCommand2(triggerKey)
+		command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
 		if command
 			RequestCommand(PlayerRef, command)
 		endIf
-		command = GetCommand3(triggerKey)
+		command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
 		if command
 			RequestCommand(PlayerRef, command)
 		endIf
@@ -369,11 +373,13 @@ Function HandleOnKeyDown()
 	
 	while i < triggerKeys_keyDown.Length
 		triggerKey = triggerKeys_keyDown[i]
+
+		string _triggerFile = FN_T(triggerKey)
 		
 		doRun = true
 		dakused = false
 		
-		ival = GetKeycode(triggerKey)
+		ival = JsonUtil.GetIntValue(_triggerFile, ATTR_KEYMAPPING)
 		statusidx = _keycodes_of_interest.Find(ival)
 		
 		; check keycode status, must be true
@@ -384,8 +390,8 @@ Function HandleOnKeyDown()
 		endif
 		
 		; check dynamic activation key if in use and specified
-		if doRun && DAKAvailable && HasUseDAK(triggerKey)
-			doRun = IsUseDAK(triggerKey)
+		if doRun && DAKAvailable && JsonUtil.HasIntValue(_triggerFile, ATTR_USEDAK)
+			doRun = (JsonUtil.GetIntValue(_triggerFile, ATTR_USEDAK) != 0)
 			if doRun
 				; if they had DAK setting AND it was true, then dakused is true
 				; and doRun is determined by DAK status
@@ -396,8 +402,8 @@ Function HandleOnKeyDown()
 		
 		; check modifier status only if specified
 		; if dakused, we do not try to manage via modifier
-		if doRun && !dakused && HasModifierKeycode(triggerKey)
-			ival = GetModifierKeycode(triggerKey)
+		if doRun && !dakused && JsonUtil.HasIntValue(_triggerFile, ATTR_MODIFIERKEYMAPPING)
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_MODIFIERKEYMAPPING)
 			
 			; only if mapped
 			if ival > -1
@@ -412,15 +418,15 @@ Function HandleOnKeyDown()
 		endif
 		
 		if doRun
-			command = GetCommand1(triggerKey)
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
 			if command
 				RequestCommand(PlayerRef, command)
 			endIf
-			command = GetCommand2(triggerKey)
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
 			if command
 				RequestCommand(PlayerRef, command)
 			endIf
-			command = GetCommand3(triggerKey)
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
 			if command
 				RequestCommand(PlayerRef, command)
 			endIf
@@ -430,71 +436,3 @@ Function HandleOnKeyDown()
 	endwhile
 EndFunction
 
-; These are NOT necessary but give you an idea of how you could make your trigger data access easier
-int Function GetEventCode(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, ATTR_EVENT)
-EndFunction
-
-Function SetEventCode(string _triggerKey, int _eventCode)
-	Trigger_IntSetT(_triggerKey, ATTR_EVENT, _eventCode)
-EndFunction
-
-bool Function HasKeycode(string _triggerKey)
-	return Trigger_IntHasT(_triggerKey, ATTR_KEYMAPPING)
-EndFunction
-
-int Function GetKeycode(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, ATTR_KEYMAPPING)
-EndFunction
-
-Function SetKeycode(string _triggerKey, int _keycode)
-	Trigger_IntSetT(_triggerKey, ATTR_KEYMAPPING)
-EndFunction
-
-bool Function HasUseDAK(string _triggerKey)
-	return Trigger_IntHasT(_triggerKey, ATTR_USEDAK)
-EndFunction
-
-bool Function IsUseDAK(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, ATTR_USEDAK) != 0
-EndFunction
-
-Function SetUseDAK(string _triggerKey, bool _usedak)
-	Trigger_IntSetT(_triggerKey, ATTR_USEDAK, _usedak as int)
-EndFunction
-
-bool Function HasModifierKeycode(string _triggerKey)
-	return Trigger_IntHasT(_triggerKey, ATTR_MODIFIERKEYMAPPING)
-EndFunction
-
-int Function GetModifierKeycode(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, ATTR_MODIFIERKEYMAPPING)
-EndFunction
-
-Function SetModifierKeycode(string _triggerKey, int _modifier_keycode)
-	Trigger_IntSetT(_triggerKey, ATTR_MODIFIERKEYMAPPING)
-EndFunction
-
-string Function GetCommand1(string _triggerKey)
-	return Trigger_StringGetT(_triggerKey, ATTR_DO_1)
-EndFunction
-
-Function SetCommand1(string _triggerKey, string _command)
-	Trigger_StringSetT(_triggerKey, ATTR_DO_1, _command)
-EndFunction
-
-string Function GetCommand2(string _triggerKey)
-	return Trigger_StringGetT(_triggerKey, ATTR_DO_2)
-EndFunction
-
-Function SetCommand2(string _triggerKey, string _command)
-	Trigger_StringSetT(_triggerKey, ATTR_DO_2, _command)
-EndFunction
-
-string Function GetCommand3(string _triggerKey)
-	return Trigger_StringGetT(_triggerKey, ATTR_DO_3)
-EndFunction
-
-Function SetCommand3(string _triggerKey, string _command)
-	Trigger_StringSetT(_triggerKey, ATTR_DO_3, _command)
-EndFunction

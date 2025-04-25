@@ -144,12 +144,9 @@ string Function FullSettingsFolder() global
 	return "data/SKSE/Plugins/sl_triggers/"
 EndFunction
 
+; SLT Global/General
 string Function SettingsName() global
 	return SettingsFolder() + SettingsFilename()
-EndFunction
-
-string Function ExtensionSettingsName(string extensionId) global
-	return SettingsFolder() + extensionId
 EndFunction
 
 string Function CommandsFolder() global
@@ -160,13 +157,66 @@ string Function FullCommandsFolder() global
 	return FullSettingsFolder() + "commands/"
 EndFunction
 
-string Function ExtensionTriggersFolder(string extensionId) global
-	return SettingsFolder() + extensionId + "/"
+string Function ExtensionsFolder() global
+	return SettingsFolder() + "extensions/"
 EndFunction
 
-string Function ExtensionTriggerName(string extensionId, string triggerId) global
-	return ExtensionTriggersFolder(extensionId) + triggerId
+; Extension specific
+string Function ExtensionBase(string _extensionKey) global
+	return ExtensionsFolder() + _extensionKey
 EndFunction
+
+string Function ExtensionSettingsName(string _extensionKey) global
+	return ExtensionBase(_extensionKey) + ".json"
+EndFunction
+
+string Function ExtensionAttributesName(string _extensionKey) global
+	return ExtensionBase(_extensionKey) + "/attributes"
+EndFunction
+
+string Function ExtensionTriggersFolder(string _extensionKey) global
+	return ExtensionBase(_extensionKey) + "/triggers/"
+EndFunction
+
+string Function ExtensionTriggerName(string _extensionKey, string _triggerKey) global
+	return ExtensionTriggersFolder(_extensionKey) + _triggerKey
+EndFunction
+; okay, all done
+
+
+
+Function InitSettingsFile(string filename, bool force = false) global
+	if JsonUtil.JsonExists(filename) && JsonUtil.HasIntValue(filename, "enabled") && !force
+		return
+	endif
+	JsonUtil.SetIntValue(filename, "enabled", 1)
+	JsonUtil.Save(filename)
+EndFunction
+
+string Function FN_Settings() global
+	return "../sl_triggers/settings"
+EndFunction
+
+string Function FN_X_Settings(string _x) global
+	if !_x
+		return FN_Settings()
+	endif
+	return "../sl_triggers/extensions/" + _x + "-settings"
+EndFunction
+
+string Function FN_X_Attributes(string _x) global
+	return "../sl_triggers/extensions/" + _x + "-attributes"
+EndFunction
+
+string Function FN_Trigger(string _x, string _t) global
+	; a hack
+	if !_t
+		return FN_X_Settings(_x)
+	endif
+	return "../sl_triggers/extensions/" + _x + "/" + _t
+EndFunction
+
+
 
 ;;;;;;;;
 ; Utility functions

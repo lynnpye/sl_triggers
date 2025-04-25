@@ -1,0 +1,102 @@
+{
+    "comment_section" : [
+        ["# this is an attributes file for an SLT extension"],
+        ["# it will also contain this structure, letting SLT know what attributes to track"],
+        ["# this is a comment because it starts with an octothorpe(#)"],
+        ["# otherwise this file has to be proper json"],
+        ["# it is divided into a 'triggers' block and a 'settings' block"],
+        ["# the blocks are otherwise the same, following the same naming convention"]
+    ],
+    "trigger_attributes" : [
+        ["# this section is just a simple list of attributes"],
+        ["# one per row, yes"],
+        ["event"],
+        ["chance"],
+        ["race"],
+        ["role"],
+        ["player"],
+        ["gender"],
+        ["tag"],
+        ["daytime"],
+        ["location"],
+        ["position"],
+        ["do_1"],
+        ["do_2"],
+        ["do_3"]
+    ],
+    "triggerattribute_event" : [
+        ["# here is where you define aspects of the attribute"],
+        ["type", "int"],
+        ["widget", "menu", "Event: ", 0, "- Select an Event -", "Begin", "Orgasm", "End", "Orgasm(SLSO)"],
+        ["info", "Choose which type of awesome event this trigger will use."]
+    ],
+    "triggerattribute_chance" : [
+        ["type", "float", "0.0"],
+        ["widget", "slider", "Chance: ", 0.0, 100.0, 1.0, "{0}"],
+        ["info", "The chance the trigger will run when all prerequisites are met."]
+    ],
+    "triggerattribute_race" : [
+        ["type", "int"],
+        ["widget", "menu", "Race: ", 0, "Any", "Humanoid", "Creature", "Undead", "Partner Humanoid", "Partner Creature", "Partner Undead"],
+        ["info", "The 'race' of a scene participant for the script to run on them."]
+    ],
+    "triggerattribute_role" : [
+        ["type", "int"],
+        ["widget", "menu", "Role: ", 0, "Any", "Aggressor", "Victim", "Not part of rape"],
+        ["info", "The role of a scene participant with regard to aggression."]
+    ],
+    "triggerattribute_player" : [
+        ["type", "int"],
+        ["widget", "menu", "Player: ", 0, "Any", "Player", "Not Player", "Partner Player", "Partner Not Player"],
+        ["info", "The relationship to the Player of a scene participant."]
+    ],
+    "triggerattribute_gender" : [
+        ["type", "int"],
+        ["widget", "menu", "Gender: ", 0, "Any", "Male", "Female"],
+        ["info", "The SexLab gender of a scene participant."]
+    ],
+    "triggerattribute_tag" : [
+        ["type", "int"],
+        ["widget", "menu", "SL Tag :", 0, "Any", "Vaginal", "Anal", "Oral"],
+        ["info", "The SexLab 'tag' for the animation the scene participant is in."]
+    ],
+    "triggerattribute_daytime" : [
+        ["type", "int"],
+        ["widget", "menu", "Daytime :", 0, "Any", "Day", "Night"],
+        ["info", "The time of day the scene is taking place in."]
+    ],
+    "triggerattribute_location" : [
+        ["type", "int"],
+        ["widget", "menu", "Location :", 0, "Any", "Inside", "Outside"],
+        ["info", "The location, indoors or outdoors, the scene is taking place in."]
+    ],
+    "triggerattribute_position" : [
+        ["type", "int"],
+        ["widget", "menu", "Position :", 0, "Any", "1", "2", "3", "4", "5"],
+        ["info", "The SexLab 'position' the scene participant is in (1-5)."]
+    ],
+    "triggerattribute_do_1" : [
+        ["type", "string"],
+        ["widget", "command", "Command 1: "],
+        ["info", "You can run up to 3 commands associated with this keymapping. This is the first."]
+    ],
+    "triggerattribute_do_2" : [
+        ["type", "string"],
+        ["widget", "command", "Command 2: "],
+        ["info", "You can run up to 3 commands associated with this keymapping. This is the second."]
+    ],
+    "triggerattribute_do_3" : [
+        ["type", "string"],
+        ["widget", "command", "Command 3: "],
+        ["info", "You can run up to 3 commands associated with this keymapping. This is the third."]
+    ],
+    "triggerlayout" : [
+        ["event", "chance"],
+        ["race", "actor"],
+        ["player", "gender"],
+        ["tag", "daytime"],
+        ["location", "position"],
+        ["do_1", "do_2"],
+        ["do_3"]
+    ]
+}

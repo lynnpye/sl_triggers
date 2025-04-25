@@ -364,11 +364,9 @@ EndState
 
 State cmd_hextun_test
 bool function oper(string[] param)
-    DebMsg("hextun_test")
     ActiveMagicEffect[] ames = sl_triggers_internal.SafeGetActiveMagicEffectsForActor(PlayerRef)
 
     if !ames || ames.Length < 1
-        DebMsg("no ames? no dice")
         return true
     endif
 
@@ -377,7 +375,7 @@ bool function oper(string[] param)
         ActiveMagicEffect ame = ames[i]
         SLSO_SpellGameScript gsc = ame as SLSO_SpellGameScript
         if gsc
-            DebMsg("Found a match at (" + i + ")")
+            MiscUtil.PrintConsole("Found a match at (" + i + ")")
         endif
 
         i += 1

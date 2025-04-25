@@ -2,7 +2,6 @@ Scriptname sl_TriggersCmd extends sl_TriggersCmdBase
 
 import sl_triggersStatics
 import sl_triggersHeap
-import sl_triggersFile
 
 
 ; Properties

@@ -2,7 +2,6 @@ scriptname sl_triggersExtensionSexLab extends sl_triggersExtension
 
 import sl_triggersStatics
 import sl_triggersHeap
-import sl_triggersFile
 
 SexLabFramework     Property SexLab						Auto Hidden
 Faction	            Property SexLabAnimatingFaction 	Auto Hidden
@@ -72,6 +71,7 @@ Event OnInit()
 	SLTInit()
 EndEvent
 
+;/
 ; PopulateMCM
 ; OVERRIDE HIGHLY RECOMMENDED
 Function PopulateMCM()
@@ -155,6 +155,7 @@ Function PopulateMCM()
 	AddCommandList(ATTR_DO_2, "Command 2:")
 	AddCommandList(ATTR_DO_3, "Command 3:")
 EndFunction
+/;
 
 ; SLTReady
 ; OPTIONAL
@@ -246,7 +247,8 @@ Function RefreshTriggerCache()
 	triggerKeys_Orgasm_S = PapyrusUtil.StringArray(0)
 	int i = 0
 	while i < TriggerKeys.Length
-		int eventCode = GetEventCode(TriggerKeys[i])
+		string _triggerFile = FN_T(TriggerKeys[i])
+		int eventCode = JsonUtil.GetIntValue(_triggerFile, ATTR_EVENT)
 		if eventCode == EVENT_ID_START
 			triggerKeys_Start = PapyrusUtil.PushString(triggerKeys_Start, TriggerKeys[i])
 		elseif eventCode == EVENT_ID_ORGASM
@@ -308,6 +310,7 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTrigg
 	string command
 	while i < _eventTriggerKeys.Length
 		triggerKey = _eventTriggerKeys[i]
+		string _triggerFile = FN_T(triggerKey)
 		
 		string value
 		int    ival
@@ -345,7 +348,7 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTrigg
 			/;
 			
 			if doRun
-				ival = GetRace(triggerKey)
+				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_RACE)
 				if ival != 0 ; 0 is Any
 					if ival == 1 && actorRace(theSelf) != 2 ; should be humanoid
 						doRun = false
@@ -371,7 +374,7 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTrigg
 			endIf
 			
 			if doRun
-				ival = GetPlayer(triggerKey)
+				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PLAYER)
 				if ival != 0 ; 0 is Any
 					if ival == 1 && actorRace(theSelf) != 1 ; should be player
 						doRun = false
@@ -393,7 +396,7 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTrigg
 			endIf
 			
 			if doRun
-				ival = GetRole(triggerKey)
+				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_ROLE)
 				if ival != 0 ; 0 is Any
 					if ival == 1 && !thread.IsAggressor(theSelf) ; aggresor
 						doRun = false
@@ -406,7 +409,7 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTrigg
 			endIf
 			
 			if doRun
-				ival = GetGender(triggerKey)
+				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_GENDER)
 				if ival != 0 ; 0 is Any
 					if ival == 1 && Sexlab.GetGender(theSelf) != 0
 						doRun = false
@@ -416,7 +419,7 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTrigg
 				endIf
 			endIf
 			if doRun
-				ival = GetTag(triggerKey)
+				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_TAG)
 				if ival != 0 ; 0 is Any
 					if ival == 1 && !thread.IsVaginal
 						doRun = false
@@ -428,7 +431,7 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTrigg
 				endIf
 			endIf
 			if doRun
-				ival = GetDaytime(triggerKey)
+				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
 				if ival != 0 ; 0 is Any
 					if ival == 1 && dayTime() != 1
 						doRun = false
@@ -438,7 +441,7 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTrigg
 				endIf
 			endIf
 			if doRun
-				ival = GetLocation(triggerKey)
+				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_LOCATION)
 				if ival != 0 ; 0 is Any
 					if ival == 1 && !theSelf.IsInInterior()
 						doRun = false
@@ -448,7 +451,7 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTrigg
 				endIf
 			endIf
 			if doRun
-				ival = GetPosition(triggerKey)
+				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_POSITION)
 				if ival != 0 ; 0 is Any
 					int _slposition = 0
 					while doRun && _slposition < thread.Positions.Length
@@ -469,7 +472,7 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTrigg
 			endIf
 			
 			if doRun ;do doRun
-				command = GetCommand1(triggerKey)
+				command = JsonUtil.GetIntValue(_triggerFile, ATTR_DO_1)
 				string _instanceId
 				if command
 					_instanceId = RequestCommand(theSelf, command)
@@ -477,14 +480,14 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTrigg
 						Heap_IntSetFK(theSelf, MakeInstanceKey(_instanceId, "tid"), tid)
 					endif
 				endIf
-				command = GetCommand2(triggerKey)
+				command = JsonUtil.GetIntValue(_triggerFile, ATTR_DO_2)
 				if command
 					_instanceId = RequestCommand(theSelf, command)
 					if _instanceId
 						Heap_IntSetFK(theSelf, MakeInstanceKey(_instanceId, "tid"), tid)
 					endif
 				endIf
-				command = GetCommand3(triggerKey)
+				command = JsonUtil.GetIntValue(_triggerFile, ATTR_DO_3)
 				if command
 					_instanceId = RequestCommand(theSelf, command)
 					if _instanceId
@@ -498,109 +501,4 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTrigg
 		
 		i += 1
 	endwhile
-EndFunction
-
-
-float Function GetChance(string _triggerKey)
-	return Trigger_FloatGetT(_triggerKey, ATTR_CHANCE)
-EndFunction
-
-Function SetChance(string _triggerKey, float value)
-	Trigger_FloatSetT(_triggerKey, ATTR_CHANCE, value)
-EndFunction
-
-int Function GetEventCode(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, ATTR_EVENT)
-EndFunction
-
-int Function SetEventCode(string _triggerKey, int value)
-	return Trigger_IntSetT(_triggerKey, ATTR_EVENT, value)
-EndFunction
-
-int Function GetRace(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, ATTR_RACE)
-EndFunction
-
-int Function SetRace(string _triggerKey, int value)
-	return Trigger_IntSetT(_triggerKey, ATTR_RACE, value)
-EndFunction
-
-int Function GetRole(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, ATTR_ROLE)
-EndFunction
-
-int Function SetRole(string _triggerKey, int value)
-	return Trigger_IntSetT(_triggerKey, ATTR_ROLE, value)
-EndFunction
-
-int Function GetGender(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, ATTR_GENDER)
-EndFunction
-
-int Function SetGender(string _triggerKey, int value)
-	return Trigger_IntSetT(_triggerKey, ATTR_GENDER, value)
-EndFunction
-
-int Function GetTag(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, ATTR_TAG)
-EndFunction
-
-int Function SetTag(string _triggerKey, int value)
-	return Trigger_IntSetT(_triggerKey, ATTR_TAG, value)
-EndFunction
-
-int Function GetDaytime(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, ATTR_DAYTIME)
-EndFunction
-
-int Function SetDaytime(string _triggerKey, int value)
-	return Trigger_IntSetT(_triggerKey, ATTR_DAYTIME, value)
-EndFunction
-
-int Function GetLocation(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, ATTR_LOCATION)
-EndFunction
-
-int Function SetLocation(string _triggerKey, int value)
-	return Trigger_IntSetT(_triggerKey, ATTR_LOCATION, value)
-EndFunction
-
-int Function GetPlayer(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, ATTR_PLAYER)
-EndFunction
-
-int Function SetPlayer(string _triggerKey, int value)
-	return Trigger_IntSetT(_triggerKey, ATTR_PLAYER, value)
-EndFunction
-
-int Function GetPosition(string _triggerKey)
-	return Trigger_IntGetT(_triggerKey, ATTR_POSITION)
-EndFunction
-
-int Function SetPosition(string _triggerKey, int value)
-	return Trigger_IntSetT(_triggerKey, ATTR_POSITION, value)
-EndFunction
-
-string Function GetCommand1(string _triggerKey)
-	return Trigger_StringGetT(_triggerKey, ATTR_DO_1)
-EndFunction
-
-Function SetCommand1(string _triggerKey, string _command)
-	Trigger_StringSetT(_triggerKey, ATTR_DO_1, _command)
-EndFunction
-
-string Function GetCommand2(string _triggerKey)
-	return Trigger_StringGetT(_triggerKey, ATTR_DO_2)
-EndFunction
-
-Function SetCommand2(string _triggerKey, string _command)
-	Trigger_StringSetT(_triggerKey, ATTR_DO_2, _command)
-EndFunction
-
-string Function GetCommand3(string _triggerKey)
-	return Trigger_StringGetT(_triggerKey, ATTR_DO_3)
-EndFunction
-
-Function SetCommand3(string _triggerKey, string _command)
-	Trigger_StringSetT(_triggerKey, ATTR_DO_3, _command)
 EndFunction
