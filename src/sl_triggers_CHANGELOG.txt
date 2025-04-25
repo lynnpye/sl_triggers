@@ -1,3 +1,7 @@
+104
+    multiple bugfixes related to MCM and settings management
+    new file layout under the hood
+
 103
     bugfix: trigger primes were not dispelling themselves at end of service
     bugfix: result stacks were not crossing back from extensions to core
