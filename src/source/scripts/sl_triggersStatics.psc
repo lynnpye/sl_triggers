@@ -121,7 +121,7 @@ string Function FullCommandsFolder() global
 EndFunction
 
 string Function ExtensionTriggersFolder(string _extensionKey) global
-	return "../sl_triggers/extensions/" + _extensionKey + "/triggers/"
+	return "../sl_triggers/extensions/" + _extensionKey + "/"
 EndFunction
 
 string Function FN_Settings() global

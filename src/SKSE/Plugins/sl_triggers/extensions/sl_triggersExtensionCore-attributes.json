@@ -22,30 +22,30 @@
     "triggerattribute_event" : [
         ["# here is where you define aspects of the attribute"],
         ["type", "int"],
-        ["widget", "menu", "Event: ", 0, "- Select an Event -", "Key Mapping", "Top of the Hour"],
+        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Key Mapping", "Top of the Hour"],
         ["info", "Choose which type of awesome event this trigger will use."]
     ],
     "triggerattribute_keymapping" : 
     [
-        ["type", "int", -1],
+        ["type", "int", "-1"],
         ["#", "widget", "keymapping", "label", "default index" ],
-        ["widget", "keymapping", "Key: ", -1],
+        ["widget", "keymapping", "Key: ", "-1"],
         ["info", "Choose the key to map to the action."]
     ],
     "triggerattribute_modifierkeymapping" : 
     [
         ["type", "int", -1],
-        ["widget", "keymapping", "Modifier Key: ", -1],
+        ["widget", "keymapping", "Modifier Key: ", "-1"],
         ["info", "(Optional) If specified, will be required to be pressed to trigger the action."]
     ],
     "triggerattribute_usedak" : [
         ["type", "int"],
-        ["widget", "toggle", "Use DAK? ", 0],
+        ["widget", "toggle", "Use DAK? ", "0"],
         ["info", "(Optional) If enabled, will use the Dynamic Activation Key instead of the Modifier key (if selected)"]
     ],
     "triggerattribute_chance" : [
         ["type", "float", "0.0"],
-        ["widget", "slider", "Chance: ", 0.0, 100.0, 1.0, "{0}"],
+        ["widget", "slider", "Chance: ", "0.0", "100.0", "1.0", "{0}"],
         ["info", "The chance the trigger will run when all prerequisites are met."]
     ],
     "triggerattribute_do_1" : [

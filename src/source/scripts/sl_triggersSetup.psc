@@ -1208,7 +1208,7 @@ string Function Trigger_Create()
 EndFunction
 
 string[] Function GetExtensionTriggerKeys()
-	return JsonUtil.JsonInFolder("../sl_triggers/extensions/" + CurrentExtensionKey + "/")
+	return JsonUtil.JsonInFolder(ExtensionTriggersFolder(CurrentExtensionKey))
 EndFunction
 
 Function AddOid(int _oid, string _triggerKey, string _attrName)
