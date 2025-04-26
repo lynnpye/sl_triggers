@@ -1,3 +1,9 @@
+105
+    bugfix: possible resolution issue with global variables in some cases
+    enhancement: new feature, subroutines
+        beginsub <subroutinename>/endsub to demarcate the subroutine
+        gosub <subroutinename> to execute and return
+
 104
     multiple bugfixes related to MCM and settings management
     new file layout under the hood
