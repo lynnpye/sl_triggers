@@ -78,63 +78,6 @@ Event OnInit()
 	SLTInit()
 EndEvent
 
-;/
-; PopulateMCM
-; OVERRIDE HIGHLY RECOMMENDED
-Function PopulateMCM()
-	if !self
-		return
-	endif
-	string[] triggerIfEventNames	= PapyrusUtil.StringArray(3)
-	triggerIfEventNames[0]			= "- Select an Event -"
-	triggerIfEventNames[1]			= "Key Mapping"
-	triggerIfEventNames[2]			= "Top of the Hour"
-	DescribeMenuAttribute(ATTR_EVENT, PTYPE_INT(), "Event:", 0, triggerIfEventNames)
-	SetHighlightText(ATTR_EVENT, "Choose which type of event this trigger will use.")
-	
-	; Only for Keymapping
-	DescribeKeymapAttribute(ATTR_KEYMAPPING, PTYPE_INT(), "Keymapping: ")
-	SetHighlightText(ATTR_KEYMAPPING, "Choose the key to map to the action.")
-	DescribeKeymapAttribute(ATTR_MODIFIERKEYMAPPING, PTYPE_INT(), "Modifier Key: ")
-	SetHighlightText(ATTR_MODIFIERKEYMAPPING, "(Optional) If specified, will be required to be pressed to trigger the action.")
-	DescribeToggleAttribute(ATTR_USEDAK, PTYPE_INT(), "Use DAK? ")
-	SetHighlightText(ATTR_USEDAK, "(Optional) If enabled, will use the Dynamic Activation Key instead of the Modifier key (if selected)")
-	
-	; Only for Top of the Hour
-	DescribeSliderAttribute(ATTR_CHANCE, PTYPE_FLOAT(), "Chance: ", 0.0, 100.0, 1.0, "{0}")
-	SetHighlightText(ATTR_CHANCE, "The chance the trigger will run when all prerequisites are met.")
-	
-	; technically you could add as many as you wanted here but of course
-	; that could cause performance issues
-	AddCommandList(ATTR_DO_1, "Command 1:")
-	SetHighlightText(ATTR_DO_1, "You can run up to 3 commands associated with this keymapping. This is the first.")
-	AddCommandList(ATTR_DO_2, "Command 2:")
-	SetHighlightText(ATTR_DO_2, "You can run up to 3 commands associated with this keymapping. This is the second.")
-	AddCommandList(ATTR_DO_3, "Command 3:")
-	SetHighlightText(ATTR_DO_3, "You can run up to 3 commands associated with this keymapping. This is the third.")
-	
-	; placing these at the end just to point out that the position of the calls doesn't matter, so feel free 
-	; to place these calls wherever in this function call you would want for organizational purposes
-	SetVisibilityKeyAttribute(ATTR_EVENT)
-	
-	SetVisibleOnlyIf(ATTR_KEYMAPPING, 			EVENT_ID_KEYMAPPING)
-	SetVisibleOnlyIf(ATTR_MODIFIERKEYMAPPING, 	EVENT_ID_KEYMAPPING)
-	SetVisibleOnlyIf(ATTR_USEDAK, 				EVENT_ID_KEYMAPPING)
-	
-	SetVisibleOnlyIf(ATTR_CHANCE, EVENT_ID_TOP_OF_THE_HOUR)
-EndFunction
-
-string ATTR_TEST_TOGGLE = "testtoggle"
-Function PopulateMCMSettings()
-	if !self
-		return
-	endif
-
-	DescribeToggleAttribute(ATTR_TEST_TOGGLE, PTYPE_INT(), "Test: ")
-	SetHighlightText(ATTR_TEST_TOGGLE, "This is test text for your simple testing test.")
-EndFunction
-/;
-
 Function SLTReady()
 	UpdateDAKStatus()
 	RefreshData()

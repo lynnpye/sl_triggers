@@ -141,23 +141,7 @@ EndFunction
 Function SLTReady()
 EndFunction
 
-;/
-; PopulateMCM
-; OPTIONAL
-; Override if you wish to have the MCM automatically manage your trigger attributes. Will automatically
-; be called as needed.
-/;
-Function PopulateMCM()
-EndFunction
 
-;/
-PopulateMCMSettings
-OPTIONAL
-Override if you wish to have the MCM automatically manage extension specific settings for you. Will 
-automatically be called as needed.
-/;
-Function PopulateMCMSettings()
-EndFunction
 
 ;/
 OnSLTSettingsUpdated
