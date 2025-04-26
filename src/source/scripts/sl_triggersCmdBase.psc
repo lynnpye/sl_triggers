@@ -157,7 +157,7 @@ Function SLTOnEffectStart(Actor akCaster)
 	sl_triggersCmd cmdme = self as sl_triggersCmd
 
 	if !cmdme
-		_isSupportCmdVal = true
+		_isSupportCmd = true
 		string coreInstanceId = Heap_StringListShiftFK(CmdTargetActor, MakeExtensionInstanceId(CmdExtension.GetExtensionKey()))
 		; something has gone wrong
 		if !coreInstanceId
@@ -212,7 +212,11 @@ EndEvent
 ; This function is not expected to operate correctly until
 ; all AMEs have synced and execution has begun.
 string Function vars_get(int varsindex)
-	return Heap_StringGetFK(CmdTargetActor, MakeInstanceKey(_slt_getActualInstanceId(), "vars" + varsindex))
+	if _isSupportCmd
+		return CmdPrimary.vars_get(varsindex)
+	else
+		return (self as sl_triggersCmd).vars_get(varsindex)
+	endif
 EndFunction
 
 ; vars_set
@@ -225,7 +229,11 @@ EndFunction
 ; This function is not expected to operate correctly until
 ; all AMEs have synced and execution has begun.
 string Function vars_set(int varsindex, string value)
-	return Heap_StringSetFK(CmdTargetActor, MakeInstanceKey(_slt_getActualInstanceId(), "vars" + varsindex), value)
+	if _isSupportCmd
+		return CmdPrimary.vars_set(varsindex, value)
+	else
+		return (self as sl_triggersCmd).vars_set(varsindex, value)
+	endif
 EndFunction
 
 ; Resolve
@@ -233,7 +241,7 @@ EndFunction
 ; returns: the value as a string; none if unable to resolve
 ; DO NOT OVERRIDE
 string Function Resolve(string _code)
-	if _slt_isSupportCmd()
+	if _isSupportCmd
 		return CmdPrimary.ActualResolve(_code)
 	else
 		return (self as sl_triggersCmd).ActualResolve(_code)
@@ -245,7 +253,7 @@ EndFunction
 ; returns: an Actor representing the specified Actor; none if unable to resolve
 ; DO NOT OVERRIDE
 Actor Function ResolveActor(string _code)
-	if _slt_isSupportCmd()
+	if _isSupportCmd
 		return CmdPrimary.ActualResolveActor(_code)
 	else
 		return (self as sl_triggersCmd).ActualResolveActor(_code)
@@ -257,7 +265,7 @@ EndFunction
 ; returns: true if the condition was resolved; false otherwise
 ; DO NOT OVERRIDE
 bool Function ResolveCond(string _p1, string _p2, string _oper)
-	if _slt_isSupportCmd()
+	if _isSupportCmd
 		return CmdPrimary.ActualResolveCond(_p1, _p2, _oper)
 	else
 		return (self as sl_triggersCmd).ActualResolveCond(_p1, _p2, _oper)
@@ -379,7 +387,7 @@ EndFunction
 string _actualInstanceId ; cache copy
 bool _apfetched
 int _actualPriority ; cache copy
-bool _isSupportCmdVal
+bool _isSupportCmd
 string	heartbeatEvent
 string clusterEvent
 
@@ -404,19 +412,21 @@ string Function _slt_GetClusterBeginExecutionEvent()
 	return clusterEvent
 EndFunction
 
+;/
 ; _isSupportCmd
 ; returns: true if this is a support Cmd from an extension; false if this is an sl_triggersCmd
 ; DO NOT OVERRIDE
-bool Function _slt_isSupportCmd()
+bool Function _isSupportCmd
 	return _isSupportCmdVal
 EndFunction
+/;
 
 ; GetActualInstanceId
 ; returns: the instanceId of the cmdPrimary (sl_triggersCmd) if this is a support Cmd, and the instanceId of self if this is a sl_triggersCmd
 ; DO NOT OVERRIDE
 string Function _slt_getActualInstanceId()
 	if !_actualInstanceId
-		if _slt_isSupportCmd()
+		if _isSupportCmd
 			_actualInstanceId = CmdPrimary.GetInstanceId()
 		else
 			_actualInstanceId = instanceId
@@ -431,7 +441,7 @@ EndFunction
 int Function _slt_getActualPriority()
 	if !_apfetched
 		_apfetched = true
-		if _slt_isSupportCmd()
+		if _isSupportCmd
 			_actualPriority = CmdExtension.GetPriority()
 		else
 			_actualPriority = 0

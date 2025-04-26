@@ -16,6 +16,7 @@ ActiveMagicEffect[]		supportCmds
 
 int			expectedSupportCmds
 int			supportCmdsCheckedIn
+string      VARS_KEY_PREFIX
 
 
 String Function _slt_getActualInstanceId()
@@ -38,7 +39,8 @@ string	    _mostRecentResult
 
 ; multi-callstack support
 string      CallstackId
-int         _callstackCounter
+int         _callstackIdNextUp
+string[]    _callstack_stack ; ugh
 int[]       _cs_cmdIdx
 int[]       _cs_cmdNum
 string[]    _cs_cmdName
@@ -64,12 +66,15 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
     gosubLabels = new string[127]
     gosubReturnStack = new int[127]
     gosubReturnIdx = -1
-    UpdateCallstackId(0)
 	
 	instanceId = Heap_DequeueInstanceIdF(akCaster)
    	cmdName = Heap_StringGetFK(akCaster, MakeInstanceKey(instanceId, "cmd"))
 	
 	SLTOnEffectStart(akCaster)
+
+    CallstackId = "Callstack" + _callstackIdNextUp
+    _callstackIdNextUp += 1
+    VARS_KEY_PREFIX = "sl_triggers:" + _slt_getActualInstanceId() + ":" + CallstackId + ":vars"
     
 	SafeRegisterForModEvent_AME(self, _slt_GetClusterBeginExecutionEvent(), "OnSLTAMEClusterBeginExecutionEvent")
 	
@@ -182,14 +187,18 @@ Function SupportCheckin(sl_triggersCmdBase supportCmd)
 	supportCmdsCheckedIn += 1
 EndFunction
 
-
-Function UpdateCallstackId(int newval = 0)
-    _callstackCounter = newval
-    CallstackId = "Callstack" + _callstackCounter
+string Function vars_get(int varsindex)
+    
+	return Heap_StringGetFK(CmdTargetActor, VARS_KEY_PREFIX + varsindex)
 EndFunction
 
-Function PushCallstack()
+string Function vars_set(int varsindex, string value)
+	return Heap_StringSetFK(CmdTargetActor, VARS_KEY_PREFIX + varsindex, value)
+EndFunction
+
+Function PushCallstack(string newcommand)
     if !_cs_cmdIdx
+        _callstack_stack = PapyrusUtil.StringArray(0)
         _cs_cmdIdx = PapyrusUtil.IntArray(0)
         _cs_cmdNum = PapyrusUtil.IntArray(0)
         _cs_cmdName = PapyrusUtil.StringArray(0)
@@ -204,7 +213,11 @@ Function PushCallstack()
         _cs_mostRecentResult = PapyrusUtil.StringArray(0)
     endif
 
-    UpdateCallstackId(_callstackCounter + 1)
+    _callstack_stack = PapyrusUtil.PushString(_callstack_stack, CallstackId)
+
+    CallstackId = "Callstack" + _callstackIdNextUp
+    _callstackIdNextUp += 1
+    VARS_KEY_PREFIX = "sl_triggers:" + _slt_getActualInstanceId() + ":" + CallstackId + ":vars"
 
     int i
     int offset = 127 * _cs_cmdIdx.Length
@@ -259,7 +272,7 @@ Function PushCallstack()
     ; and reset for the new callstack
     cmdIdx = 0
     cmdNum = 0
-    cmdName = ""
+    cmdName = newcommand
     gotoIdx = new int[127]
     gotoLabels = new string[127]
     gotoCnt = 0
@@ -276,11 +289,13 @@ Function PopCallstack()
         return
     endif
 
-    UpdateCallstackId(_callstackCounter - 1)
-
     int i
     int len = _cs_cmdIdx.Length - 1
     int offset = 127 * len
+    
+    CallstackId = _callstack_stack[len]
+    _callstack_stack = PapyrusUtil.ResizeStringArray(_callstack_stack, len)
+    VARS_KEY_PREFIX = "sl_triggers:" + _slt_getActualInstanceId() + ":" + CallstackId + ":vars"
 
     cmdIdx = _cs_cmdIdx[len]
     _cs_cmdIdx = PapyrusUtil.ResizeIntArray(_cs_cmdIdx, len)
@@ -489,6 +504,20 @@ string Function ParseCommandFile()
     string _myCmdName = cmdName
     string _last = StringUtil.Substring(_myCmdName, StringUtil.GetLength(_myCmdName) - 4)
     string[] cmdLine
+    if _last != "json" && _last != ".ini"
+        _myCmdName = cmdName + ".ini"
+        if !MiscUtil.FileExists(FullCommandsFolder() + _myCmdName)
+            _myCmdName = cmdName + ".json"
+            if !JsonUtil.IsGood(CommandsFolder() + _myCmdName)
+                return ""
+            else
+                _last = "json"
+            endif
+        else
+            _last = ".ini"
+        endif
+    endif
+
     if _last == "json"
         _myCmdName = CommandsFolder() + _myCmdName
         cmdNum = JsonUtil.PathCount(_myCmdName, ".cmd")
@@ -532,12 +561,7 @@ EndFunction
 ;/
 opens the command file, loops through the commands, and runs them
 /;
-bool EXEC_GUARDIAN
 string Function exec()
-    if EXEC_GUARDIAN
-        return ""
-    endif
-    EXEC_GUARDIAN = true
     string[] cmdLine
     string   code
     string   p1
@@ -590,6 +614,30 @@ string Function exec()
                 cmdidx += 1
             elseIf code == "return"
                 return ""
+            elseIf code == "call"
+                _callArgs = PapyrusUtil.SliceStringArray(cmdLine, 2)
+                int caidx = 0
+                while caidx < _callArgs.Length
+                    _callArgs[caidx] = resolve(_callArgs[caidx])
+                    caidx += 1
+                endwhile
+                PushCallstack(cmdLine[1])
+                exec()
+                PopCallstack()
+                cmdidx += 1
+            elseIf code == "callarg"
+                int argidx = cmdLine[1] as int
+                string arg = cmdLine[2]
+                int vidx = isVarStringG(arg)
+                if vidx > 0
+                    SLT.globalvars_set(vidx, _callArgs[argidx])
+                else
+                    vidx = isVarString(arg)
+                    if vidx > 0
+                        vars_set(vidx, _callArgs[argidx])
+                    endif
+                endif
+                cmdidx += 1
             else
 				ActualOper(cmdLine, code)
                 cmdidx += 1
@@ -599,6 +647,8 @@ string Function exec()
     
     return ""
 EndFunction
+
+string[]        _callArgs
 
 string Function ActualResolve(string _code)
 	; try negative priority resolve

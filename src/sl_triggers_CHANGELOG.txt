@@ -3,6 +3,18 @@
     enhancement: new feature, subroutines
         beginsub <subroutinename>/endsub to demarcate the subroutine
         gosub <subroutinename> to execute and return
+    enhancement: new feature, "call"
+        call <command file name> <optional $1 argument> <optional $2 argument> ...
+            stops execution of current command file, runs the requested file, then resumes current command file
+            if an extension is not specified .ini is tried first, then .json
+            variable scopes are NOT shared (global variables are, of course, still global)
+                so if you set $1, then call a function, it will not see your $1 value
+                but if you use $g1, it will
+            arguments are passed by value
+        callarg <index> <variable name>
+            Example: callarg 0 $2
+            this will place the first (index 0) argument passed into $2
+            
 
 104
     multiple bugfixes related to MCM and settings management
