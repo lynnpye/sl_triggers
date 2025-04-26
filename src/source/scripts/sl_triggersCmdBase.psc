@@ -42,17 +42,27 @@ string					Property InstanceId Auto Hidden
 ;
 Actor			Property CmdTargetActor Auto Hidden
 
-string[]		Property ResultStack Hidden
-	string[] Function Get()
+string		Property MostRecentResult Hidden
+	string Function Get()
 		if CmdPrimary
-			return CmdPrimary.ResultStack
+			return CmdPrimary.MostRecentResult
 		endif
-		return _slt_GetResultStack()
+		return _slt_GetMostRecentResult()
+	EndFunction
+	Function Set(string value)
+		if CmdPrimary
+			CmdPrimary.MostRecentResult = value
+		else
+			_slt_SetMostRecentResult(value)
+		endif
 	EndFunction
 EndProperty
 
-string[]	Function _slt_GetResultStack()
+string	Function _slt_GetMostRecentResult()
 	return none
+EndFunction
+
+Function _slt_SetMostRecentResult(string _result)
 EndFunction
 
 

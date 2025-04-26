@@ -21,7 +21,7 @@ EndEvent
 
 State cmd_toh_elapsed_time
 bool function oper(string[] param)
-	ResultStack[0] = (CmdExtension as sl_triggersExtensionCore).TohElapsedTime as string
+	MostRecentResult = (CmdExtension as sl_triggersExtensionCore).TohElapsedTime as string
 
 	return true
 endFunction

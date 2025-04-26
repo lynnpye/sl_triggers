@@ -12,8 +12,8 @@ function DebMsgForce(string msg, bool shouldIDoAnything) global
 	endif
 	
 	MiscUtil.WriteToFile("data/skse/plugins/sl_triggers/debugmsg.log", msg + "\n", true)
-	MiscUtil.PrintConsole(msg)
-	Debug.Notification(msg)
+	;MiscUtil.PrintConsole(msg)
+	;Debug.Notification(msg)
 endfunction
 
 int Function GetModVersion() global

@@ -9,13 +9,6 @@ int			Property lastKey Auto Hidden
 Actor		Property iterActor Auto Hidden
 
 ; internal variables
-int			cmdIdx 
-int			cmdNum 
-string		cmdName
-
-int[]		gotoIdx 
-string[]	gotoLabels 
-int			gotoCnt 
 bool		deferredInitNeeded
 bool		clusterDispelSent
 
@@ -29,14 +22,35 @@ String Function _slt_getActualInstanceId()
 	return InstanceId
 EndFunction
 
-string[]	_resultStack
+; callstack variables
+int			cmdIdx 
+int			cmdNum 
+string		cmdName
+int[]		gotoIdx 
+string[]	gotoLabels 
+int			gotoCnt 
+int[]       gosubIdx
+string[]    gosubLabels
+int         gosubCnt
+int[]       gosubReturnStack
+int         gosubReturnIdx
+string	    _mostRecentResult
 
-string[]	Function _slt_GetResultStack()
-    if !_resultStack
-        _resultStack = new string[128]
-    endif
-	return _resultStack
-EndFunction
+; multi-callstack support
+string      CallstackId
+int         _callstackCounter
+int[]       _cs_cmdIdx
+int[]       _cs_cmdNum
+string[]    _cs_cmdName
+int[]       _cs_gotoIdx
+string[]    _cs_gotoLabels
+int[]       _cs_gotoCnt
+int[]       _cs_gosubIdx
+string[]    _cs_gosubLabels
+int[]       _cs_gosubCnt
+int[]       _cs_gosubReturnStack
+int[]       _cs_gosubReturnIdx
+string[]    _cs_mostRecentResult
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
 	deferredInitNeeded = true
@@ -45,6 +59,12 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
     gotoCnt = 0
     gotoIdx = new int[127]
     gotoLabels = new string[127]
+    gosubCnt = 0
+    gosubIdx = new int[127]
+    gosubLabels = new string[127]
+    gosubReturnStack = new int[127]
+    gosubReturnIdx = -1
+    UpdateCallstackId(0)
 	
 	instanceId = Heap_DequeueInstanceIdF(akCaster)
    	cmdName = Heap_StringGetFK(akCaster, MakeInstanceKey(instanceId, "cmd"))
@@ -163,6 +183,189 @@ Function SupportCheckin(sl_triggersCmdBase supportCmd)
 EndFunction
 
 
+Function UpdateCallstackId(int newval = 0)
+    _callstackCounter = newval
+    CallstackId = "Callstack" + _callstackCounter
+EndFunction
+
+Function PushCallstack()
+    if !_cs_cmdIdx
+        _cs_cmdIdx = PapyrusUtil.IntArray(0)
+        _cs_cmdNum = PapyrusUtil.IntArray(0)
+        _cs_cmdName = PapyrusUtil.StringArray(0)
+        _cs_gotoIdx = PapyrusUtil.IntArray(0)
+        _cs_gotoLabels = PapyrusUtil.StringArray(0)
+        _cs_gotoCnt = PapyrusUtil.IntArray(0)
+        _cs_gosubIdx = PapyrusUtil.IntArray(0)
+        _cs_gosubLabels = PapyrusUtil.StringArray(0)
+        _cs_gosubCnt = PapyrusUtil.IntArray(0)
+        _cs_gosubReturnStack = PapyrusUtil.IntArray(0)
+        _cs_gosubReturnIdx = PapyrusUtil.IntArray(0)
+        _cs_mostRecentResult = PapyrusUtil.StringArray(0)
+    endif
+
+    UpdateCallstackId(_callstackCounter + 1)
+
+    int i
+    int offset = 127 * _cs_cmdIdx.Length
+    _cs_cmdIdx = PapyrusUtil.PushInt(_cs_cmdIdx, cmdIdx)
+
+    _cs_cmdNum = PapyrusUtil.PushInt(_cs_cmdNum, cmdNum)
+    _cs_cmdName = PapyrusUtil.PushString(_cs_cmdName, cmdName)
+
+
+    _cs_gotoIdx = PapyrusUtil.ResizeIntArray(_cs_gotoIdx, _cs_gotoIdx.Length + 127)
+    i = 0
+    while i < 127
+        _cs_gotoIdx[i + offset] = gotoIdx[i]
+        i += 1
+    endwhile
+
+    _cs_gotoLabels = PapyrusUtil.ResizeStringArray(_cs_gotoLabels, _cs_gotoLabels.Length + 127)
+    i = 0
+    while i < 127
+        _cs_gotoLabels[i + offset] = gotoLabels[i]
+        i += 1
+    endwhile
+
+    _cs_gotoCnt = PapyrusUtil.PushInt(_cs_gotoCnt, gotoCnt)
+
+    _cs_gosubIdx = PapyrusUtil.ResizeIntArray(_cs_gosubIdx, _cs_gosubIdx.Length + 127)
+    i = 0
+    while i < 127
+        _cs_gosubIdx[i + offset] = gosubIdx[i]
+        i += 1
+    endwhile
+
+    _cs_gosubLabels = PapyrusUtil.ResizeStringArray(_cs_gosubLabels, _cs_gosubLabels.Length + 127)
+    i = 0
+    while i < 127
+        _cs_gosubLabels[i + offset] = gosubLabels[i]
+        i += 1
+    endwhile
+
+    _cs_gosubCnt = PapyrusUtil.PushInt(_cs_gosubCnt, gosubCnt)
+
+    _cs_gosubReturnStack = PapyrusUtil.ResizeIntArray(_cs_gosubReturnStack, _cs_gosubReturnStack.Length + 127)
+    i = 0
+    while i < 127
+        _cs_gosubReturnStack[i + offset] = gosubReturnStack[i]
+        i += 1
+    endwhile
+
+    _cs_gosubReturnIdx = PapyrusUtil.PushInt(_cs_gosubReturnIdx, gosubReturnIdx)
+    _cs_mostRecentResult = PapyrusUtil.PushString(_cs_mostRecentResult, _mostRecentResult)
+
+    ; and reset for the new callstack
+    cmdIdx = 0
+    cmdNum = 0
+    cmdName = ""
+    gotoIdx = new int[127]
+    gotoLabels = new string[127]
+    gotoCnt = 0
+    gosubIdx = new int[127]
+    gosubLabels = new string[127]
+    gosubCnt = 0
+    gosubReturnStack = new int[127]
+    gosubReturnIdx = -1
+    _mostRecentResult = ""
+EndFunction
+
+Function PopCallstack()
+    if !_cs_cmdIdx || _cs_cmdIdx.Length < 1
+        return
+    endif
+
+    UpdateCallstackId(_callstackCounter - 1)
+
+    int i
+    int len = _cs_cmdIdx.Length - 1
+    int offset = 127 * len
+
+    cmdIdx = _cs_cmdIdx[len]
+    _cs_cmdIdx = PapyrusUtil.ResizeIntArray(_cs_cmdIdx, len)
+
+    cmdNum = _cs_cmdNum[len]
+    _cs_cmdNum = PapyrusUtil.ResizeIntArray(_cs_cmdNum, len)
+
+    cmdName = _cs_cmdName[len]
+    _cs_cmdName = PapyrusUtil.ResizeStringArray(_cs_cmdName, len)
+
+
+    i = 0
+    while i < 127
+        gotoIdx[i] = _cs_gotoIdx[i + offset]
+        i += 1
+    endwhile
+    _cs_gotoIdx = PapyrusUtil.ResizeIntArray(_cs_gotoIdx, len)
+
+    i = 0
+    while i < 127
+        gotoLabels[i] = _cs_gotoLabels[i + offset]
+        i += 1
+    endwhile
+    _cs_gotoLabels = PapyrusUtil.ResizeStringArray(_cs_gotoLabels, len)
+
+    gotoCnt = _cs_gotoCnt[len]
+    _cs_gotoCnt = PapyrusUtil.ResizeIntArray(_cs_gotoCnt, len)
+
+    i = 0
+    while i < 127
+        gosubIdx[i] = _cs_gosubIdx[i + offset]
+        i += 1
+    endwhile
+    _cs_gosubIdx = PapyrusUtil.ResizeIntArray(_cs_gosubIdx, len)
+
+    i = 0
+    while i < 127
+        gosubLabels[i] = _cs_gosubLabels[i + offset]
+        i += 1
+    endwhile
+    _cs_gosubLabels = PapyrusUtil.ResizeStringArray(_cs_gosubLabels, len)
+
+    gosubCnt = _cs_gosubCnt[len]
+    _cs_gosubCnt = PapyrusUtil.ResizeIntArray(_cs_gosubCnt, len)
+
+    i = 0
+    while i < 127
+        gosubReturnStack[i] = _cs_gosubReturnStack[i + offset]
+        i += 1
+    endwhile
+    _cs_gosubReturnStack = PapyrusUtil.ResizeIntArray(_cs_gosubReturnStack, len)
+
+    gosubReturnIdx = _cs_gosubReturnIdx[len]
+    _cs_gosubReturnIdx = PapyrusUtil.ResizeIntArray(_cs_gosubReturnIdx, len)
+    _mostRecentResult = _cs_mostRecentResult[len]
+    _cs_mostRecentResult = PapyrusUtil.ResizeStringArray(_cs_mostRecentResult, len)
+EndFunction
+
+string	Function _slt_GetMostRecentResult()
+	return _mostRecentResult
+EndFunction
+
+Function _slt_SetMostRecentResult(string _result)
+    _mostRecentResult = _result
+EndFunction
+
+bool Function PushSubIdx(int index)
+    int newidx = gosubReturnIdx + 1
+
+    if newidx >= gosubReturnStack.Length
+        return false
+    endif
+    gosubReturnStack[newidx] = index
+    gosubReturnIdx = newidx
+EndFunction
+
+int Function PopSubIdx()
+    if gosubReturnIdx < 0
+        return -1
+    endif
+    int value = gosubReturnStack[gosubReturnIdx]
+    gosubReturnIdx -= 1
+    return value
+EndFunction
+
 Function _addGoto(int _idx, string _label)
     int idx
     
@@ -192,7 +395,7 @@ Int Function _findGoto(string _label, int _cmdIdx, string _cmdtype)
     
     idx = _cmdIdx + 1
     while idx < cmdNum
-        cmdLine1 = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), "OperationList[" + idx + "]")
+        cmdLine1 = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + idx + "]")
         ;cmdLine1 = JsonUtil.PathStringElements(cmdName, ".cmd[" + idx + "]")
         if cmdLine1.Length
             if (_cmdtype == "json" && cmdLine1[0] == ":") || (_cmdtype == "ini" && cmdLine1.Length == 1 && StringUtil.GetNthChar(cmdLine1[0], 0) == "[" && StringUtil.GetNthChar(cmdLine1[0], StringUtil.GetLength(cmdLine1[0]) - 1) == "]")
@@ -213,6 +416,75 @@ Int Function _findGoto(string _label, int _cmdIdx, string _cmdtype)
     return cmdNum
 EndFunction
 
+Function _addGosub(int _idx, string _label)
+    int idx
+    
+    idx = 0
+    while idx < gosubCnt
+        if gosubLabels[idx] == _label
+            return 
+        endIf    
+        idx += 1
+    endWhile
+    
+    gosubIdx[gosubCnt] = _idx
+    gosubLabels[gosubCnt] = _label
+    gosubCnt += 1
+EndFunction
+
+Int Function _findGosub(string _label, int _cmdIdx)
+    int idx
+    
+    idx = gosubLabels.find(_label)
+    if idx >= 0
+        PushSubIdx(_cmdIdx)
+        return gosubIdx[idx]
+    endIf
+    
+    string[] cmdLine1
+    string   code
+    
+    idx = _cmdIdx + 1
+    while idx < cmdNum
+        cmdLine1 = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + idx + "]")
+        ;cmdLine1 = JsonUtil.PathStringElements(cmdName, ".cmd[" + idx + "]")
+        if cmdLine1.Length
+            if cmdLine1[0] == "beginsub"
+                _addGosub(idx, cmdLine1[1])
+            endIf
+        endIf
+        idx += 1
+    endWhile
+
+    idx = gosubLabels.find(_label)
+    if idx >= 0
+        PushSubIdx(_cmdIdx)
+        return gosubIdx[idx]
+    endIf
+    return cmdNum
+EndFunction
+
+int Function _findEndsub(int _cmdIdx)
+    int idx
+    
+    string[] cmdLine1
+    string   code
+    
+    idx = _cmdIdx + 1
+    while idx < cmdNum
+        cmdLine1 = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + idx + "]")
+        ;cmdLine1 = JsonUtil.PathStringElements(cmdName, ".cmd[" + idx + "]")
+        if cmdLine1.Length
+            if cmdLine1[0] == "endsub"
+                return idx
+            endIf
+        endIf
+        idx += 1
+    endWhile
+    
+    return cmdNum
+EndFunction
+
 string Function ParseCommandFile()
     string _myCmdName = cmdName
     string _last = StringUtil.Substring(_myCmdName, StringUtil.GetLength(_myCmdName) - 4)
@@ -224,10 +496,10 @@ string Function ParseCommandFile()
         while cmdIdx < cmdNum
             cmdLine = JsonUtil.PathStringElements(_myCmdName, ".cmd[" + cmdIdx + "]")
             if cmdLine.Length
-                Heap_IntAdjustX(CmdTargetActor, GetInstanceId(), "OperationList", 1)
+                Heap_IntAdjustX(CmdTargetActor, GetInstanceId(), CallstackId, 1)
                 int idx = 0
                 while idx < cmdLine.Length
-                    Heap_StringListAddX(CmdTargetActor, GetInstanceId(), "OperationList[" + cmdIdx + "]", cmdLine[idx])
+                    Heap_StringListAddX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + cmdIdx + "]", cmdLine[idx])
                     idx += 1
                 endwhile
             endif
@@ -244,10 +516,10 @@ string Function ParseCommandFile()
         while cmdIdx < cmdNum
             cmdLine = sl_triggers_internal.SafeTokenize(cmdlines[cmdIdx])
             if cmdLine.Length
-                Heap_IntAdjustX(CmdTargetActor, GetInstanceId(), "OperationList", 1)
+                Heap_IntAdjustX(CmdTargetActor, GetInstanceId(), CallstackId, 1)
                 int idx = 0
                 while idx < cmdLine.Length
-                    Heap_StringListAddX(CmdTargetActor, GetInstanceId(), "OperationList[" + cmdIdx + "]", cmdLine[idx])
+                    Heap_StringListAddX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + cmdIdx + "]", cmdLine[idx])
                     idx += 1
                 endwhile
             endif
@@ -273,29 +545,39 @@ string Function exec()
     string   po
     bool     ifTrue
 
-    Heap_IntSetX(CmdTargetActor, GetInstanceId(), "OperationList", 0)
+    Heap_IntSetX(CmdTargetActor, GetInstanceId(), CallstackId, 0)
 
     string cmdtype = ParseCommandFile()
 
-    cmdNum = Heap_IntGetX(CmdTargetActor, GetInstanceId(), "OperationList")
+    cmdNum = Heap_IntGetX(CmdTargetActor, GetInstanceId(), CallstackId)
     cmdidx = 0
     
     while cmdidx < cmdNum
-        cmdLine = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), "OperationList[" + cmdidx + "]")
+        cmdLine = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + cmdidx + "]")
 
         if cmdLine.Length
             code = resolve(cmdLine[0])
 
             if (cmdtype == "json" && code == ":") || (cmdtype == "ini" && cmdLine.Length == 1 && StringUtil.GetNthChar(cmdLine[0], 0) == "[" && StringUtil.GetNthChar(cmdLine[0], StringUtil.GetLength(cmdLine[0]) - 1) == "]")
                 if cmdtype == "json"
-                    _addGoto(cmdIdx, cmdLine[1])
+                    _addGoto(cmdidx, cmdLine[1])
                 elseif cmdtype == "ini"
-                    _addGoto(cmdIdx, StringUtil.Substring(cmdLine[0], 1, StringUtil.GetLength(cmdLine[0]) - 2))
+                    _addGoto(cmdidx, StringUtil.Substring(cmdLine[0], 1, StringUtil.GetLength(cmdLine[0]) - 2))
                 endif
-                cmdIdx += 1
+                cmdidx += 1
+            elseIf code == "beginsub"
+                _addGosub(cmdidx, cmdLine[1])
+                cmdidx = _findEndsub(cmdidx)
+                cmdidx += 1
+            elseIf code == "endsub"
+                cmdidx = PopSubIdx()
+                cmdidx += 1
             elseIf code == "goto"
-                cmdIdx = _findGoto(cmdLine[1], cmdIdx, cmdtype)
-                cmdIdx += 1
+                cmdidx = _findGoto(cmdLine[1], cmdidx, cmdtype)
+                cmdidx += 1
+            elseIf code == "gosub"
+                cmdidx = _findGosub(cmdLine[1], cmdidx)
+                cmdidx += 1
             elseIf code == "if"
                 ; ["if", "$$", "=", "0", "end"],
                 p1 = resolve(cmdLine[1])
@@ -303,14 +585,14 @@ string Function exec()
                 po = cmdLine[2]
                 ifTrue = resolveCond(p1, p2, po)
                 if ifTrue
-                    cmdIdx = _findGoto(cmdLine[4], cmdIdx, cmdtype)
+                    cmdidx = _findGoto(cmdLine[4], cmdidx, cmdtype)
                 endIf
-                cmdIdx += 1
+                cmdidx += 1
             elseIf code == "return"
                 return ""
             else
 				ActualOper(cmdLine, code)
-                cmdIdx += 1
+                cmdidx += 1
             endIf
         endif
     endwhile
@@ -318,7 +600,7 @@ string Function exec()
     return ""
 EndFunction
 
-string Function ActualResolve(string _code)\
+string Function ActualResolve(string _code)
 	; try negative priority resolve
 	; try our resolve
 	; try positive priority resolve
@@ -357,16 +639,16 @@ string Function CustomResolve(string _code)
 	int varindex = -1
     if StringUtil.getNthChar(_code, 0) == "$"
         if _code == "$$"
-            return ResultStack[0]
+            return MostRecentResult
         else
-			varindex = isVarString(_code)
-			if varindex >= 0
-				return vars_get(varindex)
-			endif
-			
 			varindex = isVarStringG(_code)
 			if varindex >= 0
 				return SLT.globalvars_get(varindex)
+            else
+                varindex = isVarString(_code)
+                if varindex >= 0
+                    return vars_get(varindex)
+                endif
 			endif
         endIf
     endIf
@@ -529,26 +811,7 @@ all the operations
 /;
 State cmd_set ; set "$1", "value"
 bool function oper(string[] param)
-	int varindex = isVarString(param[1])
-	if varindex >= 0
-		if param.length == 3
-			vars_set(varindex, resolve(param[2]))
-		elseif param.length == 5
-			if param[3] == "+"
-				float p1 = resolve(param[2]) as float
-				float p2 = resolve(param[4]) as float
-				vars_set(varindex, (p1 + p2) as string)
-			elseIf param[3] == "-"
-				vars_set(varindex, ((resolve(param[2]) as float) - (resolve(param[4]) as float)) as string)
-			elseIf param[3] == "*"
-				vars_set(varindex, ((resolve(param[2]) as float) * (resolve(param[4]) as float)) as string)
-			elseIf param[3] == "/"
-				vars_set(varindex, ((resolve(param[2]) as float) / (resolve(param[4]) as float)) as string)
-			elseIf param[3] == "&"
-				vars_set(varindex, resolve(param[2]) + resolve(param[4]))
-			endIf
-		endif
-	endif
+	int varindex
 	
 	varindex = isVarStringG(param[1])
 	if varindex >= 0
@@ -569,11 +832,32 @@ bool function oper(string[] param)
 				SLT.globalvars_set(varindex, resolve(param[2]) + resolve(param[4]))
 			endIf
 		endif
+    else
+        varindex = isVarString(param[1])
+        if varindex >= 0
+            if param.length == 3
+                vars_set(varindex, resolve(param[2]))
+            elseif param.length == 5
+                if param[3] == "+"
+                    float p1 = resolve(param[2]) as float
+                    float p2 = resolve(param[4]) as float
+                    vars_set(varindex, (p1 + p2) as string)
+                elseIf param[3] == "-"
+                    vars_set(varindex, ((resolve(param[2]) as float) - (resolve(param[4]) as float)) as string)
+                elseIf param[3] == "*"
+                    vars_set(varindex, ((resolve(param[2]) as float) * (resolve(param[4]) as float)) as string)
+                elseIf param[3] == "/"
+                    vars_set(varindex, ((resolve(param[2]) as float) / (resolve(param[4]) as float)) as string)
+                elseIf param[3] == "&"
+                    vars_set(varindex, resolve(param[2]) + resolve(param[4]))
+                endIf
+            endif
+        endif
 	endif
 
 	return true
 endFunction
-EndState 
+EndState
 
 State cmd_inc ; inc "$1", "value"
 bool function oper(string[] param)
@@ -656,7 +940,7 @@ bool function oper(string[] param)
     mate = resolveActor(param[1])
     val = mate.GetBaseActorValue(resolve(param[2]))
     
-    ResultStack[0] = val as string
+    MostRecentResult = val as string
     ;MiscUtil.PrintConsole("Return: " + stack[0])
 
 	return true
@@ -671,7 +955,7 @@ bool function oper(string[] param)
     mate = resolveActor(param[1])
     val = mate.GetActorValue(resolve(param[2]))
     
-    ResultStack[0] = val as string
+    MostRecentResult = val as string
     ;MiscUtil.PrintConsole("Return: " + stack[0])
 
 	return true
@@ -686,7 +970,7 @@ bool function oper(string[] param)
     mate = resolveActor(param[1])
     val = mate.GetActorValueMax(resolve(param[2]))
     
-    ResultStack[0] = val as string
+    MostRecentResult = val as string
 
 	return true
 endFunction
@@ -702,7 +986,7 @@ bool function oper(string[] param)
     val = mate.GetActorValuePercentage(resolve(param[2]))
     val = val * 100.0
     
-    ResultStack[0] = val as string
+    MostRecentResult = val as string
 
 	return true
 endFunction
@@ -982,7 +1266,7 @@ bool function oper(string[] param)
     thing = getFormId(resolve(param[2]))
     if thing
         retVal = mate.GetItemCount(thing)
-        ResultStack[0] = retVal as string
+        MostRecentResult = retVal as string
     endIf
 
 	return true
@@ -1041,7 +1325,7 @@ bool function oper(string[] param)
     cnt = param.length
     idx = utility.RandomInt(1, cnt - 1)
     ss = resolve(param[idx])
-    ResultStack[0] = ss
+    MostRecentResult = ss
     ;MiscUtil.PrintConsole("rnd_list: " + cnt + "," + idx + ", " + ss + ", " + stack[0])
 
 	return true
@@ -1061,7 +1345,7 @@ bool function oper(string[] param)
     p2 = ss as int
     
     idx = utility.RandomInt(p1, p2)
-    ResultStack[0] = idx as string
+    MostRecentResult = idx as string
     
 
 	return true
@@ -1217,9 +1501,9 @@ bool function oper(string[] param)
     
     mate = resolveActor(param[1])
     if mate && mate.isEnabled() && !mate.isDead() && !mate.isInCombat() && !mate.IsUnconscious() && mate.Is3DLoaded() && cc == mate.getParentCell()
-        ResultStack[0] = "1"
+        MostRecentResult = "1"
     else
-        ResultStack[0] = "0"
+        MostRecentResult = "0"
     endIf
 
 
@@ -1235,9 +1519,9 @@ bool function oper(string[] param)
     mate = resolveActor(param[1])
     mate2 = resolveActor(param[2])
     if mate.hasLOS(mate2)
-        ResultStack[0] = "1"
+        MostRecentResult = "1"
     else
-        ResultStack[0] = "0"
+        MostRecentResult = "0"
     endIf
 
 
@@ -1250,7 +1534,7 @@ bool function oper(string[] param)
     Actor mate
     
     mate = resolveActor(param[1])
-    ResultStack[0] = actorName(mate)
+    MostRecentResult = actorName(mate)
 
 
 	return true
@@ -1295,9 +1579,9 @@ bool function oper(string[] param)
     
     mate = resolveActor(param[1])
     if mate.IsGuard()
-        ResultStack[0] = "1"
+        MostRecentResult = "1"
     else
-        ResultStack[0] = "0"
+        MostRecentResult = "0"
     endIf
     
 
@@ -1318,9 +1602,9 @@ bool function oper(string[] param)
     
     mate = resolveActor(param[1])
     if mate == PlayerRef
-        ResultStack[0] = "1"
+        MostRecentResult = "1"
     else
-        ResultStack[0] = "0"
+        MostRecentResult = "0"
     endIf
     
 
@@ -1336,7 +1620,7 @@ bool function oper(string[] param)
     mate = resolveActor(param[1])
     gender = actorGender(mate)
     
-    ResultStack[0] = gender as int
+    MostRecentResult = gender as int
 
 	return true
 endFunction
@@ -1369,9 +1653,9 @@ bool function oper(string[] param)
     keyw = Keyword.GetKeyword(ss)
     
     if keyw && mate.HasKeyword(keyw)
-        ResultStack[0] = "1"
+        MostRecentResult = "1"
     else
-        ResultStack[0] = "0"
+        MostRecentResult = "0"
     endIf
 
 	return true
@@ -1387,9 +1671,9 @@ bool function oper(string[] param)
 	thing = getFormId(resolve(param[2]))
 	
 	if thing && mate.IsEquipped(thing)
-        ResultStack[0] = "1"
+        MostRecentResult = "1"
     else
-        ResultStack[0] = "0"
+        MostRecentResult = "0"
     endIf
 	
 
@@ -1404,9 +1688,9 @@ bool function oper(string[] param)
 	
 	mate = resolveActor(param[1])
 	if mate && mate.GetEquippedArmorInSlot(slot)
-		ResultStack[0] = "1"
+		MostRecentResult = "1"
 	else
-		ResultStack[0] = "0"
+		MostRecentResult = "0"
 	endIf
 
 	return true
@@ -1425,9 +1709,9 @@ bool function oper(string[] param)
     keyw = Keyword.GetKeyword(ss)
     
     if keyw && mate.WornHasKeyword(keyw)
-        ResultStack[0] = "1"
+        MostRecentResult = "1"
     else
-        ResultStack[0] = "0"
+        MostRecentResult = "0"
     endIf
     
 
@@ -1447,9 +1731,9 @@ bool function oper(string[] param)
     keyw = Keyword.GetKeyword(ss)
     
     if keyw && mate.GetCurrentLocation().HasKeyword(keyw)
-        ResultStack[0] = "1"
+        MostRecentResult = "1"
     else
-        ResultStack[0] = "0"
+        MostRecentResult = "0"
     endIf
     
 
@@ -1467,7 +1751,7 @@ bool function oper(string[] param)
     mate2 = resolveActor(param[2])
     
     ret = mate1.GetRelationshipRank(mate2)
-    ResultStack[0] = ret as int
+    MostRecentResult = ret as int
     
 
 	return true
@@ -1501,10 +1785,10 @@ bool function oper(string[] param)
     mate = resolveActor(param[1])
     thing = getFormId(resolve(param[2])) as Faction
     
-    ResultStack[0] = "0"
+    MostRecentResult = "0"
     if thing
         if mate.IsInFaction(thing)
-            ResultStack[0] = "1"
+            MostRecentResult = "1"
         endif
     endif
     
@@ -1523,10 +1807,10 @@ bool function oper(string[] param)
     mate = resolveActor(param[1])
     thing = getFormId(resolve(param[2])) as Faction
     
-    ResultStack[0] = "0"
+    MostRecentResult = "0"
     if thing
         retVal = mate.GetFactionRank(thing)
-        ResultStack[0] = retVal as Int
+        MostRecentResult = retVal as Int
     endif
     
 
@@ -1562,7 +1846,7 @@ bool function oper(string[] param)
 	
 	mate = resolveActor(param[1])
 	if !mate
-		ResultStack[0] = "0"
+		MostRecentResult = "0"
 		return true
 	endif
 	
@@ -1572,9 +1856,9 @@ bool function oper(string[] param)
 	MagicEffect mgef = thing as MagicEffect
 	if mgef
 		if mate.HasMagicEffect(mgef)
-			ResultStack[0] = "1"
+			MostRecentResult = "1"
 		else
-			ResultStack[0] = "0"
+			MostRecentResult = "0"
 		endif
 		return true
 	endif
@@ -1587,7 +1871,7 @@ bool function oper(string[] param)
 		while i < numeffs
 			mgef = spel.GetNthEffectMagicEffect(i)
 			if mate.HasMagicEffect(mgef)
-				ResultStack[0] = "1"
+				MostRecentResult = "1"
 				return true
 			endif
 			
@@ -1596,7 +1880,7 @@ bool function oper(string[] param)
 	endif
 	
 	; it was nothing :(
-	ResultStack[0] = "0"
+	MostRecentResult = "0"
 	return true
 endFunction
 EndState
@@ -1664,20 +1948,20 @@ bool function oper(string[] param)
     mate = resolveActor(param[1])
     ss1 = resolve(param[2])
     
-    ResultStack[0] = ""
+    MostRecentResult = ""
     if mate 
         if ss1 == "GetCombatState"
-            ResultStack[0] = mate.GetCombatState() as string
+            MostRecentResult = mate.GetCombatState() as string
         elseif ss1 == "GetLevel"
-            ResultStack[0] = mate.GetLevel() as string
+            MostRecentResult = mate.GetLevel() as string
         elseif ss1 == "GetSleepState"
-            ResultStack[0] = mate.GetSleepState() as string
+            MostRecentResult = mate.GetSleepState() as string
         elseif ss1 == "IsAlerted"
-            ResultStack[0] = mate.IsAlerted() as string
+            MostRecentResult = mate.IsAlerted() as string
         elseif ss1 == "IsAlarmed"
-            ResultStack[0] = mate.IsAlarmed() as string
+            MostRecentResult = mate.IsAlarmed() as string
         elseif ss1 == "IsPlayerTeammate"
-            ResultStack[0] = mate.IsPlayerTeammate() as string
+            MostRecentResult = mate.IsPlayerTeammate() as string
         elseif ss1 == "SetPlayerTeammate"
             int p3
             p3 = resolve(param[3]) as int
@@ -1701,14 +1985,14 @@ bool function oper(string[] param)
     mate = resolveActor(param[1])
     ss1 = resolve(param[2])
     
-    ResultStack[0] = ""
+    MostRecentResult = ""
     if mate 
         if ss1 == "ClearExtraArrows"
             mate.ClearExtraArrows()
         elseif ss1 == "RegenerateHead"
             mate.RegenerateHead()
         elseif ss1 == "GetWeight"
-            ResultStack[0] = mate.GetActorBase().GetWeight() as string
+            MostRecentResult = mate.GetActorBase().GetWeight() as string
         elseif ss1 == "SetWeight"
             float baseW
             float newW
@@ -1745,12 +2029,12 @@ bool function oper(string[] param)
     mate = resolveActor(param[1])
     ss1 = resolve(param[2])
     
-    ResultStack[0] = ""
+    MostRecentResult = ""
     if mate 
         if ss1 == ""
-            ResultStack[0] = mate.GetRace().GetName()
+            MostRecentResult = mate.GetRace().GetName()
         elseIf ss1 == "SL"
-            ResultStack[0] = sslCreatureAnimationSlots.GetRaceKey(mate.GetRace())
+            MostRecentResult = sslCreatureAnimationSlots.GetRaceKey(mate.GetRace())
         endIf
     endIf
 
@@ -1869,7 +2153,7 @@ State cmd_util_getgametime ;
 bool function oper(string[] param)
     float dayTime = Utility.GetCurrentGameTime()
     
-    ResultStack[0] = dayTime as string
+    MostRecentResult = dayTime as string
     
 
 	return true
@@ -1885,7 +2169,7 @@ bool function oper(string[] param)
     
     int theHour = dayTime as int
     
-    ResultStack[0] = theHour as string
+    MostRecentResult = theHour as string
     
 
 	return true
@@ -1904,7 +2188,7 @@ bool function oper(string[] param)
         Game.IncrementStat(p2, iModAmount)
     elseIf p1 == "QueryStat"
         p2 = resolve(param[2])
-        ResultStack[0] = Game.QueryStat(p2) as string
+        MostRecentResult = Game.QueryStat(p2) as string
     endIf
     
 
@@ -1923,7 +2207,7 @@ bool function oper(string[] param)
     ;MiscUtil.PrintConsole("snd:play: " + thing)
     if thing
         retVal = thing.Play(mate)
-        ResultStack[0] = retVal as string
+        MostRecentResult = retVal as string
     endIf
 
 
@@ -2036,7 +2320,7 @@ bool function oper(string[] param)
     p2 = resolve(param[3]) as Int
     
     retVal = sl_TriggersMfg.mfg_GetPhonemeModifier(mate, p1, p2)
-    ResultStack[0] = retVal as string
+    MostRecentResult = retVal as string
     
 
 	return true
@@ -2054,7 +2338,7 @@ bool function oper(string[] param)
     cnt = param.length
 
     if (CmdTargetActor != PlayerRef) || (cnt <= 1)
-        ResultStack[0] = "-1"
+        MostRecentResult = "-1"
         return false
     endIf
 
@@ -2079,7 +2363,7 @@ bool function oper(string[] param)
 		timeoutcheck += 1
     endWhile
     
-    ResultStack[0] = lastKey as string
+    MostRecentResult = lastKey as string
     
     ;MiscUtil.PrintConsole("RetKey: " + lastKey)
     
@@ -2104,15 +2388,15 @@ bool function oper(string[] param)
     if ptype == "int"
         int iRet
         iRet = JsonUtil.GetIntValue(pname, pkey, pdef as int)
-        ResultStack[0] = iRet as string
+        MostRecentResult = iRet as string
     elseif ptype == "float"
         float fRet
         fRet = JsonUtil.GetFloatValue(pname, pkey, pdef as float)
-        ResultStack[0] = fRet as string
+        MostRecentResult = fRet as string
     else
         string sRet
         sRet = JsonUtil.GetStringValue(pname, pkey, pdef)
-        ResultStack[0] = sRet
+        MostRecentResult = sRet
     endIf
     
 
@@ -2165,11 +2449,11 @@ bool function oper(string[] param)
     
     ss1 = resolve(param[1])
     
-    ResultStack[0] = ""
+    MostRecentResult = ""
     if ss1 == "GetClassification"
         Weather curr = Weather.GetCurrentWeather()
         if curr
-            ResultStack[0] = curr.GetClassification() as string
+            MostRecentResult = curr.GetClassification() as string
         endIf
     endIf
 
@@ -2187,7 +2471,7 @@ bool function oper(string[] param)
     
     ss1 = resolve(param[1])
     
-    ResultStack[0] = ""
+    MostRecentResult = ""
     if ss1 == "asint"
         ss2 = resolve(param[2])
         if ss2 
@@ -2195,19 +2479,19 @@ bool function oper(string[] param)
         else
             ii1 = 0
         endIf
-        ResultStack[0] = ii1 as string
+        MostRecentResult = ii1 as string
     elseIf ss1 == "floor"
         ss1 = resolve(param[2])
         ii1 = Math.floor(ss1 as float)
-        ResultStack[0] = ii1 as string
+        MostRecentResult = ii1 as string
     elseIf ss1 == "ceiling"
         ss1 = resolve(param[2])
         ii1 = Math.Ceiling(ss1 as float)
-        ResultStack[0] = ii1 as string
+        MostRecentResult = ii1 as string
     elseIf ss1 == "abs"
         ss1 = resolve(param[2])
         ff1 = Math.abs(ss1 as float)
-        ResultStack[0] = ff1 as string
+        MostRecentResult = ff1 as string
     elseIf ss1 == "toint"
         ss2 = resolve(param[2])
         if ss2 && (StringUtil.GetNthChar(ss2, 0) == "0")
@@ -2217,7 +2501,7 @@ bool function oper(string[] param)
         else 
             ii1 = 0
         endIf
-        ResultStack[0] = ii1 as string
+        MostRecentResult = ii1 as string
     endIf
 
 

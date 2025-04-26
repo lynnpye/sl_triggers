@@ -159,7 +159,7 @@ EndState
 State cmd_util_waitforkbd ;util_waitfokbd "keycode", "keycode", ...
 bool function oper(string[] param)
 	if !MyExtension().SexLab
-        ResultStack[0] = "-1"
+        MostRecentResult = "-1"
 		return false
 	endif
 	
@@ -172,7 +172,7 @@ bool function oper(string[] param)
     cnt = param.length
 
     if (CmdTargetActor != PlayerRef) || (cnt <= 1) || !(PlayerRef.GetFactionRank(MyExtension().SexLabAnimatingFaction) >= 0)
-        ResultStack[0] = "-1"
+        MostRecentResult = "-1"
         return false
     endIf
 
@@ -196,9 +196,9 @@ bool function oper(string[] param)
     endWhile
     
     if !(PlayerRef.GetFactionRank(MyExtension().SexLabAnimatingFaction) >= 0)
-        ResultStack[0] = "-1"
+        MostRecentResult = "-1"
     else
-        ResultStack[0] = CmdPrimary.lastKey as string
+        MostRecentResult = CmdPrimary.lastKey as string
     endIf
     
     ;MiscUtil.PrintConsole("RetKey: " + lastKey)
@@ -212,7 +212,7 @@ EndState
 State cmd_sl_isin ;sl_isin "$self"
 bool function oper(string[] param)
 	if !MyExtension().SexLab
-        ResultStack[0] = "0"
+        MostRecentResult = "0"
 		return false
 	endif
 	
@@ -223,9 +223,9 @@ bool function oper(string[] param)
     
     ;if SexLab.ValidateActor(mate) == -10 && inSameCell(mate)
     if mate.GetFactionRank(MyExtension().SexLabAnimatingFaction) >= 0 && inSameCell(mate)
-        ResultStack[0] = "1"
+        MostRecentResult = "1"
     else
-        ResultStack[0] = "0"
+        MostRecentResult = "0"
     endIf
 	return true
 endFunction
@@ -233,7 +233,7 @@ EndState
 
 State cmd_sl_hastag ;sl_hastag "tag_name"
 bool function oper(string[] param)
-    ResultStack[0] = "0"
+    MostRecentResult = "0"
 	
 	if !MyExtension().SexLab
 		return false
@@ -244,7 +244,7 @@ bool function oper(string[] param)
     if thread
         ss = resolve(param[1])
         if thread.Animation.HasTag(ss)
-            ResultStack[0] = "1"
+            MostRecentResult = "1"
         endIf
     endIf
 
@@ -254,7 +254,7 @@ EndState
 
 State cmd_sl_animname ;sl_animname
 bool function oper(string[] param)
-    ResultStack[0] = ""
+    MostRecentResult = ""
 	
 	if !MyExtension().SexLab
 		return false
@@ -263,7 +263,7 @@ bool function oper(string[] param)
     string ss
     
     if thread
-        ResultStack[0] = thread.Animation.Name
+        MostRecentResult = thread.Animation.Name
         ;MiscUtil.PrintConsole("animname: " + stack[0])
     endIf
 
@@ -273,7 +273,7 @@ EndState
 
 State cmd_sl_getprop ;sl_getprop
 bool function oper(string[] param)
-    ResultStack[0] = ""
+    MostRecentResult = ""
 	
 	if !MyExtension().SexLab
 		return false
@@ -284,9 +284,9 @@ bool function oper(string[] param)
     if thread
         ss = resolve(param[1])
         if ss == "Stage"
-            ResultStack[0] = thread.Stage as string
+            MostRecentResult = thread.Stage as string
         elseif ss == "ActorCount"
-            ResultStack[0] = thread.ActorCount as string
+            MostRecentResult = thread.ActorCount as string
         endIf
         ;MiscUtil.PrintConsole("animname: " + stack[0])
     endIf
@@ -309,7 +309,7 @@ EndState
 
 State cmd_sl_isinslot ;sl_isinslot "$self", "1" (SexLab slots numbered 1-5)
 bool function oper(string[] param)
-	ResultStack[0] = "0"
+	MostRecentResult = "0"
 	
 	if !MyExtension().SexLab || !thread
 		return true
@@ -334,7 +334,7 @@ bool function oper(string[] param)
 		; the assumption is that slPosition is 1-based and actorIdx is 0-based
 		if slActor == mate
 			if (actorIdx + 1) == slPosition
-				ResultStack[0] = "1"
+				MostRecentResult = "1"
 			endif
 			return true
 		endif
