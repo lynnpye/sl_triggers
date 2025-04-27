@@ -1,3 +1,12 @@
+107
+    enhancement: new commands for your scripts:
+            dd_unlockslot <slot#> <"force" (optional)> ; slot# i.e. 32 is body ; if "force" is added as a second parameter, it will also unlock quest items
+            dd_unlockall <"force" (optional)> ; works like dd_unlockslot but for all slots
+        Note that after unlocking items may still appear to be equipped in inventory but you should be able to safely select and remove them
+        And a script to demonstrate
+            DD Unlock All.ini
+    
+
 106
     enhancement: flagged as .ESL
     bugfix: workaround for Papyrus VM string case destruction

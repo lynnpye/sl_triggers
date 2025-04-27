@@ -394,6 +394,71 @@ bool function oper(string[] param)
 endFunction
 EndState
 
+zadLibs Function GetDDLib() global
+    zadLibs ddlib = Game.GetFormFromFile(0xF624, "Devious Devices - Integration.esm") as zadLibs
+    if !ddlib
+        Debug.Trace("Devious Devices zadlibs requested but .esm not found")
+    endif
+    return ddlib
+EndFunction
+
+State cmd_dd_unlockslot ; dd_unlockslot "32" "force" (optional, will force unlock even quest locked items, be cautious)
+bool function oper(string[] param)
+    zadLibs ddlib = GetDDLib()
+    if !ddlib
+        return true
+    endif
+
+    bool force = (param[2] == "force")
+    int i = param[1] as int
+    Armor device = CmdTargetActor.GetEquippedArmorInSlot(i)
+
+    Keyword ddkeyword = ddlib.GetDeviceKeyword(device)
+    if !ddkeyword
+        return true
+    endif
+
+    Armor renderedDevice = ddlib.GetRenderedDevice(device)
+
+    if force || (!renderedDevice.HasKeyWord(ddlib.zad_QuestItem) && !device.HasKeyword(ddlib.zad_QuestItem))
+        ddlib.UnlockDevice(CmdTargetActor, device, renderedDevice)
+    endif
+
+    return true
+endFunction
+EndState
+
+State cmd_dd_unlockall ; dd_unlockall "force" (optional, will force unlock even quest locked items, be cautious)
+bool function oper(string[] param)
+    zadLibs ddlib = GetDDLib()
+    if !ddlib
+        return true
+    endif
+
+    bool force = (param[1] == "force")
+    bool lockable
+    int i = 0
+    Armor device
+    Armor renderedDevice
+    while i < 61
+        device = CmdTargetActor.GetEquippedArmorInSlot(i)
+        renderedDevice = ddlib.GetRenderedDevice(device)
+
+        lockable = device.HasKeyword(ddlib.zad_lockable) || renderedDevice.HasKeyword(ddlib.zad_lockable)
+
+        if lockable
+            if force || (!renderedDevice.HasKeyWord(ddlib.zad_QuestItem) && !device.HasKeyword(ddlib.zad_QuestItem))
+                ddlib.UnlockDevice(CmdTargetActor, device, renderedDevice)
+            endif
+        endif
+
+        i += 1
+    endwhile
+
+    return true
+endFunction
+EndState
+
 State cmd_hextun_test
 bool function oper(string[] param)
     ActiveMagicEffect[] ames = sl_triggers_internal.SafeGetActiveMagicEffectsForActor(PlayerRef)
