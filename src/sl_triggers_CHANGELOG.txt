@@ -5,6 +5,9 @@
         Note that after unlocking items may still appear to be equipped in inventory but you should be able to safely select and remove them
         And a script to demonstrate
             DD Unlock All.ini
+    enhancement: .ini scripts now support comment to end of line
+        sl_isin $self ; this is a valid comment
+        ; as would be this (all by itself)
     
 
 106

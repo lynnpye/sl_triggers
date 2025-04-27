@@ -538,7 +538,7 @@ string Function ParseCommandFile()
     elseif _last == ".ini"
         string cmdpath = FullCommandsFolder() + _myCmdName
         string cmdstring = MiscUtil.ReadFromFile(cmdpath)
-        string[] cmdlines = sl_triggers_internal.SafeSplitLines(cmdstring)
+        string[] cmdlines = sl_triggers_internal.SafeSplitLinesTrimmed(cmdstring)
 
         cmdNum = cmdlines.Length
         cmdIdx = 0
@@ -638,10 +638,14 @@ string Function exec()
                     endif
                 endif
                 cmdidx += 1
+            elseIf !code
+                cmdidx += 1
             else
 				ActualOper(cmdLine, code)
                 cmdidx += 1
             endIf
+        else
+            cmdidx += 1
         endif
     endwhile
     

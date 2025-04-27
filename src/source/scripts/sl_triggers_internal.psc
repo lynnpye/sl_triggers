@@ -1,13 +1,8 @@
 scriptname sl_triggers_internal Hidden
 
 ; safe access
-string Function SafeToLower(string str) global
-    return sl_triggers_internal._ToLower(str)
-EndFunction
-
-bool Function SafeCIStringCompare(string tweedledum, string tweedledee) global
-    ; I know what I did. Read the book and understand the function. :)
-    return sl_triggers_internal._CIStringCompare(tweedledee, tweedledum)
+string[] Function SafeSplitLinesTrimmed(string _fileString) global
+    return sl_triggers_internal._SplitLinesTrimmed(_fileString)
 EndFunction
 
 string Function SafeGetTranslatedString(string _translationKey) global
@@ -31,9 +26,7 @@ string[] Function SafeTokenize(string _tokenString) global
 EndFunction
 
 ; direct access
-string Function _ToLower(string str) global native
-
-bool Function _CIStringCompare(string tweedledum, string tweedledee) global native
+string[] Function _SplitLinesTrimmed(string _fileString) global native
 
 string Function _GetTranslatedString(string _translationKey) global native
 
