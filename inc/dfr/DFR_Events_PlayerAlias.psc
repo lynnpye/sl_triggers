@@ -1,0 +1,1 @@
+Scriptname DFR_Events_PlayerAlias extends ReferenceAlias

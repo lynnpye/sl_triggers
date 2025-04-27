@@ -1,3 +1,13 @@
+106
+    enhancement: flagged as .ESL
+    bugfix: workaround for Papyrus VM string case destruction
+    enhancement: added Devious Followers Redux commands
+            df_setdebt
+            df_resetall
+        additionally, I also added scripts:
+            DF Set Debt to 0.ini
+            DF Reset All.ini
+
 105
     bugfix: possible resolution issue with global variables in some cases
     enhancement: new feature, subroutines

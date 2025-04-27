@@ -361,6 +361,38 @@ bool function oper(string[] param)
 endFunction
 EndState
 
+State cmd_df_setdebt
+bool function oper(string[] param)
+    Form dfMCM_form = Game.GetFormFromFile(0xC545, "DeviousFollowers.esp")
+
+    if !dfMCM_form
+        return true
+    endif
+
+    _DFlowMCM dfMCM = dfMCM_form as _DFlowMCM
+
+    dfMCM.ResetQuests(true)
+
+    return true
+endFunction
+EndState
+
+State cmd_df_resetall
+bool function oper(string[] param)
+    Form dfQuest_form = Game.GetFormFromFile(0xD62, "DeviousFollowers.esp")
+
+    if !dfQuest_form
+        return true
+    endif
+
+    QF__Gift_09000D62 dfQuest = dfQuest_form as QF__Gift_09000D62
+
+    int debt = param[1] as int
+    dfQuest.SetDebt(debt)
+
+    return true
+endFunction
+EndState
 
 State cmd_hextun_test
 bool function oper(string[] param)

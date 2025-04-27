@@ -1533,35 +1533,37 @@ string[] Function GetExtensionAttributeData(bool _istk, string _attr, string _in
 
 	string jkey
 	if _istk
-		jkey = "triggerattribute_" + _attr
+		jkey = "trigger_attributes"
 	else
-		jkey = "settingsattribute_" + _attr
+		jkey = "settings_attributes"
 	endif
-	string[] topkeys = JsonUtil.PathMembers(_filename, ".")
-	int keyidx = 0
-	while keyidx < topkeys.Length
-		if topkeys[keyidx] == jkey
-			jkey = topkeys[keyidx]
-			keyidx = topkeys.Length
-		endif
-
-		keyidx += 1
-	endwhile
-	
 	int listcount = JsonUtil.PathCount(_filename, jkey)
 	int idx = 0
-	int jdx = 0
 	string[] list
-	string[] results
+
 	while idx < listcount
 		list = JsonUtil.PathStringElements(_filename, jkey + "[" + idx + "]")
+		if list.Length && StringUtil.GetNthChar(list[0], 0) != "#" && list[0] == _attr
+			jkey = list[1]
+			idx = listcount
+		endif
+		idx += 1
+	endwhile
+	
+	listcount = JsonUtil.PathCount(_filename, jkey)
+	idx = 0
+	
+	int jdx = 0
+	string[] results
+	while idx < listcount
+		string ijkey = jkey + "[" + idx + "]"
+		list = JsonUtil.PathStringElements(_filename, ijkey)
 		if list.Length
 			if list[0] == _info
 				jdx = 1
 				while jdx < list.Length
 					string candidate = list[jdx]
-					string firstchar = StringUtil.GetNthChar(candidate, 1)
-					if firstchar != "#"
+					if StringUtil.GetNthChar(candidate, 1) != "#"
 						if !results
 							results = PapyrusUtil.StringArray(0)
 						endif
@@ -1590,25 +1592,8 @@ string[] Function GetExtensionLayoutData(bool _istk, string _layout, int _row)
 	; needs to be fixed for our hypothetical FN_SettingsAttributes()
 	string _filename = FN_X_Attributes(CurrentExtensionKey)
 
-	string jkey
-	if _layout
-		if _istk
-			jkey = "triggerlayout_" + _layout
-		else
-			jkey = "settingslayout_" + _layout
-		endif
-
-		string[] topkeys = JsonUtil.PathMembers(_filename, ".")
-		int keyidx = 0
-		while keyidx < topkeys.Length
-			if topkeys[keyidx] == jkey
-				jkey = topkeys[keyidx]
-				keyidx = topkeys.Length
-			endif
-
-			keyidx += 1
-		endwhile
-	else
+	string jkey = _layout
+	if !jkey
 		if _istk
 			jkey = "triggerlayout"
 		else

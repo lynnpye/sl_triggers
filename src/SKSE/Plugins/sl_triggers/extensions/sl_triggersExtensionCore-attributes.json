@@ -10,14 +10,14 @@
     "trigger_attributes" : [
         ["# this section is just a simple list of attributes"],
         ["# one per row, yes"],
-        ["event"],
-        ["keymapping"],
-        ["modifierkeymapping"],
-        ["usedak"],
-        ["chance"],
-        ["do_1"],
-        ["do_2"],
-        ["do_3"]
+        ["event", "triggerattribute_event"],
+        ["keymapping", "triggerattribute_keymapping"],
+        ["modifierkeymapping", "triggerattribute_modifierkeymapping"],
+        ["usedak", "triggerattribute_usedak"],
+        ["chance", "triggerattribute_chance"],
+        ["do_1", "triggerattribute_do_1"],
+        ["do_2", "triggerattribute_do_2"],
+        ["do_3", "triggerattribute_do_3"]
     ],
     "triggerattribute_event" : [
         ["# here is where you define aspects of the attribute"],
@@ -66,8 +66,8 @@
     "trigger_layoutconditions" : [
         ["# checked in sequence shown, first match determines layout selection"],
 		["event"],
-        ["1", "keymapping"],
-        ["2", "topofthehour"]
+        ["1", "triggerlayout_keymapping"],
+        ["2", "triggerlayout_keymapping"]
     ],
     "triggerlayout_keymapping" : [
         ["event", "keymapping"],
