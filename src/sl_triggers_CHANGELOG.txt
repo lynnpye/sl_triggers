@@ -4,16 +4,19 @@
             GetVersion()
             GetScriptsList()
             RunScript(string _scriptname, Actor _actor = none) ; defaults to Player
+                if RunScript() is called without an Actor provided
+                    it will first try the Actor currently in your crosshairs if there is one
+                    it will fall back to the Player
+
     enhancement: added console commands (slt/sl_triggers)
         slt console command has the following usage:
 			Usage: slt version          ; displays sl_triggers mod version
 			Usage: slt list             ; lists the scripts available to run from SLT
 			Usage: slt run <scriptname> ; where <scriptname> is a valid script for SLT
-    
-    NOTE: any time an Actor is not provided, the following is the order SLT tries to find a valid Actor
-        Use a console selected Actor if there is one
-        Use the Actor in the crosshairs if there is one
-        Use the Player
+                when slt run is called
+                    it will first check if there is an Actor currently selected in the console
+                    it will then check for an Actor in the crosshairs
+                    it will fall back to the Player
 
 107
     enhancement: new commands for your scripts:
