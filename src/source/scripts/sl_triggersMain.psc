@@ -61,7 +61,6 @@ bool				Property bEnabled					 Hidden
 		endif
 		JsonUtil.SetIntValue(FN_Settings(), "enabled", _newval)
 		; AND MORE
-		DebMsg("setting enabled should do more stuff actively (new state is[" + _newEnabledFlag + "])")
 	EndFunction
 EndProperty
 bool				Property bDebugMsg		= false	Auto Hidden
@@ -481,7 +480,7 @@ EndFunction
 ; returns: an instanceId derived from this extension, typically as a result
 ; 	of requesting a command be executed in response to an event
 string Function _NextInstanceId()
-	return "(" + _NextCycledInstanceNumber() + ")"
+	return "sl_triggersMain(" + _NextCycledInstanceNumber() + ")"
 EndFunction
 
 string[] Function GetCommandsList()

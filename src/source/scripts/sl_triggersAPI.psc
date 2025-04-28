@@ -1,0 +1,21 @@
+scriptname sl_triggersAPI
+
+int Function GetVersion() global
+    sl_triggersStatics.GetModVersion()
+EndFunction
+
+string[] Function GetScriptsList() global
+    return sl_triggersMain.GetInstance().GetCommandsList()
+EndFunction
+
+Function RunScript(string _scriptname, Actor _theActor = none) global
+    Actor _sender = _theActor
+    if !_sender
+        _sender = Game.GetCurrentCrosshairRef() as Actor
+        if !_sender
+            _sender = Game.GetPlayer()
+        endif
+    endif
+
+    _sender.SendModEvent(sl_triggersStatics.EVENT_SLT_REQUEST_COMMAND(), _scriptname)
+EndFunction

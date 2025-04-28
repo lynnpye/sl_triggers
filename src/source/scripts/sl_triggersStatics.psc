@@ -1,7 +1,5 @@
 scriptname sl_triggersStatics
 
-; DebMsg
-; Shouts to the rooftops.
 function DebMsg(string msg) global
 	DebMsgForce(msg, true)
 endfunction
@@ -12,12 +10,12 @@ function DebMsgForce(string msg, bool shouldIDoAnything) global
 	endif
 	
 	MiscUtil.WriteToFile("data/skse/plugins/sl_triggers/debugmsg.log", msg + "\n", true)
-	;MiscUtil.PrintConsole(msg)
+	MiscUtil.PrintConsole(msg)
 	;Debug.Notification(msg)
 endfunction
 
 int Function GetModVersion() global
-	return 107
+	return 108
 EndFunction
 
 ;;;;;;;
