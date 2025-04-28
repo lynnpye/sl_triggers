@@ -27,6 +27,13 @@ where I needed to be.
 - [vcpkg](https://vcpkg.io/en/)
 - [Visual Studio Community 2022](https://visualstudio.microsoft.com/vs/community/)
 - [CommonLibSSE-NG](https://github.com/CharmedBaryon/CommonLibSSE-NG)
+  - open a console and
+    - cd into sl_triggers_internal/
+    - mkdir extern
+    - cd extern
+    - git clone git@github.com:CharmedBaryon/CommonLibSSE-NG.git
+      - https://github.com/CharmedBaryon/CommonLibSSE-NG/commit/b93280e832f263dbef44e44cbe2936622a02f91a as of this writing
+
 
 #### ***CommonLibSSE-NG***
 
