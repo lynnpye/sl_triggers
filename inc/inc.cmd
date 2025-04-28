@@ -4,40 +4,18 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 REM SET SKSE_SRC_ROOT=D:\src\sksemods
 REM SET NEF_SRC_ROOT=%SKSE_SRC_ROOT%\Nefaram
 
+SET "SKSE=..\skse64\scripts\modified"
 SET BETH=%INC_ROOT%\beth
 SET PAPUTIL=%INC_ROOT%\paputil
 SET PO3=%INC_ROOT%\po3
-REM SET SKI=D:\SkyrimFiles\papyrus\PAPYRUS\SRC_SKYUI
-REM Replaced with...
 SET SKI=%INC_ROOT%\skyui
 SET MFG=%INC_ROOT%\mfg
 SET SXL=%INC_ROOT%\sexlab
 SET DD52=%INC_ROOT%\dd52
 SET SLANG=%INC_ROOT%\slang
-REM SET DDI41=%INC_ROOT%\ddi-4.1
 SET SLSO=%INC_ROOT%\slso
-REM SET SLSMOOTHFEXP=%INC_ROOT%\slsmoothfexp
-REM SET SLCUM=%INC_ROOT%\slcumoverlays
-REM SET FHU=%INC_ROOT%\fhu
-REM SET RACEMENU=%INC_ROOT%\racemenu
-REM SET SLIF=%INC_ROOT%\slif
 SET CONUTIL=%INC_ROOT%\conutil
-REM SET NEFPATCH=%INC_ROOT%\nefpatch
-REM SET SLANIMRM=%INC_ROOT%\slanimrm
-REM SET FNIS=%INC_ROOT%\fnis
-REM SET ZAZ=%INC_ROOT%\zaz
-REM SET APROPOS2=%INC_ROOT%\apropos2
-REM SET XPMSE=%INC_ROOT%\xpmse
-REM SET SPLSIPH=%INC_ROOT%\spellsiphon
-REM SET SPLFRG=%INC_ROOT%\spellforge
 SET DFR=%INC_ROOT%\dfr
-
-REM Replacing SLA with AROUSED
-REM SET SLA=D:\SkyrimFiles\papyrus\PAPYRUS\SRC_SLA
-REM Uncomment the following for SexLab Aroused NG, and comment out OSLAroused
-REM SET AROUSED=%INC_ROOT%\sexlabarousedng
-REM Uncomment the following for OSLAroused, and comment out SexLab Aroused NG
-REM SET AROUSED=%INC_ROOT%\oslaroused
 
 :: The calling script may pass a variable name to exclude
 SET EXCLUDE_VAR=%1

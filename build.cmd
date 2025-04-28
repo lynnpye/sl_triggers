@@ -1,8 +1,9 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-SET "SKSE=D:\src\sksemods\skse64_2_00_20"
 SET "PAPYRUS_EXE=C:\tools\Papyrus\PapyrusCompiler.exe"
+
+
 REM
 
 REM Everything below this line should be able to remain untouched
