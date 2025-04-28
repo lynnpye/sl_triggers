@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "sl-triggers-internal",
+  "version-string": "1.0.0",
+  "description": "sl_triggers SKSE support plugin",
+  "homepage": "https://github.com/lynnpye/sl_triggers_internal",
+  "features": {
+    "plugin": {
+      "description": "SKSE plugin",
+      "dependencies": [
+        "spdlog",
+        "boost-algorithm",
+		    "rapidcsv",
+		    "catch2"
+      ]
+    }
+  },
+  "default-features": [
+    "plugin"
+  ],
+  "builtin-baseline": "a4275b7eee79fb24ec2e135481ef5fce8b41c339"
+}
