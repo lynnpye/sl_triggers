@@ -1,6 +1,17 @@
 scriptname sl_triggers_internal Hidden
 
+import sl_triggersStatics
+
 ; safe access
+
+bool Function SafeRunOperationOnActor(string[] _scriptnames, Actor CmdTargetActor, string[] param, sl_triggersCmd CmdPrimary) global
+    return sl_triggers_internal._RunOperationOnActor(_scriptnames, CmdTargetActor, param, CmdPrimary as ActiveMagicEffect)
+EndFunction
+
+bool Function SafeRunRequestedScript(string _scriptname, string _globalfuncname) global
+    return sl_triggers_internal._RunRequestedScript(_scriptname, _globalfuncname)
+EndFunction
+
 string[] Function SafeSplitLinesTrimmed(string _fileString) global
     return sl_triggers_internal._SplitLinesTrimmed(_fileString)
 EndFunction
@@ -26,6 +37,10 @@ string[] Function SafeTokenize(string _tokenString) global
 EndFunction
 
 ; direct access
+bool Function _RunOperationOnActor(string[] _scriptnames, Actor CmdTargetActor, string[] _param, ActiveMagicEffect CmdPrimary) global native
+
+bool Function _RunRequestedScript(string _scriptname, string _globalfuncname) global native
+
 string[] Function _SplitLinesTrimmed(string _fileString) global native
 
 string Function _GetTranslatedString(string _translationKey) global native

@@ -8,8 +8,69 @@ using namespace SKSE::stl;
 #include "RE/Skyrim.h"
 #include "SKSE/SKSE.h"
 
+#pragma push(warning)
+#pragma warning(disable:4100)
 namespace plugin {
     namespace Util {
+
+        bool RunOperationOnActor(std::vector<RE::BSFixedString> _scriptnames, RE::Actor* _cmdTargetActor,
+                                 std::vector<RE::BSFixedString> _param, RE::ActiveEffect* _cmdPrimary
+        ) {
+            bool success = false;
+            RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> resultCallback{nullptr};
+            RE::BSTSmartPointer<RE::BSScript::ObjectTypeInfo> typeinfoptr;
+            auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+
+            if (_cmdPrimary && _cmdTargetActor) {
+                auto* args = RE::MakeFunctionArguments(
+                    static_cast < RE::Actor* >(_cmdTargetActor),
+                    static_cast<std::vector<RE::BSFixedString>>(_param),
+                    static_cast < RE::ActiveEffect* >(_cmdPrimary)
+                );
+
+                for (const auto& _scriptname: _scriptnames) {
+                    success = vm->GetScriptObjectType1(_scriptname, typeinfoptr);
+
+                    if (!success) {
+                        continue;
+                    }
+
+                    success = false;
+
+                    int numglobs = typeinfoptr->GetNumGlobalFuncs();
+                    auto globiter = typeinfoptr->GetGlobalFuncIter();
+
+                    for (int i = 0; i < numglobs; i++) {
+                        if (_param[0] == globiter[i].func->GetName()) {
+                            success = vm->DispatchStaticCall(_scriptname, _param[0], args, resultCallback);
+                            return success;
+                        }
+                    }
+                }
+            }
+
+            return success;
+        }
+
+        bool RunRequestedScript(const std::string& _scriptname, const std::string& _globalfuncname) {
+            logger::info("attempting runrequestedscript with {}.{}", _scriptname, _globalfuncname);
+
+            RE::BSScript::Internal::VirtualMachine* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+
+            std::string blick = "called from the dll you see";
+            RE::BSFixedString block(blick.c_str());
+            auto* args = RE::MakeFunctionArguments(static_cast<RE::BSFixedString>(block));
+
+            RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> resultCallback{nullptr};
+
+            bool success = vm->DispatchStaticCall(_scriptname, _globalfuncname, args, resultCallback);
+            if (!success) {
+                logger::info("failed to dispatch the static call");
+            } else {
+                logger::info("alleged success");
+            }
+            return success;
+        }
 
         std::string TrimString(const std::string& str) {
             size_t first = str.find_first_not_of(" \t\n\r");
@@ -207,6 +268,20 @@ namespace plugin {
     }  // namespace Util
 
     namespace Papyrus {
+
+        bool RunOperationOnActor(RE::StaticFunctionTag*, std::vector<RE::BSFixedString> _scriptnames, RE::Actor* _cmdTargetActor, std::vector<RE::BSFixedString> _param, RE::ActiveEffect* _cmdPrimary) {
+            return Util::RunOperationOnActor(
+                _scriptnames
+                , _cmdTargetActor
+                , _param
+                , _cmdPrimary
+            );
+        }
+
+        bool RunRequestedScript(RE::StaticFunctionTag*, RE::BSFixedString _scriptname, RE::BSFixedString _globalfuncname) {
+            return Util::RunRequestedScript(_scriptname.c_str(), _globalfuncname.c_str());
+        }
+
         std::vector<std::string> SplitLinesTrimmed(RE::StaticFunctionTag*, RE::BSFixedString _fileString) {
             return Util::SplitLinesTrimmed(_fileString.c_str());
         }
@@ -235,6 +310,8 @@ namespace plugin {
         }
 
         bool Register(RE::BSScript::IVirtualMachine* vm) {
+            vm->RegisterFunction("_RunOperationOnActor", "sl_triggers_internal", RunOperationOnActor);
+            vm->RegisterFunction("_RunRequestedScript", "sl_triggers_internal", RunRequestedScript);
             vm->RegisterFunction("_SplitLinesTrimmed", "sl_triggers_internal", SplitLinesTrimmed, true);
             vm->RegisterFunction("_GetTranslatedString", "sl_triggers_internal", GetTranslatedString, true);
             vm->RegisterFunction("_GetActiveMagicEffectsForActor", "sl_triggers_internal", GetActiveMagicEffectsForActor);
@@ -306,3 +383,5 @@ extern "C" DLLEXPORT bool SKSEPlugin_Load(const LoadInterface* skse) {
     logger::info("{} has finished loading.", Plugin::Name);
     return true;
 }
+
+#pragma pop()
