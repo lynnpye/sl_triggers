@@ -2,7 +2,6 @@ using namespace SKSE;
 using namespace SKSE::log;
 using namespace SKSE::stl;
 
-
 #include "Plugin.h"
 #include "GameEventHandler.h"
 #include "RE/Skyrim.h"
@@ -13,19 +12,227 @@ using namespace SKSE::stl;
 namespace plugin {
     namespace Util {
 
-        bool RunOperationOnActor(std::vector<RE::BSFixedString> _scriptnames, RE::Actor* _cmdTargetActor,
-                                 std::vector<RE::BSFixedString> _param, RE::ActiveEffect* _cmdPrimary
-        ) {
+        /// Compares two null-terminated ASCII strings case-insensitively.
+        /// Returns false if either is null or not null-terminated.
+        /// Undefined behavior if passed non-null-terminated strings.
+        bool iequals_ascii(const char* a, const char* b) {
+            if (!a || !b)
+                return false;
+
+            while (*a && *b) {
+                if (std::tolower(static_cast<unsigned char>(*a)) != std::tolower(static_cast<unsigned char>(*b))) {
+                    return false;
+                }
+                ++a;
+                ++b;
+            }
+            return *a == *b;
+        }
+
+        RE::BSTSmartPointer<RE::BSScript::Object> GetScriptObject_AME(RE::ActiveEffect* ae) {
+            auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+            auto* handlePolicy = vm->GetObjectHandlePolicy();
+            auto handle = handlePolicy->GetHandleForObject(ae->VMTYPEID, ae);
+
+            RE::BSFixedString bsScriptName("sl_triggersCmd");
+
+            auto it = vm->attachedScripts.find(handle);
+            if (it == vm->attachedScripts.end()) {
+                logger::error("{}: vm->attachedScripts couldn't find handle[{}] scriptName[{}]", __func__, handle, bsScriptName.c_str());
+                return nullptr;
+            }
+
+            for (std::uint32_t i = 0; i < it->second.size(); i++) {
+                auto& attachedScript = it->second[i];
+                if (attachedScript) {
+                    auto* script = attachedScript.get();
+                    if (script) {
+                        auto info = script->GetTypeInfo();
+                        if (info) {
+                            if (info->name == bsScriptName) {
+                                logger::trace("script[{}] found attached to handle[{}]", bsScriptName.c_str(), handle);
+                                RE::BSTSmartPointer<RE::BSScript::Object> result(script);
+                                return result;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return nullptr;
+        }
+
+        bool CustomResolve(std::vector<RE::BSFixedString> _scriptnames, RE::Actor* _cmdTargetActor,
+                                        RE::ActiveEffect* _cmdPrimary, RE::BSFixedString _code) {
             bool success = false;
+
             RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> resultCallback{nullptr};
+
+            RE::BSTSmartPointer<RE::BSScript::ObjectTypeInfo> typeinfoptr;
+            auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+
+            if (_cmdPrimary && _cmdTargetActor) {
+                auto* args = RE::MakeFunctionArguments(static_cast<RE::Actor*>(_cmdTargetActor),
+                                                       static_cast<RE::ActiveEffect*>(_cmdPrimary), static_cast<RE::BSFixedString>(_code));
+
+                for (const auto& _scriptname: _scriptnames) {
+                    success = vm->GetScriptObjectType1(_scriptname, typeinfoptr);
+
+                    if (!success) {
+                        continue;
+                    }
+
+                    success = false;
+
+                    int numglobs = typeinfoptr->GetNumGlobalFuncs();
+                    auto globiter = typeinfoptr->GetGlobalFuncIter();
+
+                    for (int i = 0; i < numglobs; i++) {
+                        if (iequals_ascii("CustomResolve", globiter[i].func->GetName().c_str())) {
+                            success = vm->DispatchStaticCall(_scriptname, "CustomResolve", args, resultCallback);
+                            if (success) {
+                                return success;
+                            }
+                        }
+                    }
+                }
+            } else {
+                logger::info("CustomResolve: _cmdPrimary or _cmdTargetActor was null");
+            }
+
+            return success;
+        }
+
+        bool CustomResolveActor(std::vector<RE::BSFixedString> _scriptnames, RE::Actor* _cmdTargetActor,
+                                      RE::ActiveEffect* _cmdPrimary, RE::BSFixedString _code) {
+            bool success = false;
+
+            RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> resultCallback{nullptr};
+
+            RE::BSTSmartPointer<RE::BSScript::ObjectTypeInfo> typeinfoptr;
+            auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+
+            if (_cmdPrimary && _cmdTargetActor) {
+                auto* args =
+                    RE::MakeFunctionArguments(static_cast<RE::Actor*>(_cmdTargetActor),
+                                                       static_cast<RE::ActiveEffect*>(_cmdPrimary), static_cast<RE::BSFixedString>(_code));
+
+                for (const auto& _scriptname: _scriptnames) {
+                    success = vm->GetScriptObjectType1(_scriptname, typeinfoptr);
+
+                    if (!success) {
+                        continue;
+                    }
+
+                    success = false;
+
+                    int numglobs = typeinfoptr->GetNumGlobalFuncs();
+                    auto globiter = typeinfoptr->GetGlobalFuncIter();
+
+                    for (int i = 0; i < numglobs; i++) {
+                        if (iequals_ascii("CustomResolveActor", globiter[i].func->GetName().c_str())) {
+                            success = vm->DispatchStaticCall(_scriptname, "CustomResolveActor", args, resultCallback);
+                            if (success) {
+                                return success;
+                            }
+                        }
+                    }
+                }
+            } else {
+                logger::info("CustomResolveActor: _cmdPrimary or _cmdTargetActor was null");
+            }
+
+            return success;
+        }
+
+
+        bool CustomResolveCond(std::vector<RE::BSFixedString> _scriptnames, RE::Actor* _cmdTargetActor, RE::ActiveEffect* _cmdPrimary,
+                               RE::BSFixedString _p1, RE::BSFixedString _p2, RE::BSFixedString _oper) {
+            bool success = false;
+
+            RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> resultCallback{nullptr};
+
+            RE::BSTSmartPointer<RE::BSScript::ObjectTypeInfo> typeinfoptr;
+            auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+
+            if (_cmdPrimary && _cmdTargetActor) {
+                auto* args = RE::MakeFunctionArguments(static_cast<RE::Actor*>(_cmdTargetActor), static_cast<RE::ActiveEffect*>(_cmdPrimary), static_cast<RE::BSFixedString>(_p1),
+                                                       static_cast<RE::BSFixedString>(_p2), static_cast<RE::BSFixedString>(_oper)
+                );
+
+                for (const auto& _scriptname: _scriptnames) {
+                    success = vm->GetScriptObjectType1(_scriptname, typeinfoptr);
+
+                    if (!success) {
+                        continue;
+                    }
+
+                    success = false;
+
+                    int numglobs = typeinfoptr->GetNumGlobalFuncs();
+                    auto globiter = typeinfoptr->GetGlobalFuncIter();
+
+                    for (int i = 0; i < numglobs; i++) {
+                        if (iequals_ascii("CustomResolveCond", globiter[i].func->GetName().c_str())) {
+                            success = vm->DispatchStaticCall(_scriptname, "CustomResolveCond", args, resultCallback);
+                            if (success) {
+                                return success;
+                            }
+                        }
+                    }
+                }
+            } else {
+                logger::info("CustomResolveCond: _cmdPrimary or _cmdTargetActor was null");
+            }
+
+            return success;
+        }
+
+        class VoidCallbackFunctor : public RE::BSScript::IStackCallbackFunctor {
+            public:
+                explicit VoidCallbackFunctor(std::function<void()> callback)
+                    : onDone(std::move(callback)) {}
+
+                void operator()(RE::BSScript::Variable) override {
+                    // This is called when the script function finishes
+                    if (onDone) {
+                        onDone();
+                    }
+                }
+
+                void SetObject(const RE::BSTSmartPointer<RE::BSScript::Object>&) override {}
+
+            private:
+                std::function<void()> onDone;
+        };
+
+        bool RunOperationOnActor(std::vector<RE::BSFixedString> _scriptnames, RE::Actor* _cmdTargetActor, RE::ActiveEffect* _cmdPrimary,
+                                 std::vector<RE::BSFixedString> _param) {
+            bool success = false;
+            auto resultCallback = RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor>(new VoidCallbackFunctor([_cmdPrimary]() {
+                SKSE::GetTaskInterface()->AddTask([_cmdPrimary]() {
+                    auto scrobj = GetScriptObject_AME(_cmdPrimary);
+
+                    if (scrobj) {
+                        auto* args = RE::MakeFunctionArguments(static_cast<bool>(true));
+                        auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+
+                        RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> setterCallback{nullptr};
+
+                        vm->DispatchMethodCall1(scrobj, "_slt_SetOperationCompleted", args, setterCallback);
+                    } else {
+                        logger::info("RunOperationOnActor: Unable to retrieve Script object for _cmdPrimary");
+                    }
+                });
+            }));
             RE::BSTSmartPointer<RE::BSScript::ObjectTypeInfo> typeinfoptr;
             auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
 
             if (_cmdPrimary && _cmdTargetActor) {
                 auto* args = RE::MakeFunctionArguments(
                     static_cast < RE::Actor* >(_cmdTargetActor),
-                    static_cast<std::vector<RE::BSFixedString>>(_param),
-                    static_cast < RE::ActiveEffect* >(_cmdPrimary)
+                    static_cast < RE::ActiveEffect* >(_cmdPrimary),
+                    static_cast<std::vector<RE::BSFixedString>>(_param)
                 );
 
                 for (const auto& _scriptname: _scriptnames) {
@@ -43,32 +250,13 @@ namespace plugin {
                     for (int i = 0; i < numglobs; i++) {
                         if (_param[0] == globiter[i].func->GetName()) {
                             success = vm->DispatchStaticCall(_scriptname, _param[0], args, resultCallback);
+
                             return success;
                         }
                     }
                 }
             }
 
-            return success;
-        }
-
-        bool RunRequestedScript(const std::string& _scriptname, const std::string& _globalfuncname) {
-            logger::info("attempting runrequestedscript with {}.{}", _scriptname, _globalfuncname);
-
-            RE::BSScript::Internal::VirtualMachine* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
-
-            std::string blick = "called from the dll you see";
-            RE::BSFixedString block(blick.c_str());
-            auto* args = RE::MakeFunctionArguments(static_cast<RE::BSFixedString>(block));
-
-            RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> resultCallback{nullptr};
-
-            bool success = vm->DispatchStaticCall(_scriptname, _globalfuncname, args, resultCallback);
-            if (!success) {
-                logger::info("failed to dispatch the static call");
-            } else {
-                logger::info("alleged success");
-            }
             return success;
         }
 
@@ -269,17 +457,24 @@ namespace plugin {
 
     namespace Papyrus {
 
-        bool RunOperationOnActor(RE::StaticFunctionTag*, std::vector<RE::BSFixedString> _scriptnames, RE::Actor* _cmdTargetActor, std::vector<RE::BSFixedString> _param, RE::ActiveEffect* _cmdPrimary) {
-            return Util::RunOperationOnActor(
-                _scriptnames
-                , _cmdTargetActor
-                , _param
-                , _cmdPrimary
-            );
+        bool CustomResolve(RE::StaticFunctionTag*, std::vector<RE::BSFixedString> _scriptnames, RE::Actor* _cmdTargetActor,
+                                        RE::ActiveEffect* _cmdPrimary, RE::BSFixedString _code) {
+            return Util::CustomResolve(_scriptnames, _cmdTargetActor, _cmdPrimary, _code);
         }
 
-        bool RunRequestedScript(RE::StaticFunctionTag*, RE::BSFixedString _scriptname, RE::BSFixedString _globalfuncname) {
-            return Util::RunRequestedScript(_scriptname.c_str(), _globalfuncname.c_str());
+        bool CustomResolveActor(RE::StaticFunctionTag*, std::vector<RE::BSFixedString> _scriptnames, RE::Actor* _cmdTargetActor,
+                                      RE::ActiveEffect* _cmdPrimary, RE::BSFixedString _code) {
+            return Util::CustomResolveActor(_scriptnames, _cmdTargetActor, _cmdPrimary, _code);
+        }
+
+        bool CustomResolveCond(RE::StaticFunctionTag*, std::vector<RE::BSFixedString> _scriptnames, RE::Actor* _cmdTargetActor,
+                               RE::ActiveEffect* _cmdPrimary, RE::BSFixedString _p1, RE::BSFixedString _p2, RE::BSFixedString _oper) {
+            return Util::CustomResolveCond(_scriptnames, _cmdTargetActor, _cmdPrimary, _p1, _p2, _oper);
+        }
+
+        bool RunOperationOnActor(RE::StaticFunctionTag*, std::vector<RE::BSFixedString> _scriptnames, RE::Actor* _cmdTargetActor,
+                                 RE::ActiveEffect* _cmdPrimary, std::vector<RE::BSFixedString> _param) {
+            return Util::RunOperationOnActor(_scriptnames, _cmdTargetActor, _cmdPrimary, _param);
         }
 
         std::vector<std::string> SplitLinesTrimmed(RE::StaticFunctionTag*, RE::BSFixedString _fileString) {
@@ -310,8 +505,10 @@ namespace plugin {
         }
 
         bool Register(RE::BSScript::IVirtualMachine* vm) {
+            vm->RegisterFunction("_CustomResolve", "sl_triggers_internal", CustomResolve);
+            vm->RegisterFunction("_CustomResolveActor", "sl_triggers_internal", CustomResolveActor);
+            vm->RegisterFunction("_CustomResolveCond", "sl_triggers_internal", CustomResolveCond);
             vm->RegisterFunction("_RunOperationOnActor", "sl_triggers_internal", RunOperationOnActor);
-            vm->RegisterFunction("_RunRequestedScript", "sl_triggers_internal", RunRequestedScript);
             vm->RegisterFunction("_SplitLinesTrimmed", "sl_triggers_internal", SplitLinesTrimmed, true);
             vm->RegisterFunction("_GetTranslatedString", "sl_triggers_internal", GetTranslatedString, true);
             vm->RegisterFunction("_GetActiveMagicEffectsForActor", "sl_triggers_internal", GetActiveMagicEffectsForActor);

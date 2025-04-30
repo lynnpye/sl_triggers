@@ -1,16 +1,97 @@
 scriptname sl_triggersCmdLibSLT
 
 import sl_triggersStatics
+ 
 
-function hextun_test(Actor CmdTargetActor, string[] param, ActiveMagicEffect CmdPrimary) global
-    DebMsg("hextun_test: slt")
+function hextun_test(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+    msg_console(CmdTargetActor, _CmdPrimary, param)
 endFunction
 
-function hextun_test2(Actor CmdTargetActor, string[] param, ActiveMagicEffect CmdPrimary) global
-    DebMsg("hextun_test: slt")
+function hextun_test2(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+    msg_console(CmdTargetActor, _CmdPrimary, param)
 endFunction
 
-function set(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function CustomResolve(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string _code)
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+    if CmdPrimary.CustomResolveReady
+        return
+    endif
+	int varindex = -1
+    if StringUtil.getNthChar(_code, 0) == "$"
+        if _code == "$$"
+            CmdPrimary._slt_SetCustomResolveResult(CmdPrimary.MostRecentResult)
+        else
+			varindex = CmdPrimary.IsVarStringG(_code)
+			if varindex >= 0
+                CmdPrimary._slt_SetCustomResolveResult(CmdPrimary.SLT.globalvars_get(varindex))
+            else
+                varindex = CmdPrimary.IsVarString(_code)
+                if varindex >= 0
+                    CmdPrimary._slt_SetCustomResolveResult(CmdPrimary.vars_get(varindex))
+                endif
+			endif
+        endIf
+    endIf
+endFunction
+
+function CustomResolveActor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string _code)
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+    if CmdPrimary.CustomResolveActorReady
+        return
+    endif
+    
+    if _code == "$self"
+        CmdPrimary._slt_SetCustomResolveActorResult(CmdPrimary.CmdTargetActor)
+    elseIf _code == "$player"
+        CmdPrimary._slt_SetCustomResolveActorResult(CmdPrimary.PlayerRef)
+    elseIf _code == "$actor"
+        CmdPrimary._slt_SetCustomResolveActorResult(CmdPrimary.iterActor)
+    endif
+endFunction
+
+function CustomResolveCond(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string _p1, string _p2, string _oper)
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+    if CmdPrimary.CustomResolveCondReady
+        return
+    endif
+    if _oper == "="
+        if (_p1 as float) == (_p2 as float)
+            CmdPrimary._slt_SetCustomResolveCondResult(true)
+        endif
+    elseIf _oper == "!="
+        if (_p1 as float) != (_p2 as float)
+            CmdPrimary._slt_SetCustomResolveCondResult(true)
+        endif
+    elseIf _oper == ">"
+        if (_p1 as float) > (_p2 as float)
+            CmdPrimary._slt_SetCustomResolveCondResult(true)
+        endif
+    elseIf _oper == ">="
+        if (_p1 as float) >= (_p2 as float)
+            CmdPrimary._slt_SetCustomResolveCondResult(true)
+        endif
+    elseIf _oper == "<"
+        if (_p1 as float) < (_p2 as float)
+            CmdPrimary._slt_SetCustomResolveCondResult(true)
+        endif
+    elseIf _oper == "<="
+        if (_p1 as float) <= (_p2 as float)
+            CmdPrimary._slt_SetCustomResolveCondResult(true)
+        endif
+    elseIf _oper == "&="
+        if _p1 == _p2
+            CmdPrimary._slt_SetCustomResolveCondResult(true)
+        endif
+    elseIf _oper == "&!="
+        if _p1 != _p2
+            CmdPrimary._slt_SetCustomResolveCondResult(true)
+        endif
+    endif
+endFunction
+
+function set(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	int varindex
 	
@@ -60,7 +141,7 @@ function set(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary
 endFunction
 
 
-function inc(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function inc(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     if StringUtil.getNthChar(param[1], 0) == "$"
         int idx = StringUtil.getNthChar(param[1], 1) as int
@@ -75,7 +156,7 @@ function inc(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary
 endFunction
  
 
-function cat(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function cat(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     if StringUtil.getNthChar(param[1], 0) == "$"
         int idx = StringUtil.getNthChar(param[1], 1) as int
@@ -90,7 +171,7 @@ function cat(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary
 endFunction
  
 
-function av_restore(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function av_restore(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     
@@ -101,7 +182,7 @@ function av_restore(Actor CmdTargetActor, string[] param, ActiveMagicEffect _Cmd
 endFunction
  
 
-function av_damage(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function av_damage(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     mate = CmdPrimary.resolveActor(param[1])
@@ -111,7 +192,7 @@ function av_damage(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdP
 endFunction
  
 
-function av_mod(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function av_mod(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     
@@ -122,7 +203,7 @@ function av_mod(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrim
 endFunction
  
 
-function av_set(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function av_set(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     
@@ -133,7 +214,7 @@ function av_set(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrim
 endFunction
  
 
-function av_getbase(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function av_getbase(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     float val
@@ -148,7 +229,7 @@ function av_getbase(Actor CmdTargetActor, string[] param, ActiveMagicEffect _Cmd
 endFunction
  
 
-function av_get(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function av_get(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     float val
@@ -163,7 +244,7 @@ function av_get(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrim
 endFunction
  
 
-function av_getmax(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function av_getmax(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     float val
@@ -178,7 +259,7 @@ endFunction
  
 
 
-function av_getpercent(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function av_getpercent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     float val
@@ -193,7 +274,7 @@ function av_getpercent(Actor CmdTargetActor, string[] param, ActiveMagicEffect _
 endFunction
  
 
-function spell_cast(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function spell_cast(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Spell thing
     Actor mate
@@ -207,7 +288,7 @@ function spell_cast(Actor CmdTargetActor, string[] param, ActiveMagicEffect _Cmd
 endFunction
  
 
-function spell_dcsa(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function spell_dcsa(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Spell thing
     Actor mate
@@ -221,7 +302,7 @@ function spell_dcsa(Actor CmdTargetActor, string[] param, ActiveMagicEffect _Cmd
 endFunction
  
 
-function spell_dispel(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function spell_dispel(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Spell thing
     Actor mate
@@ -235,7 +316,7 @@ function spell_dispel(Actor CmdTargetActor, string[] param, ActiveMagicEffect _C
 endFunction
  
 
-function spell_add(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function spell_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Spell thing
     Actor mate
@@ -249,7 +330,7 @@ function spell_add(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdP
 endFunction
  
 
-function spell_remove(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function spell_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Spell thing
     Actor mate
@@ -264,7 +345,7 @@ endFunction
  
 
 
-function item_add(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function item_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Form thing
     Actor mate
@@ -283,7 +364,7 @@ function item_add(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPr
 endFunction
  
 
-function item_addex(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function item_addex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Form thing
     Actor mate
@@ -361,7 +442,7 @@ function item_addex(Actor CmdTargetActor, string[] param, ActiveMagicEffect _Cmd
 endFunction
  
 
-function item_remove(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function item_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Form thing
     Actor mate
@@ -380,7 +461,7 @@ function item_remove(Actor CmdTargetActor, string[] param, ActiveMagicEffect _Cm
 endFunction
  
 
-function item_adduse(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function item_adduse(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Form thing
     Actor mate
@@ -401,7 +482,7 @@ endFunction
  
 
 
-function item_equipex(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function item_equipex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Form thing
     Actor mate
@@ -420,7 +501,7 @@ function item_equipex(Actor CmdTargetActor, string[] param, ActiveMagicEffect _C
 endFunction
  
 
-function item_equip(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function item_equip(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Form thing
     Actor mate
@@ -439,7 +520,7 @@ function item_equip(Actor CmdTargetActor, string[] param, ActiveMagicEffect _Cmd
 endFunction
  
 
-function item_unequipex(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function item_unequipex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Form thing
     Actor mate
@@ -457,7 +538,7 @@ function item_unequipex(Actor CmdTargetActor, string[] param, ActiveMagicEffect 
 endFunction
  
 
-function item_getcount(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function item_getcount(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Form thing
     Actor mate
@@ -474,7 +555,7 @@ function item_getcount(Actor CmdTargetActor, string[] param, ActiveMagicEffect _
 endFunction
  
 
-function msg_notify(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function msg_notify(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     string ss
     string ssx
@@ -495,7 +576,7 @@ function msg_notify(Actor CmdTargetActor, string[] param, ActiveMagicEffect _Cmd
 endFunction
  
 
-function msg_console(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function msg_console(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     string ss
     string ssx
@@ -517,7 +598,7 @@ endFunction
  
 
 
-function rnd_list(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function rnd_list(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     string ss
     int cnt
@@ -533,7 +614,7 @@ function rnd_list(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPr
 endFunction
  
 
-function rnd_int(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function rnd_int(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     string ss
     int idx
@@ -553,7 +634,7 @@ function rnd_int(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPri
 endFunction
  
 
-function util_wait(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function util_wait(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     string ss
     ss = CmdPrimary.resolve(param[1])
@@ -563,7 +644,7 @@ function util_wait(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdP
 endFunction
  
 
-function util_getrndactor(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function util_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     string ss
     float  p1
@@ -611,7 +692,7 @@ function util_getrndactor(Actor CmdTargetActor, string[] param, ActiveMagicEffec
 endFunction
  
 
-function perk_addpoints(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function perk_addpoints(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     string ss
     int    p1
@@ -623,7 +704,7 @@ function perk_addpoints(Actor CmdTargetActor, string[] param, ActiveMagicEffect 
 endFunction
  
 
-function perk_add(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function perk_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Perk thing
     Actor mate
@@ -637,7 +718,7 @@ function perk_add(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPr
 endFunction
  
 
-function perk_remove(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function perk_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Perk thing
     Actor mate
@@ -652,7 +733,7 @@ endFunction
  
 
 
-function actor_advskill(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_advskill(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     string skillName
@@ -673,7 +754,7 @@ function actor_advskill(Actor CmdTargetActor, string[] param, ActiveMagicEffect 
 endFunction
  
 
-function actor_incskill(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_incskill(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     string skillName
@@ -696,7 +777,7 @@ function actor_incskill(Actor CmdTargetActor, string[] param, ActiveMagicEffect 
 endFunction
  
 
-function actor_isvalid(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_isvalid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     Cell  cc = CmdPrimary.PlayerRef.getParentCell()
@@ -713,7 +794,7 @@ function actor_isvalid(Actor CmdTargetActor, string[] param, ActiveMagicEffect _
 endFunction
  
 
-function actor_haslos(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_haslos(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     Actor mate2
@@ -731,7 +812,7 @@ function actor_haslos(Actor CmdTargetActor, string[] param, ActiveMagicEffect _C
 endFunction
  
 
-function actor_name(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_name(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     
@@ -743,7 +824,7 @@ function actor_name(Actor CmdTargetActor, string[] param, ActiveMagicEffect _Cmd
 endFunction
  
 
-function actor_modcrimegold(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_modcrimegold(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     string ss
@@ -763,7 +844,7 @@ function actor_modcrimegold(Actor CmdTargetActor, string[] param, ActiveMagicEff
 endFunction
  
 
-function actor_qnnu(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_qnnu(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     
@@ -775,7 +856,7 @@ function actor_qnnu(Actor CmdTargetActor, string[] param, ActiveMagicEffect _Cmd
 endFunction
  
 
-function actor_isguard(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_isguard(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     
@@ -791,13 +872,13 @@ function actor_isguard(Actor CmdTargetActor, string[] param, ActiveMagicEffect _
 endFunction
  
 
-function actor_isquard(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_isquard(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-	return actor_isguard(CmdTargetActor, param, CmdPrimary)
+	return actor_isguard(CmdTargetActor, CmdPrimary, param)
 endFunction
  
 
-function actor_isplayer(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_isplayer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     
@@ -813,7 +894,7 @@ function actor_isplayer(Actor CmdTargetActor, string[] param, ActiveMagicEffect 
 endFunction
  
 
-function actor_getgender(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_getgender(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     int   gender
@@ -827,7 +908,7 @@ function actor_getgender(Actor CmdTargetActor, string[] param, ActiveMagicEffect
 endFunction
  
 
-function actor_say(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_say(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     Topic thing
@@ -842,7 +923,7 @@ function actor_say(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdP
 endFunction
  
 
-function actor_haskeyword(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_haskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     string ss
@@ -863,7 +944,7 @@ function actor_haskeyword(Actor CmdTargetActor, string[] param, ActiveMagicEffec
 endFunction
  
 
-function actor_iswearing(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_iswearing(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	Actor mate
 	Form thing
@@ -882,7 +963,7 @@ function actor_iswearing(Actor CmdTargetActor, string[] param, ActiveMagicEffect
 endFunction
 
 
-function actor_worninslot(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_worninslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	Actor mate
 	int slot = param[2] as int
@@ -898,7 +979,7 @@ function actor_worninslot(Actor CmdTargetActor, string[] param, ActiveMagicEffec
 endFunction
 
 
-function actor_wornhaskeyword(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_wornhaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     string ss
@@ -920,7 +1001,7 @@ function actor_wornhaskeyword(Actor CmdTargetActor, string[] param, ActiveMagicE
 endFunction
  
 
-function actor_lochaskeyword(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_lochaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     string ss
@@ -942,7 +1023,7 @@ function actor_lochaskeyword(Actor CmdTargetActor, string[] param, ActiveMagicEf
 endFunction
  
 
-function actor_getrelation(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_getrelation(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate1
     Actor mate2
@@ -959,7 +1040,7 @@ function actor_getrelation(Actor CmdTargetActor, string[] param, ActiveMagicEffe
 endFunction
  
 
-function actor_setrelation(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_setrelation(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate1
     Actor mate2
@@ -978,7 +1059,7 @@ function actor_setrelation(Actor CmdTargetActor, string[] param, ActiveMagicEffe
 endFunction
  
 
-function actor_infaction(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_infaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     Faction thing
@@ -999,7 +1080,7 @@ endFunction
  
 
 
-function actor_getfactionrank(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_getfactionrank(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     Faction thing
@@ -1019,7 +1100,7 @@ function actor_getfactionrank(Actor CmdTargetActor, string[] param, ActiveMagicE
 endFunction
  
 
-function actor_setfactionrank(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_setfactionrank(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     Faction thing
@@ -1040,7 +1121,7 @@ function actor_setfactionrank(Actor CmdTargetActor, string[] param, ActiveMagicE
 endFunction
  
 
-function actor_isaffectedby(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_isaffectedby(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	Actor mate
 	Form thing
@@ -1086,7 +1167,7 @@ function actor_isaffectedby(Actor CmdTargetActor, string[] param, ActiveMagicEff
 endFunction
 
 
-function actor_removefaction(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_removefaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     Faction thing
@@ -1103,7 +1184,7 @@ function actor_removefaction(Actor CmdTargetActor, string[] param, ActiveMagicEf
 endFunction
  
 
-function actor_playanim(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_playanim(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     string ss
@@ -1118,7 +1199,7 @@ function actor_playanim(Actor CmdTargetActor, string[] param, ActiveMagicEffect 
 endFunction
  
 
-function actor_sendmodevent(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_sendmodevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     string ss1
@@ -1141,7 +1222,7 @@ function actor_sendmodevent(Actor CmdTargetActor, string[] param, ActiveMagicEff
 endFunction
  
 
-function actor_state(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     string ss1
@@ -1177,7 +1258,7 @@ function actor_state(Actor CmdTargetActor, string[] param, ActiveMagicEffect _Cm
 endFunction
  
 
-function actor_body(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_body(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     string ss1
@@ -1222,7 +1303,7 @@ function actor_body(Actor CmdTargetActor, string[] param, ActiveMagicEffect _Cmd
 endFunction
  
 
-function actor_race(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     string ss1
@@ -1245,7 +1326,7 @@ endFunction
  
 
 
-function ism_applyfade(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function ism_applyfade(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Form   thing
     string ss
@@ -1265,7 +1346,7 @@ endFunction
  
 
 
-function ism_removefade(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function ism_removefade(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Form   thing
     string ss
@@ -1285,7 +1366,7 @@ endFunction
  
 
 
-function util_sendmodevent(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function util_sendmodevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     string ss1
     string ss2
@@ -1304,7 +1385,7 @@ function util_sendmodevent(Actor CmdTargetActor, string[] param, ActiveMagicEffe
 endFunction
  
 
-function util_sendevent(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function util_sendevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     string eventName
     string typeId
@@ -1350,7 +1431,7 @@ function util_sendevent(Actor CmdTargetActor, string[] param, ActiveMagicEffect 
 endFunction
  
 
-function util_getgametime(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function util_getgametime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     float dayTime = Utility.GetCurrentGameTime()
     
@@ -1361,7 +1442,7 @@ function util_getgametime(Actor CmdTargetActor, string[] param, ActiveMagicEffec
 endFunction
  
 
-function util_gethour(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function util_gethour(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	float dayTime = Utility.GetCurrentGameTime()
  
@@ -1377,7 +1458,7 @@ function util_gethour(Actor CmdTargetActor, string[] param, ActiveMagicEffect _C
 endFunction
  
 
-function util_game(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function util_game(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     string p1
     string p2
@@ -1397,7 +1478,7 @@ function util_game(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdP
 endFunction
  
 
-function snd_play(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function snd_play(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Sound   thing
     Actor   mate
@@ -1416,7 +1497,7 @@ function snd_play(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPr
 endFunction
  
 
-function snd_setvolume(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function snd_setvolume(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     string ss
     int    soundId
@@ -1436,7 +1517,7 @@ function snd_setvolume(Actor CmdTargetActor, string[] param, ActiveMagicEffect _
 endFunction
  
 
-function snd_stop(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function snd_stop(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     string ss
     int    soundId
@@ -1452,7 +1533,7 @@ function snd_stop(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPr
 endFunction
  
 
-function console(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function console(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     string ss
     string ssx
@@ -1477,7 +1558,7 @@ function console(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPri
 endFunction
  
 
-function mfg_reset(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function mfg_reset(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     
@@ -1490,7 +1571,7 @@ function mfg_reset(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdP
 endFunction
  
 
-function mfg_setphonememodifier(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function mfg_setphonememodifier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     int   p1
@@ -1509,7 +1590,7 @@ function mfg_setphonememodifier(Actor CmdTargetActor, string[] param, ActiveMagi
 endFunction
  
 
-function mfg_getphonememodifier(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function mfg_getphonememodifier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     int   p1
@@ -1528,7 +1609,7 @@ function mfg_getphonememodifier(Actor CmdTargetActor, string[] param, ActiveMagi
 endFunction
  
 
-function util_waitforkbd(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     string ss
     string ssx
@@ -1572,7 +1653,7 @@ function util_waitforkbd(Actor CmdTargetActor, string[] param, ActiveMagicEffect
 endFunction
  
 
-function json_getvalue(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function json_getvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     string pname
     string ptype
@@ -1603,7 +1684,7 @@ function json_getvalue(Actor CmdTargetActor, string[] param, ActiveMagicEffect _
 endFunction
  
 
-function json_setvalue(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function json_setvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     string pname
     string ptype
@@ -1628,7 +1709,7 @@ function json_setvalue(Actor CmdTargetActor, string[] param, ActiveMagicEffect _
 endFunction
  
 
-function json_save(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function json_save(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     string pname
     
@@ -1641,7 +1722,7 @@ function json_save(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdP
 endFunction
  
 
-function weather_state(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function weather_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     string ss1
     string ss2
@@ -1661,7 +1742,7 @@ function weather_state(Actor CmdTargetActor, string[] param, ActiveMagicEffect _
 endFunction
  
 
-function math(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function math(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     string ss1
     string ss2

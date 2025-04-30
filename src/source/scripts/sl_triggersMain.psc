@@ -65,6 +65,7 @@ bool				Property bEnabled					 Hidden
 EndProperty
 bool				Property bDebugMsg		= false	Auto Hidden
 Form[]				Property Extensions				Auto Hidden
+string[]			Property Libraries				Auto Hidden
 
 ; Variables
 int			SLTUpdateState
@@ -185,6 +186,8 @@ Function DoBootstrapActivity()
 	if !self
 		return
 	endif
+
+	Libraries = GetCommandLibraries()
 
 	InitSettingsFile(FN_Settings())
 
@@ -367,6 +370,9 @@ Function SendInternalSettingsUpdateEvents()
 	SendDelayedSettingsUpdateEvent()
 EndFunction
 
+Function UtilityWaitButLessStupid()
+EndFunction
+
 
 ; simple get handler for infini-globals
 string Function globalvars_get(int varsindex)
@@ -490,6 +496,69 @@ string[] Function GetCommandsList()
 	commandsListCache = PapyrusUtil.MergeStringArray(if1, if2)
 	;commandsListCache = JsonUtil.JsonInFolder(CommandsFolder())
 	return commandsListCache
+EndFunction
+
+string[] Function GetCommandLibraries()
+	string[] libs = PapyrusUtil.StringArray(1)
+	int[] libpris = PapyrusUtil.IntArray(1)
+
+	libs[0] = "sl_triggersCmdLibSLT"
+	libpris[0] = 0
+
+	; find all '-libraries' files
+	string[] libconfigs = JsonUtil.JsonInFolder("../sl_triggers/extensions/")
+	int i = 0
+	int j = 0
+	while i < libconfigs.Length
+		string libfilename = "../sl_triggers/extensions/" + libconfigs[i]
+		int configlen = StringUtil.GetLength(libconfigs[i])
+		int taillen = StringUtil.GetLength("-libraries")
+		string tail = StringUtil.Substring(libconfigs[i], configlen - taillen)
+		if tail == "-libraries"
+			string[] cfglibs = JsonUtil.PathMembers(libfilename, ".")
+			j = 0
+			while j < cfglibs.Length
+				string lib = cfglibs[j]
+				int libpri = JsonUtil.GetPathIntValue(libfilename, lib, 1000)
+
+
+				; populate both, keeping in sync
+				libs = PapyrusUtil.PushString(libs, lib)
+				libpris = PapyrusUtil.PushInt(libpris, libpri)
+
+				j += 1
+			endwhile
+		endif
+
+		i += 1
+	endwhile
+
+	; bubble sort libs and libpris using libpris values
+	string tmp_s
+	int tmp_i
+	i = 0
+	j = 0
+	while i < libs.Length - 1
+		j = i + 1
+		while j < libs.Length
+			if libpris[i] > libpris[j]
+				tmp_i = libpris[i]
+				tmp_s = libs[i]
+
+				libpris[i] = libpris[j]
+				libs[i] = libs[j]
+
+				libpris[j] = tmp_i
+				libs[i] = tmp_s
+			endif
+
+			j += 1
+		endwhile
+
+		i += 1
+	endwhile
+
+	return libs
 EndFunction
 
 Spell Function NextPooledSpellForActor(Actor _theActor)

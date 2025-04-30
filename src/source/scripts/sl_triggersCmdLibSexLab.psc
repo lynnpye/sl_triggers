@@ -18,24 +18,22 @@ sslThreadController Function GetThread(Actor theActor) global
     return GetSexLab().GetActorController(theActor)
 EndFunction
 
-Actor Function CustomResolveActor(Actor theActor, string _code) global
-    sslThreadController thread = GetThread(theActor)
+Function CustomResolveActor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string _code) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+    if CmdPrimary.CustomResolveActorReady
+        return
+    endif
+    sslThreadController thread = GetThread(CmdTargetActor)
     int actorIdx = 0
     while actorIdx < thread.Positions.Length
         if (actorIdx == 0 && _code == "$partner") || (actorIdx == 1 && _code == "$partner2") || (actorIdx == 2 && _code == "$partner3") || (actorIdx == 3 && _code == "$partner4")
-            return thread.Positions[actorIdx]
+            CmdPrimary._slt_SetCustomResolveActorResult(thread.Positions[actorIdx])
         endif
         actorIdx += 1
     endwhile
-    return none
 EndFunction
 
-function hextun_test(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
-	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-    DebMsg("hextun_test: sexlab")
-endFunction
-
-function util_waitforend(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function util_waitforend(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	if !GetSexLab()
 		return
@@ -54,7 +52,7 @@ function util_waitforend(Actor CmdTargetActor, string[] param, ActiveMagicEffect
 endFunction
  
 
-function util_getrndactor(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function util_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     string ss
     float  p1
@@ -110,7 +108,7 @@ function util_getrndactor(Actor CmdTargetActor, string[] param, ActiveMagicEffec
 endFunction
  
 
-function actor_say(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function actor_say(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Actor mate
     Topic thing
@@ -129,7 +127,7 @@ function actor_say(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdP
 endFunction
  
 
-function util_waitforkbd(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	if !GetSexLab()
         CmdPrimary.MostRecentResult = "-1"
@@ -180,7 +178,7 @@ function util_waitforkbd(Actor CmdTargetActor, string[] param, ActiveMagicEffect
 endFunction
  
 
-function sl_isin(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function sl_isin(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	if !GetSexLab()
         CmdPrimary.MostRecentResult = "0"
@@ -202,7 +200,7 @@ function sl_isin(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPri
 endFunction
  
 
-function sl_hastag(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function sl_hastag(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     CmdPrimary.MostRecentResult = "0"
 	
@@ -224,7 +222,7 @@ function sl_hastag(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdP
 endFunction
  
 
-function sl_animname(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function sl_animname(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     CmdPrimary.MostRecentResult = ""
 	
@@ -244,7 +242,7 @@ function sl_animname(Actor CmdTargetActor, string[] param, ActiveMagicEffect _Cm
 endFunction
  
 
-function sl_getprop(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function sl_getprop(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     CmdPrimary.MostRecentResult = ""
 	
@@ -269,7 +267,7 @@ function sl_getprop(Actor CmdTargetActor, string[] param, ActiveMagicEffect _Cmd
 endFunction
  
 
-function sl_advance(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function sl_advance(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	if !GetSexLab()
 		return
@@ -283,7 +281,7 @@ function sl_advance(Actor CmdTargetActor, string[] param, ActiveMagicEffect _Cmd
 endFunction
 
 
-function sl_isinslot(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function sl_isinslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	CmdPrimary.MostRecentResult = "0"
 	
@@ -317,7 +315,7 @@ function sl_isinslot(Actor CmdTargetActor, string[] param, ActiveMagicEffect _Cm
 endFunction
 
 
-function sl_orgasm(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function sl_orgasm(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     if !GetSexLab()
         return
@@ -336,7 +334,7 @@ function sl_orgasm(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdP
 endFunction
 
 
-function df_setdebt(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function df_setdebt(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Form dfMCM_form = Game.GetFormFromFile(0xC545, "DeviousFollowers.esp")
 
@@ -352,7 +350,7 @@ function df_setdebt(Actor CmdTargetActor, string[] param, ActiveMagicEffect _Cmd
 endFunction
 
 
-function df_resetall(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function df_resetall(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Form dfQuest_form = Game.GetFormFromFile(0xD62, "DeviousFollowers.esp")
 
@@ -377,7 +375,7 @@ zadLibs Function GetDDLib() global
     return ddlib
 EndFunction
 
-function dd_unlockslot(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function dd_unlockslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     zadLibs ddlib = GetDDLib()
     if !ddlib
@@ -403,7 +401,7 @@ function dd_unlockslot(Actor CmdTargetActor, string[] param, ActiveMagicEffect _
 endFunction
 
 
-function dd_unlockall(Actor CmdTargetActor, string[] param, ActiveMagicEffect _CmdPrimary) global
+function dd_unlockall(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     zadLibs ddlib = GetDDLib()
     if !ddlib

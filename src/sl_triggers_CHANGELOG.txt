@@ -1,3 +1,7 @@
+109
+    enhancement: dynamic command library lookup
+        this is going to be geared more toward extension authors but essentially this will make it TONS easier to add functions you can call in your scripts
+
 108
     enhancement: added sl_triggersAPI for other mod authors to access SLT features
         sl_triggersAPI exposes the following endpoints:
