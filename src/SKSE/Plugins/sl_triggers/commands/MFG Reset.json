@@ -1,8 +1,0 @@
-{
-	"cmd" : 
-	[
-        ["util_waitforend", "$self"],
-        ["util_wait", "4"],
-        ["mfg_reset", "$self"]
-	]
-}
