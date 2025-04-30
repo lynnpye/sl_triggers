@@ -1,6 +1,10 @@
 109
     enhancement: dynamic command library lookup
         this is going to be geared more toward extension authors but essentially this will make it TONS easier to add functions you can call in your scripts
+    bugfix: SexLab events should be working now
+        the code to read the commands was copied from the previous attributes which were int and not string, replacing it with a getstring fixed this issue
+    bugfix: Chance not saving for new SexLab events
+        the chance attribute was not being set due to a bug in the UI handler for sliders, fixed;
 
 108
     enhancement: added sl_triggersAPI for other mod authors to access SLT features

@@ -92,7 +92,7 @@
     ],
     "triggerlayout" : [
         ["event", "chance"],
-        ["race", "actor"],
+        ["race", "role"],
         ["player", "gender"],
         ["tag", "daytime"],
         ["location", "position"],

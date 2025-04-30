@@ -120,7 +120,7 @@ endEvent
 
 int Function ShowAttribute(string attrName, int widgetOptions, string triggerKey, string _dataFile, bool _isTriggerAttributes)
 	string extensionKey = CurrentExtensionKey
-	int _oid
+	int _oid = 0
 		
 	int widg = GetAttrWidget(_isTriggerAttributes, attrName)
 	string label = GetAttrLabel(_isTriggerAttributes, attrName)
@@ -209,8 +209,9 @@ int Function ShowAttribute(string attrName, int widgetOptions, string triggerKey
 		
 		_oid = AddMenuOption(label, menuValue, widgetOptions)
 		AddOid(_oid, triggerKey, attrName)
+	else
+		Debug.Trace("This should not be reachable attrName(" + attrName + ") widg(" + widg + ") label(" + label + ") widgetOptions(" + widgetOptions + ") triggerKey(" + triggerKey + ") _dataFile(" + _dataFile + ") _isTriggerAttributes(" + _isTriggerAttributes + ")")
 	endif
-
 	return _oid
 EndFunction
 
@@ -845,11 +846,12 @@ Event OnOptionSliderAccept(int option, float value)
 	endif
 
 	int attrType = GetAttrType(_istk, attrName)
-	if attrType == PTYPE_STRING() && JsonUtil.HasStringValue(_dataFile, attrName)
+
+	if attrType == PTYPE_STRING()
 		JsonUtil.SetFloatValue(_dataFile, attrName, value)
-	elseif attrType == PTYPE_INT() && JsonUtil.HasIntValue(_dataFile, attrName)
+	elseif attrType == PTYPE_INT()
 		JsonUtil.SetIntValue(_dataFile, attrName, value as int)
-	elseif attrType == PTYPE_FLOAT() && JsonUtil.HasFloatValue(_dataFile, attrName)
+	elseif attrType == PTYPE_FLOAT()
 		JsonUtil.SetFloatValue(_dataFile, attrName, value as float)
 	endif
 
@@ -1147,7 +1149,6 @@ Event OnOptionInputAccept(int option, string _input)
 		ForcePageReset()
 	endif
 EndEvent
-
 
 
 Function ShowHeaderPage()
