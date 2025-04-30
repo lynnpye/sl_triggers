@@ -512,9 +512,9 @@ string[] Function GetCommandLibraries()
 	while i < libconfigs.Length
 		string libfilename = "../sl_triggers/extensions/" + libconfigs[i]
 		int configlen = StringUtil.GetLength(libconfigs[i])
-		int taillen = StringUtil.GetLength("-libraries")
+		int taillen = StringUtil.GetLength("-libraries.json")
 		string tail = StringUtil.Substring(libconfigs[i], configlen - taillen)
-		if tail == "-libraries"
+		if tail == "-libraries.json"
 			string[] cfglibs = JsonUtil.PathMembers(libfilename, ".")
 			j = 0
 			while j < cfglibs.Length

@@ -1,0 +1,10 @@
+scriptname sl_triggersAPI
+
+int Function GetVersion() global
+EndFunction
+
+string[] Function GetScriptsList() global
+EndFunction
+
+Function RunScript(string _scriptname, Actor _theActor = none) global
+EndFunction

@@ -15,7 +15,7 @@ function DebMsgForce(string msg, bool shouldIDoAnything) global
 endfunction
 
 int Function GetModVersion() global
-	return 109
+	return 110
 EndFunction
 
 Function UtilityWaitButLessStupid() global

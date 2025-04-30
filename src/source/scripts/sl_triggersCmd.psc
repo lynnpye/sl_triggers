@@ -174,6 +174,16 @@ string Function vars_set(int varsindex, string value)
 	return Heap_StringSetFK(CmdTargetActor, VARS_KEY_PREFIX + varsindex, value)
 EndFunction
 
+; simple get handler for infini-globals
+string Function globalvars_get(int varsindex)
+	return SLT.globalvars_get(varsindex)
+EndFunction
+
+; simple set handler for infini-globals
+string Function globalvars_set(int varsindex, string value)
+	return SLT.globalvars_set(varsindex, value)
+EndFunction
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
