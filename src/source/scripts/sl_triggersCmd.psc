@@ -230,15 +230,6 @@ EndFunction
 
 
 ; internal variables
-bool		deferredInitNeeded
-;/
-bool		clusterDispelSent
-
-ActiveMagicEffect[]		supportCmds
-
-int			expectedSupportCmds
-int			supportCmdsCheckedIn
-/;
 string      VARS_KEY_PREFIX
 
 
@@ -274,7 +265,6 @@ int[]       _cs_gosubReturnIdx
 string[]    _csMostRecentResult
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
-	deferredInitNeeded = true
     cmdIdx = 0
     
     gotoCnt = 0

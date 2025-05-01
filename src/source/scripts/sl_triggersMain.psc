@@ -138,7 +138,7 @@ Event OnSLTRequestCommand(string _eventName, string _commandName, float __ignore
 		_actualActor = PlayerRef
 	endif
 	
-	StartCommand(_actualActor, _commandName, none)
+	StartCommand(_actualActor, _commandName)
 EndEvent
 
 Event OnSLTDelayedSettingsBroadcast(string _eventName, string _commandName, float __ignored, Form _theActor)
@@ -400,26 +400,10 @@ string Function globalvars_set(int varsindex, string value)
 	return Heap_StringSetFK(self, MakeInstanceKey(PSEUDO_INSTANCE_KEY, GLOBALVARS_KEYNAME_PREFIX + varsindex), value)
 EndFunction
 
-Function EnqueueAMEValues(Actor _theActor, string cmd, string instanceId, Form[] spellForms, string[] extensionInstanceIds)
+Function EnqueueAMEValues(Actor _theActor, string cmd, string instanceId)
 	if !self
 		return
 	endif
-	Heap_StringSetFK(_theActor, MakeInstanceKey(instanceId, "cmd"), cmd)
-	int count = 0
-	if spellForms.Length
-		int sfi = 0
-		while sfi < spellForms.Length
-			if spellForms[sfi] && extensionInstanceIds[sfi]
-				Heap_FormListAddFK(_theActor, MakeInstanceKey(instanceId, "spellForms"), spellForms[sfi])
-				Heap_StringListAddFK(_theActor, extensionInstanceIds[sfi], instanceId)
-				count += 1
-			endif
-		
-			sfi += 1
-		endwhile
-	endif
-	Heap_IntSetFK(_theActor, MakeInstanceKey(instanceId, "spellFormsLength"), count)
-	Heap_EnqueueInstanceIdF(_theActor, instanceId)
 EndFunction
 
 sl_triggersExtension Function GetExtensionByIndex(int _index)
@@ -429,18 +413,12 @@ EndFunction
 ; StartCommand
 ; Actor _theActor: the Actor to attach this command to
 ; string _cmdName: the file to run; is also the triggerKey or triggerId
-; sl_triggersExtension _sltex: the extension making the request
-string Function StartCommand(Actor _theActor, string _cmdName, sl_triggersExtension _sltext)
+string Function StartCommand(Actor _theActor, string _cmdName)
 	if !self
 		return ""
 	endif
 
-	string _instanceId
-	if _sltext
-		_instanceId = _sltext._slt_NextInstanceId()
-	else
-		_instanceId = _NextInstanceId()
-	endif
+	string _instanceId = _NextInstanceId()
     
 	Spell coreSpell = NextPooledSpellForActor(_theActor)
 	
@@ -449,31 +427,8 @@ string Function StartCommand(Actor _theActor, string _cmdName, sl_triggersExtens
 		return ""
 	endif
 	
-	Form[] spellForms
-	string[] extensionInstanceIds
-	; certain things only need to be done if we have extensions
-	if extensions.Length > 0
-		spellForms = PapyrusUtil.FormArray(extensions.Length)
-		extensionInstanceIds = PapyrusUtil.StringArray(extensions.Length)
-		
-		int extensionIndex = 0
-		while extensionIndex < spellForms.Length
-			sl_triggersExtension _thisExt = GetExtensionByIndex(extensionIndex)
-			if _thisExt._slt_HasPool()
-				spellForms[extensionIndex] = _thisExt._slt_NextPooledSpellForActor(_theActor)
-				if !spellForms[extensionIndex]
-					MiscUtil.PrintConsole("Too many effects on: " + _theActor + " from extension: " + _thisExt.GetExtensionKey())
-					return ""
-				endif
-				extensionInstanceIds[extensionIndex] = MakeExtensionInstanceId(_thisExt.GetExtensionKey())
-			endif
-			
-			extensionIndex += 1
-		endwhile
-	endif
-	
-	; spells are forms, we can milk them
-	EnqueueAMEValues(_theActor, _cmdName, _instanceId, spellForms, extensionInstanceIds)
+	Heap_StringSetFK(_theActor, MakeInstanceKey(_instanceId, "cmd"), _cmdName)
+	Heap_EnqueueInstanceIdF(_theActor, _instanceId)
 	
 	; cast the core AME
 	coreSpell.RemoteCast(_theActor, _theActor, _theActor)

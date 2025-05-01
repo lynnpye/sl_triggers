@@ -6,36 +6,6 @@ import sl_triggersHeap
 ; Properties
 Actor               Property PlayerRef Auto
 
-;/
-Spell and Effect pools
-OPTIONAL
-
-You would only be required to assign spellPool and effectPool values
-if you are adding new operations to be available in scripts, and those
-cases you will also be extending the sl_triggersCmdBase script.
-
-Each spell should be matched to an effect. The IDs don't matter so long
-as your sl_triggersCmdBase script is appropriately attached and
-configured for your use.
-
-When a script calls for your operation, your CmdBase extension will be
-added to the Actor and associated with the cluster of other CmdBase extension
-(if any, but including the prime CmdBase) into it's own cluster to handle
-all operations for that script execution. By doing this, which may end up
-launching a cluster of ActiveMagicEffects all at once on one Actor, any
-operation that is long running and might block other events from being handled
-won't impact any other execution, as would happen if, for example,
-the operations resided within the same script that handles the external events.
-
-The purpose behind the pool is to allow multiple triggers to be running on
-the same Actor at once. Without this, only a single ActiveMagicEffect would
-get attached and would be responsible for, presumably, all script execution.
-Even the best written such scenario would be rife with opportunity for
-resource contention. Not good.
-/;
-Spell[]             Property SpellPool Auto
-MagicEffect[]       Property EffectPool Auto
-
 ; sl_triggersMain SLT
 ; access to the sl_triggers API and framework
 sl_triggersMain		Property SLT Auto Hidden ; will be populated on startup
@@ -226,7 +196,7 @@ string Function RequestCommand(Actor _theActor, string _theCommand)
 		return ""
 	endif
 	
-	return SLT.StartCommand(_theActor, _theCommand, self)
+	return SLT.StartCommand(_theActor, _theCommand)
 EndFunction
 
 
@@ -282,7 +252,7 @@ string				Property currentTriggerId Auto Hidden ; used for simple iteration
 int		oneupnumber
 string	settingsUpdateEvent 
 string	gameLoadedEvent 
-string internalReadyEvent 
+string 	internalReadyEvent 
 
 Event _slt_OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
 	if !self
@@ -350,54 +320,8 @@ string Function _slt_GetInternalReadyEvent()
 	return internalReadyEvent
 EndFunction
 
-bool Function _slt_HasPool()
-	return SpellPool.Length > 0 && EffectPool.Length > 0
-EndFunction
-
 bool Function _slt_HasTriggers()
 	return TriggerKeys.Length > 0
-EndFunction
-
-Spell Function _slt_NextPooledSpellForActor(Actor _theActor)
-	if !_theActor
-		Debug.Trace("sl_triggersExtension.NextPooledSpellForActor: _theActor is none")
-		return none
-	endif
-	
-	int _i = 0
-	while _i < SpellPool.Length && _i < EffectPool.Length
-		if !_theActor.HasMagicEffect(EffectPool[_i])
-			return SpellPool[_i]
-		endif
-	
-		_i += 1
-	endwhile
-	
-	Debug.Trace("sl_triggersExtension.NextPooledSpellForActor: No core effects available.")
-	return none
-EndFunction
-
-; NextCycledInstanceNumber
-; DO NOT OVERRIDE
-; int oneupmin = -30000
-; int oneupmax = 30000
-; returns: the next value in the cycle; if the max is exceeded, the cycle resets to min
-; 	if you get 60000 of these launched in your game, you win /sarcasm
-int Function _slt_NextCycledInstanceNumber(int oneupmin = -30000, int oneupmax = 30000)
-	int nextup = oneupnumber
-	oneupnumber += 1
-	if oneupnumber > oneupmax
-		oneupnumber = oneupmin
-	endif
-	return nextup
-EndFunction
-
-; NextInstanceId
-; DO NOT OVERRIDE
-; returns: an instanceId derived from this extension, typically as a result
-; 	of requesting a command be executed in response to an event
-string Function _slt_NextInstanceId()
-	return GetExtensionKey() + "(" + _slt_NextCycledInstanceNumber() + ")"
 EndFunction
 
 Function _slt_RefreshTriggers()

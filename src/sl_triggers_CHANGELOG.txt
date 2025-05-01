@@ -1,3 +1,6 @@
+111
+    SAVE-BREAKING: cleaning up last bits of extension pools (should have done this pre 109); this changes the .esp, you will need a new save (I mean, you can try)
+
 110
     bugfix: fixed the problem preventing command libraries beyond the base SLT library from working
     enhancement: added a demo script and some convenience options for other mod authors
