@@ -1,0 +1,14 @@
+{
+	"cmd" : 
+	[
+        ["item_add", "$self", "skyrim.esm:15", "10", "0"],
+		["goto", "there"],
+		[":", "here"],
+        ["item_add", "$self", "skyrim.esm:15", "7", "0"],
+		["goto", "finally"],
+		[":", "there"],
+        ["item_add", "$self", "skyrim.esm:15", "11", "0"],
+		["goto", "here"],
+		[":", "finally"]
+	]
+}

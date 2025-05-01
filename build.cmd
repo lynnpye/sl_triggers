@@ -1,12 +1,23 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-SET "INC_ROOT=%~dp0inc"
-SET "TARGET_DIR=%~dp0src\scripts"
-SET "SKSE=D:\src\sksemods\skse64_2_00_20"
 SET "PAPYRUS_EXE=C:\tools\Papyrus\PapyrusCompiler.exe"
 
-DEL "%TARGET_DIR%\*.pex"
+
+REM
+
+REM Everything below this line should be able to remain untouched
+SET "INC_ROOT=%~dp0inc"
+SET "SRC_DIR=%~dp0src"
+SET "SRC_PEX_DIR=%SRC_DIR%\scripts"
+REM
+
+for %%F in ("%SRC_PEX_DIR%\*.pex") do (
+    del "%%F"
+	REM
+)
+
+REM
 
 call .\inc\inc.cmd
 
@@ -24,10 +35,14 @@ shift
 :filecheck
 if "%PSC_FILE%"=="" goto endloop
 pushd src\source\scripts
-"%PAPYRUS_EXE%" %PSC_FILE% -o="%TARGET_DIR%" -i="%INC_PATH%" -f=TESV_Papyrus_Flags.flg -op 
+"%PAPYRUS_EXE%" %PSC_FILE% -o="%SRC_PEX_DIR%" -i="%INC_PATH%" -f=TESV_Papyrus_Flags.flg -op 
 popd
 goto beginloop
 
 :endloop
+
+REM
+REM
+REM
 
 endlocal

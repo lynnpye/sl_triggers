@@ -1,9 +1,0 @@
-{
-	"cmd" : 
-	[
-        ["rnd_list", "OneHanded","TwoHanded","Block","HeavyArmor","Marksman", "Smithing"],
-        ["set", "$1", "$$"],
-        ["actor_incskill", "$self", "$1", "1"]
-	]
-}
-

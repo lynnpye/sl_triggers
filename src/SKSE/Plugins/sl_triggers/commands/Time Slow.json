@@ -1,8 +1,0 @@
-{
-	"cmd" : 
-	[
-        ["console", "$self", "sgtm 0.5"],
-        ["util_waitforend", "$self"],
-        ["console", "$self", "sgtm 1"]
-	]
-}

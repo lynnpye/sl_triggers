@@ -1,6 +1,0 @@
-{
-	"cmd" : 
-	[
-        ["util_game", "IncrementStat", "Necks Bitten", "1"]
-	]
-}

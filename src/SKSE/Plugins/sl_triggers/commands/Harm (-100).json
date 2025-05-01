@@ -1,6 +1,0 @@
-{
-	"cmd" : 
-	[
-        ["av_damage", "$self", "Health", "100"]
-	]
-}

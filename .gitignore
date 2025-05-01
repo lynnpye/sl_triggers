@@ -1,7 +1,8 @@
-src/scripts/
 .vscode/
+src/scripts/
 
-SkyrimSE.code-workspace
-deploy.cmd
-push.cmd
-skyrimse.ppj
+*.code-workspace
+*.ppj
+*.cmd
+*.zip
+sl-triggers-internal.dll

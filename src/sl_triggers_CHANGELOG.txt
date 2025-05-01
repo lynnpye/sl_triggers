@@ -1,17 +1,96 @@
-24
-	bugfix: Fraying9981 was right, there was a problem with the SLSO orgasm handling. It is fixed now.
+110
+    bugfix: fixed the problem preventing command libraries beyond the base SLT library from working
+    enhancement: added a demo script and some convenience options for other mod authors
 
-23
-	bugfix: fixed sl_isinslot - now appropriately checks parameter 2 for the slot number rather than expecting the Actor in parameter 1 to also be a slot number. The insanity.
+109
+    enhancement: dynamic command library lookup
+        this is going to be geared more toward extension authors but essentially this will make it TONS easier to add functions you can call in your scripts
+    bugfix: SexLab events should be working now
+        the code to read the commands was copied from the previous attributes which were int and not string, replacing it with a getstring fixed this issue
+    bugfix: Chance not saving for new SexLab events
+        the chance attribute was not being set due to a bug in the UI handler for sliders, fixed;
 
-22
-	bugfix: *sigh* next time you turn a hard dependency into a soft one, remember to actually hook up the dependency checker (added code to actually call the SexLab checker function I had written)
-		Funny thing about testing; as it turns out, this wasn't a problem for me because my SexLab test instance takes so long to launch I tend to avoid creating a new save, just reusing the old one and upgrading.
-		Well, Quest objects (most Forms) will retain data stored in instance variables across saves. Including things like, I dunno, references to third party mods.
-		So when I just replaced v16 with v17, it was on a dirty save, so the Quest already had the SLT property filled in from when it was launched as a hard dependency
-		And of course everything worked fine on a non-SexLab environment because, well, no SexLab was expected to be detected.
-		So... I now have a pristine SexLab instance sans sl_triggers that I can test with, so I've got that goin' for me.
-	change: I commented out a change I had made to clean out triggers with bad data; at this point I want to make sure sl_triggers is stable as a trigger platform
+108
+    enhancement: added sl_triggersAPI for other mod authors to access SLT features
+        sl_triggersAPI exposes the following endpoints:
+            GetVersion()
+            GetScriptsList()
+            RunScript(string _scriptname, Actor _actor = none) ; defaults to Player
+                if RunScript() is called without an Actor provided
+                    it will first try the Actor currently in your crosshairs if there is one
+                    it will fall back to the Player
+
+    enhancement: added console commands (slt/sl_triggers)
+        slt console command has the following usage:
+			Usage: slt version          ; displays sl_triggers mod version
+			Usage: slt list             ; lists the scripts available to run from SLT
+			Usage: slt run <scriptname> ; where <scriptname> is a valid script for SLT
+                when slt run is called
+                    it will first check if there is an Actor currently selected in the console
+                    it will then check for an Actor in the crosshairs
+                    it will fall back to the Player
+
+107
+    enhancement: new commands for your scripts:
+            dd_unlockslot <slot#> <"force" (optional)> ; slot# i.e. 32 is body ; if "force" is added as a second parameter, it will also unlock quest items
+            dd_unlockall <"force" (optional)> ; works like dd_unlockslot but for all slots
+        Note that after unlocking items may still appear to be equipped in inventory but you should be able to safely select and remove them
+        And a script to demonstrate
+            DD Unlock All.ini
+    enhancement: .ini scripts now support comment to end of line
+        sl_isin $self ; this is a valid comment
+        ; as would be this (all by itself)
+    
+
+106
+    enhancement: flagged as .ESL
+    bugfix: workaround for Papyrus VM string case destruction
+    enhancement: added Devious Followers Redux commands
+            df_setdebt
+            df_resetall
+        additionally, I also added scripts:
+            DF Set Debt to 0.ini
+            DF Reset All.ini
+
+105
+    bugfix: possible resolution issue with global variables in some cases
+    enhancement: new feature, subroutines
+        beginsub <subroutinename>/endsub to demarcate the subroutine
+        gosub <subroutinename> to execute and return
+    enhancement: new feature, "call"
+        call <command file name> <optional $1 argument> <optional $2 argument> ...
+            stops execution of current command file, runs the requested file, then resumes current command file
+            if an extension is not specified .ini is tried first, then .json
+            variable scopes are NOT shared (global variables are, of course, still global)
+                so if you set $1, then call a function, it will not see your $1 value
+                but if you use $g1, it will
+            arguments are passed by value
+        callarg <index> <variable name>
+            Example: callarg 0 $2
+            this will place the first (index 0) argument passed into $2
+            
+
+104
+    multiple bugfixes related to MCM and settings management
+    new file layout under the hood
+
+103
+    bugfix: trigger primes were not dispelling themselves at end of service
+    bugfix: result stacks were not crossing back from extensions to core
+
+102
+    bugfix: fixed problem where available triggers would not reset between launches of the game
+    bugfix: fixed problem with MCM OID handling (might not have noticed it; it could be subtle)
+    enhancement: QoL for your developer; lots of code clean up and trying to fix problems I introduced due to code clean up
+        .. like, a LOT of code cleanup. Refactoring. Removing comments. Adding comments.
+    enhancement: Added localization. sl_triggers doesn't have much to translate, but if you want to donate translations I'll add them
+
+101
+    bugfix: sexlab compat
+    enhancement: sl_orgasm
+
+100
+    beta: the new hotness is all about modularity... I really need to write this up
 
 21
 	bugfix: position is now being handled correctly by the MCM (it was overwriting the "role" attribute)

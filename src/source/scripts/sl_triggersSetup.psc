@@ -1,1415 +1,1618 @@
-Scriptname sl_TriggersSetup extends SKI_ConfigBase
+scriptname sl_triggersSetup extends SKI_ConfigBase
 
-sl_TriggersMain  Property SLT auto
-
-function DebMsg(string msg)
-	SLT.DebMsg(msg)
-endfunction
+import sl_triggersStatics
+import sl_triggersHeap
 
 ; CONSTANTS
-int CARDS_PER_PAGE = 5  ; slots per page
+int			CARDS_PER_PAGE = 5
+string		PSEUDO_INSTANCE_KEY = "sl_triggersSetup"
+
+string		DELETE_BUTTON = "--DELETETHISITEM--"
+string		RESTORE_BUTTON = "--RESTORETHISITEM--"
+
+
+int			WIDG_ERROR			= 0
+int			WIDG_SLIDER			= 1
+int			WIDG_MENU			= 2
+int			WIDG_KEYMAP			= 3
+int			WIDG_TOGGLE			= 4
+int			WIDG_INPUT			= 5
+int			WIDG_COMMANDLIST	= 6
+
 
 ; Properties
-int			Property	EVENT_ID_NOT_SELECTED		= 0 Auto
-int			Property	EVENT_ID_SEXLAB_START		= 1 Auto
-int			Property	EVENT_ID_SEXLAB_ORGASM		= 2 Auto
-int			Property	EVENT_ID_SEXLAB_STOP		= 3 Auto
-int			Property	EVENT_ID_SEXLAB_ORGASMS		= 4 Auto
-int			Property	EVENT_ID_TOP_OF_THE_HOUR	= 5 Auto
-int			Property	EVENT_ID_KEYMAPPING			= 6 Auto
-string		Property	SettingsName = "../sl_triggers/settings" Auto
-string		Property	CommandsFolder = "../sl_triggers/commands" Auto
+sl_TriggersMain		Property SLT Auto
 
-; Internal variables
-Int oidEnabled
-Int oidDebugMsg
+string				Property CurrentExtensionKey Auto Hidden
 
-string[] triggerParamNames
-string[] triggerIfEventNames
-string[] triggerIfRaceNames
-string[] triggerIfPlayerNames
-string[] triggerIfRoleNames
-string[] triggerIfPosition
-string[] triggerIfGenderNames
-string[] triggerIfTagNames
-string[] triggerIfDaytimeNames
-string[] triggerIfLocationNames
+string[] Property CommandsList Auto Hidden
 
-string[] commandList
 
-int		 slt_currentpage ; will be zero-based (first page of triggers is page 0 though it is displayed as page 1)
+; Variables
+bool		refreshOnClose
+bool		displayExtensionSettings
+bool		previousDisplayExtensionSettings
+bool		firstPageReset
 
-bool checkingVersion = false ; locking variable for version checks
+string[]	headerPages
+string[]	extensionPages
+string[]	extensionKeys
+string[]	attributeNames
 
+string		currentSLTPage
+int			currentCardination
+
+
+int[]		xoidlist
+string[]	xoidtriggerkeys
+string[]	xoidattrnames
+
+; These are used to cache "well-known" OIDs for the UI
+; i.e. "standard" components used by SLT itself. They
+; must be reset correctly OnPageReset, so make sure to update
+; convenient function which is stored so very, very
+; closely that you can't miss it, hextun, ol' chap, ol' buddy, ol' pal.
+int			oidEnabled
+int			oidDebugMsg
+int			oidResetSLT
+int			oidCardinatePrevious
+int			oidCardinateNext
+int			oidAddTop
+int			oidAddBottom
+int			oidExtensionSettings
+int			oidExtensionBack
+int			oidExtensionEnabled
+int[]		oidForcePageReset
+; Oh look, they are in the same order as the otherwise unremarkable
+; and yet, clearly, obviously important variables declared just
+; above.
+;
+; I wonder....
+Function CallThisToResetTheOIDValuesHextun()
+	oidEnabled				= 0
+	oidDebugMsg				= 0
+	oidResetSLT				= 0
+	oidCardinatePrevious	= 0
+	oidCardinateNext		= 0
+	oidAddTop				= 0
+	oidAddBottom			= 0
+	oidExtensionSettings	= 0
+	oidExtensionBack		= 0
+	oidExtensionEnabled		= 0
+	oidForcePageReset		= PapyrusUtil.IntArray(0)
+	xoidlist				= PapyrusUtil.IntArray(0)
+	xoidtriggerkeys			= PapyrusUtil.StringArray(0)
+	xoidattrnames			= PapyrusUtil.StringArray(0)
+EndFunction
 
 int Function GetVersion()
-	return 24
+	return GetModVersion()
 EndFunction
 
 Event OnConfigInit()
-	init()
+	headerPages = new string[1]
+	headerPages[0] = "SL Triggers"
 EndEvent
 
-Event OnVersionUpdate(int version)
-	init()
+Event OnConfigOpen()
+	if extensionPages.Length > 0
+		Pages = PapyrusUtil.MergeStringArray(headerPages, extensionPages)
+	else
+		Pages = headerPages
+	endif
+	refreshOnClose = false
+	firstPageReset = true
+	displayExtensionSettings = false
+	previousDisplayExtensionSettings = false
 EndEvent
-
-Event OnGameReload()
-	parent.OnGameReload() ; Don't forget to call the parent!
-	init()
-	SLT.on_reload()
-EndEvent
-
-event OnConfigOpen()
-	init()
-	commandList = _getCommands()
-endEvent
 
 event OnConfigClose()
-	;CleanTriggerData()
-	JsonUtil.Save(settingsName)
-	SLT.HandleSettingsUpdated()
+	SLT.SendInternalSettingsUpdateEvents()
+
+	if refreshOnClose
+		refreshOnClose = false
+		SLT.DoInMemoryReset()
+	endif
 endEvent
 
-;/
-; Commenting this out for now to focus on stability before moving forward with this feature.
-; Besides, v100 is coming.
-Function CleanTriggerData()
-	int i
-	int j
-	
-	; Remove anything that evaluates to an empty string
-	i = 1
-	while i < 81
-		j = 0
-		while j < triggerParamNames.Length
-			if "" == JsonUtil.GetStringValue(SettingsName, _makeSlotId(i, j))
-				JsonUtil.UnsetStringValue(SettingsName, _makeSlotId(i, j))
-			endif
-			j += 1
-		endwhile
-		i += 1
-	endwhile
-	
-	; Remove triggers with invalid events
-	i = 1
-	while i < 81
-		if !JsonUtil.HasStringValue(settingsName, _makeSlotId(i, 2)) || "0" == JsonUtil.GetStringValue(settingsName, _makeSlotId(i, 2))
-			;; clear everything out
-			JsonUtil.ClearPath(settingsName, _makeSlotNoPrefix(i))
+
+
+
+int Function ShowAttribute(string attrName, int widgetOptions, string triggerKey, string _dataFile, bool _isTriggerAttributes)
+	string extensionKey = CurrentExtensionKey
+	int _oid = 0
+		
+	int widg = GetAttrWidget(_isTriggerAttributes, attrName)
+	string label = GetAttrLabel(_isTriggerAttributes, attrName)
+	if widg == WIDG_SLIDER
+		float _defval = GetAttrDefaultFloat(_isTriggerAttributes, attrName)
+		if JsonUtil.HasFloatValue(_dataFile, attrName)
+			_defval = JsonUtil.GetFloatValue(_dataFile, attrName)
 		endif
-		i += 1
-	endwhile
+		_oid = AddSliderOption(label, _defval, GetAttrFormatString(_isTriggerAttributes, attrName), widgetOptions)
+		; add to list of oids to heap
+		AddOid(_oid, triggerKey, attrName)
+	elseif widg == WIDG_MENU
+		string[] menuSelections = GetAttrMenuSelections(_isTriggerAttributes, attrName)
+		int ptype = GetAttrType(_isTriggerAttributes, attrName)
+		string menuValue = ""
+		if (ptype == PTYPE_INT() && !JsonUtil.HasIntValue(_dataFile, attrName)) || (ptype == PTYPE_STRING() && !JsonUtil.HasStringValue(_dataFile, attrName))
+			int midx = GetAttrDefaultIndex(_isTriggerAttributes, attrName)
+			if midx > -1
+				menuValue = menuSelections[midx]
+			endif
+		else
+			if ptype == PTYPE_INT()
+				int midx = JsonUtil.GetIntValue(_dataFile, attrName)
+				if midx > -1
+					menuValue = menuSelections[midx]
+				endif
+			elseif ptype == PTYPE_STRING()
+				string _tval = JsonUtil.GetStringValue(_dataFile, attrName)
+				if menuSelections.find(_tval) > -1
+					menuValue = _tval
+				endif
+			endif
+		endif
+		_oid = AddMenuOption(label, menuValue, widgetOptions)
+		AddOid(_oid, triggerKey, attrName)
+	elseif widg == WIDG_KEYMAP
+		int _defmap = GetAttrDefaultValue(_isTriggerAttributes, attrName)
+		if JsonUtil.HasIntValue(_dataFile, attrName)
+			_defmap = JsonUtil.GetIntValue(_dataFile, attrName)
+		endif
+		int keymapOptions = OPTION_FLAG_WITH_UNMAP
+		if widgetOptions == OPTION_FLAG_DISABLED
+			keymapOptions = OPTION_FLAG_DISABLED
+		endif
+		_oid = AddKeyMapOption(label, _defmap, keymapOptions)
+		AddOid(_oid, triggerKey, attrName)
+	elseif widg == WIDG_TOGGLE
+		bool _defval = GetAttrDefaultValue(_isTriggerAttributes, attrName) != 0
+		if JsonUtil.HasIntValue(_dataFile, attrName)
+			_defval = JsonUtil.GetIntValue(_dataFile, attrName) != 0
+		endif
+		_oid = AddToggleOption(label, _defval, widgetOptions)
+		AddOid(_oid, triggerKey, attrName)
+	elseif widg == WIDG_INPUT
+		string _defval = GetAttrDefaultString(_isTriggerAttributes, attrName)
+		
+		int ptype = GetAttrType(_isTriggerAttributes, attrName)
+		if ptype == PTYPE_INT()
+			if JsonUtil.HasIntValue(_dataFile, attrName)
+				_defval = JsonUtil.GetIntValue(_dataFile, attrName) as string
+			endif
+		elseif ptype == PTYPE_FLOAT()
+			if JsonUtil.HasFloatValue(_dataFile, attrName)
+				_defval = JsonUtil.GetFloatValue(_dataFile, attrName) as string
+			endif
+		elseif ptype == PTYPE_STRING()
+			if JsonUtil.HasStringValue(_dataFile, attrName)
+				_defval = JsonUtil.GetStringValue(_dataFile, attrName)
+			endif
+		elseif ptype == PTYPE_FORM()
+			if JsonUtil.HasFormValue(_dataFile, attrName)
+				_defval = JsonUtil.GetFormValue(_dataFile, attrName) as string
+			endif
+		endif
+		
+		_oid = AddInputOption(label, _defval, widgetOptions)
+		AddOid(_oid, triggerKey, attrName)
+	elseif widg == WIDG_COMMANDLIST
+		string menuValue = ""
+		if JsonUtil.HasStringValue(_dataFile, attrName)
+			string _cval = JsonUtil.GetStringValue(_dataFile, attrName)
+			if CommandsList.find(_cval) > -1
+				menuValue = _cval
+			endif
+		endif
+		
+		_oid = AddMenuOption(label, menuValue, widgetOptions)
+		AddOid(_oid, triggerKey, attrName)
+	else
+		Debug.Trace("This should not be reachable attrName(" + attrName + ") widg(" + widg + ") label(" + label + ") widgetOptions(" + widgetOptions + ") triggerKey(" + triggerKey + ") _dataFile(" + _dataFile + ") _isTriggerAttributes(" + _isTriggerAttributes + ")")
+	endif
+	return _oid
 EndFunction
+
+
+Function ShowExtensionSettings()
+	SetCursorFillMode(TOP_TO_BOTTOM)
+
+	string _dataFile = FN_X_Settings(CurrentExtensionKey)
+
+	oidExtensionBack = AddTextOption("$SLT_BTN_BACK", "")
+	AddEmptyOption()
+
+	int _oid
+
+	InitSettingsFile(_dataFile)
+
+	; blank row
+	AddHeaderOption(currentSLTPage)
+	bool _extensionEnabledInSettings = true
+	
+	int _enabledInt = JsonUtil.GetIntValue(_dataFile, "enabled")
+	_extensionEnabledInSettings = (_enabledInt != 0)
+	oidExtensionEnabled = AddToggleOption("$SLT_LBL_ENABLED_QUESTION", _extensionEnabledInSettings)
+
+	int widgetOptions = OPTION_FLAG_NONE
+	if !_extensionEnabledInSettings
+		widgetOptions = OPTION_FLAG_DISABLED
+		; row
+		AddHeaderOption("$SLT_MSG_EXTENSION_DISABLED_0")
+		AddHeaderOption("$SLT_MSG_EXTENSION_DISABLED_1")
+	endif
+
+	string[] _layoutData = GetLayout(false, _dataFile)
+
+	string _layout = _layoutData[0]
+
+	int tlidx = 0
+	string[] tlattributes
+
+	tlattributes = GetExtensionLayoutData(false, _layout, tlidx)
+	while tlattributes.Length > 0
+		if tlattributes[0]
+			_oid = ShowAttribute(tlattributes[0], widgetOptions, "", _dataFile, false)
+			if _layoutData[1] && _layoutData[1] == tlattributes[0]
+				oidForcePageReset = PapyrusUtil.PushInt(oidForcePageReset, _oid)
+			endif
+		else
+			AddEmptyOption()
+		endif
+
+		if tlattributes.Length > 1 && tlattributes[1]
+			ShowAttribute(tlattributes[1], widgetOptions, "", _dataFile, false)
+			if _layoutData[1] && _layoutData[1] == tlattributes[1]
+				oidForcePageReset = PapyrusUtil.PushInt(oidForcePageReset, _oid)
+			endif
+		else
+			AddEmptyOption()
+		endif
+
+		tlidx += 1
+		tlattributes = GetExtensionLayoutData(false, _layout, tlidx)
+	endwhile
+
+EndFunction
+
+;/
+
+[=======  Extension Settings ======]
+[=======  Add  Trigger       ======]
+[= Prev =]				  [= Next =]
+[=======  Trigger-foo        ======]
+ asdf asdf
+ asdf asdf
+						[= Delete =]
+[=======  Trigger-bar        ======]
+ asdf asdf
+ asdf asdf
+						[= Delete =]
+	
 /;
+Function ShowExtensionPage()
+	if extensionPages.Length < 1
+		return
+	endif
+	; I have an extensionIndex with which I can retrieve an extensionKey
+	; if I'm going to paginate I need to have a concept of where in the order
+	; I am in for triggerKeys
+	string extensionKey = CurrentExtensionKey
+	string[] extensionTriggerKeys = GetExtensionTriggerKeys()
+	int triggerCount = extensionTriggerKeys.Length
+	
+	bool cardinate = false
+	bool hasNextCardinate = false
+	
+	if triggerCount > CARDS_PER_PAGE
+		cardinate = true
+	endif
+	
+	; what do we want this to look like?
+	SetCursorFillMode(LEFT_TO_RIGHT)
+	
+	; row
+	oidAddTop = AddTextOption("$SLT_BTN_ADD_NEW_ITEM", "")
+	oidExtensionSettings = AddTextOption("$SLT_BTN_EXTENSION_SETTINGS", "")
+	
+	int startIndex = 0
+	int displayCount = CARDS_PER_PAGE
+	if !cardinate
+		displayCount = triggerCount
+	else
+		displayCount = triggerCount - currentCardination * displayCount
+		if displayCount > CARDS_PER_PAGE
+			displayCount = CARDS_PER_PAGE
+			hasNextCardinate = true
+		endif
+	endif
+	
+	if cardinate
+		; blank row to avoid accidentally creating new items
+		AddEmptyOption()
+		AddEmptyOption()
+
+		; set startIndex appropriately
+		startIndex = currentCardination * CARDS_PER_PAGE
+		
+		;row
+		; display cardination buttons
+		if currentCardination > 0
+			oidCardinatePrevious = AddTextOption("$SLT_BTN_PREVIOUS", "")
+		else
+			oidCardinatePrevious = AddTextOption("$SLT_BTN_PREVIOUS", "", OPTION_FLAG_DISABLED)
+		endif
+		
+		if hasNextCardinate
+			oidCardinateNext = AddTextOption("$SLT_BTN_NEXT", "")
+		else
+			oidCardinateNext = AddTextOption("$SLT_BTN_NEXT", "", OPTION_FLAG_DISABLED)
+		endif
+	endif
+	
+	int displayIndexer = 0
+	int _oid
+	bool triggerIsSoftDeleted
+	string triggerKey
+	while displayIndexer < displayCount
+		int etkidx = displayIndexer + startIndex
+		triggerKey = extensionTriggerKeys[etkidx]
+		string _triggerFile = FN_Trigger(extensionKey, triggerKey)
+		triggerIsSoftDeleted = JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+		
+		AddHeaderOption("==] " + triggerKey + " [==")
+		AddEmptyOption()
+
+		int widgetOptions = OPTION_FLAG_NONE
+		if triggerIsSoftDeleted
+			widgetOptions = OPTION_FLAG_DISABLED
+			; row
+			AddHeaderOption("$SLT_MSG_SOFT_DELETE_0")
+			AddHeaderOption("$SLT_MSG_SOFT_DELETE_1")
+			; row
+			AddHeaderOption("$SLT_MSG_SOFT_DELETE_2")
+			AddHeaderOption("$SLT_MSG_SOFT_DELETE_3")
+		endif
+
+		string _dataFile = FN_Trigger(CurrentExtensionKey, triggerKey)
+		string[] _layoutData = GetLayout(true, _dataFile)
+		string _triggerLayout = _layoutData[0]
+		int tlidx = 0
+		string[] tlattributes
+
+		tlattributes = GetExtensionLayoutData(true, _triggerLayout, tlidx)
+		while tlattributes.Length > 0
+			if tlattributes[0]
+				_oid = ShowAttribute(tlattributes[0], widgetOptions, triggerKey, _triggerFile, true)
+				if _layoutData[1] && _layoutData[1] == tlattributes[0]
+					oidForcePageReset = PapyrusUtil.PushInt(oidForcePageReset, _oid)
+				endif
+			else
+				AddEmptyOption()
+			endif
+
+			if tlattributes.Length > 1 && tlattributes[1]
+				_oid = ShowAttribute(tlattributes[1], widgetOptions, triggerKey, _triggerFile, true)
+				if _layoutData[1] && _layoutData[1] == tlattributes[1]
+					oidForcePageReset = PapyrusUtil.PushInt(oidForcePageReset, _oid)
+				endif
+			else
+				AddEmptyOption()
+			endif
+
+			tlidx += 1
+			tlattributes = GetExtensionLayoutData(true, _triggerLayout, tlidx)
+		endwhile
+		
+		; blank row
+		AddEmptyOption()
+		AddEmptyOption()
+		
+		AddEmptyOption()
+		if !triggerIsSoftDeleted
+			; and option to delete
+			_oid = AddTextOption("$SLT_BTN_DELETE", "")
+			AddOid(_oid, triggerKey, DELETE_BUTTON)
+		else
+			; and option to undelete
+			_oid = AddTextOption("$SLT_BTN_RESTORE", "")
+			AddOid(_oid, triggerKey, RESTORE_BUTTON)
+		endif
+	
+		displayIndexer += 1
+	endwhile
+	
+	if displayCount > 2
+		; blank row
+		AddEmptyOption()
+		AddEmptyOption()
+		
+		oidAddBottom = AddTextOption("$SLT_BTN_ADD_NEW_ITEM", "")
+		AddEmptyOption()
+	endif
+	
+EndFunction
+
+
 
 Event OnPageReset(string page)
-	If page == ""
-        int ver = GetVersion()
-		AddHeaderOption("Sexlab Triggers (" + (ver as string) + ")")
+	CallThisToResetTheOIDValuesHextun()
+	bool doPageChanged = false
+
+	if page != currentSLTPage
+		doPageChanged = true
+	endif
+	currentSLTPage = page
+
+	bool doDisplayExtensionSettingsChanged = false
+	if displayExtensionSettings != previousDisplayExtensionSettings
+		previousDisplayExtensionSettings = displayExtensionSettings
+		oidExtensionBack = 0
+		oidExtensionSettings = 0
+	endif
+
+	if firstPageReset
+		doPageChanged = true
+		firstPageReset = false
+	endif
+
+	if doPageChanged
+		CurrentExtensionKey = ""
+		currentCardination = 0
+		displayExtensionSettings = false
+		extensionIndex = -1
+	endif
+
+	int extensionIndex = extensionPages.find(page)
+	if extensionIndex > -1
+		CurrentExtensionKey = extensionKeys[extensionIndex]
+
+		if displayExtensionSettings
+			attributeNames = GetAttributeNames(false)
+			ShowExtensionSettings()
+		else
+			attributeNames = GetAttributeNames(true)
+			ShowExtensionPage()
+		endif
 		return
-	elseIf page == "Main"
-		SetCursorFillMode(TOP_TO_BOTTOM)
-		AddHeaderOption("Global settings")
-		oidEnabled    = AddToggleOption("Enable", SLT.bEnabled)
-		oidDebugMsg   = AddToggleOption("Debug messages", SLT.bDebugMsg)
-		if SLT.DAKAvailable
-			AddHeaderOption("Dynamic Activation Key: FOUND")
-			AddKeyMapOption("Dynamic Activation HotKey:", SLT.DAKHotKey.GetValue() as int, OPTION_FLAG_DISABLED)
-		else
-			AddHeaderOption("Dynamic Activation Key: NOT FOUND")
-		endif
-		if SLT.SexLab
-			AddHeaderOption("SexLab: FOUND version: " + SLT.SexLab.GetVersion())
-		else
-			AddHeaderOption("SexLab: NOT FOUND")
-		endif
-		;oidTimer      = AddSliderOption("Timer", iTimer, "{0}")
+	else
+		; needs special SLT level attribute names
+		attributeNames = GetAttributeNames(false)
+		ShowHeaderPage()
 		return
 	endif
 	
-	int i = 0
-	while i < Pages.Length
-		if page == Pages[i + 1]
-			_makePageOptions(i)
-			return
-		endif
-		i += 1
-	endwhile
+	; obviously it should be one or the other and yet here we are
+	Debug.Trace("SLT: Setup: Page is neither header nor extension")
 EndEvent
 
+
+; All
+Event OnOptionHighlight(int option)
+	if !option
+		Return
+	endif
+	if option == oidEnabled
+		SetInfoText("$SLT_HIGHLIGHT_OID_ENABLED")
+		return
+	elseif option == oidDebugMsg
+		SetInfoText("$SLT_HIGHLIGHT_OID_DEBUGMSG")
+		return
+	elseif option == oidResetSLT
+		SetInfoText("$SLT_HIGHLIGHT_OID_RESETSLT")
+		return
+	elseif option == oidCardinatePrevious
+		SetInfoText("$SLT_HIGHLIGHT_OID_CARDINATEPREVIOUS")
+		return
+	elseif option == oidCardinateNext
+		SetInfoText("$SLT_HIGHLIGHT_OID_CARDINATENEXT")
+		return
+	elseif (option == oidAddTop || option == oidAddBottom)
+		SetInfoText("$SLT_HIGHLIGHT_OID_ADDNEWITEM")
+		return
+	elseif option == oidExtensionSettings
+		SetInfoText("$SLT_HIGHLIGHT_OID_EXTENSIONSETTINGS")
+		return
+	elseif option == oidExtensionBack
+		SetInfoText("$SLT_HIGHLIGHT_OID_EXTENSIONBACK")
+		return
+	elseif option == oidExtensionEnabled
+		SetInfoText("$SLT_HIGHLIGHT_OID_EXTENSIONENABLED")
+		return
+	else
+		string attrName = GetOidAttributeName(option)
+		if attrName == DELETE_BUTTON
+			SetInfoText("$SLT_HIGHLIGHT_OID_DELETEITEM")
+			return
+		elseif attrName == RESTORE_BUTTON
+			SetInfoText("$SLT_HIGHLIGHT_OID_RESTOREITEM")
+			return
+		endif
+	endif
+
+	if IsExtensionPage()
+		
+		string triKey = GetOidTriggerKey(option)
+		string attrName = GetOidAttributeName(option)
+	
+		string _dataFile
+		bool _istk = (triKey != "")
+	
+		if !CurrentExtensionKey
+			; global settings page right?
+			_dataFile = FN_Settings()
+		else
+			if displayExtensionSettings
+				; extension settings page
+				_dataFile = FN_X_Settings(CurrentExtensionKey)
+			else
+				; extension triggers data
+				_dataFile = FN_Trigger(CurrentExtensionKey, triKey)
+				_istk = true
+			endif
+		endif
+		
+		if HasAttrHighlight(_istk, attrName)
+			SetInfoText(GetAttrHighlight(_istk, attrName))
+		endif
+	endif
+EndEvent
+
+; All
+Event OnOptionDefault(int option)
+	if !option
+		Return
+	endif
+	
+	string triKey = GetOidTriggerKey(option)
+	bool _istk = (triKey != "")
+	string attrName = GetOidAttributeName(option)
+	int attrType = GetAttrType(_istk, attrName)
+	int attrWidg = GetAttrWidget(_istk, attrName)
+	int defInt
+	float defFlt
+	string defStr
+	
+	float	optFlt
+	int		optInt
+	string	optStr
+	bool	optBool
+	
+	string _dataFile
+
+	if !CurrentExtensionKey
+		; global settings page right?
+		_dataFile = FN_Settings()
+	else
+		if displayExtensionSettings
+			; extension settings page
+			_dataFile = FN_X_Settings(CurrentExtensionKey)
+		else
+			; extension triggers data
+			_dataFile = FN_Trigger(CurrentExtensionKey, triKey)
+			_istk = true
+		endif
+	endif
+	
+	; set the trigger value
+	if attrType == PTYPE_INT()
+		defInt = GetAttrDefaultValue(_istk, attrName)
+		JsonUtil.SetIntValue(_dataFile, attrName, defInt)
+	elseif attrType == PTYPE_STRING()
+		defStr = GetAttrDefaultString(_istk, attrName)
+		JsonUtil.SetStringValue(_dataFile, attrName, defStr)
+	elseif attrType == PTYPE_FLOAT()
+		defFlt = GetAttrDefaultFloat(_istk, attrName)
+		JsonUtil.SetFloatValue(_dataFile, attrName, defFlt)
+	endif
+	
+	; and set the option value
+	if attrWidg == WIDG_SLIDER
+		if attrType == PTYPE_INT()
+			optFlt = defInt as float
+		elseif attrType == PTYPE_STRING()
+			optFlt = defStr as float
+		elseif attrType == PTYPE_FLOAT()
+			optFlt = defFlt
+		endif
+		
+		SetSliderOptionValue(option, optFlt, GetAttrFormatString(_istk, attrName))
+	elseif attrWidg == WIDG_MENU
+		if attrType == PTYPE_INT()
+			optInt = defInt
+		elseif attrType == PTYPE_STRING()
+			optInt = GetAttrMenuSelectionIndex(_istk, attrName, defStr)
+		endif
+		
+		SetMenuOptionValue(option, optInt)
+	elseif attrWidg == WIDG_KEYMAP
+		SetKeyMapOptionValue(option, defInt)
+	elseif attrWidg == WIDG_TOGGLE
+		if attrType == PTYPE_INT()
+			optBool = defInt != 0
+		elseif attrType == PTYPE_STRING()
+			optBool = defStr as bool
+		elseif attrType == PTYPE_FLOAT()
+			optBool = defFlt != 0.0
+		endif
+		
+		SetToggleOptionValue(option, optBool)
+	elseif attrWidg == WIDG_INPUT
+		; not sent according to docs?
+		Debug.Trace("Setup.OnOptionDefault: Input widget received, which was unexpected")
+	elseif attrWidg == WIDG_COMMANDLIST
+		SetMenuOptionValue(option, "")
+	endif
+	
+	JsonUtil.Save(_dataFile)
+
+	if oidForcePageReset.Find(option) > -1
+		ForcePageReset()
+	endif
+EndEvent
+
+; Text (buttons?)
+; Toggle
 Event OnOptionSelect(int option)
+	if !option
+		Return
+	endif
 	If option == oidEnabled
+		; this should have ramifications
 		SLT.bEnabled = !SLT.bEnabled
 		SetToggleOptionValue(option, SLT.bEnabled)
+
+		int newval = 0
+		if SLT.bEnabled
+			newval = 1
+		endif
+		JsonUtil.SetIntValue(FN_Settings(), "enabled", newval)
+		JsonUtil.Save(FN_Settings())
+		
+		ForcePageReset()
+		return
 	elseIf option == oidDebugMsg
 		SLT.bDebugMsg = !SLT.bDebugMsg
 		SetToggleOptionValue(option, SLT.bDebugMsg)
+
+		int newval = 0
+		if SLT.bEnabled
+			newval = 1
+		endif
+		JsonUtil.SetIntValue(FN_Settings(), "debugmsg", newval)
+		JsonUtil.Save(FN_Settings())
+		
+		ForcePageReset()
+		return
+	elseIf option == oidResetSLT
+		refreshOnClose = ShowMessage("$SLT_MSG_SOFT_DELETE_WARNING", true, "$Yes", "$No")
+
+		if refreshOnClose
+			ShowMessage("$SLT_MSG_SOFT_DELETE_CONFIRMATION", false)
+		endif
+
+		return
+	elseIf option == oidCardinatePrevious
+		currentCardination -= 1
+		ForcePageReset()
+		
+		return
+	elseIf option == oidCardinateNext
+		currentCardination += 1
+		ForcePageReset()
+		
+		return
+	elseIf option == oidAddTop || option == oidAddBottom
+		; add a record
+		Trigger_Create()
+		ForcePageReset()
+	
+		return
+	elseIf option == oidExtensionSettings
+		displayExtensionSettings = true
+		ForcePageReset()
+
+		return
+	elseIf option == oidExtensionBack
+		displayExtensionSettings = false
+		ForcePageReset()
+
+		return
+	elseIf option == oidExtensionEnabled
+		return
 	endIf
+
+	if oidForcePageReset.Find(option) > -1
+		ForcePageReset()
+	endif
+
+	string triKey = GetOidTriggerKey(option)
+	string attrName = GetOidAttributeName(option)
+	
+	string _dataFile
+	bool _istk = (triKey != "")
+
+	if !CurrentExtensionKey
+		; global settings page right?
+		_dataFile = FN_Settings()
+	else
+		if displayExtensionSettings
+			; extension settings page
+			_dataFile = FN_X_Settings(CurrentExtensionKey)
+		else
+			; extension triggers data
+			_dataFile = FN_Trigger(CurrentExtensionKey, triKey)
+			_istk = true
+		endif
+	endif
+	
+	if attrName == DELETE_BUTTON
+		JsonUtil.SetStringValue(_dataFile, DELETED_ATTRIBUTE(), "true")
+		JsonUtil.Save(_dataFile)
+		ForcePageReset()
+		return
+	elseif attrName == RESTORE_BUTTON
+		JsonUtil.UnsetStringValue(_dataFile, DELETED_ATTRIBUTE())
+		JsonUtil.Save(_dataFile)
+		ForcePageReset()
+		return
+	endif
+
+	;; else...
+
+	int val = JsonUtil.GetIntValue(_dataFile, attrName)
+	if val == 0
+		val = 1
+	else
+		val = 0
+	endif
+	bool togval = (val != 0)
+	JsonUtil.SetIntValue(_dataFile, attrName, val)
+	JsonUtil.Save(_dataFile)
+
+	;; assumptions galore
+	SetToggleOptionValue(option, togval)
+
 EndEvent
 
-Function init()
-    initPages()
-    initParamNames()
-	initVersionCheck()
-EndFunction
-
-Function initPages()
-	Pages = new string[17]
-	Pages[ 0] = "Main"
-	Pages[ 1] = "Triggers 1-5"
-	Pages[ 2] = "Triggers 6-10"
-	Pages[ 3] = "Triggers 11-15"
-	Pages[ 4] = "Triggers 16-20"
-	Pages[ 5] = "Triggers 21-25"
-	Pages[ 6] = "Triggers 26-30"
-	Pages[ 7] = "Triggers 31-35"
-	Pages[ 8] = "Triggers 36-40"
-	Pages[ 9] = "Triggers 41-45"
-	Pages[10] = "Triggers 46-50"
-	Pages[11] = "Triggers 51-55"
-	Pages[12] = "Triggers 56-60"
-	Pages[13] = "Triggers 61-65"
-	Pages[14] = "Triggers 66-70"
-	Pages[15] = "Triggers 71-75"
-	Pages[16] = "Triggers 76-80"
-EndFunction
-
-function initParamNames()
-	triggerParamNames = new string[17]
-	triggerParamNames[ 0] = ""
-	triggerParamNames[ 1] = "if_chance"
-	triggerParamNames[ 2] = "if_event"
-	triggerParamNames[ 3] = "if_race"
-	triggerParamNames[ 4] = "if_role"
-	triggerParamNames[ 5] = "if_gender"
-	triggerParamNames[ 6] = "if_tag"
-	triggerParamNames[ 7] = "if_daytime"
-	triggerParamNames[ 8] = "if_location"
-	triggerParamNames[ 9] = "do_1"
-	triggerParamNames[10] = "do_2"
-	triggerParamNames[11] = "do_3"
-	triggerParamNames[12] = "if_player"
-	triggerParamNames[13] = "if_keymap"
-	triggerParamNames[14] = "if_keymap_modifier"
-	triggerParamNames[15] = "if_use_dak"
-	triggerParamNames[16] = "if_position"
-	
-	; the awkwardness
-	triggerIfEventNames								= PapyrusUtil.StringArray(7)
-	triggerIfEventNames[EVENT_ID_NOT_SELECTED]		= "- Select an Event -"
-	triggerIfEventNames[EVENT_ID_SEXLAB_START]		= "Begin"
-	triggerIfEventNames[EVENT_ID_SEXLAB_ORGASM]		= "Orgasm"
-	triggerIfEventNames[EVENT_ID_SEXLAB_STOP]		= "End"
-	triggerIfEventNames[EVENT_ID_SEXLAB_ORGASMS]	= "Orgasm(SLSO)"
-	triggerIfEventNames[EVENT_ID_TOP_OF_THE_HOUR]	= "TopOfTheHour"
-	triggerIfEventNames[EVENT_ID_KEYMAPPING]		= "Keymapping"
-	
-	triggerIfRaceNames = new string[7]
-	triggerIfRaceNames[0] = "Any"
-	triggerIfRaceNames[1] = "Humanoid"
-	triggerIfRaceNames[2] = "Creature"
-	triggerIfRaceNames[3] = "Undead"
-	triggerIfRaceNames[4] = "Partner Humanoid"
-	triggerIfRaceNames[5] = "Partner Creature"
-	triggerIfRaceNames[6] = "Partner Undead"
-	
-	triggerIfPlayerNames = new string[5]
-	triggerIfPlayerNames[0] = "Any"
-	triggerIfPlayerNames[1] = "Player"
-	triggerIfPlayerNames[2] = "Not Player"
-	triggerIfPlayerNames[3] = "Partner Player"
-	triggerIfPlayerNames[4] = "Partner Not Player"
-	
-	triggerIfRoleNames = new string[4]
-	triggerIfRoleNames[0] = "Any"
-	triggerIfRoleNames[1] = "Aggressor"
-	triggerIfRoleNames[2] = "Victim"
-	triggerIfRoleNames[3] = "Not part of rape"
-	
-	triggerIfPosition = new string[6]
-	triggerIfPosition[0] = "Any"
-	triggerIfPosition[1] = "1"
-	triggerIfPosition[2] = "2"
-	triggerIfPosition[3] = "3"
-	triggerIfPosition[4] = "4"
-	triggerIfPosition[5] = "5"
-	
-	triggerIfGenderNames = new string[3]
-	triggerIfGenderNames[0] = "Any"
-	triggerIfGenderNames[1] = "Male"
-	triggerIfGenderNames[2] = "Female"
-	
-	triggerIfTagNames = new String[4]
-	triggerIfTagNames[0] = "Any"
-	triggerIfTagNames[1] = "Vaginal"
-	triggerIfTagNames[2] = "Anal"
-	triggerIfTagNames[3] = "Oral"
-	
-	triggerIfDaytimeNames = new String[3]
-	triggerIfDaytimeNames[0] = "Any"
-	triggerIfDaytimeNames[1] = "Day"
-	triggerIfDaytimeNames[2] = "Night"
-	
-	triggerIfLocationNames = new String[3]
-	triggerIfLocationNames[0] = "Any"
-	triggerIfLocationNames[1] = "Inside"
-	triggerIfLocationNames[2] = "Outside"
-endfunction
-
-Function initVersionCheck()
-	Utility.Wait(0.0)
-	if checkingVersion
-		return
+; Slider
+Event OnOptionSliderOpen(int option)
+	if !option
+		Return
 	endif
-	checkingVersion = true
 	
-	; just go ahead and avoid anyone else trying this while we are in here
-	int fromVersion = _getConfigVersion()
-	if fromVersion == GetVersion()
-		checkingVersion = false
-		return
-	endif
-	JsonUtil.SetIntValue(SettingsName, _makeVersionConfigSlotId(), GetVersion())
-    if fromVersion < 16
-		; reset event ids
-		int i = 1
-		while i < 81
-			string slotEventId =  _makeSlotId(i, 2)
-			if JsonUtil.HasStringValue(settingsName, slotEventId)
-				int value = JsonUtil.GetStringValue(settingsName, slotEventId) as int
-				JsonUtil.SetStringValue(settingsName, slotEventId, value + 1)
-			endif
-			i += 1
-		endwhile
-    endIf
-	checkingVersion = false
-EndFunction
+	string triKey = GetOidTriggerKey(option)
+	string attrName = GetOidAttributeName(option)
+	
+	string _dataFile
+	bool _istk = (triKey != "")
 
-; assumes zero-based pageNo
-Function _makePageOptions(int pageNo)
-	slt_currentpage = pageNo
-	
-	SetCursorFillMode(LEFT_TO_RIGHT)
-	int i = 0
-	while i < CARDS_PER_PAGE
-		_makeSlotOptions(i, (pageNo * CARDS_PER_PAGE) + i + 1)
-		i = i + 1
-	endwhile
-EndFunction
-
-bool Function isEventIdChanceable(int _eventId)
-	return _eventId != EVENT_ID_NOT_SELECTED && _eventId != EVENT_ID_KEYMAPPING
-EndFunction
-
-Function _makeSlotOptions(int cardNo, int _slotNo)
-	bool hasEventIndex = JsonUtil.HasStringValue(settingsName, _makeEventIdSlotId(_slotNo))
-	int eventIndex = _getEventIdxForSlotNo(_slotNo)
-	
-	; row 1
-	AddHeaderOption("<font color='#FFFFFF'>slot-" + (_slotNo as string) + "</font>")
-	AddEmptyOption()
-	
-	; row 2
-	AddMenuOptionSt  ("oid_event_" + cardNo, "on event",       _getSlotValue(_slotNo, 2))
-	if hasEventIndex && isEventIdChanceable(eventIndex)
-		AddSliderOptionSt("oid_chance_" + cardNo, "chance",         _getSlotValue(_slotNo, 1) as float, "{0}%") ;0-100
+	if !CurrentExtensionKey
+		; global settings page right?
+		_dataFile = FN_Settings()
 	else
-		AddEmptyOption()
+		if displayExtensionSettings
+			; extension settings page
+			_dataFile = FN_X_Settings(CurrentExtensionKey)
+		else
+			; extension triggers data
+			_dataFile = FN_Trigger(CurrentExtensionKey, triKey)
+			_istk = true
+		endif
+	endif
+
+	float startValue
+	int attrType = GetAttrType(_istk, attrName)
+	if attrType == PTYPE_STRING() && JsonUtil.HasStringValue(_dataFile, attrName)
+		startValue = JsonUtil.GetFloatValue(_dataFile, attrName) as float
+	elseif attrType == PTYPE_INT() && JsonUtil.HasIntValue(_dataFile, attrName)
+		startValue = JsonUtil.GetIntValue(_dataFile, attrName) as float
+	elseif attrType == PTYPE_FLOAT() && JsonUtil.HasFloatValue(_dataFile, attrName)
+		startValue = JsonUtil.GetFloatValue(_dataFile, attrName)
+	endif
+
+
+	SetSliderDialogStartValue(startValue)
+	SetSliderDialogDefaultValue(GetAttrDefaultFloat(_istk, attrName))
+	SetSliderDialogRange(GetAttrMinValue(_istk, attrName), GetAttrMaxValue(_istk, attrName))
+	SetSliderDialogInterval(GetAttrInterval(_istk, attrName))
+EndEvent
+
+Event OnOptionSliderAccept(int option, float value)
+	if !option
+		Return
 	endif
 	
-	If hasEventIndex && eventIndex != EVENT_ID_NOT_SELECTED
-		if eventIndex == EVENT_ID_SEXLAB_START || eventIndex == EVENT_ID_SEXLAB_ORGASM || eventIndex == EVENT_ID_SEXLAB_STOP || eventIndex == EVENT_ID_SEXLAB_ORGASMS
-			; if SexLab
-			; row -1
-			AddMenuOptionSt  ("oid_race_" + cardNo, "if actor race",  _getSlotValue(_slotNo, 3))
-			AddMenuOptionSt  ("oid_role_" + cardNo, "if actor",       _getSlotValue(_slotNo, 4))
-			; row -2
-			AddMenuOptionSt  ("oid_player_" + cardNo, "if player",       _getSlotValue(_slotNo, 12))
-			AddMenuOptionSt  ("oid_gender_" + cardNo, "if gender",      _getSlotValue(_slotNo, 5))
-			; row -3
-			AddMenuOptionSt  ("oid_tag_" + cardNo, "if sex type",    _getSlotValue(_slotNo, 6))
-			AddMenuOptionSt  ("oid_daytime_" + cardNo, "if day time",    _getSlotValue(_slotNo, 7))
-			; row -4
-			AddMenuOptionSt  ("oid_location_" + cardNo, "if location",    _getSlotValue(_slotNo, 8))
-			AddMenuOptionSt  ("oid_position_" + cardNo, "if scene position", _getSlotValue(_slotNo, 16))
-		elseif eventIndex == EVENT_ID_KEYMAPPING
-			; if Keymapping
-			; row -1
-			AddKeyMapOptionSt("oid_keymap_" + cardNo, "on key up", _getSlotValue(_slotNo, 13) as int, OPTION_FLAG_WITH_UNMAP)
-			AddEmptyOption()
-			
-			; row -2
-			bool usedak = _isUseDAKForSlotNo(_slotNo)
-			int optionFlags = OPTION_FLAG_WITH_UNMAP
-			if usedak
-				optionFlags = OPTION_FLAG_DISABLED
-			endif
-			AddKeyMapOptionSt("oid_keymap_modifier_" + cardNo, "modifier key", _getSlotValue(_slotNo, 14) as int, optionFlags)
-			AddToggleOptionSt("oid_use_dak_" + cardNo, "use DAK if present", usedak)
-		EndIf
-		
-		; the final gang of four, almost want to add a fourth for visual balance
-		; row -1
-		AddMenuOptionSt  ("oid_do_1_" + cardNo, "command 1",   _getSlotValue(_slotNo, 9))
-		AddMenuOptionSt  ("oid_do_2_" + cardNo, "command 2",   _getSlotValue(_slotNo, 10))
-		; row -2
-		AddMenuOptionSt  ("oid_do_3_" + cardNo, "command 3",   _getSlotValue(_slotNo, 11))
-		AddEmptyOption()
-	EndIf
-EndFunction
-
-string Function _getSlotValue(int slotNo, int paramNo)
-	string slotId = _makeSlotId(slotNo, paramNo)
-	string paramId = triggerParamNames[paramNo]	
-	string value
-	int index
+	string triKey = GetOidTriggerKey(option)
+	string attrName = GetOidAttributeName(option)
 	
-	value = JsonUtil.GetStringValue(settingsName, slotId)
-	; float		if_chance
-	; string	do_1
-	; string	do_2
-	; string	do_3
-	; int		if_keymap
-	; int		if_keymap_modifier
-	; int		if_use_dak
-	if paramNo == 1 || paramNo == 9 || paramNo == 10 || paramNo == 11 || paramNo == 13 || paramNo == 14 || paramNo == 15
-		return value
+	string _dataFile
+	bool _istk = (triKey != "")
+
+	if !CurrentExtensionKey
+		; global settings page right?
+		_dataFile = FN_Settings()
 	else
-		index = value as int
-		if index < 0
-			index = 0
-		endIf
-		If paramId == "if_event"
-			return triggerIfEventNames[index]
-		elseIf paramId == "if_race"
-			return triggerIfRaceNames[index]
-		elseIf paramId == "if_role"
-			return triggerIfRoleNames[index]
-		elseIf paramId == "if_position"
-			return triggerIfPosition[index]
-		elseIf paramId == "if_gender"
-			return triggerIfGenderNames[index]
-		elseIf paramId == "if_tag"
-			return triggerIfTagNames[index]
-		elseIf paramId == "if_daytime"
-			return triggerIfDaytimeNames[index]
-		elseIf paramId == "if_location"
-			return triggerIfLocationNames[index]
-		elseIf paramId == "if_player"
-			return triggerIfPlayerNames[index]
-		endIf
-	endIf
-	return ""
-EndFunction
-
-
-string Function _makeSlotId(int slotNo, int paramNo)
-	return _makeSlotIdFromPrefix(_makeSlotNoPrefix(slotNo), paramNo)
-EndFunction
-
-string Function _makeSlotIdFromPrefix(string slotNoPrefix, int paramNo)
-	return slotNoPrefix + "." + triggerParamNames[paramNo]
-endfunction
-
-string Function _makeSlotNoPrefix(int slotNo)
-	return "slot" + slotNo
-endfunction
-
-bool Function _isUseDAKForSlotNo(int slotNo)
-	int iv = JsonUtil.GetStringValue(settingsName, _makeUseDAKSlotId(slotNo)) as int
-	return iv != 0
-EndFunction
-
-int Function _getEventIdxForSlotNo(int slotNo)
-	return JsonUtil.GetStringValue(settingsName, _makeEventIdSlotId(slotNo)) as int
-EndFunction
-
-string[] Function _getCommands()
-	return JsonUtil.JsonInFolder(CommandsFolder)
-EndFunction
-
-int Function _getConfigVersion()
-	return JsonUtil.GetIntValue(SettingsName, _makeVersionConfigSlotId())
-EndFunction
-
-string Function _getDAKModname()
-	string slotid = _makeDAKModnameConfigSlotId()
-	string defmodname = "Dynamic Activation Key.esp"
-	if !JsonUtil.HasStringValue(SettingsName, slotid)
-		JsonUtil.SetStringValue(SettingsName, slotid, defmodname)
+		if displayExtensionSettings
+			; extension settings page
+			_dataFile = FN_X_Settings(CurrentExtensionKey)
+		else
+			; extension triggers data
+			_dataFile = FN_Trigger(CurrentExtensionKey, triKey)
+			_istk = true
+		endif
 	endif
-	; yes, I know what I just did
-	; yes, I know what the default will be used for (nothing)
-	; go ahead... ask yourself if I care :D
-	return JsonUtil.GetStringValue(SettingsName, slotid, defmodname)
-endfunction
 
-string Function _makeVersionConfigSlotId() global
-	return _makeConfigSlotId("version")
-endfunction
+	int attrType = GetAttrType(_istk, attrName)
 
-string Function _makeDAKModnameConfigSlotId() global
-	return _makeConfigSlotId("DynamicActivationKey_modname")
-endfunction
-
-string Function _makeConfigSlotId(string configOption) global
-	if !configOption
-		return none
+	if attrType == PTYPE_STRING()
+		JsonUtil.SetFloatValue(_dataFile, attrName, value)
+	elseif attrType == PTYPE_INT()
+		JsonUtil.SetIntValue(_dataFile, attrName, value as int)
+	elseif attrType == PTYPE_FLOAT()
+		JsonUtil.SetFloatValue(_dataFile, attrName, value as float)
 	endif
-	return "slot-config." + configOption
-EndFunction
 
-string Function _makeEventIdSlotId(int slotNo)
-	return _makeSlotId(slotNo, 2)
-EndFunction
+	SetSliderOptionValue(option, value, GetAttrFormatString(_istk, attrName))
+	
+	JsonUtil.Save(_dataFile)
 
-string Function _makeUseDAKSlotId(int slotNo)
-	return _makeSlotId(slotNo, 15)
-EndFunction
+	if oidForcePageReset.Find(option) > -1
+		ForcePageReset()
+	endif
+EndEvent
 
+; Menu
+Event OnOptionMenuOpen(int option)
+	if !option
+		Return
+	endif
+	
+	string triKey = GetOidTriggerKey(option)
+	string attrName = GetOidAttributeName(option)
 
+	bool _istk = (triKey != "")
 
+	int attrType = GetAttrType(_istk, attrName)
+	int attrWidg = GetAttrWidget(_istk, attrName)
+	
+	int defaultIndex = 0
+	int menuIndex = 0
+	string menuValue = ""
+	string[] menuSelections
+	if attrWidg == WIDG_COMMANDLIST
+		menuSelections = CommandsList
+	elseif attrWidg == WIDG_MENU
+		menuSelections = GetAttrMenuSelections(_istk, attrName)
+	endif
+	SetMenuDialogOptions(menuSelections)
+	
+	string _dataFile
 
+	if !CurrentExtensionKey
+		; global settings page right?
+		_dataFile = FN_Settings()
+	else
+		if displayExtensionSettings
+			; extension settings page
+			_dataFile = FN_X_Settings(CurrentExtensionKey)
+		else
+			; extension triggers data
+			_dataFile = FN_Trigger(CurrentExtensionKey, triKey)
+			_istk = true
+		endif
+	endif
 
+	if attrWidg == WIDG_COMMANDLIST
+		defaultIndex = -1
+		if JsonUtil.HasStringValue(_dataFile, attrName)
+			menuValue = JsonUtil.GetStringValue(_dataFile, attrName)
+			menuIndex = menuSelections.find(menuValue)
+		endif
+	elseif attrWidg == WIDG_MENU
+		if attrType == PTYPE_INT()
+			defaultIndex = GetAttrDefaultValue(_istk, attrName)
+			menuIndex = JsonUtil.GetIntValue(_dataFile, attrName)
+			menuValue = menuSelections[menuIndex]
+		elseif attrType == PTYPE_STRING()
+			defaultIndex = menuSelections.find(GetAttrDefaultString(_istk, attrName))
+			menuValue = JsonUtil.GetStringValue(_dataFile, attrName)
+			menuIndex = menuSelections.find(menuValue)
+		endif
+	endif
+	
+	SetMenuDialogOptions(menuSelections)
+	SetMenuDialogStartIndex(menuIndex)
+	SetMenuDialogDefaultIndex(defaultIndex)
+EndEvent
 
+Event OnOptionMenuAccept(int option, int index)
+	if !option
+		Return
+	endif
 
+	string triKey = GetOidTriggerKey(option)
+	string attrName = GetOidAttributeName(option)
+	bool _istk = (triKey != "")
 
+	int attrType = GetAttrType(_istk, attrName)
+	int attrWidg = GetAttrWidget(_istk, attrName)
+	
+	string[] menuSelections
+	if attrWidg == WIDG_MENU
+		menuSelections = GetAttrMenuSelections(_istk, attrName)
+	elseif attrWidg == WIDG_COMMANDLIST
+		menuSelections = CommandsList
+	endif
+	
+	string _dataFile
 
+	if !CurrentExtensionKey
+		; global settings page right?
+		_dataFile = FN_Settings()
+	else
+		if displayExtensionSettings
+			; extension settings page
+			_dataFile = FN_X_Settings(CurrentExtensionKey)
+		else
+			; extension triggers data
+			_dataFile = FN_Trigger(CurrentExtensionKey, triKey)
+			_istk = true
+		endif
+	endif
 
+	if index >= 0
+		if attrType == PTYPE_INT()
+			JsonUtil.SetIntValue(_dataFile, attrName, index)
+		elseif attrType == PTYPE_STRING()
+			JsonUtil.SetStringValue(_dataFile, attrName, menuSelections[index])
+		endif
+		SetMenuOptionValue(option, menuSelections[index])
+	else
+		if attrType == PTYPE_INT()
+			JsonUtil.UnsetIntValue(_dataFile, attrName)
+		elseif attrType == PTYPE_STRING()
+			JsonUtil.UnsetStringValue(_dataFile, attrName)
+		endif
+		SetMenuOptionValue(option, "")
+	endif
 
-;;;;;
-;; State based configs, because OIDs are hard
+	JsonUtil.Save(_dataFile)
 
-; so, for starters, I use a little app/script/whatever locally (it's a Java app but it's as complex as a batch file)
-; to generate the repeated bits down below, so that's all generated.
+	if oidForcePageReset.Find(option) > -1
+		ForcePageReset()
+	endif
+EndEvent
 
-; it also all counts on having exactly 5 "cards" (slots) per page, no more, no less
-; change that and the setup below has to change
+; Keymap
+Event OnOptionKeyMapChange(int option, int keyCode, string conflictControl, string conflictName)
+	if !option
+		Return
+	endif
 
-
-Function DoKeymapChange(int cardIndex, int paramNo, int newKeyCode, string conflictControl, string conflictName)
+	string triKey = GetOidTriggerKey(option)
+	string attrName = GetOidAttributeName(option)
+	
 	bool proceed = true
 	if conflictControl
 		string msg
+		string msg_thisKeyIsAlreadyMappedTo = sl_triggers_internal.SafeGetTranslatedString("$SLT_MSG_KEYMAP_CONFIRM_0")
+		string msg_areYouSureYouWantToContinue = sl_triggers_internal.SafeGetTranslatedString("$SLT_MSG_KEYMAP_CONFIRM_1")
 		if conflictName
-			msg = "This key is already mapped to:\n\"" + conflictControl + "\"\n(" + conflictName + ")\n\nAre you sure you want to continue?"
+			msg = msg_thisKeyIsAlreadyMappedTo + "\n\"" + conflictControl + "\"\n(" + conflictName + ")\n\n" + msg_areYouSureYouWantToContinue
 		else
-			msg = "This key is already mapped to:\n\"" + conflictControl + "\"\n\nAre you sure you want to continue?"
+			msg = msg_thisKeyIsAlreadyMappedTo + "\n\"" + conflictControl + "\"\n\n" + msg_areYouSureYouWantToContinue
 		endIf
 		
 		proceed = ShowMessage(msg, true, "$Yes", "$No")
 	endif
 	
 	if proceed
-		int slotNo = slt_currentpage * CARDS_PER_PAGE + cardIndex + 1
-		string slotId = _makeSlotId(slotNo, paramNo)
+		string _dataFile
+		bool _istk = (triKey != "")
+	
+		if !CurrentExtensionKey
+			; global settings page right?
+			_dataFile = FN_Settings()
+		else
+			if displayExtensionSettings
+				; extension settings page
+				_dataFile = FN_X_Settings(CurrentExtensionKey)
+			else
+				; extension triggers data
+				_dataFile = FN_Trigger(CurrentExtensionKey, triKey)
+				_istk = true
+			endif
+		endif
 		
-		JsonUtil.SetStringValue(settingsName, slotId, newKeyCode)
-		SetKeyMapOptionValueSt(newKeyCode)
+		if keyCode >= 0
+			JsonUtil.SetIntValue(_dataFile, attrName, keyCode)
+		else
+			JsonUtil.UnsetIntValue(_dataFile, attrName)
+		endif
+		SetKeyMapOptionValue(option, keyCode)
+		
+		JsonUtil.Save(_dataFile)
+
+		if oidForcePageReset.Find(option) > -1
+			ForcePageReset()
+		endif
 	endif
-EndFunction
+EndEvent
 
-Function DoToggleSelect(int cardIndex, int paramNo)
-	int slotNo = slt_currentpage * CARDS_PER_PAGE + cardIndex + 1
-	string slotId = _makeSlotId(slotNo, paramNo)
-	int value = JsonUtil.GetStringValue(settingsName, slotId) as int
-	value = (value == 0) as int
-	JsonUtil.SetStringValue(settingsName, slotId, value)
-	SetToggleOptionValueSt(value)
-EndFunction
+; Input (string input dialog)
+Event OnOptionInputOpen(int option)
+	if !option
+		Return
+	endif
 
-Function DoSliderOpen(int cardIndex, int paramNo)
-	int slotNo = slt_currentpage * CARDS_PER_PAGE + cardIndex + 1
-	string value = JsonUtil.GetStringValue(settingsName, _makeSlotId(slotNo, paramNo))
-	SetSliderDialogStartValue(value as float)
-	SetSliderDialogDefaultValue(0.0)
-	SetSliderDialogRange(0.0, 100.0)
-	SetSliderDialogInterval(1.0)
-Endfunction
+	string triKey = GetOidTriggerKey(option)
+	string attrName = GetOidAttributeName(option)
+	
+	string optVal
 
-Function DoSliderAccept(int cardIndex, int paramNo, float value)
-	int slotNo = slt_currentpage * CARDS_PER_PAGE + cardIndex + 1
-	string slotId = _makeSlotId(slotNo, paramNo)
-	float chkValue = value
-	if chkValue > 0.0
-        JsonUtil.SetStringValue(settingsName, slotId, value as string)
+	int hasTheData
+	string _dataFile
+	bool _istk = (triKey != "")
+
+	if !CurrentExtensionKey
+		; global settings page right?
+		_dataFile = FN_Settings()
 	else
-		chkValue = 0.0
-        JsonUtil.UnsetStringValue(settingsName, slotId)
+		if displayExtensionSettings
+			; extension settings page
+			_dataFile = FN_X_Settings(CurrentExtensionKey)
+		else
+			; extension triggers data
+			_dataFile = FN_Trigger(CurrentExtensionKey, triKey)
+			_istk = true
+		endif
 	endif
-	SetSliderOptionValueST(chkValue, "{0}%")
-EndFunction
 
-Function DoMenuOpen(int cardIndex, string[] optionList, int paramNo)
-	SetMenuDialogOptions(optionList)
-	int slotNo = slt_currentpage * CARDS_PER_PAGE + cardIndex + 1
-	string slotId =  _makeSlotId(slotNo, paramNo)
-	if JsonUtil.HasStringValue(settingsName, slotId)
-		string value = JsonUtil.GetStringValue(settingsName, slotId)
-		SetMenuDialogStartIndex(value as int)
+	int attrType = GetAttrType(_istk, attrName)
+	if attrType == PTYPE_STRING() && JsonUtil.HasStringValue(_dataFile, attrName)
+		hasTheData = 1
+	elseif attrType == PTYPE_INT() && JsonUtil.HasIntValue(_dataFile, attrName)
+		hasTheData = 2
+	elseif attrType == PTYPE_FLOAT() && JsonUtil.HasFloatValue(_dataFile, attrName)
+		hasTheData = 3
 	endif
-	SetMenuDialogDefaultIndex(0)
-EndFunction
 
-Function DoMenuAccept(int cardIndex, string[] optionList, int paramNo, int selIndex)
-	int slotNo = slt_currentpage * CARDS_PER_PAGE + cardIndex + 1
-	string slotId = _makeSlotId(slotNo, paramNo)
-	if selIndex >= 0
-		string val = optionList[selIndex]
-		string realval = selIndex as string
-		SetMenuOptionValueSt(val)
-		JsonUtil.SetStringValue(settingsName, slotId, realval)
+	if hasTheData > 0
+		if hasTheData == 1
+			optVal = JsonUtil.GetStringValue(_dataFile, attrName)
+		elseif hasTheData == 2
+			optVal = JsonUtil.GetIntValue(_dataFile, attrName)
+		elseif hasTheData == 3
+			optVal = JsonUtil.GetFloatValue(_dataFile, attrName)
+		endif
 	else
-		SetMenuOptionValueSt("")
-		JsonUtil.UnsetStringValue(settingsName, slotId)
+		optVal = GetAttrDefaultString(_istk, attrName)
 	endif
+	SetInputDialogStartText(optVal)
+EndEvent
+
+Event OnOptionInputAccept(int option, string _input)
+	if !option
+		Return
+	endif
+
+	string triKey = GetOidTriggerKey(option)
+	string attrName = GetOidAttributeName(option)
+	
+	string _dataFile
+	bool _istk = (triKey != "")
+
+	if !CurrentExtensionKey
+		; global settings page right?
+		_dataFile = FN_Settings()
+	else
+		if displayExtensionSettings
+			; extension settings page
+			_dataFile = FN_X_Settings(CurrentExtensionKey)
+		else
+			; extension triggers data
+			_dataFile = FN_Trigger(CurrentExtensionKey, triKey)
+			_istk = true
+		endif
+	endif
+
+	int attrType = GetAttrType(_istk, attrName)
+	if attrType == PTYPE_STRING()
+		if !_input
+			JsonUtil.UnsetStringValue(_dataFile, attrName)
+		else
+			JsonUtil.SetStringValue(_dataFile, attrName, _input)
+		endif
+	elseif attrType == PTYPE_INT()
+		if !_input
+			JsonUtil.UnsetIntValue(_dataFile, attrName)
+		else
+			JsonUtil.SetIntValue(_dataFile, attrName, _input as int)
+		endif
+	elseif attrType == PTYPE_FLOAT()
+		if !_input
+			JsonUtil.UnsetFloatValue(_dataFile, attrName)
+		else
+			JsonUtil.SetFloatValue(_dataFile, attrName, _input as float)
+		endif
+	endif
+
+
+	SetInputOptionValue(option, _input)
+	
+	JsonUtil.Save(_dataFile)
+
+	if oidForcePageReset.Find(option) > -1
+		ForcePageReset()
+	endif
+EndEvent
+
+
+Function ShowHeaderPage()
+	SetCursorFillMode(TOP_TO_BOTTOM)
+	int ver = GetVersion()
+	AddHeaderOption("SL Triggers")
+	AddHeaderOption("(" + sl_triggers_internal.SafeGetTranslatedString("$SLT_LBL_VERSION") + " " + (ver as string) + ")")
+	
+	AddHeaderOption("$SLT_LBL_GLOBAL_SETTINGS")
+	oidEnabled    = AddToggleOption("$SLT_LBL_ENABLED_QUESTION", SLT.bEnabled)
+	oidDebugMsg   = AddToggleOption("$SLT_LBL_DEBUG_MESSAGES", SLT.bDebugMsg)
+	AddEmptyOption()
+	AddEmptyOption()
+	oidResetSLT		= AddTextOption("$SLT_BTN_RESET_SL_TRIGGERS", "")
 EndFunction
 
-Function DoCommandMenuOpen(int cardIndex, int paramNo)
-	SetMenuDialogOptions(commandList)
-	int slotNo = slt_currentpage * CARDS_PER_PAGE + cardIndex + 1
-	string slotId =  _makeSlotId(slotNo, paramNo)
-	if JsonUtil.HasStringValue(settingsName, slotId)
-		string value = JsonUtil.GetStringValue(settingsName, slotId)
-		if value
-			int idx = commandList.Find(value)
-			if idx >= 0
-				SetMenuDialogStartIndex(idx)
-			endIf
-		endIf
-	EndIf
-	SetMenuDialogDefaultIndex(-1)
+bool Function IsExtensionPage()
+	return (CurrentExtensionKey != "")
 EndFunction
 
-Function DoCommandMenuAccept(int cardIndex, int paramNo, int selIndex)
-	int slotNo = slt_currentpage * CARDS_PER_PAGE + cardIndex + 1
-	string slotId = _makeSlotId(slotNo, paramNo)
-	if selIndex < 0
-		SetMenuOptionValueSt("")
-		JsonUtil.SetStringValue(settingsName,  slotId, "")
+
+Function SetExtensionPages(string[] _extensionFriendlyNames, string[] _extensionKeys)
+	extensionPages = _extensionFriendlyNames
+	extensionKeys = _extensionKeys
+EndFunction
+
+
+string Function Trigger_Create()
+	string triggerKey
+	string triggerFileName
+	int triggerNum = 1
+	bool found = true
+	while found && triggerNum < 1000
+		if triggerNum < 10
+			triggerKey = "trigger00" + triggerNum
+		elseif triggerNum < 100
+			triggerKey = "trigger0" + triggerNum
+		else ; more than 1000 for a single extension seems.... unlikely
+			triggerKey = "trigger" + triggerNum
+		endif
+		
+		triggerFileName = FN_Trigger(CurrentExtensionKey, triggerKey)
+		if !JsonUtil.JsonExists(triggerFileName)
+			found = false
+		else
+			triggerNum += 1
+		endif
+	endwhile
+	
+	if found
+		Debug.Trace("SLT: Setup: Unable to create new trigger: '" + triggerFileName + "'")
+	else
+		JsonUtil.SetIntValue(triggerFileName, "__slt_mod_version__", GetModVersion())
+		JsonUtil.Save(triggerFileName)
 	endif
 	
-	string val
-	if selIndex >= 0
-		val = commandList[selIndex]
-	endIf
-	SetMenuOptionValueSt(val)
-	JsonUtil.SetStringValue(settingsName, slotId, val)
+	return triggerKey
 EndFunction
 
-; chance cards 0-4 per page
-state oid_chance_0
-	event OnSliderOpenST()
-		DoSliderOpen(0, 1)
-	endevent
+string[] Function GetExtensionTriggerKeys()
+	return JsonUtil.JsonInFolder(ExtensionTriggersFolder(CurrentExtensionKey))
+EndFunction
+
+Function AddOid(int _oid, string _triggerKey, string _attrName)
+	xoidlist		= PapyrusUtil.PushInt(xoidlist, _oid)
+	xoidtriggerkeys	= PapyrusUtil.PushString(xoidtriggerkeys, _triggerKey)
+	xoidattrnames	= PapyrusUtil.PushString(xoidattrnames, _attrName)
+EndFunction
+
+string Function GetOidTriggerKey(int _oid)
+	string value = ""
+
+	int oidx = xoidlist.Find(_oid)
+	if oidx > -1 && oidx < xoidlist.Length && xoidlist.Length == xoidtriggerkeys.Length
+		value = xoidtriggerkeys[oidx]
+	endif
+
+	return value
+EndFunction
+
+string Function GetOidAttributeName(int _oid)
+	string value = ""
+
+	int oidx = xoidlist.Find(_oid)
+	if oidx > -1 && oidx < xoidlist.Length && xoidlist.Length == xoidattrnames.Length
+		value = xoidattrnames[oidx]
+	endif
+
+	return value
+EndFunction
+
+;;;;;;;;;;;;;;;
+;; Attribute related functions
+string[] Function GetAttributeNames(bool _istk)
+	string _filename = FN_X_Attributes(CurrentExtensionKey)
+
+	string jkey
+	if _istk
+		jkey = "trigger_attributes"
+	else
+		jkey = "settings_attributes"
+	endif
 	
-	event OnSliderAcceptST(float value)
-		DoSliderAccept(0, 1, value)
-	endevent
-endstate
+	int listcount = JsonUtil.PathCount(_filename, jkey)
+	int idx = 0
+	string[] list
+	string[] results
+	while idx < listcount
+		list = JsonUtil.PathStringElements(_filename, jkey + "[" + idx + "]")
+		if list.Length && StringUtil.GetNthChar(list[0], 0) != "#"
+			if !results
+				results = PapyrusUtil.StringArray(0)
+			endif
+			results = PapyrusUtil.PushString(results, list[0])
+		endif
+		idx += 1
+	endwhile
 
-state oid_chance_1
-	event OnSliderOpenST()
-		DoSliderOpen(1, 1)
-	endevent
+	return results
+EndFunction
+
+int Function GetAttrWidget(bool _istk, string _attr)
+	string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	if data.Length > 0
+		string strwidg = data[0]
+		if strwidg == "slider"
+			return WIDG_SLIDER
+		elseif strwidg == "menu"
+			return WIDG_MENU
+		elseif strwidg == "keymapping"
+			return WIDG_KEYMAP
+		elseif strwidg == "toggle"
+			return WIDG_TOGGLE
+		elseif strwidg == "input"
+			return WIDG_INPUT
+		elseif strwidg == "command"
+			return WIDG_COMMANDLIST
+		endif
+	endif
+	return WIDG_ERROR
+EndFunction
+
+int Function GetAttrType(bool _istk, string _attr)
+	string[] data = GetExtensionAttributeData(_istk, _attr, "type")
+	int ptype = -1
+	if data.Length > 0
+		string strtype = data[0]
+		if strtype == "int"
+			ptype = PTYPE_INT()
+		elseif strtype == "float"
+			ptype = PTYPE_FLOAT()
+		elseif strtype == "string"
+			ptype = PTYPE_STRING()
+		elseif strtype == "form"
+			ptype = PTYPE_FORM()
+		endif
+	endif
+	return ptype
+EndFunction
+
+float Function GetAttrMinValue(bool _istk, string _attr)
+	string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	float info
+	if data.Length >= 5 && data[0] == "slider"
+		info = data[2] as float
+	endif
+	return info
+EndFunction
+
+float Function GetAttrMaxValue(bool _istk, string _attr)
+	string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	float info
+	if data.Length >= 5 && data[0] == "slider"
+		info = data[3] as float
+	endif
+	return info
+EndFunction
+
+float Function GetAttrInterval(bool _istk, string _attr)
+	string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	float info
+	if data.Length >= 5 && data[0] == "slider"
+		info = data[4] as float
+	endif
+	return info
+EndFunction
+
+int Function GetAttrDefaultValue(bool _istk, string _attr)
+	string[] data = GetExtensionAttributeData(_istk, _attr, "type")
+	int info
+	if data.Length > 1 && data[0] == "int"
+		info = data[1] as int
+	endif
+	return info
+EndFunction
+
+float Function GetAttrDefaultFloat(bool _istk, string _attr)
+	string[] data = GetExtensionAttributeData(_istk, _attr, "type")
+	float info
+	if data.Length > 1 && data[0] == "float"
+		info = data[1] as float
+	endif
+	return info
+EndFunction
+
+string Function GetAttrDefaultString(bool _istk, string _attr)
+	string[] data = GetExtensionAttributeData(_istk, _attr, "type")
+	string info
+	if data.Length > 1 && data[0] == "string"
+		info = data[1]
+	endif
+	return info
+EndFunction
+
+string Function GetAttrLabel(bool _istk, string _attr)
+	string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	string info
+	if data.Length > 1
+		info = data[1]
+	endif
+	return info
+EndFunction
+
+string Function GetAttrFormatString(bool _istk, string _attr)
+	string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	string info
+	if data.Length > 5 && data[0] == "slider"
+		info = data[5] as string
+	endif
+	return info
+EndFunction
+
+int Function GetAttrDefaultIndex(bool _istk, string _attr)
+	string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	int info
+	if data.Length >= 2 && data[0] == "menu"
+		info = data[2] as int
+	endif
+	return info
+EndFunction
+
+string[] Function GetAttrMenuSelections(bool _istk, string _attr)
+	string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	string[] info
+	if data.Length > 3 && data[0] == "menu"
+		info = PapyrusUtil.SliceStringArray(data, 3)
+	endif
+	return info
+EndFunction
+
+
+int Function GetAttrMenuSelectionIndex(bool _istk, string _attr, string _selection)
+	string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	int info
+	if data.Length > 0
+		info = data.Find(_selection, 3)
+	endif
+	return info
+EndFunction
+
+bool Function HasAttrHighlight(bool _istk, string _attr)
+	string[] data = GetExtensionAttributeData(_istk, _attr, "info")
+	string info
+	if data.Length > 0
+		info = data[0]
+	endif
+	return (info != "")
+EndFunction
+
+string Function GetAttrHighlight(bool _istk, string _attr)
+	string[] data = GetExtensionAttributeData(_istk, _attr, "info")
+	string info
+	if data.Length > 0
+		info = data[0]
+	endif
+	return info
+EndFunction
+
+
+string[] Function GetLayout(bool _istk, string _dataFile)
+	string[] _layoutData = new string[2]
+
+	; needs to be fixed for our hypothetical FN_SettingsAttributes()
+	string _filename = FN_X_Attributes(CurrentExtensionKey)
+
+	string jkey
+	if _istk
+		jkey = "trigger_layoutconditions"
+	else
+		jkey = "settings_layoutconditions"
+	endif
+
+	int listcount = JsonUtil.PathCount(_filename, jkey)
+	if listcount < 1
+		return _layoutData
+	endif
+
+	int idx = 0
+	string[] list
+	string visibilityKey
+	string _layout
+	string _layoutValue
+	while idx < listcount
+		list = UncommentStringArray(JsonUtil.PathStringElements(_filename, jkey + "[" + idx + "]"))
+		if list.Length > 0 && StringUtil.GetNthChar(list[0], 0) != "#"
+			if !visibilityKey
+				visibilityKey = list[0]
+				_layoutData[1] = visibilityKey
+			elseif list.Length > 1
+				_layout = list[1]
+				_layoutValue = list[0]
+		
+				int ptype = GetAttrType(_istk, visibilityKey)
+				if ptype == PTYPE_INT()
+					int _layoutTest = _layoutValue as int
+					int _dataTest = JsonUtil.GetIntValue(_dataFile, visibilityKey)
+					bool _matches = (_layoutTest == _dataTest)
+					if _matches
+						; but only if it has an entry.. no fair sending us on a wild goose chase
+						string[] rowone = GetExtensionLayoutData(_istk, _layout, 0)
+						if rowone
+							; FOUND
+							_layoutData[0] = _layout
+							_layoutData[1] = visibilityKey
+							return _layoutData
+						endif
+					endif
+				elseif ptype == PTYPE_STRING()
+					string _dataTest = JsonUtil.GetStringValue(_dataFile, visibilityKey)
+					bool _matches = (_layoutValue == _dataTest)
+					if _matches
+						; but only if it has an entry.. no fair sending us on a wild goose chase
+						string[] rowone = GetExtensionLayoutData(_istk, _layout, 0)
+						if rowone
+							; FOUND
+							_layoutData[0] = _layout
+							_layoutData[1] = visibilityKey
+							return _layoutData
+						endif
+					endif
+				else
+					; they specified it, it somehow got past, and now we have to deal with it
+					; or ignore it
+				endif
+
+			endif
+		endif
+		idx += 1
+	endwhile
+
+	return _layoutData
+EndFunction
+
+
+
+string[] Function UncommentStringArray(string[] _commentedStringArray)
+	string[] result
+
+	int i = 0
+	while i < _commentedStringArray.Length
+		string strtest = _commentedStringArray[i]
+		string firstchar = StringUtil.GetNthChar(strtest, 0)
+		if firstchar == "#"
+			i = _commentedStringArray.Length
+		endif
+		if !result
+			result = PapyrusUtil.StringArray(0)
+		endif
+		result = PapyrusUtil.PushString(result, strtest)
+		i += 1
+	endwhile
+
+	return result
+EndFunction
+
+string[] Function GetExtensionAttributeData(bool _istk, string _attr, string _info)
+	if !_attr || !_info
+		Debug.Trace("_attr and _info are required")
+		return none
+	endif
+
+	string _filename = FN_X_Attributes(CurrentExtensionKey)
+
+	string jkey
+	if _istk
+		jkey = "trigger_attributes"
+	else
+		jkey = "settings_attributes"
+	endif
+	int listcount = JsonUtil.PathCount(_filename, jkey)
+	int idx = 0
+	string[] list
+
+	while idx < listcount
+		list = JsonUtil.PathStringElements(_filename, jkey + "[" + idx + "]")
+		if list.Length && StringUtil.GetNthChar(list[0], 0) != "#" && list[0] == _attr
+			jkey = list[1]
+			idx = listcount
+		endif
+		idx += 1
+	endwhile
 	
-	event OnSliderAcceptST(float value)
-		DoSliderAccept(1, 1, value)
-	endevent
-endstate
-
-state oid_chance_2
-	event OnSliderOpenST()
-		DoSliderOpen(2, 1)
-	endevent
+	listcount = JsonUtil.PathCount(_filename, jkey)
+	idx = 0
 	
-	event OnSliderAcceptST(float value)
-		DoSliderAccept(2, 1, value)
-	endevent
-endstate
+	int jdx = 0
+	string[] results
+	while idx < listcount
+		string ijkey = jkey + "[" + idx + "]"
+		list = JsonUtil.PathStringElements(_filename, ijkey)
+		if list.Length
+			if list[0] == _info
+				jdx = 1
+				while jdx < list.Length
+					string candidate = list[jdx]
+					if StringUtil.GetNthChar(candidate, 1) != "#"
+						if !results
+							results = PapyrusUtil.StringArray(0)
+						endif
+						results = PapyrusUtil.PushString(results, candidate)
+					else
+						jdx = list.Length
+					endif
+					jdx += 1
+				endwhile
+				idx = listcount
+			endif
+		endif
+		idx += 1
+	endwhile
 
-state oid_chance_3
-	event OnSliderOpenST()
-		DoSliderOpen(3, 1)
-	endevent
+	return results
+EndFunction
+
+
+string[] Function GetExtensionLayoutData(bool _istk, string _layout, int _row)
+	if _row < 0
+		Debug.Trace("_row must be non-negative")
+		return none
+	endif
+
+	; needs to be fixed for our hypothetical FN_SettingsAttributes()
+	string _filename = FN_X_Attributes(CurrentExtensionKey)
+
+	string jkey = _layout
+	if !jkey
+		if _istk
+			jkey = "triggerlayout"
+		else
+			jkey = "settingslayout"
+		endif
+	endif
 	
-	event OnSliderAcceptST(float value)
-		DoSliderAccept(3, 1, value)
-	endevent
-endstate
-
-state oid_chance_4
-	event OnSliderOpenST()
-		DoSliderOpen(4, 1)
-	endevent
-	
-	event OnSliderAcceptST(float value)
-		DoSliderAccept(4, 1, value)
-	endevent
-endstate
-
-; BEGIN event cards 0-4 per page
-state oid_event_0
-	Event OnMenuOpenSt()
-		DoMenuOpen(0, triggerIfEventNames, 2)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(0, triggerIfEventNames, 2, index)
-		ForcePageReset()
-	EndEvent
-endstate
-
-state oid_event_1
-	Event OnMenuOpenSt()
-		DoMenuOpen(1, triggerIfEventNames, 2)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(1, triggerIfEventNames, 2, index)
-		ForcePageReset()
-	EndEvent
-endstate
-
-state oid_event_2
-	Event OnMenuOpenSt()
-		DoMenuOpen(2, triggerIfEventNames, 2)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(2, triggerIfEventNames, 2, index)
-		ForcePageReset()
-	EndEvent
-endstate
-
-state oid_event_3
-	Event OnMenuOpenSt()
-		DoMenuOpen(3, triggerIfEventNames, 2)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(3, triggerIfEventNames, 2, index)
-		ForcePageReset()
-	EndEvent
-endstate
-
-state oid_event_4
-	Event OnMenuOpenSt()
-		DoMenuOpen(4, triggerIfEventNames, 2)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(4, triggerIfEventNames, 2, index)
-		ForcePageReset()
-	EndEvent
-endstate
-; END event cards 0-4 per page
-
-
-; BEGIN race cards 0-4 per page
-state oid_race_0
-	Event OnMenuOpenSt()
-		DoMenuOpen(0, triggerIfRaceNames, 3)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(0, triggerIfRaceNames, 3, index)
-	EndEvent
-endstate
-
-state oid_race_1
-	Event OnMenuOpenSt()
-		DoMenuOpen(1, triggerIfRaceNames, 3)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(1, triggerIfRaceNames, 3, index)
-	EndEvent
-endstate
-
-state oid_race_2
-	Event OnMenuOpenSt()
-		DoMenuOpen(2, triggerIfRaceNames, 3)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(2, triggerIfRaceNames, 3, index)
-	EndEvent
-endstate
-
-state oid_race_3
-	Event OnMenuOpenSt()
-		DoMenuOpen(3, triggerIfRaceNames, 3)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(3, triggerIfRaceNames, 3, index)
-	EndEvent
-endstate
-
-state oid_race_4
-	Event OnMenuOpenSt()
-		DoMenuOpen(4, triggerIfRaceNames, 3)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(4, triggerIfRaceNames, 3, index)
-	EndEvent
-endstate
-; END race cards 0-4 per page
-
-
-; BEGIN role cards 0-4 per page
-state oid_role_0
-	Event OnMenuOpenSt()
-		DoMenuOpen(0, triggerIfRoleNames, 4)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(0, triggerIfRoleNames, 4, index)
-	EndEvent
-endstate
-
-state oid_role_1
-	Event OnMenuOpenSt()
-		DoMenuOpen(1, triggerIfRoleNames, 4)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(1, triggerIfRoleNames, 4, index)
-	EndEvent
-endstate
-
-state oid_role_2
-	Event OnMenuOpenSt()
-		DoMenuOpen(2, triggerIfRoleNames, 4)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(2, triggerIfRoleNames, 4, index)
-	EndEvent
-endstate
-
-state oid_role_3
-	Event OnMenuOpenSt()
-		DoMenuOpen(3, triggerIfRoleNames, 4)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(3, triggerIfRoleNames, 4, index)
-	EndEvent
-endstate
-
-state oid_role_4
-	Event OnMenuOpenSt()
-		DoMenuOpen(4, triggerIfRoleNames, 4)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(4, triggerIfRoleNames, 4, index)
-	EndEvent
-endstate
-; END role cards 0-4 per page
-
-
-; BEGIN gender cards 0-4 per page
-state oid_gender_0
-	Event OnMenuOpenSt()
-		DoMenuOpen(0, triggerIfGenderNames, 5)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(0, triggerIfGenderNames, 5, index)
-	EndEvent
-endstate
-
-state oid_gender_1
-	Event OnMenuOpenSt()
-		DoMenuOpen(1, triggerIfGenderNames, 5)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(1, triggerIfGenderNames, 5, index)
-	EndEvent
-endstate
-
-state oid_gender_2
-	Event OnMenuOpenSt()
-		DoMenuOpen(2, triggerIfGenderNames, 5)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(2, triggerIfGenderNames, 5, index)
-	EndEvent
-endstate
-
-state oid_gender_3
-	Event OnMenuOpenSt()
-		DoMenuOpen(3, triggerIfGenderNames, 5)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(3, triggerIfGenderNames, 5, index)
-	EndEvent
-endstate
-
-state oid_gender_4
-	Event OnMenuOpenSt()
-		DoMenuOpen(4, triggerIfGenderNames, 5)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(4, triggerIfGenderNames, 5, index)
-	EndEvent
-endstate
-; END gender cards 0-4 per page
-
-
-; BEGIN tag cards 0-4 per page
-state oid_tag_0
-	Event OnMenuOpenSt()
-		DoMenuOpen(0, triggerIfTagNames, 6)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(0, triggerIfTagNames, 6, index)
-	EndEvent
-endstate
-
-state oid_tag_1
-	Event OnMenuOpenSt()
-		DoMenuOpen(1, triggerIfTagNames, 6)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(1, triggerIfTagNames, 6, index)
-	EndEvent
-endstate
-
-state oid_tag_2
-	Event OnMenuOpenSt()
-		DoMenuOpen(2, triggerIfTagNames, 6)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(2, triggerIfTagNames, 6, index)
-	EndEvent
-endstate
-
-state oid_tag_3
-	Event OnMenuOpenSt()
-		DoMenuOpen(3, triggerIfTagNames, 6)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(3, triggerIfTagNames, 6, index)
-	EndEvent
-endstate
-
-state oid_tag_4
-	Event OnMenuOpenSt()
-		DoMenuOpen(4, triggerIfTagNames, 6)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(4, triggerIfTagNames, 6, index)
-	EndEvent
-endstate
-; END tag cards 0-4 per page
-
-
-; BEGIN daytime cards 0-4 per page
-state oid_daytime_0
-	Event OnMenuOpenSt()
-		DoMenuOpen(0, triggerIfDaytimeNames, 7)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(0, triggerIfDaytimeNames, 7, index)
-	EndEvent
-endstate
-
-state oid_daytime_1
-	Event OnMenuOpenSt()
-		DoMenuOpen(1, triggerIfDaytimeNames, 7)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(1, triggerIfDaytimeNames, 7, index)
-	EndEvent
-endstate
-
-state oid_daytime_2
-	Event OnMenuOpenSt()
-		DoMenuOpen(2, triggerIfDaytimeNames, 7)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(2, triggerIfDaytimeNames, 7, index)
-	EndEvent
-endstate
-
-state oid_daytime_3
-	Event OnMenuOpenSt()
-		DoMenuOpen(3, triggerIfDaytimeNames, 7)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(3, triggerIfDaytimeNames, 7, index)
-	EndEvent
-endstate
-
-state oid_daytime_4
-	Event OnMenuOpenSt()
-		DoMenuOpen(4, triggerIfDaytimeNames, 7)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(4, triggerIfDaytimeNames, 7, index)
-	EndEvent
-endstate
-; END daytime cards 0-4 per page
-
-
-; BEGIN location cards 0-4 per page
-state oid_location_0
-	Event OnMenuOpenSt()
-		DoMenuOpen(0, triggerIfLocationNames, 8)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(0, triggerIfLocationNames, 8, index)
-	EndEvent
-endstate
-
-state oid_location_1
-	Event OnMenuOpenSt()
-		DoMenuOpen(1, triggerIfLocationNames, 8)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(1, triggerIfLocationNames, 8, index)
-	EndEvent
-endstate
-
-state oid_location_2
-	Event OnMenuOpenSt()
-		DoMenuOpen(2, triggerIfLocationNames, 8)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(2, triggerIfLocationNames, 8, index)
-	EndEvent
-endstate
-
-state oid_location_3
-	Event OnMenuOpenSt()
-		DoMenuOpen(3, triggerIfLocationNames, 8)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(3, triggerIfLocationNames, 8, index)
-	EndEvent
-endstate
-
-state oid_location_4
-	Event OnMenuOpenSt()
-		DoMenuOpen(4, triggerIfLocationNames, 8)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(4, triggerIfLocationNames, 8, index)
-	EndEvent
-endstate
-; END location cards 0-4 per page
-
-; BEGIN do_1 cards 0-4 per page
-state oid_do_1_0
-	Event OnMenuOpenSt()
-		DoCommandMenuOpen(0, 9)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoCommandMenuAccept(0, 9, index)
-	EndEvent
-endstate
-
-state oid_do_1_1
-	Event OnMenuOpenSt()
-		DoCommandMenuOpen(1, 9)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoCommandMenuAccept(1, 9, index)
-	EndEvent
-endstate
-
-state oid_do_1_2
-	Event OnMenuOpenSt()
-		DoCommandMenuOpen(2, 9)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoCommandMenuAccept(2, 9, index)
-	EndEvent
-endstate
-
-state oid_do_1_3
-	Event OnMenuOpenSt()
-		DoCommandMenuOpen(3, 9)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoCommandMenuAccept(3, 9, index)
-	EndEvent
-endstate
-
-state oid_do_1_4
-	Event OnMenuOpenSt()
-		DoCommandMenuOpen(4, 9)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoCommandMenuAccept(4, 9, index)
-	EndEvent
-endstate
-; END do_1 cards 0-4 per page
-
-
-; BEGIN do_2 cards 0-4 per page
-state oid_do_2_0
-	Event OnMenuOpenSt()
-		DoCommandMenuOpen(0, 10)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoCommandMenuAccept(0, 10, index)
-	EndEvent
-endstate
-
-state oid_do_2_1
-	Event OnMenuOpenSt()
-		DoCommandMenuOpen(1, 10)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoCommandMenuAccept(1, 10, index)
-	EndEvent
-endstate
-
-state oid_do_2_2
-	Event OnMenuOpenSt()
-		DoCommandMenuOpen(2, 10)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoCommandMenuAccept(2, 10, index)
-	EndEvent
-endstate
-
-state oid_do_2_3
-	Event OnMenuOpenSt()
-		DoCommandMenuOpen(3, 10)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoCommandMenuAccept(3, 10, index)
-	EndEvent
-endstate
-
-state oid_do_2_4
-	Event OnMenuOpenSt()
-		DoCommandMenuOpen(4, 10)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoCommandMenuAccept(4, 10, index)
-	EndEvent
-endstate
-; END do_2 cards 0-4 per page
-
-
-; BEGIN do_3 cards 0-4 per page
-state oid_do_3_0
-	Event OnMenuOpenSt()
-		DoCommandMenuOpen(0, 11)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoCommandMenuAccept(0, 11, index)
-	EndEvent
-endstate
-
-state oid_do_3_1
-	Event OnMenuOpenSt()
-		DoCommandMenuOpen(1, 11)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoCommandMenuAccept(1, 11, index)
-	EndEvent
-endstate
-
-state oid_do_3_2
-	Event OnMenuOpenSt()
-		DoCommandMenuOpen(2, 11)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoCommandMenuAccept(2, 11, index)
-	EndEvent
-endstate
-
-state oid_do_3_3
-	Event OnMenuOpenSt()
-		DoCommandMenuOpen(3, 11)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoCommandMenuAccept(3, 11, index)
-	EndEvent
-endstate
-
-state oid_do_3_4
-	Event OnMenuOpenSt()
-		DoCommandMenuOpen(4, 11)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoCommandMenuAccept(4, 11, index)
-	EndEvent
-endstate
-; END do_3 cards 0-4 per page
-
-
-; BEGIN player cards 0-4 per page
-state oid_player_0
-	Event OnMenuOpenSt()
-		DoMenuOpen(0, triggerIfPlayerNames, 12)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(0, triggerIfPlayerNames, 12, index)
-	EndEvent
-endstate
-
-state oid_player_1
-	Event OnMenuOpenSt()
-		DoMenuOpen(1, triggerIfPlayerNames, 12)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(1, triggerIfPlayerNames, 12, index)
-	EndEvent
-endstate
-
-state oid_player_2
-	Event OnMenuOpenSt()
-		DoMenuOpen(2, triggerIfPlayerNames, 12)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(2, triggerIfPlayerNames, 12, index)
-	EndEvent
-endstate
-
-state oid_player_3
-	Event OnMenuOpenSt()
-		DoMenuOpen(3, triggerIfPlayerNames, 12)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(3, triggerIfPlayerNames, 12, index)
-	EndEvent
-endstate
-
-state oid_player_4
-	Event OnMenuOpenSt()
-		DoMenuOpen(4, triggerIfPlayerNames, 12)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(4, triggerIfPlayerNames, 12, index)
-	EndEvent
-endstate
-; END player cards 0-4 per page
-
-
-; BEGIN keymap cards 0-4 per page
-state oid_keymap_0
-	Event OnKeyMapChangeSt(int newKeyCode, string conflictControl, string conflictName)
-		DoKeymapChange(0, 13, newKeyCode, conflictControl, conflictName)
-	EndEvent
-endstate
-
-state oid_keymap_1
-	Event OnKeyMapChangeSt(int newKeyCode, string conflictControl, string conflictName)
-		DoKeymapChange(1, 13, newKeyCode, conflictControl, conflictName)
-	EndEvent
-endstate
-
-state oid_keymap_2
-	Event OnKeyMapChangeSt(int newKeyCode, string conflictControl, string conflictName)
-		DoKeymapChange(2, 13, newKeyCode, conflictControl, conflictName)
-	EndEvent
-endstate
-
-state oid_keymap_3
-	Event OnKeyMapChangeSt(int newKeyCode, string conflictControl, string conflictName)
-		DoKeymapChange(3, 13, newKeyCode, conflictControl, conflictName)
-	EndEvent
-endstate
-
-state oid_keymap_4
-	Event OnKeyMapChangeSt(int newKeyCode, string conflictControl, string conflictName)
-		DoKeymapChange(4, 13, newKeyCode, conflictControl, conflictName)
-	EndEvent
-endstate
-; END keymap cards 0-4 per page
-
-
-; BEGIN keymap_modifier cards 0-4 per page
-state oid_keymap_modifier_0
-	Event OnKeyMapChangeSt(int newKeyCode, string conflictControl, string conflictName)
-		DoKeymapChange(0, 14, newKeyCode, conflictControl, conflictName)
-	EndEvent
-endstate
-
-state oid_keymap_modifier_1
-	Event OnKeyMapChangeSt(int newKeyCode, string conflictControl, string conflictName)
-		DoKeymapChange(1, 14, newKeyCode, conflictControl, conflictName)
-	EndEvent
-endstate
-
-state oid_keymap_modifier_2
-	Event OnKeyMapChangeSt(int newKeyCode, string conflictControl, string conflictName)
-		DoKeymapChange(2, 14, newKeyCode, conflictControl, conflictName)
-	EndEvent
-endstate
-
-state oid_keymap_modifier_3
-	Event OnKeyMapChangeSt(int newKeyCode, string conflictControl, string conflictName)
-		DoKeymapChange(3, 14, newKeyCode, conflictControl, conflictName)
-	EndEvent
-endstate
-
-state oid_keymap_modifier_4
-	Event OnKeyMapChangeSt(int newKeyCode, string conflictControl, string conflictName)
-		DoKeymapChange(4, 14, newKeyCode, conflictControl, conflictName)
-	EndEvent
-endstate
-; END keymap_modifier cards 0-4 per page
-
-
-; BEGIN use_dak cards 0-4 per page
-state oid_use_dak_0
-	Event OnSelectSt()
-		DoToggleSelect(0, 15)
-	EndEvent
-
-	Event OnDefaultSt()
-		SetToggleOptionValueSt(false)
-	EndEvent
-endstate
-
-state oid_use_dak_1
-	Event OnSelectSt()
-		DoToggleSelect(1, 15)
-	EndEvent
-
-	Event OnDefaultSt()
-		SetToggleOptionValueSt(false)
-	EndEvent
-endstate
-
-state oid_use_dak_2
-	Event OnSelectSt()
-		DoToggleSelect(2, 15)
-	EndEvent
-
-	Event OnDefaultSt()
-		SetToggleOptionValueSt(false)
-	EndEvent
-endstate
-
-state oid_use_dak_3
-	Event OnSelectSt()
-		DoToggleSelect(3, 15)
-	EndEvent
-
-	Event OnDefaultSt()
-		SetToggleOptionValueSt(false)
-	EndEvent
-endstate
-
-state oid_use_dak_4
-	Event OnSelectSt()
-		DoToggleSelect(4, 15)
-	EndEvent
-
-	Event OnDefaultSt()
-		SetToggleOptionValueSt(false)
-	EndEvent
-endstate
-; END use_dak cards 0-4 per page
-
-
-; BEGIN position cards 0-4 per page
-state oid_position_0
-	Event OnMenuOpenSt()
-		DoMenuOpen(0, triggerIfPosition, 16)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(0, triggerIfPosition, 16, index)
-	EndEvent
-endstate
-
-state oid_position_1
-	Event OnMenuOpenSt()
-		DoMenuOpen(1, triggerIfPosition, 16)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(1, triggerIfPosition, 16, index)
-	EndEvent
-endstate
-
-state oid_position_2
-	Event OnMenuOpenSt()
-		DoMenuOpen(2, triggerIfPosition, 16)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(2, triggerIfPosition, 16, index)
-	EndEvent
-endstate
-
-state oid_position_3
-	Event OnMenuOpenSt()
-		DoMenuOpen(3, triggerIfPosition, 16)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(3, triggerIfPosition, 16, index)
-	EndEvent
-endstate
-
-state oid_position_4
-	Event OnMenuOpenSt()
-		DoMenuOpen(4, triggerIfPosition, 16)
-	EndEvent
-
-	Event OnMenuAcceptSt(int index)
-		DoMenuAccept(4, triggerIfPosition, 16, index)
-	EndEvent
-endstate
-; END position cards 0-4 per page
-
-
-
-
-
-;;;;;
-;; End state based configs (I mean, don't really, they seem pretty cool
+	int listcount = JsonUtil.PathCount(_filename, jkey)
+
+	if _row >= listcount
+		Debug.Trace("_row(" + _row + ") out of bounds for listcount(" + listcount + ")")
+		return none
+	endif
+
+	string[] list = UncommentStringArray(JsonUtil.PathStringElements(_filename, jkey + "[" + _row + "]"))
+	if list.Length >= 1
+		return list
+	endif
+
+	return none
+EndFunction
