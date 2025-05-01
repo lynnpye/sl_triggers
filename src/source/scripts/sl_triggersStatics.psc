@@ -62,6 +62,10 @@ string Function EVENT_SLT_REQUEST_COMMAND() global
 	return "sl_triggers_SLTRequestCommand"
 EndFunction
 
+string Function EVENT_SLT_REQUEST_LIST() global
+	return "sl_triggers_SLTRequestList"
+EndFunction
+
 ; SLT receives these from extensions for registration
 string Function EVENT_SLT_REGISTER_EXTENSION() global
 	return "_slt_event_slt_register_extension_"
@@ -83,6 +87,10 @@ EndFunction
 ; SLT sends this when settings have been updated
 string Function EVENT_SLT_SETTINGS_UPDATED() global
 	return "sl_triggers_SLTSettingsUpdated"
+EndFunction
+
+float Function SLT_LIST_REQUEST_SU_KEY_IS_GLOBAL() global
+	return 1.7
 EndFunction
 
 ;;;;;;;;;

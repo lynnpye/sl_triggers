@@ -125,6 +125,32 @@ Event OnSLTRegisterExtension(string _eventName, string _strArg, float _fltArg, F
 	DoRegistrationActivity(_strArg)
 EndEvent
 
+Event OnSLTRequestList(string _eventName, string _storageUtilStringListKey, float _isGlobal, Form _storageUtilObj)
+	if !self || !_storageUtilStringListKey
+		return
+	endif
+
+	Form suAnchor = _storageUtilObj
+	if _isGlobal == SLT_LIST_REQUEST_SU_KEY_IS_GLOBAL()
+		suAnchor = none
+	endif
+
+	string returnEvent
+
+	if StorageUtil.StringListCount(suAnchor, _storageUtilStringListKey) > 0
+		returnEvent = StorageUtil.StringListGet(suAnchor, _storageUtilStringListKey, 0)
+	endif
+
+	string[] list = GetCommandsList()
+	if list.Length
+		StorageUtil.StringListCopy(suAnchor, _storageUtilStringListKey, list)
+
+		if returnEvent
+			SendModEvent(returnEvent)
+		endif
+	endif
+EndEvent
+
 Event OnSLTRequestCommand(string _eventName, string _commandName, float __ignored, Form _theActor)
 	if !self
 		return
@@ -203,6 +229,7 @@ Function DoBootstrapActivity()
 
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REGISTER_EXTENSION(), "OnSLTRegisterExtension")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_COMMAND(), "OnSLTRequestCommand")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_LIST(), "OnSLTRequestList")
 
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_DELAYED_SETTINGS_BROADCAST, "OnSLTDelayedSettingsBroadcast")
 

@@ -67,7 +67,7 @@
         ["# checked in sequence shown, first match determines layout selection"],
 		["event"],
         ["1", "triggerlayout_keymapping"],
-        ["2", "triggerlayout_keymapping"]
+        ["2", "triggerlayout_topofthehour"]
     ],
     "triggerlayout_keymapping" : [
         ["event", "keymapping"],
