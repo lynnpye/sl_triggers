@@ -1,5 +1,5 @@
 111
-    SAVE-BREAKING: cleaning up last bits of extension pools (should have done this pre 109); this changes the .esp, you will need a new save (I mean, you can try)
+    PROBABLY-SAVE-BREAKING: cleaning up last bits of extension pools (should have done this pre 109); this changes the .esp, so I suspect you will need a new save (I mean, you can try)
     enhancement: added new ModEvent that SLT listens for
         sl_triggers_SLTRequestList
             AFormObject.SendModEvent("sl_triggers_SLTRequestList", "StorageUtilKey", (optional) 1.7 (yes, 1.7))
@@ -8,6 +8,13 @@
             - if you specify 1.7 for the float value, the StorageUtilKey will be assumed to be a global value (i.e. not stored to the Form)
             - if you put a mod event name into the first element of the list before invoking this event, that mod event will be fired when the list is populated
     bugfix: the 'TopOfTheHour' layout was set to use the 'Keymapping' layout via a lovely little typo
+    change: shipped script cleanup
+        - recoded all .json shipped scripts as .ini
+        - reformatted some of the .ini files to pretty them up a little
+        - removed a few scripts referencing objects no longer shipped with the .esp
+        - NOTE: IF YOU ARE UPGRADING, YOU WILL HAVE A BUNCH OF DUPLICATE SCRITPS IN YOUR (for legacy purposes, incorrectly named) 'Data\SKSE\Plugins\sl_triggers\commands\' folder,
+            because you already have the old .json versions I removed and will receive new .ini versions. Unless you have a preference for the .json versions, I would
+            recommend you clean out your commands folder prior to updating.
 
 110
     bugfix: fixed the problem preventing command libraries beyond the base SLT library from working
