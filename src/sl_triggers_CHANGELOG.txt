@@ -1,5 +1,13 @@
 111
     SAVE-BREAKING: cleaning up last bits of extension pools (should have done this pre 109); this changes the .esp, you will need a new save (I mean, you can try)
+    enhancement: added new ModEvent that SLT listens for
+        sl_triggers_SLTRequestList
+            AFormObject.SendModEvent("sl_triggers_SLTRequestList", "StorageUtilKey", (optional) 1.7 (yes, 1.7))
+            - when received, will populate a StorageUtil string list located at "StorageUtilKey" with the list of scripts
+            - the list will be attached to the Form sender
+            - if you specify 1.7 for the float value, the StorageUtilKey will be assumed to be a global value (i.e. not stored to the Form)
+            - if you put a mod event name into the first element of the list before invoking this event, that mod event will be fired when the list is populated
+    bugfix: the 'TopOfTheHour' layout was set to use the 'Keymapping' layout via a lovely little typo
 
 110
     bugfix: fixed the problem preventing command libraries beyond the base SLT library from working
