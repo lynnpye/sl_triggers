@@ -750,7 +750,7 @@ endFunction
 ; sltname util_getrndactor
 ; sltdesc Return a random actor within specified range of self
 ; sltargs <range: 0 - all | >0 skyrim units>
-; sltsamp util_getrndactor
+; sltsamp util_getrndactor 320
 function util_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -1461,7 +1461,6 @@ endFunction
 ; sltdesc Returns the race name based on sub-function. Blank, empty sub-function returns Vanilla racenames. e.g. "SL" can return SexLab race keynames.
 ; sltargs <actor variable> <sub-function>
 ; sltargsmore if parameter 2 is "": return actors race name. Skyrims, original name. Like: "Nord", "Breton"
-; sltargsmore if parameter 2 is "SL": return actors Sexlab frameworks race key name. Like: "dogs", "bears", etc. Note: will return "" if actor is humanoid
 ; sltsamp actor_race $self ""
 function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1472,13 +1471,14 @@ function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
     
     Actor mate = CmdPrimary.resolveActor(param[1])
     
-    CmdPrimary.MostRecentResult = ""
+    string result = ""
     if mate
         string ss1 = CmdPrimary.resolve(param[2])
         if ss1 == ""
-            CmdPrimary.MostRecentResult = mate.GetRace().GetName()
+            result = mate.GetRace().GetName()
         endIf
     endIf
+    CmdPrimary.MostRecentResult = result
 endFunction
 
 ; sltname ism_applyfade
@@ -1852,17 +1852,14 @@ function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
         scancode = ss as int
         if scancode > 0
             CmdPrimary.RegisterForKey(scanCode)
-            
         endIf
         idx += 1
     endWhile
     
     CmdPrimary.lastKey = 0
-	int timeoutcheck = 0
     
-    while CmdPrimary && CmdPrimary.lastKey == 0 && timeoutcheck < 20
+    while CmdPrimary && CmdPrimary.lastKey == 0
         Utility.Wait(0.5)
-		timeoutcheck += 1
     endWhile
 
     CmdPrimary.UnregisterForAllKeys()
