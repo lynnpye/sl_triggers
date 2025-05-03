@@ -112,6 +112,23 @@ function actor_say(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 endFunction
  
 
+function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+    
+    Actor mate = CmdPrimary.resolveActor(param[1])
+    
+    CmdPrimary.MostRecentResult = ""
+    if mate
+        string ss1 = CmdPrimary.resolve(param[2])
+        if ss1 == ""
+            CmdPrimary.MostRecentResult = mate.GetRace().GetName()
+        elseIf ss1 == "SL"
+            CmdPrimary.MostRecentResult = sslCreatureAnimationSlots.GetRaceKey(mate.GetRace())
+        endIf
+    endIf
+endFunction
+ 
+
 function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	if !GetSexLab()

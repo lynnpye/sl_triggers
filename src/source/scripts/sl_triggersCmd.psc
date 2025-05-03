@@ -1241,6 +1241,7 @@ EndFunction
 
 bool Function _slt_ActualOper(string[] param, string code)
     OperationCompleted = false
+    ;DebMsg("actualOper.param(" + PapyrusUtil.StringJoin(param , ") , (") + ")")
     string[] opsParam = PapyrusUtil.StringArray(param.Length)
     int i = 1
     opsParam[0] = code

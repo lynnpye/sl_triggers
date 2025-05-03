@@ -215,3 +215,48 @@ string Function MakeInstanceKey(string instance, string keyname) global
 	return MakeInstanceKeyPrefix(instance) + ":" + keyname
 EndFunction
 
+
+
+Function SquawkFunctionError(sl_triggersCmd _cmdPrimary, string msg) global
+	DebMsg("SLT: [" + _cmdPrimary.cmdName + "][cmdIdx:" + _cmdPrimary.cmdIdx + "] " + msg)
+EndFunction
+
+bool Function ParamLengthLT(sl_triggersCmd _cmdPrimary, int actualLength, int neededLength) global
+    if actualLength < neededLength
+        SquawkFunctionError(_cmdPrimary, "insufficient parameters (needed at least " + neededLength + " but only provided " + actualLength + ")")
+        return true
+    endif
+    return false
+EndFunction
+
+bool Function ParamLengthGT(sl_triggersCmd _cmdPrimary, int actualLength, int neededLength) global
+    if actualLength < neededLength
+        SquawkFunctionError(_cmdPrimary, "too many parameters (needed no more than " + neededLength + " but was provided " + actualLength + ")")
+        return true
+    endif
+    return false
+EndFunction
+
+bool Function ParamLengthEQ(sl_triggersCmd _cmdPrimary, int actualLength, int neededLength) global
+    if actualLength < neededLength
+        SquawkFunctionError(_cmdPrimary, "was provided incorrect number of parameters (was provided " + actualLength + ")")
+        return true
+    endif
+    return false
+EndFunction
+
+bool Function ParamLengthNEQ(sl_triggersCmd _cmdPrimary, int actualLength, int neededLength) global
+    if actualLength < neededLength
+        SquawkFunctionError(_cmdPrimary, "was provided incorrect number of parameters (needed " + neededLength + " but was provided " + actualLength + ")")
+        return true
+    endif
+    return false
+EndFunction
+
+bool Function ParamLengthNEQ2(sl_triggersCmd _cmdPrimary, int actualLength, int neededLength, int neededLength2) global
+    if actualLength < neededLength
+        SquawkFunctionError(_cmdPrimary, "was provided incorrect number of parameters (needed " + neededLength + " or " + neededLength2 + " but was provided " + actualLength + ")")
+        return true
+    endif
+    return false
+EndFunction
