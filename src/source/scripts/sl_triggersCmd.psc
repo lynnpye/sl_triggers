@@ -67,8 +67,6 @@ bool            Property CustomResolveCondResult Hidden
     EndFunction
 EndProperty
 
-bool            Property OperationCompleted Auto Hidden
-
 ; Properties
 int			Property lastKey Auto Hidden
 Actor		Property iterActor Auto Hidden
@@ -268,6 +266,16 @@ EndFunction
 ; internal variables
 string      VARS_KEY_PREFIX
 
+bool executionNotBegun
+
+string[] currentCmdLine
+bool firstPass = true
+
+string[]    _callArgs
+float       _maxSeconds = 10.0
+
+string _xn_execute_line
+string _xn_actual_oper
 
 ; callstack variables
 ;int			cmdIdx 
@@ -333,8 +341,6 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
 	QueueUpdateLoop(0.1)
 EndEvent
 
-bool executionNotBegun
-
 Event OnUpdate()
 	If !Self
 		Return
@@ -342,14 +348,12 @@ Event OnUpdate()
     
     if executionNotBegun
         executionNotBegun = false
-        ;Send_X_BeginExecution()
         
         SetupCallstack()
 
         Send_X_ExecuteLine()
     endif
 
-    ;DebMsg("Update loop...")
     QueueUpdateLoop(5.0)
 EndEvent
 
@@ -365,30 +369,17 @@ Event OnSLTReset(string eventName, string strArg, float numArg, Form sender)
     PerformDigitalHygiene()
 EndEvent
 
-
-;/
-Event On_X_BeginExecution()
-    _slt_ExecuteScript()
-EndEvent
-/;
-
-Function DoActualExecuteLine()
-    
-    
+Function RunScript()
     string   code
     string   p1
     string   p2
     string   po
-    ;bool     ifTrue
     string[] cmdLine
 
     while firstPass || (_cs_cmdIdx && _cs_cmdIdx.Length > 0) || cmdidx < cmdNum
         if firstPass
-            ;DebMsg("NEWBIGLOOP:::  first pass")
             firstPass = false
-        elseif (_cs_cmdIdx && _cs_cmdIdx.Length > 0)
-            ;DebMsg("NEWBIGLOOP:::  popping callstack")
-            ; something to pop, set it up for the previous stack
+        elseif (_cs_cmdIdx && _cs_cmdIdx.Length > 0) && cmdidx >= cmdNum
             _slt_PopCallstack()
             cmdidx += 1
         endif
@@ -397,32 +388,17 @@ Function DoActualExecuteLine()
             currentCmdLine = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + cmdidx + "]")
             cmdLine = currentCmdLine
 
-            ;DebMsg("On_X_ExecuteLine [" + cmdidx + "]  (" + PapyrusUtil.StringJoin(cmdLine , ") , (") + ")")
-            ; DebMsg("[" + cmdidx + "]  (" + PapyrusUtil.StringJoin(cmdLine , ") , (") + ")")
-
             if cmdLine.Length
                 code = resolve(cmdLine[0])
-                ;DebMsg("execing (" + code + ")")
-
-                ; might need to add this (code) to all sent events as it is already resolved
-
-                ; DebMsg("############((((((((((    |" + code + "|      ))))))))))")
-
-                ;if code == "set"
-                ;  DebMsg("SET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-                ; endif
 
                 if (cmdtype == "json" && code == ":") || (cmdtype == "ini" && cmdLine.Length == 1 && StringUtil.GetNthChar(code, 0) == "[" && StringUtil.GetNthChar(code, StringUtil.GetLength(code) - 1) == "]")
                     if cmdtype == "json"
-                        ;Send_X_AddGoTo(cmdidx, cmdLine[1])
                         _slt_AddGoto(cmdidx, cmdLine[1])
                     elseif cmdtype == "ini"
-                        ;Send_X_AddGoTo(cmdidx, StringUtil.Substring(code, 1, StringUtil.GetLength(code) - 2))
                         _slt_AddGoto(cmdidx, StringUtil.Substring(code, 1, StringUtil.GetLength(code) - 2))
                     endif
                     cmdidx += 1
                 elseIf code == "beginsub"
-                    ;Send_X_AddGoSub(cmdidx, cmdLine[1])
                     _slt_AddGosub(cmdidx, cmdLine[1])
                     cmdidx = _slt_FindEndsub(cmdidx)
                     cmdidx += 1
@@ -430,166 +406,103 @@ Function DoActualExecuteLine()
                     cmdidx = _slt_PopSubIdx()
                     cmdidx += 1
                 elseIf code == "goto"
-                    ;Send_X_FindGoTo(cmdLine[1], cmdidx, cmdtype)
-                    cmdidx = _slt_FindGoto(cmdLine[1], cmdidx, cmdtype)
+                    if cmdLine.Length == 2
+                        cmdidx = _slt_FindGoto(cmdLine[1], cmdidx, cmdtype)
+                    endif
                     cmdidx += 1
                 elseIf code == "gosub"
-                    ;Send_X_FindGoSub(cmdLine[1], cmdidx)
-                    cmdidx = _slt_FindGosub(cmdLine[1], cmdidx)
+                    if cmdLine.Length == 2
+                        cmdidx = _slt_FindGosub(cmdLine[1], cmdidx)
+                    endif
                     cmdidx += 1
                 elseIf code == "if"
-
-
-                    ; send event_execute_if
-                        ; cmdLine is already populated
-                        ; event handler will need to increment cmdidx
-
-                    ; ["if", "$$", "=", "0", "end"],
-                    p1 = resolve(cmdLine[1])
-                    p2 = resolve(cmdLine[3])
-                    po = cmdLine[2]
-                    ;DebMsg("if v1(" + p1 + ") op(" + po + ") v2(" + p2 + ") lbl(" + cmdLine[4] + ")")
-
-                    ;Send_X_If(p1, p2, po, cmdLine[4], cmdidx, cmdtype)
-                    ; ["if", "$$", "=", "0", "end"],
-                    ;DebMsg("if v1(" + p1 + ") op(" + po + ") v2(" + p2 + ") lbl(" + cmdLine[4] + ")")
-                    bool ifTrue = resolveCond(p1, p2, po)
-                    if ifTrue
-                        cmdidx = _slt_FindGoto(cmdLine[4], cmdidx, cmdtype)
-                    endIf
+                    if cmdLine.Length == 5
+                        ; ["if", "$$", "=", "0", "end"],
+                        p1 = resolve(cmdLine[1])
+                        p2 = resolve(cmdLine[3])
+                        po = cmdLine[2]
+                        
+                        bool ifTrue = resolveCond(p1, p2, po)
+                        if ifTrue
+                            cmdidx = _slt_FindGoto(cmdLine[4], cmdidx, cmdtype)
+                        endIf
+                    endif
                     cmdidx += 1
                 elseIf code == "return"
-
-
-                    ; send event_return
-                        ; cmdLine is already populated, if that matters in this case
-                        ; original did not increment cmdidx, so don't in the handler
-
-
-                    ;Send_X_Return()
-
-
                     if !_cs_cmdIdx || _cs_cmdIdx.Length < 1
-                        ; nothing to pop, let's exit
-                        ; send event_end_execution
-                        ;Send_X_EndExecution()
-                        ;DebMsg("return is calling PerformDigitalHygiene")
                         PerformDigitalHygiene()
 
                         return
                     endif
-                    ; something to pop, set it up for the previous stack
+                    
                     _slt_PopCallstack()
                     cmdidx += 1
                 elseIf code == "call"
-
-
-
-                    ; send event_call
-                        ; cmdLine is already populated
-                        ; event handler will need to increment cmdidx
-
-
-
-                    _callArgs = PapyrusUtil.SliceStringArray(cmdLine, 2)
-                    int caidx = 0
-                    while caidx < _callArgs.Length
-                        _callArgs[caidx] = resolve(_callArgs[caidx])
-                        caidx += 1
-                    endwhile
-                    _slt_PushCallstack(cmdLine[1])
-                    ;Send_X_BeginExecution()
-
-                    
-                elseIf code == "callarg"
-                    int argidx = cmdLine[1] as int
-                    string arg = cmdLine[2]
-                    
-                    int vidx = IsVarStringG(arg)
-                    if vidx > 0
-                        SLT.globalvars_set(vidx, _callArgs[argidx])
+                    if cmdLine.Length == 2 && _slt_IsFileParseable(cmdLine[1])
+                        _callArgs = PapyrusUtil.SliceStringArray(cmdLine, 2)
+                        int caidx = 0
+                        while caidx < _callArgs.Length
+                            _callArgs[caidx] = resolve(_callArgs[caidx])
+                            caidx += 1
+                        endwhile
+                        
+                        _slt_PushCallstack(cmdLine[1])
                     else
-                        vidx = IsVarString(arg)
+                        cmdidx += 1
+                    endif
+                elseIf code == "callarg"
+                    if cmdLine.Length == 3
+                        int argidx = cmdLine[1] as int
+                        string arg = cmdLine[2]
+                        string newval
+
+                        if argidx < _callArgs.Length
+                            newval = _callArgs[argidx]
+                        endif
+
+                        int vidx = IsVarStringG(arg)
                         if vidx > 0
-                            vars_set(vidx, _callArgs[argidx])
+                            SLT.globalvars_set(vidx, newval)
+                        else
+                            vidx = IsVarString(arg)
+                            if vidx > 0
+                                vars_set(vidx, newval)
+                            endif
                         endif
                     endif
                     cmdidx += 1
-
-                    ;Send_X_CallArg(argidx, arg)
                 elseIf !code
                     cmdidx += 1
                 else
-
-
-
-
-                    ; send event_actual_oper
-                        ; cmdLine is already populated
-                        ; code is already populated
-                        ; event handler will need to increment cmdidx
-
-
-
-
-                    ;if code == "set"
-                        ;DebMsg("treating set as an operator")
-                    ;endif
-                    
-                    ;bool operworked = _slt_ActualOper(cmdLine, code)
-
-                    ;/
-                    if operworked
-                        DebMsg("code(" + code + ") seems to have successfully run")
-                    else
-                        DebMsg("code(" + code + ") did not run successfully")
-                    endif
-                    /;
-
-                    ;cmdidx += 1
-
                     Send_X_ActualOper(code)
                     return
                 endIf
             else
                 cmdidx += 1
             endif
-            ;/
-            if (!_cs_cmdIdx || _cs_cmdIdx.Length < 1) && cmdidx >= cmdNum
-                DebMsg("nothing to pop and we've run out of lines to execute")
-            elseif cmdidx < cmdNum
-                DebMsg("more lines to run")
-            else
-                DebMsg("something to pop")
-            endif
-            /;
         endwhile
-        ;DebMsg("Fell out of here")
     endwhile
 
     if !_cs_cmdIdx || _cs_cmdIdx.Length < 1
-        ; nothing to pop, let's exit
-        ; send event_end_execution
-        ;Send_X_EndExecution()
-        
-        ;DebMsg("executline is performing PerformDigitalHygiene")
         PerformDigitalHygiene()
 
         return
     endif
     
     DebMsg("this should not be possible")
-    ; something to pop, set it up for the previous stack
     _slt_PopCallstack()
     cmdidx += 1
     
     Send_X_ExecuteLine()
 EndFunction
 
-string[] currentCmdLine
-bool firstPass = true
+Event OnSetOperationCompleted()
+    cmdidx += 1
+    RunScript()
+EndEvent
+
 Event On_X_ExecuteLine()
-    DoActualExecuteLine()
+    RunScript()
 EndEvent
 
 Event On_X_ActualOper(string _code)
@@ -598,14 +511,10 @@ EndEvent
 
 
 Function Send_X_ExecuteLine()
-    ;DebMsg("Send_X_ExecuteLine")
     int handle = ModEvent.Create(_xn_execute_line)
-    ;DebMsg("Send_X_ExecuteLine (" + handle + ")")
     if handle
-        ;DebMsg("Send_X_ExecuteLine: calling Send")
         ModEvent.Send(handle)
     endif
-    ;DebMsg("Send_X_ExecuteLine: exiting")
 EndFunction
 
 Function Send_X_ActualOper(string _code)
@@ -616,33 +525,17 @@ Function Send_X_ActualOper(string _code)
     endif
 EndFunction
 
-string _xn_execute_line
-string _xn_actual_oper
-;/
-string _xn_begin_execution
-string _xn_add_goto
-string _xn_add_gosub
-string _xn_pop_sub_idx
-string _xn_find_goto
-string _xn_find_gosub
-string _xn_if
-string _xn_return
-string _xn_end_execution
-string _xn_call
-string _xn_call_arg
-/;
-
 Function SetupCallstack()
     Heap_IntSetX(CmdTargetActor, GetInstanceId(), CallstackId, 0)
 
     cmdType = _slt_ParseCommandFile()
 
     cmdNum = Heap_IntGetX(CmdTargetActor, GetInstanceId(), CallstackId)
+    
     cmdidx = 0
 EndFunction
 
 Function PerformDigitalHygiene()
-    ;DebMsg("Performing digital hygiene")
     Heap_ClearPrefixF(CmdTargetActor, MakeInstanceKeyPrefix(instanceId))
     
     UnregisterForAllModEvents()
@@ -653,37 +546,9 @@ Function RegisterForScriptEvents()
     if !_xn_execute_line
         _xn_actual_oper     = "_xn_actual_oper:" + InstanceId
         _xn_execute_line    = "_xn_execute_line:" + InstanceId
-        ;DebMsg("_xn_execute_line(" + _xn_execute_line + ")")
-        ;/
-        _xn_begin_execution = "_xn_begin_execution:" + InstanceId
-        _xn_add_goto        = "_xn_add_goto:" + InstanceId
-        _xn_add_gosub       = "_xn_add_gosub:" + InstanceId
-        _xn_pop_sub_idx     = "_xn_pop_sub_idx:" + InstanceId
-        _xn_find_goto       = "_xn_find_goto:" + InstanceId
-        _xn_find_gosub      = "_xn_find_gosub:" + InstanceId
-        _xn_if              = "_xn_if:" + InstanceId
-        _xn_return          = "_xn_return:" + InstanceId
-        _xn_end_execution   = "_xn_end_execution:" + InstanceId
-        _xn_call            = "_xn_call:" + InstanceId
-        _xn_call_arg        = "_xn_call_arg:" + InstanceId
-        /;
     endif
     SafeRegisterForModEvent_AME(self, _xn_actual_oper,      "On_X_ActualOper")
     SafeRegisterForModEvent_AME(self, _xn_execute_line,     "On_X_ExecuteLine")
-    ;DebMsg("registering for (" + _xn_execute_line + ")")
-    ;/
-    SafeRegisterForModEvent_AME(self, _xn_begin_execution,  "On_X_BeginExecution")
-    SafeRegisterForModEvent_AME(self, _xn_add_goto,         "On_X_AddGoTo")
-    SafeRegisterForModEvent_AME(self, _xn_add_gosub,        "On_X_AddGoSub")
-    SafeRegisterForModEvent_AME(self, _xn_pop_sub_idx,      "On_X_PopSubIdx")
-    SafeRegisterForModEvent_AME(self, _xn_find_goto,        "On_X_FindGoTo")
-    SafeRegisterForModEvent_AME(self, _xn_find_gosub,       "On_X_FindGoSub")
-    SafeRegisterForModEvent_AME(self, _xn_if,               "On_X_If")
-    SafeRegisterForModEvent_AME(self, _xn_return,           "On_X_Return")
-    SafeRegisterForModEvent_AME(self, _xn_end_execution,    "On_X_EndExecution")
-    SafeRegisterForModEvent_AME(self, _xn_call,             "On_X_Call")
-    SafeRegisterForModEvent_AME(self, _xn_call_arg,         "On_X_CallArg")
-    /;
 EndFunction
 
 Function _slt_PushCallstack(string newcommand)
@@ -897,7 +762,6 @@ Int Function _slt_FindGoto(string _label, int _cmdIdx, string _cmdtype)
     idx = _cmdIdx + 1
     while idx < cmdNum
         cmdLine1 = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + idx + "]")
-        ;cmdLine1 = JsonUtil.PathStringElements(cmdName, ".cmd[" + idx + "]")
         if cmdLine1.Length
             if (_cmdtype == "json" && cmdLine1[0] == ":") || (_cmdtype == "ini" && cmdLine1.Length == 1 && StringUtil.GetNthChar(cmdLine1[0], 0) == "[" && StringUtil.GetNthChar(cmdLine1[0], StringUtil.GetLength(cmdLine1[0]) - 1) == "]")
                 if _cmdtype == "json"
@@ -948,7 +812,6 @@ Int Function _slt_FindGosub(string _label, int _cmdIdx)
     idx = _cmdIdx + 1
     while idx < cmdNum
         cmdLine1 = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + idx + "]")
-        ;cmdLine1 = JsonUtil.PathStringElements(cmdName, ".cmd[" + idx + "]")
         if cmdLine1.Length
             if cmdLine1[0] == "beginsub"
                 _slt_AddGosub(idx, cmdLine1[1])
@@ -974,7 +837,6 @@ int Function _slt_FindEndsub(int _cmdIdx)
     idx = _cmdIdx + 1
     while idx < cmdNum
         cmdLine1 = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + idx + "]")
-        ;cmdLine1 = JsonUtil.PathStringElements(cmdName, ".cmd[" + idx + "]")
         if cmdLine1.Length
             if cmdLine1[0] == "endsub"
                 return idx
@@ -986,15 +848,36 @@ int Function _slt_FindEndsub(int _cmdIdx)
     return cmdNum
 EndFunction
 
+bool Function _slt_IsFileParseable(string _theCmdName)
+    string _myCmdName = _theCmdName
+    string _last = StringUtil.Substring(_myCmdName, StringUtil.GetLength(_myCmdName) - 4)
+    string[] cmdLine
+    if _last != "json" && _last != ".ini"
+        _myCmdName = _theCmdName + ".ini"
+        if !MiscUtil.FileExists(FullCommandsFolder() + _myCmdName)
+            _myCmdName = _theCmdName + "json"
+            if !JsonUtil.JsonExists(CommandsFolder() + _myCmdName)
+                return false
+            else
+                return true
+            endif
+        else
+            return true
+        endif
+    endif
+    return true
+EndFunction
+
 string Function _slt_ParseCommandFile()
     string _myCmdName = cmdName
     string _last = StringUtil.Substring(_myCmdName, StringUtil.GetLength(_myCmdName) - 4)
+    
     string[] cmdLine
     if _last != "json" && _last != ".ini"
         _myCmdName = cmdName + ".ini"
         if !MiscUtil.FileExists(FullCommandsFolder() + _myCmdName)
-            _myCmdName = cmdName + ".json"
-            if !JsonUtil.IsGood(CommandsFolder() + _myCmdName)
+            _myCmdName = cmdName + "json"
+            if !JsonUtil.JsonExists(CommandsFolder() + _myCmdName)
                 return ""
             else
                 _last = "json"
@@ -1044,70 +927,32 @@ string Function _slt_ParseCommandFile()
     endif
 EndFunction
 
-;/
-opens the command file, loops through the commands, and runs them
-/;
-;/
-Function _slt_ExecuteScript()
-
-    ;DebMsg("_slt_ExecuteScript")
-
-    Heap_IntSetX(CmdTargetActor, GetInstanceId(), CallstackId, 0)
-
-    cmdType = _slt_ParseCommandFile()
-
-    cmdNum = Heap_IntGetX(CmdTargetActor, GetInstanceId(), CallstackId)
-    cmdidx = 0
-
-    ;DebMsg("cmdNum(" + cmdNum + ") cmdidx(" + cmdidx + ")")
-
-    if cmdidx < cmdNum
-        ;DebMsg("_slt_ExecuteScript: Sending ExecuteLine event")
-        Send_X_ExecuteLine()
-        ; send event_execute_line
-            ; do what is inside the while loop, one time
-
-
-            ; at the end of event_execute_line event handler, cmdidx has been incremented if another sub-event was not sent... so if cmdidx < cmdNum, send another event_execute_line
-    endif
-    
-EndFunction
-/;
-
-string[]    _callArgs
-float       _maxSeconds = 10.0
-
 bool Function _slt_SLTResolve(string _code)
-    ;DebMsg("SLT.CustomResolve starting")
 	int varindex = -1
     if StringUtil.getNthChar(_code, 0) == "$"
         if _code == "$$"
-     ;       DebMsg("SLT.CustomResolve setting for $$")
             CustomResolveResult = MostRecentResult
             return true
         else
 			varindex = IsVarStringG(_code)
 			if varindex >= 0
-     ;           DebMsg("SLT.CustomResolve setting for gvar")
                 CustomResolveResult = globalvars_get(varindex)
                 return true
             else
                 varindex = IsVarString(_code)
                 if varindex >= 0
-      ;              DebMsg("SLT.CustomResolve setting for var")
                     CustomResolveResult = vars_get(varindex)
                     return true
                 endif
 			endif
         endIf
     endIf
-    ;DebMsg("SLT.CustomResolve ending")
     return false
 EndFunction
 
 string Function _slt_ActualResolve(string _code)
     int i = 0
-    ;DebMsg("ActualResolve(" + _code + ")")
+    
     bool _resolved = false
     bool _needSLT = true
     while i < SLT.Extensions.Length
@@ -1128,7 +973,7 @@ string Function _slt_ActualResolve(string _code)
 
         i += 1
     endwhile
-    ;DebMsg("ActualResolve: returning(" + _code + ")")
+    
 	return _code
 EndFunction
 
@@ -1240,8 +1085,6 @@ bool Function _slt_ActualResolveCond(string _p1, string _p2, string _oper)
 EndFunction
 
 bool Function _slt_ActualOper(string[] param, string code)
-    OperationCompleted = false
-    ;DebMsg("actualOper.param(" + PapyrusUtil.StringJoin(param , ") , (") + ")")
     string[] opsParam = PapyrusUtil.StringArray(param.Length)
     int i = 1
     opsParam[0] = code
@@ -1249,59 +1092,6 @@ bool Function _slt_ActualOper(string[] param, string code)
         opsParam[i] = param[i]
         i += 1
     endwhile
-    ;if code == "set"
-     ;   DebMsg("RUNNING SET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    ;endif
-    ;sl_triggers_internal.SafeRunOperationOnActor(SLT.Libraries, CmdTargetActor, self, opsParam)
-    ;DebMsg("calling saferun...")
-    ;DebMsg("calling saferun")
-    bool success = sl_triggers_internal.SafeRunOperationOnActor(SLT.Libraries, CmdTargetActor, self, opsParam)
-    ;/
-    ;DebMsg("returned: " + success)
-    if success
-        ;float _baseTime = Utility.GetCurrentRealTime()
-        ; technically this could run forever, but realistically only if one of the
-        ; operations being executed takes a long time (forever), but that would
-        ; be a problem anyway, plus there are some long-running operations
-        ; (like the various wait functions)
-        while !OperationCompleted
-            ;DebMsg("looping...")
-            SLT.UtilityWaitButLessStupid()
-        endwhile
-        ;DebMsg("out of loop, completed? (" + OperationCompleted + ")")
-    endif
-    OperationCompleted = false
-
-    ;DebMsg("returning: " + success)
-    /;
-    return success
     
+    return sl_triggers_internal.SafeRunOperationOnActor(SLT.Libraries, CmdTargetActor, self, opsParam)
 EndFunction
-
-Function _slt_SetCustomResolveReady()
-    ;DebMsg("_slt_SetCustomResolveReady")
-    CustomResolveReady = true
-EndFunction
-
-Function _slt_SetCustomResolveActorReady()
-    ;DebMsg("_slt_SetCustomResolveActorReady")
-    CustomResolveActorReady = true
-EndFunction
-
-Function _slt_SetCustomResolveCondReady()
-    ;DebMsg("_slt_SetCustomResolveCondReady")
-    CustomResolveCondReady = true
-EndFunction
-
-;/
-Function _slt_SetOperationCompleted()
-    OperationCompleted = true
-EndFunction
-/;
-
-Event OnSetOperationCompleted()
-    ;DebMsg("received OnSetOperationCompleted")
-    OperationCompleted = true
-    cmdidx += 1
-    DoActualExecuteLine()
-EndEvent

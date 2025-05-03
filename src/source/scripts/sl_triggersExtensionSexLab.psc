@@ -94,7 +94,6 @@ EndEvent
 bool Function CustomResolveActor(sl_triggersCmd CmdPrimary, string _code)
 
     if !SexLab
-     ;   DebMsg("No SexLab, returning")
         return false
     endif
 
@@ -108,7 +107,6 @@ bool Function CustomResolveActor(sl_triggersCmd CmdPrimary, string _code)
     elseif _code == "$partner4"
         skip = 3
     else
-      ;  DebMsg("SexLab: resolveactor (no match found)")
         return false
     endif
 

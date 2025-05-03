@@ -18,6 +18,10 @@ sslThreadController Function GetThread(Actor theActor) global
     return GetSexLab().GetActorController(theActor)
 EndFunction
 
+; sltname weather_state
+; sltdesc Weather related functions based on sub-function
+; sltargs <sub-function> ; currently only GetClassification
+; sltsamp weather_state GetClassification
 function util_waitforend(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	if !GetSexLab()

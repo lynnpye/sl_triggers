@@ -397,26 +397,6 @@ Function SendInternalSettingsUpdateEvents()
 	SendDelayedSettingsUpdateEvent()
 EndFunction
 
-; This is quite possibly my favorite function I have ever had the pleasure of writing.
-; If you want your script to yield thread but not yield back to the caller, remember,
-; calling some random ass function in another script is good enough for Papyrus.
-; So say you want to wait for a quick sub-second for some otherwise async activity
-; to finish but you really REALLY don't want to use Utility.Wait() because that
-; will wreck your entire callchain real fast. But you can't just sit in a
-; short loop monitoring that flag to see if it has freed up because the Papyrus
-; VM being the cooperative type that it is will let that loop hog all the cycles
-; and never let the flag get set.
-; My solution? If it's a short enough wait, keep the tight loop but instead of
-; only checking for the flag to be set and instead of using Utility.Wait() to
-; let other threads in, post a call to some random stupid function in another
-; script that does nothing. Just by virtue of the callchain leaving one script
-; and entering another, the VM takes that at as a good time to step in and let someone
-; else have their turn.
-; et voila... Utility.Wait() but less stupid
-Function UtilityWaitButLessStupid()
-	StorageUtil.UnsetIntValue(self, "PENCIL RAIN - AN IMPOSSIBLE DREAM - A BLUE CANARY IN THE OUTLET BY THE LIGHT SWITCH")
-EndFunction
-
 
 ; simple get handler for infini-globals
 string Function globalvars_get(int varsindex)

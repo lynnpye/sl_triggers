@@ -53,7 +53,6 @@ endFunction
 function set(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    ;DebMsg("set>>>>")
     if ParamLengthNEQ2(CmdPrimary, param.Length, 3, 5)
         return
     endif
@@ -62,7 +61,6 @@ function set(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param
     int g_varindex = CmdPrimary.IsVarStringG(param[1])
 
     if (varindex < 0) && (g_varindex < 0)
-        ;DebMsg("returning early")
         return
     endif
     if g_varindex > -1
@@ -106,8 +104,6 @@ function set(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param
     else
         DebMsg("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unexpected number of arguments for 'set' got " + param.length + " expected 3 or 5")
     endif
-
-    ;DebMsg("leaving set")
 endFunction
 
 ; sltname inc
@@ -123,8 +119,6 @@ function inc(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param
 
     string varstr = param[1]
     float incrAmount = CmdPrimary.resolve(param[2]) as float
-
-    ;DebMsg("inc (" + varstr + ") (" + incrAmount + ") (" + param.length + ") (" + param[2] + ")")
 
     int varindex = CmdPrimary.IsVarStringG(varstr)
     if varindex >= 0
@@ -1526,11 +1520,11 @@ endFunction
 ; sltname util_sendmodevent
 ; sltdesc Shorthand for actor_sendmodevent $player <event name> <string argument> <float argument>
 ; sltargs <event name> <string argument> <float argument>
-; sltsamp util_sendmodevent $self "IHaveNoIdeaButEventNamesShouldBeEasyToFind" "strarg" 0.0
+; sltsamp util_sendmodevent "IHaveNoIdeaButEventNamesShouldBeEasyToFind" "strarg" 0.0
 function util_sendmodevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 5)
+    if ParamLengthNEQ(CmdPrimary, param.Length, 4)
         return
     endif
 	

@@ -540,6 +540,8 @@ namespace plugin {
                             i += 2;
                         } else {
                             inQuotes = false;
+                            tokens.push_back(current);
+                            current.clear();
                             i++;
                         }
                     } else {
