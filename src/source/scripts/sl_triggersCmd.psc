@@ -26,11 +26,47 @@ Actor			Property CmdTargetActor Auto Hidden
 string		    Property MostRecentResult Auto Hidden
 
 bool            Property CustomResolveReady Auto Hidden
-string          Property CustomResolveResult Auto Hidden
+bool            Property CustomResolveHandled Auto Hidden
+string _customResolveResult
+string          Property CustomResolveResult Hidden
+    string Function Get()
+        return _customResolveResult
+    EndFunction
+
+    Function Set(string value)
+        _customResolveResult = value
+        CustomResolveHandled = true
+    EndFunction
+EndProperty
+
 bool            Property CustomResolveActorReady Auto Hidden
-Actor           Property CustomResolveActorResult Auto Hidden
+bool            Property CustomResolveActorHandled Auto Hidden
+Actor _customResolveActorResult
+Actor           Property CustomResolveActorResult Hidden
+    Actor Function Get()
+        return _customResolveActorResult
+    EndFunction
+
+    Function Set(Actor value)
+        _customResolveActorResult = value
+        CustomResolveActorHandled = true
+    EndFunction
+EndProperty
+
 bool            Property CustomResolveCondReady Auto Hidden
-bool            Property CustomResolveCondResult Auto Hidden
+bool            Property CustomResolveCondHandled Auto Hidden
+bool _customResolveCondResult
+bool            Property CustomResolveCondResult Hidden
+    bool Function Get()
+        return _customResolveCondResult
+    EndFunction
+
+    Function Set(bool value)
+        _customResolveCondResult = value
+        CustomResolveCondHandled = true
+    EndFunction
+EndProperty
+
 bool            Property OperationCompleted Auto Hidden
 
 ; Properties
@@ -237,6 +273,7 @@ string      VARS_KEY_PREFIX
 ;int			cmdIdx 
 int			cmdNum 
 ;string		cmdName
+string      cmdType
 int[]		gotoIdx 
 string[]	gotoLabels 
 int			gotoCnt 
@@ -253,6 +290,7 @@ int         _callstackIdNextUp
 string[]    _callstack_stack ; ugh
 int[]       _cs_cmdIdx
 int[]       _cs_cmdNum
+string[]    _cs_cmdType
 string[]    _cs_cmdName
 int[]       _cs_gotoIdx
 string[]    _cs_gotoLabels
@@ -287,21 +325,32 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
     CallstackId = "Callstack" + _callstackIdNextUp
     _callstackIdNextUp += 1
     VARS_KEY_PREFIX = "sl_triggers:" + InstanceId + ":" + CallstackId + ":vars"
-	
+    
+
+    RegisterForScriptEvents()
+
+	executionNotBegun = true
 	QueueUpdateLoop(0.1)
 EndEvent
+
+bool executionNotBegun
 
 Event OnUpdate()
 	If !Self
 		Return
 	EndIf
     
-    _slt_ExecuteScript()
-	
-	Heap_ClearPrefixF(CmdTargetActor, MakeInstanceKeyPrefix(instanceId))
-    
-    UnregisterForAllModEvents()
-    Self.Dispel()
+    if executionNotBegun
+        executionNotBegun = false
+        ;Send_X_BeginExecution()
+        
+        SetupCallstack()
+
+        Send_X_ExecuteLine()
+    endif
+
+    ;DebMsg("Update loop...")
+    QueueUpdateLoop(5.0)
 EndEvent
 
 Event OnKeyDown(Int keyCode)
@@ -313,15 +362,336 @@ Event OnSLTHeartbeat(string eventName, string strArg, float numArg, Form sender)
 EndEvent
 
 Event OnSLTReset(string eventName, string strArg, float numArg, Form sender)
-	UnregisterForAllModEvents()
-	self.Dispel()
+    PerformDigitalHygiene()
 EndEvent
+
+
+;/
+Event On_X_BeginExecution()
+    _slt_ExecuteScript()
+EndEvent
+/;
+
+Function DoActualExecuteLine()
+    
+    
+    string   code
+    string   p1
+    string   p2
+    string   po
+    ;bool     ifTrue
+    string[] cmdLine
+
+    while firstPass || (_cs_cmdIdx && _cs_cmdIdx.Length > 0) || cmdidx < cmdNum
+        if firstPass
+            ;DebMsg("NEWBIGLOOP:::  first pass")
+            firstPass = false
+        elseif (_cs_cmdIdx && _cs_cmdIdx.Length > 0)
+            ;DebMsg("NEWBIGLOOP:::  popping callstack")
+            ; something to pop, set it up for the previous stack
+            _slt_PopCallstack()
+            cmdidx += 1
+        endif
+
+        while cmdidx < cmdNum
+            currentCmdLine = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + cmdidx + "]")
+            cmdLine = currentCmdLine
+
+            ;DebMsg("On_X_ExecuteLine [" + cmdidx + "]  (" + PapyrusUtil.StringJoin(cmdLine , ") , (") + ")")
+            ; DebMsg("[" + cmdidx + "]  (" + PapyrusUtil.StringJoin(cmdLine , ") , (") + ")")
+
+            if cmdLine.Length
+                code = resolve(cmdLine[0])
+                ;DebMsg("execing (" + code + ")")
+
+                ; might need to add this (code) to all sent events as it is already resolved
+
+                ; DebMsg("############((((((((((    |" + code + "|      ))))))))))")
+
+                ;if code == "set"
+                ;  DebMsg("SET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                ; endif
+
+                if (cmdtype == "json" && code == ":") || (cmdtype == "ini" && cmdLine.Length == 1 && StringUtil.GetNthChar(code, 0) == "[" && StringUtil.GetNthChar(code, StringUtil.GetLength(code) - 1) == "]")
+                    if cmdtype == "json"
+                        ;Send_X_AddGoTo(cmdidx, cmdLine[1])
+                        _slt_AddGoto(cmdidx, cmdLine[1])
+                    elseif cmdtype == "ini"
+                        ;Send_X_AddGoTo(cmdidx, StringUtil.Substring(code, 1, StringUtil.GetLength(code) - 2))
+                        _slt_AddGoto(cmdidx, StringUtil.Substring(code, 1, StringUtil.GetLength(code) - 2))
+                    endif
+                    cmdidx += 1
+                elseIf code == "beginsub"
+                    ;Send_X_AddGoSub(cmdidx, cmdLine[1])
+                    _slt_AddGosub(cmdidx, cmdLine[1])
+                    cmdidx = _slt_FindEndsub(cmdidx)
+                    cmdidx += 1
+                elseIf code == "endsub"
+                    cmdidx = _slt_PopSubIdx()
+                    cmdidx += 1
+                elseIf code == "goto"
+                    ;Send_X_FindGoTo(cmdLine[1], cmdidx, cmdtype)
+                    cmdidx = _slt_FindGoto(cmdLine[1], cmdidx, cmdtype)
+                    cmdidx += 1
+                elseIf code == "gosub"
+                    ;Send_X_FindGoSub(cmdLine[1], cmdidx)
+                    cmdidx = _slt_FindGosub(cmdLine[1], cmdidx)
+                    cmdidx += 1
+                elseIf code == "if"
+
+
+                    ; send event_execute_if
+                        ; cmdLine is already populated
+                        ; event handler will need to increment cmdidx
+
+                    ; ["if", "$$", "=", "0", "end"],
+                    p1 = resolve(cmdLine[1])
+                    p2 = resolve(cmdLine[3])
+                    po = cmdLine[2]
+                    ;DebMsg("if v1(" + p1 + ") op(" + po + ") v2(" + p2 + ") lbl(" + cmdLine[4] + ")")
+
+                    ;Send_X_If(p1, p2, po, cmdLine[4], cmdidx, cmdtype)
+                    ; ["if", "$$", "=", "0", "end"],
+                    ;DebMsg("if v1(" + p1 + ") op(" + po + ") v2(" + p2 + ") lbl(" + cmdLine[4] + ")")
+                    bool ifTrue = resolveCond(p1, p2, po)
+                    if ifTrue
+                        cmdidx = _slt_FindGoto(cmdLine[4], cmdidx, cmdtype)
+                    endIf
+                    cmdidx += 1
+                elseIf code == "return"
+
+
+                    ; send event_return
+                        ; cmdLine is already populated, if that matters in this case
+                        ; original did not increment cmdidx, so don't in the handler
+
+
+                    ;Send_X_Return()
+
+
+                    if !_cs_cmdIdx || _cs_cmdIdx.Length < 1
+                        ; nothing to pop, let's exit
+                        ; send event_end_execution
+                        ;Send_X_EndExecution()
+                        ;DebMsg("return is calling PerformDigitalHygiene")
+                        PerformDigitalHygiene()
+
+                        return
+                    endif
+                    ; something to pop, set it up for the previous stack
+                    _slt_PopCallstack()
+                    cmdidx += 1
+                elseIf code == "call"
+
+
+
+                    ; send event_call
+                        ; cmdLine is already populated
+                        ; event handler will need to increment cmdidx
+
+
+
+                    _callArgs = PapyrusUtil.SliceStringArray(cmdLine, 2)
+                    int caidx = 0
+                    while caidx < _callArgs.Length
+                        _callArgs[caidx] = resolve(_callArgs[caidx])
+                        caidx += 1
+                    endwhile
+                    _slt_PushCallstack(cmdLine[1])
+                    ;Send_X_BeginExecution()
+
+                    
+                elseIf code == "callarg"
+                    int argidx = cmdLine[1] as int
+                    string arg = cmdLine[2]
+                    
+                    int vidx = IsVarStringG(arg)
+                    if vidx > 0
+                        SLT.globalvars_set(vidx, _callArgs[argidx])
+                    else
+                        vidx = IsVarString(arg)
+                        if vidx > 0
+                            vars_set(vidx, _callArgs[argidx])
+                        endif
+                    endif
+                    cmdidx += 1
+
+                    ;Send_X_CallArg(argidx, arg)
+                elseIf !code
+                    cmdidx += 1
+                else
+
+
+
+
+                    ; send event_actual_oper
+                        ; cmdLine is already populated
+                        ; code is already populated
+                        ; event handler will need to increment cmdidx
+
+
+
+
+                    ;if code == "set"
+                        ;DebMsg("treating set as an operator")
+                    ;endif
+                    
+                    ;bool operworked = _slt_ActualOper(cmdLine, code)
+
+                    ;/
+                    if operworked
+                        DebMsg("code(" + code + ") seems to have successfully run")
+                    else
+                        DebMsg("code(" + code + ") did not run successfully")
+                    endif
+                    /;
+
+                    ;cmdidx += 1
+
+                    Send_X_ActualOper(code)
+                    return
+                endIf
+            else
+                cmdidx += 1
+            endif
+            ;/
+            if (!_cs_cmdIdx || _cs_cmdIdx.Length < 1) && cmdidx >= cmdNum
+                DebMsg("nothing to pop and we've run out of lines to execute")
+            elseif cmdidx < cmdNum
+                DebMsg("more lines to run")
+            else
+                DebMsg("something to pop")
+            endif
+            /;
+        endwhile
+        ;DebMsg("Fell out of here")
+    endwhile
+
+    if !_cs_cmdIdx || _cs_cmdIdx.Length < 1
+        ; nothing to pop, let's exit
+        ; send event_end_execution
+        ;Send_X_EndExecution()
+        
+        ;DebMsg("executline is performing PerformDigitalHygiene")
+        PerformDigitalHygiene()
+
+        return
+    endif
+    
+    DebMsg("this should not be possible")
+    ; something to pop, set it up for the previous stack
+    _slt_PopCallstack()
+    cmdidx += 1
+    
+    Send_X_ExecuteLine()
+EndFunction
+
+string[] currentCmdLine
+bool firstPass = true
+Event On_X_ExecuteLine()
+    DoActualExecuteLine()
+EndEvent
+
+Event On_X_ActualOper(string _code)
+    _slt_ActualOper(currentCmdLine, _code)
+EndEvent
+
+
+Function Send_X_ExecuteLine()
+    ;DebMsg("Send_X_ExecuteLine")
+    int handle = ModEvent.Create(_xn_execute_line)
+    ;DebMsg("Send_X_ExecuteLine (" + handle + ")")
+    if handle
+        ;DebMsg("Send_X_ExecuteLine: calling Send")
+        ModEvent.Send(handle)
+    endif
+    ;DebMsg("Send_X_ExecuteLine: exiting")
+EndFunction
+
+Function Send_X_ActualOper(string _code)
+    int handle = ModEvent.Create(_xn_actual_oper)
+    if handle
+        ModEvent.PushString(handle, _code)
+        ModEvent.Send(handle)
+    endif
+EndFunction
+
+string _xn_execute_line
+string _xn_actual_oper
+;/
+string _xn_begin_execution
+string _xn_add_goto
+string _xn_add_gosub
+string _xn_pop_sub_idx
+string _xn_find_goto
+string _xn_find_gosub
+string _xn_if
+string _xn_return
+string _xn_end_execution
+string _xn_call
+string _xn_call_arg
+/;
+
+Function SetupCallstack()
+    Heap_IntSetX(CmdTargetActor, GetInstanceId(), CallstackId, 0)
+
+    cmdType = _slt_ParseCommandFile()
+
+    cmdNum = Heap_IntGetX(CmdTargetActor, GetInstanceId(), CallstackId)
+    cmdidx = 0
+EndFunction
+
+Function PerformDigitalHygiene()
+    ;DebMsg("Performing digital hygiene")
+    Heap_ClearPrefixF(CmdTargetActor, MakeInstanceKeyPrefix(instanceId))
+    
+    UnregisterForAllModEvents()
+    Self.Dispel()
+EndFunction
+
+Function RegisterForScriptEvents()
+    if !_xn_execute_line
+        _xn_actual_oper     = "_xn_actual_oper:" + InstanceId
+        _xn_execute_line    = "_xn_execute_line:" + InstanceId
+        ;DebMsg("_xn_execute_line(" + _xn_execute_line + ")")
+        ;/
+        _xn_begin_execution = "_xn_begin_execution:" + InstanceId
+        _xn_add_goto        = "_xn_add_goto:" + InstanceId
+        _xn_add_gosub       = "_xn_add_gosub:" + InstanceId
+        _xn_pop_sub_idx     = "_xn_pop_sub_idx:" + InstanceId
+        _xn_find_goto       = "_xn_find_goto:" + InstanceId
+        _xn_find_gosub      = "_xn_find_gosub:" + InstanceId
+        _xn_if              = "_xn_if:" + InstanceId
+        _xn_return          = "_xn_return:" + InstanceId
+        _xn_end_execution   = "_xn_end_execution:" + InstanceId
+        _xn_call            = "_xn_call:" + InstanceId
+        _xn_call_arg        = "_xn_call_arg:" + InstanceId
+        /;
+    endif
+    SafeRegisterForModEvent_AME(self, _xn_actual_oper,      "On_X_ActualOper")
+    SafeRegisterForModEvent_AME(self, _xn_execute_line,     "On_X_ExecuteLine")
+    ;DebMsg("registering for (" + _xn_execute_line + ")")
+    ;/
+    SafeRegisterForModEvent_AME(self, _xn_begin_execution,  "On_X_BeginExecution")
+    SafeRegisterForModEvent_AME(self, _xn_add_goto,         "On_X_AddGoTo")
+    SafeRegisterForModEvent_AME(self, _xn_add_gosub,        "On_X_AddGoSub")
+    SafeRegisterForModEvent_AME(self, _xn_pop_sub_idx,      "On_X_PopSubIdx")
+    SafeRegisterForModEvent_AME(self, _xn_find_goto,        "On_X_FindGoTo")
+    SafeRegisterForModEvent_AME(self, _xn_find_gosub,       "On_X_FindGoSub")
+    SafeRegisterForModEvent_AME(self, _xn_if,               "On_X_If")
+    SafeRegisterForModEvent_AME(self, _xn_return,           "On_X_Return")
+    SafeRegisterForModEvent_AME(self, _xn_end_execution,    "On_X_EndExecution")
+    SafeRegisterForModEvent_AME(self, _xn_call,             "On_X_Call")
+    SafeRegisterForModEvent_AME(self, _xn_call_arg,         "On_X_CallArg")
+    /;
+EndFunction
 
 Function _slt_PushCallstack(string newcommand)
     if !_cs_cmdIdx
         _callstack_stack = PapyrusUtil.StringArray(0)
         _cs_cmdIdx = PapyrusUtil.IntArray(0)
         _cs_cmdNum = PapyrusUtil.IntArray(0)
+        _cs_cmdType = PapyrusUtil.StringArray(0)
         _cs_cmdName = PapyrusUtil.StringArray(0)
         _cs_gotoIdx = PapyrusUtil.IntArray(0)
         _cs_gotoLabels = PapyrusUtil.StringArray(0)
@@ -346,7 +716,7 @@ Function _slt_PushCallstack(string newcommand)
 
     _cs_cmdNum = PapyrusUtil.PushInt(_cs_cmdNum, cmdNum)
     _cs_cmdName = PapyrusUtil.PushString(_cs_cmdName, cmdName)
-
+    _cs_cmdType = PapyrusUtil.PushString(_cs_cmdType, cmdType)
 
     _cs_gotoIdx = PapyrusUtil.ResizeIntArray(_cs_gotoIdx, _cs_gotoIdx.Length + 127)
     i = 0
@@ -391,9 +761,6 @@ Function _slt_PushCallstack(string newcommand)
     _csMostRecentResult = PapyrusUtil.PushString(_csMostRecentResult, MostRecentResult)
 
     ; and reset for the new callstack
-    cmdIdx = 0
-    cmdNum = 0
-    cmdName = newcommand
     gotoIdx = new int[127]
     gotoLabels = new string[127]
     gotoCnt = 0
@@ -403,6 +770,10 @@ Function _slt_PushCallstack(string newcommand)
     gosubReturnStack = new int[127]
     gosubReturnIdx = -1
     MostRecentResult = ""
+    
+    cmdName = newcommand
+
+    SetupCallstack()
 EndFunction
 
 Function _slt_PopCallstack()
@@ -427,6 +798,8 @@ Function _slt_PopCallstack()
     cmdName = _cs_cmdName[len]
     _cs_cmdName = PapyrusUtil.ResizeStringArray(_cs_cmdName, len)
 
+    cmdType = _cs_cmdType[len]
+    _cs_cmdType = PapyrusUtil.ResizeStringArray(_cs_cmdType, len)
 
     i = 0
     while i < 127
@@ -658,7 +1031,6 @@ string Function _slt_ParseCommandFile()
         while cmdIdx < cmdNum
             cmdLine = sl_triggers_internal.SafeTokenize(cmdlines[cmdIdx])
             if cmdLine.Length
-                Heap_IntAdjustX(CmdTargetActor, GetInstanceId(), CallstackId, 1)
                 int idx = 0
                 while idx < cmdLine.Length
                     Heap_StringListAddX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + cmdIdx + "]", cmdLine[idx])
@@ -667,6 +1039,7 @@ string Function _slt_ParseCommandFile()
             endif
             cmdIdx += 1
         endwhile
+        Heap_IntSetX(CmdTargetActor, GetInstanceId(), CallstackId, cmdNum)
         return "ini"
     endif
 EndFunction
@@ -674,183 +1047,260 @@ EndFunction
 ;/
 opens the command file, loops through the commands, and runs them
 /;
-string Function _slt_ExecuteScript()
-    string[] cmdLine
-    string   code
-    string   p1
-    string   p2
-    string   po
-    bool     ifTrue
+;/
+Function _slt_ExecuteScript()
+
+    ;DebMsg("_slt_ExecuteScript")
 
     Heap_IntSetX(CmdTargetActor, GetInstanceId(), CallstackId, 0)
 
-    string cmdtype = _slt_ParseCommandFile()
+    cmdType = _slt_ParseCommandFile()
 
     cmdNum = Heap_IntGetX(CmdTargetActor, GetInstanceId(), CallstackId)
     cmdidx = 0
+
+    ;DebMsg("cmdNum(" + cmdNum + ") cmdidx(" + cmdidx + ")")
+
+    if cmdidx < cmdNum
+        ;DebMsg("_slt_ExecuteScript: Sending ExecuteLine event")
+        Send_X_ExecuteLine()
+        ; send event_execute_line
+            ; do what is inside the while loop, one time
+
+
+            ; at the end of event_execute_line event handler, cmdidx has been incremented if another sub-event was not sent... so if cmdidx < cmdNum, send another event_execute_line
+    endif
     
-    while cmdidx < cmdNum
-        cmdLine = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + cmdidx + "]")
+EndFunction
+/;
 
-        if cmdLine.Length
-            code = resolve(cmdLine[0])
+string[]    _callArgs
+float       _maxSeconds = 10.0
 
-            if (cmdtype == "json" && code == ":") || (cmdtype == "ini" && cmdLine.Length == 1 && StringUtil.GetNthChar(cmdLine[0], 0) == "[" && StringUtil.GetNthChar(cmdLine[0], StringUtil.GetLength(cmdLine[0]) - 1) == "]")
-                if cmdtype == "json"
-                    _slt_AddGoto(cmdidx, cmdLine[1])
-                elseif cmdtype == "ini"
-                    _slt_AddGoto(cmdidx, StringUtil.Substring(cmdLine[0], 1, StringUtil.GetLength(cmdLine[0]) - 2))
-                endif
-                cmdidx += 1
-            elseIf code == "beginsub"
-                _slt_AddGosub(cmdidx, cmdLine[1])
-                cmdidx = _slt_FindEndsub(cmdidx)
-                cmdidx += 1
-            elseIf code == "endsub"
-                cmdidx = _slt_PopSubIdx()
-                cmdidx += 1
-            elseIf code == "goto"
-                cmdidx = _slt_FindGoto(cmdLine[1], cmdidx, cmdtype)
-                cmdidx += 1
-            elseIf code == "gosub"
-                cmdidx = _slt_FindGosub(cmdLine[1], cmdidx)
-                cmdidx += 1
-            elseIf code == "if"
-                ; ["if", "$$", "=", "0", "end"],
-                p1 = resolve(cmdLine[1])
-                p2 = resolve(cmdLine[3])
-                po = cmdLine[2]
-                ifTrue = resolveCond(p1, p2, po)
-                if ifTrue
-                    cmdidx = _slt_FindGoto(cmdLine[4], cmdidx, cmdtype)
-                endIf
-                cmdidx += 1
-            elseIf code == "return"
-                return ""
-            elseIf code == "call"
-                _callArgs = PapyrusUtil.SliceStringArray(cmdLine, 2)
-                int caidx = 0
-                while caidx < _callArgs.Length
-                    _callArgs[caidx] = resolve(_callArgs[caidx])
-                    caidx += 1
-                endwhile
-                _slt_PushCallstack(cmdLine[1])
-                _slt_ExecuteScript()
-                _slt_PopCallstack()
-                cmdidx += 1
-            elseIf code == "callarg"
-                int argidx = cmdLine[1] as int
-                string arg = cmdLine[2]
-                int vidx = IsVarStringG(arg)
-                if vidx > 0
-                    SLT.globalvars_set(vidx, _callArgs[argidx])
-                else
-                    vidx = IsVarString(arg)
-                    if vidx > 0
-                        vars_set(vidx, _callArgs[argidx])
-                    endif
-                endif
-                cmdidx += 1
-            elseIf !code
-                cmdidx += 1
-            else
-				_slt_ActualOper(cmdLine, code)
-                cmdidx += 1
-            endIf
+bool Function _slt_SLTResolve(string _code)
+    ;DebMsg("SLT.CustomResolve starting")
+	int varindex = -1
+    if StringUtil.getNthChar(_code, 0) == "$"
+        if _code == "$$"
+     ;       DebMsg("SLT.CustomResolve setting for $$")
+            CustomResolveResult = MostRecentResult
+            return true
         else
-            cmdidx += 1
-        endif
-    endwhile
-    
-    return ""
+			varindex = IsVarStringG(_code)
+			if varindex >= 0
+     ;           DebMsg("SLT.CustomResolve setting for gvar")
+                CustomResolveResult = globalvars_get(varindex)
+                return true
+            else
+                varindex = IsVarString(_code)
+                if varindex >= 0
+      ;              DebMsg("SLT.CustomResolve setting for var")
+                    CustomResolveResult = vars_get(varindex)
+                    return true
+                endif
+			endif
+        endIf
+    endIf
+    ;DebMsg("SLT.CustomResolve ending")
+    return false
 EndFunction
 
-string[]        _callArgs
-float           _maxSeconds = 2.0
-
 string Function _slt_ActualResolve(string _code)
-    CustomResolveReady = false
-    CustomResolveResult = ""
-    bool success = sl_triggers_internal.SafeCustomResolve(SLT.Libraries, CmdTargetActor, self, _code)
-    if success
-        float _baseTime = Utility.GetCurrentRealTime()
-        float _elapsed = 0.0
-        while _elapsed < _maxSeconds && !CustomResolveReady
-            UtilityWaitButLessStupid()
-            _elapsed = Utility.GetCurrentRealTime() - _baseTime
-        endwhile
-        if CustomResolveResult
+    int i = 0
+    ;DebMsg("ActualResolve(" + _code + ")")
+    bool _resolved = false
+    bool _needSLT = true
+    while i < SLT.Extensions.Length
+        sl_triggersExtension slext = SLT.Extensions[i] as sl_triggersExtension
+
+        if _needSLT && slext.GetPriority() >= 0
+            _needSLT = false
+            _resolved = _slt_SLTResolve(_code)
+            if _resolved
+                return CustomResolveResult
+            endif
+        endif
+        
+        _resolved = slext.CustomResolve(self, _code)
+        if _resolved
             return CustomResolveResult
         endif
-    endif
+
+        i += 1
+    endwhile
+    ;DebMsg("ActualResolve: returning(" + _code + ")")
 	return _code
 EndFunction
 
+bool Function _slt_SLTResolveActor(string _code)
+    if _code == "$self"
+        CustomResolveActorResult = CmdTargetActor
+        return true
+    elseIf _code == "$player"
+        CustomResolveActorResult = PlayerRef
+        return true
+    elseIf _code == "$actor"
+        CustomResolveActorResult = iterActor
+        return true
+    endif
+    return false
+EndFunction
+
 Actor Function _slt_ActualResolveActor(string _code)
-    CustomResolveActorReady = false
-    CustomResolveActorResult = none
-	bool success = sl_triggers_internal.SafeCustomResolveActor(SLT.Libraries, CmdTargetActor, self, _code)
-    if success
-        float _baseTime = Utility.GetCurrentRealTime()
-        float _elapsed = 0.0
-        while _elapsed < _maxSeconds && !CustomResolveActorReady
-            UtilityWaitButLessStupid()
-            _elapsed = Utility.GetCurrentRealTime() - _baseTime
-        endwhile
-        if CustomResolveActorResult
+    int i = 0
+    bool _resolved = false
+    bool _needSLT = true
+    while i < SLT.Extensions.Length
+        sl_triggersExtension slext = SLT.Extensions[i] as sl_triggersExtension
+
+        if _needSLT && slext.GetPriority() >= 0
+            _needSLT = false
+            _resolved = _slt_SLTResolveActor(_code)
+            if _resolved
+                return CustomResolveActorResult
+            endif
+        endif
+        
+        _resolved = slext.CustomResolveActor(self, _code)
+        if _resolved
             return CustomResolveActorResult
         endif
+
+        i += 1
+    endwhile
+	return CmdTargetActor
+EndFunction
+
+bool Function _slt_SLTResolveCond(string _p1, string _p2, string _oper)
+    bool outcome = false
+    if _oper == "="
+        if (_p1 as float) == (_p2 as float)
+            outcome = true
+        endif
+    elseIf _oper == "!="
+        if (_p1 as float) != (_p2 as float)
+            outcome = true
+        endif
+    elseIf _oper == ">"
+        if (_p1 as float) > (_p2 as float)
+            outcome = true
+        endif
+    elseIf _oper == ">="
+        if (_p1 as float) >= (_p2 as float)
+            outcome = true
+        endif
+    elseIf _oper == "<"
+        if (_p1 as float) < (_p2 as float)
+            outcome = true
+        endif
+    elseIf _oper == "<="
+        if (_p1 as float) <= (_p2 as float)
+            outcome = true
+        endif
+    elseIf _oper == "&="
+        if _p1 == _p2
+            outcome = true
+        endif
+    elseIf _oper == "&!="
+        if _p1 != _p2
+            outcome = true
+        endif
+    else
+        MiscUtil.PrintConsole("SLT: [" + cmdName + "][cmdidx:" + cmdIdx + "] unexpected operator, this is likely an error in the SLT script")
+        return false
     endif
-    return CmdTargetActor
+
+    CustomResolveCondResult = outcome
+    return true
 EndFunction
 
 bool Function _slt_ActualResolveCond(string _p1, string _p2, string _oper)
-    CustomResolveCondReady = false
-    CustomResolveCondResult = false
-    bool success = sl_triggers_internal.SafeCustomResolveCond(SLT.Libraries, CmdTargetActor, self, _p1, _p2, _oper)
-    if success
-        float _baseTime = Utility.GetCurrentRealTime()
-        float _elapsed = 0.0
-        while _elapsed < _maxSeconds && !CustomResolveCondReady
-            UtilityWaitButLessStupid()
-            _elapsed = Utility.GetCurrentRealTime() - _baseTime
-        endwhile
-    endif
-    return CustomResolveCondResult
+    int i = 0
+    bool _resolved = false
+    bool _needSLT = true
+    while i < SLT.Extensions.Length
+        sl_triggersExtension slext = SLT.Extensions[i] as sl_triggersExtension
+
+        if _needSLT && slext.GetPriority() >= 0
+            _needSLT = false
+            _resolved = _slt_SLTResolveCond(_p1, _p2, _oper)
+            if _resolved
+                return CustomResolveCondResult
+            endif
+        endif
+        
+        _resolved = slext.CustomResolveCond(self, _p1, _p2, _oper)
+        if _resolved
+            return CustomResolveCondResult
+        endif
+
+        i += 1
+    endwhile
+	return false
 EndFunction
 
 bool Function _slt_ActualOper(string[] param, string code)
     OperationCompleted = false
-    bool success = sl_triggers_internal.SafeRunOperationOnActor(SLT.Libraries, CmdTargetActor, self, param)
+    string[] opsParam = PapyrusUtil.StringArray(param.Length)
+    int i = 1
+    opsParam[0] = code
+    while i < opsParam.Length
+        opsParam[i] = param[i]
+        i += 1
+    endwhile
+    ;if code == "set"
+     ;   DebMsg("RUNNING SET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    ;endif
+    ;sl_triggers_internal.SafeRunOperationOnActor(SLT.Libraries, CmdTargetActor, self, opsParam)
+    ;DebMsg("calling saferun...")
+    ;DebMsg("calling saferun")
+    bool success = sl_triggers_internal.SafeRunOperationOnActor(SLT.Libraries, CmdTargetActor, self, opsParam)
+    ;/
+    ;DebMsg("returned: " + success)
     if success
-        float _baseTime = Utility.GetCurrentRealTime()
+        ;float _baseTime = Utility.GetCurrentRealTime()
         ; technically this could run forever, but realistically only if one of the
         ; operations being executed takes a long time (forever), but that would
         ; be a problem anyway, plus there are some long-running operations
         ; (like the various wait functions)
-        while !OperationCompleted && (cmdidx < cmdNum || _cs_cmdIdx.Length > 0)
-            UtilityWaitButLessStupid()
+        while !OperationCompleted
+            ;DebMsg("looping...")
+            SLT.UtilityWaitButLessStupid()
         endwhile
+        ;DebMsg("out of loop, completed? (" + OperationCompleted + ")")
     endif
     OperationCompleted = false
+
+    ;DebMsg("returning: " + success)
+    /;
     return success
+    
 EndFunction
 
-Function _slt_SetCustomResolveResult(string _result)
-    CustomResolveResult = _result
+Function _slt_SetCustomResolveReady()
+    ;DebMsg("_slt_SetCustomResolveReady")
     CustomResolveReady = true
 EndFunction
 
-Function _slt_SetCustomResolveActorResult(Actor _result)
-    CustomResolveActorResult = _result
+Function _slt_SetCustomResolveActorReady()
+    ;DebMsg("_slt_SetCustomResolveActorReady")
     CustomResolveActorReady = true
 EndFunction
 
-Function _slt_SetCustomResolveCondResult(bool _result)
-    CustomResolveCondResult = _result
+Function _slt_SetCustomResolveCondReady()
+    ;DebMsg("_slt_SetCustomResolveCondReady")
     CustomResolveCondReady = true
 EndFunction
 
-Function _slt_SetOperationCompleted(bool _result)
+;/
+Function _slt_SetOperationCompleted()
     OperationCompleted = true
 EndFunction
+/;
+
+Event OnSetOperationCompleted()
+    ;DebMsg("received OnSetOperationCompleted")
+    OperationCompleted = true
+    cmdidx += 1
+    DoActualExecuteLine()
+EndEvent

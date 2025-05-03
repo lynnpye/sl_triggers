@@ -9,6 +9,9 @@ function DebMsgForce(string msg, bool shouldIDoAnything) global
 		return
 	endif
 	
+	float tss = Utility.GetCurrentRealTime()
+	tss = Math.Floor(tss * 100.0) / 100.0
+	msg = (tss as string) + ": " + msg 
 	MiscUtil.WriteToFile("data/skse/plugins/sl_triggers/debugmsg.log", msg + "\n", true)
 	MiscUtil.PrintConsole(msg)
 	;Debug.Notification(msg)
@@ -16,9 +19,6 @@ endfunction
 
 int Function GetModVersion() global
 	return 111
-EndFunction
-
-Function UtilityWaitButLessStupid() global
 EndFunction
 
 ;;;;;;;

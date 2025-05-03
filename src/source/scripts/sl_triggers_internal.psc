@@ -3,17 +3,6 @@ scriptname sl_triggers_internal Hidden
 import sl_triggersStatics
 
 ; safe access
-bool Function SafeCustomResolve(string[] _scriptnames, Actor CmdTargetActor, sl_triggersCmd CmdPrimary, string _code) global
-    return sl_triggers_internal._CustomResolve(_scriptnames, CmdTargetActor, CmdPrimary as ActiveMagicEffect, _code)
-EndFunction
-
-bool Function SafeCustomResolveActor(string[] _scriptnames, Actor CmdTargetActor, sl_triggersCmd CmdPrimary, string _code) global
-    return sl_triggers_internal._CustomResolveActor(_scriptnames, CmdTargetActor, CmdPrimary as ActiveMagicEffect, _code)
-EndFunction
-
-bool Function SafeCustomResolveCond(string[] _scriptnames, Actor CmdTargetActor, sl_triggersCmd CmdPrimary, string _p1, string _p2, string _oper) global
-    return sl_triggers_internal._CustomResolveCond(_scriptnames, CmdTargetActor, CmdPrimary as ActiveMagicEffect, _p1, _p2, _oper)
-EndFunction
 
 bool Function SafeRunOperationOnActor(string[] _scriptnames, Actor CmdTargetActor, sl_triggersCmd CmdPrimary, string[] param) global
     return sl_triggers_internal._RunOperationOnActor(_scriptnames, CmdTargetActor, CmdPrimary as ActiveMagicEffect, param)
@@ -44,11 +33,6 @@ string[] Function SafeTokenize(string _tokenString) global
 EndFunction
 
 ; direct access
-bool Function _CustomResolve(string[] _scriptnames, Actor CmdTargetActor, ActiveMagicEffect CmdPrimary, string _code) global native
-
-bool Function _CustomResolveActor(string[] _scriptnames, Actor CmdTargetActor, ActiveMagicEffect CmdPrimary, string _code) global native
-
-bool Function _CustomResolveCond(string[] _scriptnames, Actor CmdTargetActor, ActiveMagicEffect CmdPrimary, string _p1, string _p2, string _oper) global native
 
 bool Function _RunOperationOnActor(string[] _scriptnames, Actor CmdTargetActor, ActiveMagicEffect CmdPrimary, string[] _param) global native
 

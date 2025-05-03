@@ -414,6 +414,7 @@ EndFunction
 ; else have their turn.
 ; et voila... Utility.Wait() but less stupid
 Function UtilityWaitButLessStupid()
+	StorageUtil.UnsetIntValue(self, "PENCIL RAIN - AN IMPOSSIBLE DREAM - A BLUE CANARY IN THE OUTLET BY THE LIGHT SWITCH")
 EndFunction
 
 
@@ -535,7 +536,6 @@ string[] Function GetCommandLibraries()
 	string tmp_s
 	int tmp_i
 	i = 0
-	j = 0
 	while i < libs.Length - 1
 		j = i + 1
 		while j < libs.Length
@@ -547,7 +547,7 @@ string[] Function GetCommandLibraries()
 				libs[i] = libs[j]
 
 				libpris[j] = tmp_i
-				libs[i] = tmp_s
+				libs[j] = tmp_s
 			endif
 
 			j += 1

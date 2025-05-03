@@ -18,21 +18,6 @@ sslThreadController Function GetThread(Actor theActor) global
     return GetSexLab().GetActorController(theActor)
 EndFunction
 
-Function CustomResolveActor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string _code) global
-	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-    if CmdPrimary.CustomResolveActorReady
-        return
-    endif
-    sslThreadController thread = GetThread(CmdTargetActor)
-    int actorIdx = 0
-    while actorIdx < thread.Positions.Length
-        if (actorIdx == 0 && _code == "$partner") || (actorIdx == 1 && _code == "$partner2") || (actorIdx == 2 && _code == "$partner3") || (actorIdx == 3 && _code == "$partner4")
-            CmdPrimary._slt_SetCustomResolveActorResult(thread.Positions[actorIdx])
-        endif
-        actorIdx += 1
-    endwhile
-EndFunction
-
 function util_waitforend(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	if !GetSexLab()

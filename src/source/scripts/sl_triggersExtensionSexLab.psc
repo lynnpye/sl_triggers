@@ -91,6 +91,47 @@ Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form s
 	RefreshData()
 EndEvent
 
+bool Function CustomResolveActor(sl_triggersCmd CmdPrimary, string _code)
+
+    if !SexLab
+     ;   DebMsg("No SexLab, returning")
+        return false
+    endif
+
+    int skip = -1
+    if _code == "$partner"
+        skip = 0
+    elseif _code == "$partner2"
+        skip = 1
+    elseif _code == "$partner3"
+        skip = 2
+    elseif _code == "$partner4"
+        skip = 3
+    else
+      ;  DebMsg("SexLab: resolveactor (no match found)")
+        return false
+    endif
+
+    sslThreadController thread = SexLab.GetActorController(CmdPrimary.CmdTargetActor)
+
+    int i = 0
+    while i < thread.Positions.Length
+        Actor other = thread.Positions[i]
+
+        if other != CmdPrimary.CmdTargetActor
+            if skip == 0
+                CmdPrimary.CustomResolveActorResult = other
+                return true
+            else
+                skip -= 1
+            endif
+        endif
+
+        i += 1
+    endwhile
+
+	return true
+EndFunction
 
 ; EXTERNAL EVENT HANDLERS
 Event OnSexLabStart(String _eventName, String _args, Float _argc, Form _sender)

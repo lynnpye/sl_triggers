@@ -73,6 +73,18 @@ int Function GetPriority()
 	return 1000
 EndFunction
 
+bool Function CustomResolve(sl_triggersCmd CmdPrimary, string _code)
+	return false
+EndFunction
+
+bool Function CustomResolveActor(sl_triggersCmd CmdPrimary, string _code)
+	return false
+EndFunction
+
+bool Function CustomResolveCond(sl_triggersCmd CmdPrimary, string _p1, string _p2, string _oper)
+	return false
+EndFunction
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
