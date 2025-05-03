@@ -1,3 +1,9 @@
+112
+    PROBABLY-SAVE-BREAKING: Reuse a save at your own risk. :)
+    bugfixes: yes, plural. just... take a look at the last few commits if you are curious
+        but at this point I have a test script that runs through several of the major components for regression testing and it's working
+        Suffice to say I've reached a happy equilibrium with what I wanted vis-a-vis extensibility and performance
+
 111
     PROBABLY-SAVE-BREAKING: cleaning up last bits of extension pools (should have done this pre 109); this changes the .esp, so I suspect you will need a new save (I mean, you can try)
     enhancement: added new ModEvent that SLT listens for
