@@ -4,8 +4,12 @@ import sl_triggersStatics
 
 ; safe access
 
-bool Function SafeRunOperationOnActor(string[] _scriptnames, Actor CmdTargetActor, sl_triggersCmd CmdPrimary, string[] param) global
-    return sl_triggers_internal._RunOperationOnActor(_scriptnames, CmdTargetActor, CmdPrimary as ActiveMagicEffect, param)
+bool Function SafePrecacheLibraries(string[] _scriptnames) global
+    return sl_triggers_internal._PrecacheLibraries(_scriptnames)
+EndFunction
+
+bool Function SafeRunOperationOnActor(Actor CmdTargetActor, sl_triggersCmd CmdPrimary, string[] param) global
+    return sl_triggers_internal._RunOperationOnActor(CmdTargetActor, CmdPrimary as ActiveMagicEffect, param)
 EndFunction
 
 string[] Function SafeSplitLinesTrimmed(string _fileString) global
@@ -38,7 +42,9 @@ EndFunction
 
 ; direct access
 
-bool Function _RunOperationOnActor(string[] _scriptnames, Actor CmdTargetActor, ActiveMagicEffect CmdPrimary, string[] _param) global native
+bool Function _PrecacheLibraries(string[] _scriptnames) global native
+
+bool Function _RunOperationOnActor(Actor CmdTargetActor, ActiveMagicEffect CmdPrimary, string[] _param) global native
 
 string[] Function _SplitLinesTrimmed(string _fileString) global native
 

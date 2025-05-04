@@ -12,6 +12,26 @@ using namespace SKSE::stl;
 namespace plugin {
     namespace Util {
 
+        class VoidCallbackFunctor : public RE::BSScript::IStackCallbackFunctor {
+            public:
+                explicit VoidCallbackFunctor(std::function<void()> callback)
+                    : onDone(std::move(callback)) {}
+
+                void operator()(RE::BSScript::Variable) override {
+                    // This is called when the script function finishes
+                    if (onDone) {
+                        onDone();
+                    }
+                }
+
+                void SetObject(const RE::BSTSmartPointer<RE::BSScript::Object>&) override {}
+
+            private:
+                std::function<void()> onDone;
+        };
+
+        static std::unordered_map<std::string_view, std::string_view> functionScriptCache;
+
         /*
         RE::BSTSmartPointer<RE::BSScript::Object> GetScriptObject_AME(RE::ActiveEffect* ae) {
             auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
@@ -47,25 +67,78 @@ namespace plugin {
         }
         */
 
-        class VoidCallbackFunctor : public RE::BSScript::IStackCallbackFunctor {
-            public:
-                explicit VoidCallbackFunctor(std::function<void()> callback)
-                    : onDone(std::move(callback)) {}
+        bool PrecacheLibraries(std::vector<RE::BSFixedString> _scriptnames) {
+            if (_scriptnames.empty()) {
+                logger::info("PrecacheLibraries: _scriptnames was empty");
+                return false;
+            }
+            auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+            RE::BSTSmartPointer<RE::BSScript::ObjectTypeInfo> typeinfoptr;
+            for (const auto& _scriptname: _scriptnames) {
+                bool success = vm->GetScriptObjectType1(_scriptname, typeinfoptr);
 
-                void operator()(RE::BSScript::Variable) override {
-                    // This is called when the script function finishes
-                    if (onDone) {
-                        onDone();
-                    }
+                if (!success) {
+                    continue;
                 }
 
-                void SetObject(const RE::BSTSmartPointer<RE::BSScript::Object>&) override {}
+                success = false;
 
-            private:
-                std::function<void()> onDone;
-        };
+                int numglobs = typeinfoptr->GetNumGlobalFuncs();
+                auto globiter = typeinfoptr->GetGlobalFuncIter();
 
-        bool RunOperationOnActor(std::vector<RE::BSFixedString> _scriptnames, RE::Actor* _cmdTargetActor, RE::ActiveEffect* _cmdPrimary,
+                for (int i = 0; i < numglobs; i++) {
+                    auto libfunc = globiter[i].func;
+
+                    RE::BSFixedString libfuncName = libfunc->GetName();
+
+                    auto cachedIt = functionScriptCache.find(libfuncName);
+                    if (cachedIt != functionScriptCache.end()) {
+                        // cache hit, continue
+                        continue;
+                    }
+
+                    if (libfunc->GetParamCount() != 3) {
+                        logger::info("rejecting {} for paramcount != 3 (was {})", libfuncName.c_str(), libfunc->GetParamCount());
+                        continue;
+                    }
+
+                    RE::BSFixedString paramName;
+                    RE::BSScript::TypeInfo paramTypeInfo;
+
+                    libfunc->GetParam(0, paramName, paramTypeInfo);
+
+                    std::string Actor_name("Actor");
+                    if (!paramTypeInfo.IsObject() && Actor_name != paramTypeInfo.TypeAsString()) {
+                        logger::info("rejecting {} for first param not actor (was '{}')", libfuncName.c_str(),
+                                     paramTypeInfo.TypeAsString());
+                        continue;
+                    }
+
+                    libfunc->GetParam(1, paramName, paramTypeInfo);
+
+                    std::string ActiveMagicEffect_name("ActiveMagicEffect");
+                    if (!paramTypeInfo.IsObject() && ActiveMagicEffect_name != paramTypeInfo.TypeAsString()) {
+                        logger::info("rejecting {} for second param not AME (was '{}')", libfuncName.c_str(),
+                                     paramTypeInfo.TypeAsString());
+                        continue;
+                    }
+
+                    libfunc->GetParam(2, paramName, paramTypeInfo);
+
+                    if (paramTypeInfo.GetRawType() != RE::BSScript::TypeInfo::RawType::kStringArray) {
+                        logger::info("rejecting {} for third param not string[] (was '{}')", libfuncName.c_str(),
+                                     paramTypeInfo.TypeAsString());
+                        continue;
+                    }
+
+                    functionScriptCache[libfuncName] = _scriptname;
+                }
+            }
+
+            return true;
+        }
+
+        bool RunOperationOnActor(/*std::vector<RE::BSFixedString> _scriptnames,*/ RE::Actor* _cmdTargetActor, RE::ActiveEffect* _cmdPrimary,
                                  std::vector<RE::BSFixedString> _param) {
             bool success = false;
 
@@ -91,6 +164,14 @@ namespace plugin {
                     RE::MakeFunctionArguments(static_cast<RE::Actor*>(_cmdTargetActor), static_cast<RE::ActiveEffect*>(_cmdPrimary),
                                               static_cast<std::vector<RE::BSFixedString>>(_param));
 
+                auto cachedIt = functionScriptCache.find(_param[0]);
+                if (cachedIt != functionScriptCache.end()) {
+                    auto& cachedScript = cachedIt->second;
+                    success = vm->DispatchStaticCall(cachedScript, _param[0], operationArgs, resultCallback);
+                    return success;
+                }
+
+                /*
                 for (const auto& _scriptname: _scriptnames) {
                     success = vm->GetScriptObjectType1(_scriptname, typeinfoptr);
 
@@ -105,12 +186,14 @@ namespace plugin {
 
                     for (int i = 0; i < numglobs; i++) {
                         if (_param[0] == globiter[i].func->GetName()) {
+                            functionScriptCache[_param[0]] = _scriptname;
+
                             success = vm->DispatchStaticCall(_scriptname, _param[0], operationArgs, resultCallback);
 
                             return success;
                         }
                     }
-                }
+                }*/
             }
 
             return success;
@@ -354,9 +437,13 @@ namespace plugin {
 
     namespace Papyrus {
 
-        bool RunOperationOnActor(RE::StaticFunctionTag*, std::vector<RE::BSFixedString> _scriptnames, RE::Actor* _cmdTargetActor,
+        bool PrecacheLibraries(RE::StaticFunctionTag*, std::vector<RE::BSFixedString> _scriptnames) {
+            return Util::PrecacheLibraries(_scriptnames);
+        }
+
+        bool RunOperationOnActor(RE::StaticFunctionTag*, /*std::vector<RE::BSFixedString> _scriptnames,*/ RE::Actor* _cmdTargetActor,
                                  RE::ActiveEffect* _cmdPrimary, std::vector<RE::BSFixedString> _param) {
-            return Util::RunOperationOnActor(_scriptnames, _cmdTargetActor, _cmdPrimary, _param);
+            return Util::RunOperationOnActor(/*_scriptnames,*/ _cmdTargetActor, _cmdPrimary, _param);
         }
 
         std::vector<std::string> SplitLinesTrimmed(RE::StaticFunctionTag*, RE::BSFixedString _fileString) {
@@ -389,6 +476,7 @@ namespace plugin {
         }
 
         bool Register(RE::BSScript::IVirtualMachine* vm) {
+            vm->RegisterFunction("_PrecacheLibraries", "sl_triggers_internal", PrecacheLibraries, true);
             vm->RegisterFunction("_RunOperationOnActor", "sl_triggers_internal", RunOperationOnActor);
             vm->RegisterFunction("_SplitLinesTrimmed", "sl_triggers_internal", SplitLinesTrimmed, true);
             vm->RegisterFunction("_GetTranslatedString", "sl_triggers_internal", GetTranslatedString);

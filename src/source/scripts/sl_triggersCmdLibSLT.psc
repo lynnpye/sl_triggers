@@ -118,15 +118,29 @@ function inc(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param
     endif
 
     string varstr = param[1]
-    float incrAmount = CmdPrimary.resolve(param[2]) as float
+    int incrInt = CmdPrimary.resolve(param[2]) as int
+    float incrFloat = CmdPrimary.resolve(param[2]) as float
+    bool isIncrInt = (incrInt == incrFloat)
 
     int varindex = CmdPrimary.IsVarStringG(varstr)
     if varindex >= 0
-        CmdPrimary.globalvars_set(varindex, ((CmdPrimary.globalvars_get(varindex) as float) + incrAmount) as string)
+        int varint = CmdPrimary.globalvars_get(varindex) as int
+        float varfloat = CmdPrimary.globalvars_get(varindex) as float
+        if (varint == varfloat && isIncrInt)
+            CmdPrimary.globalvars_set(varindex, (varint + incrInt) as string)
+        else
+            CmdPrimary.globalvars_set(varindex, (varfloat + incrFloat) as string)
+        endif
     else
         varindex = CmdPrimary.IsVarString(varstr)
         if varindex >= 0
-            CmdPrimary.vars_set(varindex, ((CmdPrimary.vars_get(varindex) as float) + incrAmount) as string)
+            int varint = CmdPrimary.vars_get(varindex) as int
+            float varfloat = CmdPrimary.vars_get(varindex) as float
+            if (varint == varfloat && isIncrInt)
+                CmdPrimary.vars_set(varindex, (varint + incrInt) as string)
+            else
+                CmdPrimary.vars_set(varindex, (varfloat + incrFloat) as string)
+            endif
         else
             DebMsg("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] no resolve found for variable parameter (" + param[1] + ")")
         endif

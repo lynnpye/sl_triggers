@@ -214,6 +214,11 @@ Function DoBootstrapActivity()
 	endif
 
 	Libraries = GetCommandLibraries()
+	if sl_triggers_internal.SafePrecacheLibraries(Libraries)
+		DebMsg("Libraries pre-cached in sl-triggers-internal")
+	else
+		DebMsg("Unable to pre-cache libraries; performance will be reduced as a result")
+	endif
 
 	InitSettingsFile(FN_Settings())
 

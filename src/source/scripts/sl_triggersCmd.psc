@@ -916,7 +916,6 @@ string Function _slt_ParseCommandFile()
         string[] cmdlines = sl_triggers_internal.SafeSplitLinesTrimmed(cmdstring)
 
         cmdNum = cmdlines.Length
-        DebMsg("found cmdNum(" + cmdNum + ") lines")
         cmdIdx = 0
         while cmdIdx < cmdNum
             lineno += 1
@@ -1060,7 +1059,7 @@ bool Function _slt_SLTResolveCond(string _p1, string _p2, string _oper)
             outcome = true
         endif
     else
-        MiscUtil.PrintConsole("SLT: [" + cmdName + "][cmdidx:" + cmdIdx + "] unexpected operator, this is likely an error in the SLT script")
+        MiscUtil.PrintConsole("SLT: [" + cmdName + "][lineNum:" + lineNum + "] unexpected operator, this is likely an error in the SLT script")
         return false
     endif
 
@@ -1102,5 +1101,5 @@ bool Function _slt_ActualOper(string[] param, string code)
         i += 1
     endwhile
     
-    return sl_triggers_internal.SafeRunOperationOnActor(SLT.Libraries, CmdTargetActor, self, opsParam)
+    return sl_triggers_internal.SafeRunOperationOnActor(CmdTargetActor, self, opsParam)
 EndFunction
