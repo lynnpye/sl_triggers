@@ -218,7 +218,7 @@ EndFunction
 
 
 Function SquawkFunctionError(sl_triggersCmd _cmdPrimary, string msg) global
-	DebMsg("SLT: [" + _cmdPrimary.cmdName + "][cmdIdx:" + _cmdPrimary.cmdIdx + "] " + msg)
+	DebMsg("SLT: [" + _cmdPrimary.cmdName + "][lineNum:" + _cmdPrimary.lineNum + "] " + msg)
 EndFunction
 
 bool Function ParamLengthLT(sl_triggersCmd _cmdPrimary, int actualLength, int neededLength) global

@@ -72,6 +72,7 @@ int			Property lastKey Auto Hidden
 Actor		Property iterActor Auto Hidden
 string      Property cmdName Auto Hidden
 int         Property cmdIdx Auto Hidden
+int         Property lineNum Auto Hidden
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -278,8 +279,8 @@ string _xn_execute_line
 string _xn_actual_oper
 
 ; callstack variables
-;int			cmdIdx 
-int			cmdNum 
+;int			cmdIdx
+int			cmdNum
 ;string		cmdName
 string      cmdType
 int[]		gotoIdx 
@@ -385,6 +386,7 @@ Function RunScript()
         endif
 
         while cmdidx < cmdNum
+            lineNum = Heap_IntGetX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + cmdIdx + "]:line", -1)
             currentCmdLine = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + cmdidx + "]")
             cmdLine = currentCmdLine
 
@@ -393,13 +395,13 @@ Function RunScript()
 
                 if (cmdtype == "json" && code == ":") || (cmdtype == "ini" && cmdLine.Length == 1 && StringUtil.GetNthChar(code, 0) == "[" && StringUtil.GetNthChar(code, StringUtil.GetLength(code) - 1) == "]")
                     if cmdtype == "json"
-                        _slt_AddGoto(cmdidx, cmdLine[1])
+                        _slt_AddGoto(cmdidx, Resolve(cmdLine[1]))
                     elseif cmdtype == "ini"
-                        _slt_AddGoto(cmdidx, StringUtil.Substring(code, 1, StringUtil.GetLength(code) - 2))
+                        _slt_AddGoto(cmdidx, Resolve(StringUtil.Substring(code, 1, StringUtil.GetLength(code) - 2)))
                     endif
                     cmdidx += 1
                 elseIf code == "beginsub"
-                    _slt_AddGosub(cmdidx, cmdLine[1])
+                    _slt_AddGosub(cmdidx, Resolve(cmdLine[1]))
                     cmdidx = _slt_FindEndsub(cmdidx)
                     cmdidx += 1
                 elseIf code == "endsub"
@@ -407,12 +409,12 @@ Function RunScript()
                     cmdidx += 1
                 elseIf code == "goto"
                     if cmdLine.Length == 2
-                        cmdidx = _slt_FindGoto(cmdLine[1], cmdidx, cmdtype)
+                        cmdidx = _slt_FindGoto(Resolve(cmdLine[1]), cmdidx, cmdtype)
                     endif
                     cmdidx += 1
                 elseIf code == "gosub"
                     if cmdLine.Length == 2
-                        cmdidx = _slt_FindGosub(cmdLine[1], cmdidx)
+                        cmdidx = _slt_FindGosub(Resolve(cmdLine[1]), cmdidx)
                     endif
                     cmdidx += 1
                 elseIf code == "if"
@@ -424,7 +426,7 @@ Function RunScript()
                         
                         bool ifTrue = resolveCond(p1, p2, po)
                         if ifTrue
-                            cmdidx = _slt_FindGoto(cmdLine[4], cmdidx, cmdtype)
+                            cmdidx = _slt_FindGoto(Resolve(cmdLine[4]), cmdidx, cmdtype)
                         endIf
                     endif
                     cmdidx += 1
@@ -438,7 +440,8 @@ Function RunScript()
                     _slt_PopCallstack()
                     cmdidx += 1
                 elseIf code == "call"
-                    if cmdLine.Length == 2 && _slt_IsFileParseable(cmdLine[1])
+                    string callTarget = Resolve(cmdLine[1])
+                    if cmdLine.Length == 2 && _slt_IsFileParseable(callTarget)
                         _callArgs = PapyrusUtil.SliceStringArray(cmdLine, 2)
                         int caidx = 0
                         while caidx < _callArgs.Length
@@ -446,7 +449,7 @@ Function RunScript()
                             caidx += 1
                         endwhile
                         
-                        _slt_PushCallstack(cmdLine[1])
+                        _slt_PushCallstack(callTarget)
                     else
                         cmdidx += 1
                     endif
@@ -887,11 +890,14 @@ string Function _slt_ParseCommandFile()
         endif
     endif
 
+    int lineno = 0
     if _last == "json"
         _myCmdName = CommandsFolder() + _myCmdName
         cmdNum = JsonUtil.PathCount(_myCmdName, ".cmd")
         cmdIdx = 0
         while cmdIdx < cmdNum
+            lineno += 1
+            Heap_IntSetX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + cmdIdx + "]:line", lineno)
             cmdLine = JsonUtil.PathStringElements(_myCmdName, ".cmd[" + cmdIdx + "]")
             if cmdLine.Length
                 Heap_IntAdjustX(CmdTargetActor, GetInstanceId(), CallstackId, 1)
@@ -910,8 +916,11 @@ string Function _slt_ParseCommandFile()
         string[] cmdlines = sl_triggers_internal.SafeSplitLinesTrimmed(cmdstring)
 
         cmdNum = cmdlines.Length
+        DebMsg("found cmdNum(" + cmdNum + ") lines")
         cmdIdx = 0
         while cmdIdx < cmdNum
+            lineno += 1
+            Heap_IntSetX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + cmdIdx + "]:line", lineno)
             cmdLine = sl_triggers_internal.SafeTokenize(cmdlines[cmdIdx])
             if cmdLine.Length
                 int idx = 0

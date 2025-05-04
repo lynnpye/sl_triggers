@@ -119,7 +119,7 @@ namespace plugin {
         std::string TrimString(const std::string& str) {
             size_t first = str.find_first_not_of(" \t\n\r");
             if (first == std::string::npos)
-                return "";
+                return "";  // this still trims whitespace-only lines to ""
             size_t last = str.find_last_not_of(" \t\n\r");
             return str.substr(first, last - first + 1);
         }
@@ -131,37 +131,25 @@ namespace plugin {
             size_t len = content.length();
 
             while (i < len) {
-                if (content[i] == '\r') {
-                    if (i > start) {
-                        std::string line = content.substr(start, i - start);
-                        line = TrimString(line);
-                        if (!line.empty()) {
-                            lines.push_back(line);
-                        }
-                    }
-                    if (i + 1 < len && content[i + 1] == '\n') {
+                if (content[i] == '\r' || content[i] == '\n') {
+                    std::string line = content.substr(start, i - start);
+                    line = TrimString(line);
+                    lines.push_back(line);
+
+                    if (content[i] == '\r' && i + 1 < len && content[i + 1] == '\n') {
                         i += 2;  // Windows CRLF
                     } else {
-                        i += 1;  // Classic Mac CR
+                        i += 1;  // CR or LF
                     }
-                    start = i;
-                } else if (content[i] == '\n') {
-                    if (i > start) {
-                        std::string line = content.substr(start, i - start);
-                        line = TrimString(line);
-                        if (!line.empty()) {
-                            lines.push_back(line);
-                        }
-                    }
-                    i += 1;
                     start = i;
                 } else {
                     i += 1;
                 }
             }
 
-            // Add last line if there's any remaining
-            if (start < len) {
+            // Add the last line but only if not empty (we are only tracking empty lines to make sense of
+            // line numbers referring to code... if no code remains past this point, we no longer care
+            if (start <= len) {
                 std::string lastLine = content.substr(start);
                 lastLine = TrimString(lastLine);
                 if (!lastLine.empty()) {
@@ -171,6 +159,7 @@ namespace plugin {
 
             return lines;
         }
+
 
         std::string GetTranslatedString(const std::string& input) {
             auto sfmgr = RE::BSScaleformManager::GetSingleton();

@@ -94,7 +94,7 @@ function set(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param
         elseIf operat == "&"
             strresult = strparm2 + strparm4
         else
-            DebMsg("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unexpected operator for 'set' (" + operat + ")")
+            DebMsg("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unexpected operator for 'set' (" + operat + ")")
         endif
         if g_varindex > -1
             CmdPrimary.globalvars_set(varindex, strresult)
@@ -102,7 +102,7 @@ function set(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param
             CmdPrimary.vars_set(varindex, strresult)
         endif
     else
-        DebMsg("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unexpected number of arguments for 'set' got " + param.length + " expected 3 or 5")
+        DebMsg("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unexpected number of arguments for 'set' got " + param.length + " expected 3 or 5")
     endif
 endFunction
 
@@ -128,7 +128,7 @@ function inc(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param
         if varindex >= 0
             CmdPrimary.vars_set(varindex, ((CmdPrimary.vars_get(varindex) as float) + incrAmount) as string)
         else
-            DebMsg("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] no resolve found for variable parameter (" + param[1] + ")")
+            DebMsg("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] no resolve found for variable parameter (" + param[1] + ")")
         endif
     endif
 endFunction
@@ -155,7 +155,7 @@ function cat(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param
         if varindex >= 0
             CmdPrimary.vars_set(varindex, (CmdPrimary.vars_get(varindex) + CmdPrimary.resolve(param[2])) as string)
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] no resolve found for variable parameter (" + param[1] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] no resolve found for variable parameter (" + param[1] + ")")
         endif
     endif
 endFunction
@@ -301,10 +301,10 @@ function spell_cast(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         if mate
             thing.RemoteCast(mate, mate, mate)
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve actor variable (" + param[2] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[2] + ")")
         endif
     else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve SPEL with FormId (" + param[1] + ")")
+        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve SPEL with FormId (" + param[1] + ")")
     endIf
 endFunction
 
@@ -325,10 +325,10 @@ function spell_dcsa(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         if mate
             mate.DoCombatSpellApply(thing, mate)
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve actor variable (" + param[2] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[2] + ")")
         endif
     else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve SPEL with FormId (" + param[1] + ")")
+        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve SPEL with FormId (" + param[1] + ")")
     endif
 endFunction
 
@@ -349,10 +349,10 @@ function spell_dispel(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
         if mate
             mate.DispelSpell(thing)
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve actor variable (" + param[2] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[2] + ")")
         endif
     else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve SPEL with FormId (" + param[1] + ")")
+        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve SPEL with FormId (" + param[1] + ")")
     endif
 endFunction
 
@@ -373,10 +373,10 @@ function spell_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
         if mate
             mate.AddSpell(thing)
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve actor variable (" + param[2] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[2] + ")")
         endif
     else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve SPEL with FormId (" + param[1] + ")")
+        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve SPEL with FormId (" + param[1] + ")")
     endif
 endFunction
 
@@ -397,10 +397,10 @@ function spell_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
         if mate
             mate.RemoveSpell(thing)
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve actor variable (" + param[2] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[2] + ")")
         endif
     else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve SPEL with FormId (" + param[1] + ")")
+        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve SPEL with FormId (" + param[1] + ")")
     endif
 endFunction
 
@@ -424,10 +424,10 @@ function item_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
         if mate
             mate.AddItem(thing, count, isSilent)
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve actor variable (" + param[1] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
         endif
     else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve ITEM with FormId (" + param[2] + ")")
+        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
     endif
 endFunction
 
@@ -498,10 +498,10 @@ function item_addex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
                 thisSlot *= 2 
             endWhile
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve actor variable (" + param[1] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
         endif
     else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve ITEM with FormId (" + param[2] + ")")
+        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
     endif
 endFunction
 
@@ -525,10 +525,10 @@ function item_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
         if mate
             mate.RemoveItem(thing, count, isSilent)
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve actor variable (" + param[1] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
         endif
     else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve ITEM with FormId (" + param[2] + ")")
+        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
     endif
 endFunction
 
@@ -552,10 +552,10 @@ function item_adduse(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
             mate.AddItem(thing, count, isSilent)
             mate.EquipItem(thing, false, isSilent)
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve actor variable (" + param[1] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
         endif
     else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve ITEM with FormId (" + param[2] + ")")
+        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
     endif
 endFunction
 
@@ -579,10 +579,10 @@ function item_equipex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
             bool isRemovalPrevented = CmdPrimary.Resolve(param[5]) as int
             mate.EquipItemEx(thing, slotId, isRemovalPrevented, isSilent)
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve actor variable (" + param[1] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
         endif
     else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve ITEM with FormId (" + param[2] + ")")
+        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
     endif
 endFunction
 
@@ -605,10 +605,10 @@ function item_equip(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
             bool isSilent = CmdPrimary.resolve(param[4]) as int
             mate.EquipItem(thing, slotId, isSilent)
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve actor variable (" + param[1] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
         endif
     else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve ITEM with FormId (" + param[2] + ")")
+        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
     endif
 endFunction
 
@@ -630,10 +630,10 @@ function item_unequipex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
             int slotId = CmdPrimary.resolve(param[3]) as int
             mate.UnEquipItemEx(thing, slotId)
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve actor variable (" + param[1] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
         endif
     else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve ITEM with FormId (" + param[2] + ")")
+        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
     endif
 endFunction
 
@@ -655,10 +655,10 @@ function item_getcount(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
             int retVal = mate.GetItemCount(thing)
             CmdPrimary.MostRecentResult = retVal as string
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve actor variable (" + param[1] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
         endif
     else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve ITEM with FormId (" + param[2] + ")")
+        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
     endif
 endFunction
 
@@ -830,10 +830,10 @@ function perk_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
         if mate
             mate.AddPerk(thing)
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve actor variable (" + param[2] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[2] + ")")
         endif
     else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve ITEM with FormId (" + param[1] + ")")
+        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[1] + ")")
     endif
 endFunction
 
@@ -854,10 +854,10 @@ function perk_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
         if mate
             mate.RemovePerk(thing)
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve actor variable (" + param[2] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[2] + ")")
         endif
     else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve ITEM with FormId (" + param[1] + ")")
+        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[1] + ")")
     endif
 endFunction
 
@@ -878,10 +878,10 @@ function actor_advskill(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
         if skillName
             Game.AdvanceSkill(skillName, CmdPrimary.resolve(param[3]) as int)
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve skill name (" + param[2] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve skill name (" + param[2] + ")")
         endif
     else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve actor variable (" + param[1] + ")")
+        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
     endif
 endFunction
 
@@ -906,10 +906,10 @@ function actor_incskill(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
                 mate.ModActorValue(skillName, CmdPrimary.resolve(param[3]) as int)
             endif
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve skill name (" + param[2] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve skill name (" + param[2] + ")")
         endif
     else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][cmdidx:" + CmdPrimary.cmdIdx + "] unable to resolve actor variable (" + param[1] + ")")
+        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
     endif
 endFunction
 
