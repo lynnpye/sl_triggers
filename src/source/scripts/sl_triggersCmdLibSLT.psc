@@ -5,31 +5,24 @@ import sl_triggersStatics
 ;;;;;;;;;;
 ;; 
 
-; sltname hextun_test
-; sltdesc hextun's test function
-; sltsamp hextun_test ???
-function hextun_test(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+; HAVE TO FIX THE STRING PARAM TO STRING[] PARAM BEFORE YOU CAN USE THIS
+function hextun_test(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-    deb_msg(CmdTargetActor, _CmdPrimary, param)
-    string res1 = CmdPrimary.Resolve(param[1])
-    Actor res2 = CmdPrimary.ResolveActor(param[2])
-    string[] msg = new string[2];
-    msg[1] = "res1(" + res1 + ") res2(" + res2.GetDisplayName() + ")"
-    deb_msg(CmdTargetActor, _CmdPrimary, msg)
 endFunction
 
-; sltname hextun_test2
-; sltdesc hextun's other test function
-; sltsamp hextun_test2 ???
-function hextun_test2(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+; HAVE TO FIX THE STRING PARAM TO STRING[] PARAM BEFORE YOU CAN USE THIS
+function hextun_test2(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-    msg_console(CmdTargetActor, _CmdPrimary, param)
 endFunction
 
 ; sltname deb_msg
+; sltgrup Utility
 ; sltdesc Joins all <msg> arguments together and adds the text to SKSE\Plugins\sl_triggers\debugmsg.log
-; sltargs <msg> [<msg> <msg> ...]
-; sltsamp deb_msg "Hello" "world!" OR deb_msg "Hello world!"
+; sltdesc Text is always appended to the log, so if you use this, it will only grow in size until you truncate it.
+; sltargs message: <msg> [<msg> <msg> ...]
+; sltsamp deb_msg "Hello" "world!"
+; sltsamp deb_msg "Hello world!"
+; sltrslt Both do the same thing
 Function deb_msg(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     if param.Length < 2
@@ -45,139 +38,16 @@ Function deb_msg(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
     string dmsg = PapyrusUtil.StringJoin(darr, "")
     DebMsg(dmsg)
 endFunction
-
-; sltname set
-; sltdesc Set the indicated local or global variable to the indicated value
-; sltargs <$var|$gvar> <resolvable value> OR <$var|$gvar> <resolvable value> <operator> <resolvable value>
-; sltsamp set $1 32 OR set $1 $2 OR set $1 $2 + $3
-function set(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
-	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-
-    if ParamLengthNEQ2(CmdPrimary, param.Length, 3, 5)
-        return
-    endif
-    
-	int varindex = CmdPrimary.IsVarString(param[1])
-    int g_varindex = CmdPrimary.IsVarStringG(param[1])
-
-    if (varindex < 0) && (g_varindex < 0)
-        return
-    endif
-    if g_varindex > -1
-        varindex = g_varindex
-    endif
-
-    string strparm2 = CmdPrimary.resolve(param[2])
-
-    if param.length == 3
-        if g_varindex > -1
-			CmdPrimary.globalvars_set(varindex, strparm2)
-        else
-            CmdPrimary.vars_set(varindex, strparm2)
-        endif
-    elseif param.length == 5
-        string strparm4 = CmdPrimary.Resolve(param[4])
-        float op1 = strparm2 as float
-        float op2 = strparm4 as float
-        string operat = param[3]
-
-        string strresult
-
-        if operat == "+"
-            strresult = (op1 + op2) as string
-        elseIf operat == "-"
-            strresult = (op1 - op2) as string
-        elseIf operat == "*"
-            strresult = (op1 * op2) as string
-        elseIf operat == "/"
-            strresult = (op1 / op2) as string
-        elseIf operat == "&"
-            strresult = strparm2 + strparm4
-        else
-            DebMsg("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unexpected operator for 'set' (" + operat + ")")
-        endif
-        if g_varindex > -1
-            CmdPrimary.globalvars_set(varindex, strresult)
-        else
-            CmdPrimary.vars_set(varindex, strresult)
-        endif
-    else
-        DebMsg("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unexpected number of arguments for 'set' got " + param.length + " expected 3 or 5")
-    endif
-endFunction
-
-; sltname inc
-; sltdesc Increments the indicated variable
-; sltargs <$var|$gvar> <numeric value>
-; sltsamp inc $3 12.3 OR inc $5 4
-function inc(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
-	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-
-    if ParamLengthLT(CmdPrimary, param.Length, 3)
-        return
-    endif
-
-    string varstr = param[1]
-    int incrInt = CmdPrimary.resolve(param[2]) as int
-    float incrFloat = CmdPrimary.resolve(param[2]) as float
-    bool isIncrInt = (incrInt == incrFloat)
-
-    int varindex = CmdPrimary.IsVarStringG(varstr)
-    if varindex >= 0
-        int varint = CmdPrimary.globalvars_get(varindex) as int
-        float varfloat = CmdPrimary.globalvars_get(varindex) as float
-        if (varint == varfloat && isIncrInt)
-            CmdPrimary.globalvars_set(varindex, (varint + incrInt) as string)
-        else
-            CmdPrimary.globalvars_set(varindex, (varfloat + incrFloat) as string)
-        endif
-    else
-        varindex = CmdPrimary.IsVarString(varstr)
-        if varindex >= 0
-            int varint = CmdPrimary.vars_get(varindex) as int
-            float varfloat = CmdPrimary.vars_get(varindex) as float
-            if (varint == varfloat && isIncrInt)
-                CmdPrimary.vars_set(varindex, (varint + incrInt) as string)
-            else
-                CmdPrimary.vars_set(varindex, (varfloat + incrFloat) as string)
-            endif
-        else
-            DebMsg("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] no resolve found for variable parameter (" + param[1] + ")")
-        endif
-    endif
-endFunction
- 
-; sltname cat
-; sltdesc Concatenates one or more strings onto the end of the indicated variable
-; sltargs <$var|$gvar> <string> [<string> <string> ...]
-; sltsamp cat $4 "onestring" "twostring" "redstring" "bluestring"
-function cat(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
-	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-
-    if ParamLengthLT(CmdPrimary, param.Length, 3)
-        return
-    endif
-
-    string varstr = param[1]
-    float incrAmount = CmdPrimary.resolve(param[2]) as float
-
-    int varindex = CmdPrimary.IsVarStringG(varstr)
-    if varindex >= 0
-        CmdPrimary.globalvars_set(varindex, (CmdPrimary.globalvars_get(varindex) + CmdPrimary.resolve(param[2])) as string)
-    else
-        varindex = CmdPrimary.IsVarString(varstr)
-        if varindex >= 0
-            CmdPrimary.vars_set(varindex, (CmdPrimary.vars_get(varindex) + CmdPrimary.resolve(param[2])) as string)
-        else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] no resolve found for variable parameter (" + param[1] + ")")
-        endif
-    endif
-endFunction
  
 ; sltname av_restore
+; sltgrup Actor Value
 ; sltdesc Restore actor value
-; sltargs <actor variable> <av name> <amount>
-; sltsamp av_restore $self Health 100 OR av_restore $self $3 100 (where $3 might be "Health")
+; sltargs actor: target Actor
+; sltargs av name: Actor Value name e.g. Health
+; sltargs amount: amount to restore
+; sltsamp av_restore $self Health 100
+; sltsamp av_restore $self   $3   100 ;where $3 might be "Health"
+; sltrslt Restores Health by 100 e.g. healing
 function av_restore(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     
@@ -190,9 +60,14 @@ function av_restore(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 endFunction
 
 ; sltname av_damage
+; sltgrup Actor Value
 ; sltdesc Damage actor value
-; sltargs <actor variable> <av name> <amount>
-; sltsamp av_damage $self Health 100 OR av_damage $self $3 100 (where $3 might be "Health")
+; sltargs actor: target Actor
+; sltargs av name: Actor Value name e.g. Health
+; sltargs amount: amount to damage
+; sltsamp av_damage $self Health 100
+; sltsamp av_damage $self   $3   100 ;where $3 might be "Health"
+; sltrslt Damages Health by 100. This can result in death.
 function av_damage(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -205,9 +80,14 @@ function av_damage(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 endFunction
 
 ; sltname av_mod
+; sltgrup Actor Value
 ; sltdesc Modify actor value
-; sltargs <actor variable> <av name> <amount>
-; sltsamp av_mod $self Health 100 OR av_mod $self $3 100 (where $3 might be "Health")
+; sltargs actor: target Actor
+; sltargs av name: Actor Value name e.g. Health
+; sltargs amount: amount to modify by
+; sltsamp av_mod $self Health 100
+; sltsamp av_mod $self   $3   100 ;where $3 might be "Health"
+; sltrslt Changes the max value of the actor value. Not the same as restore/damage.
 function av_mod(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -220,9 +100,14 @@ function av_mod(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] pa
 endFunction
 
 ; sltname av_set
+; sltgrup Actor Value
 ; sltdesc Set actor value
-; sltargs <actor variable> <av name> <amount>
-; sltsamp av_set $self Health 100 OR av_set $self $3 100 (where $3 might be "Health")
+; sltargs actor: target Actor
+; sltargs av name: Actor Value name e.g. Health
+; sltargs amount: amount to modify by
+; sltsamp av_set $self Health 100
+; sltsamp av_set $self   $3   100 ;where $3 might be "Health"
+; sltrslt Sets the value of the actor value.
 function av_set(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -235,9 +120,12 @@ function av_set(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] pa
 endFunction
 
 ; sltname av_getbase
-; sltdesc Get base actor value
-; sltargs <actor variable> <av name>
-; sltsamp av_getbase $self Health  OR av_getbase $self $3  (where $3 might be "Health")
+; sltgrup Actor Value
+; sltdesc Sets $$ to the actor's base value for the specified Actor Value
+; sltargs actor: target Actor
+; sltargs av name: Actor Value name e.g. Health
+; sltsamp av_getbase $self Health
+; sltrslt Sets the actor's base Health into $$
 function av_getbase(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -252,9 +140,12 @@ function av_getbase(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 endFunction
 
 ; sltname av_get
-; sltdesc Get actor value
-; sltargs <actor variable> <av name>
-; sltsamp av_get $self Health  OR av_get $self $3  (where $3 might be "Health")
+; sltgrup Actor Value
+; sltdesc Set $$ to the actor's current value for the specified Actor Value
+; sltargs actor: target Actor
+; sltargs av name: Actor Value name e.g. Health
+; sltsamp av_get $self Health
+; sltrslt Sets the actor's current Health into $$
 function av_get(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -269,9 +160,12 @@ function av_get(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] pa
 endFunction
 
 ; sltname av_getmax
-; sltdesc Get max actor value
-; sltargs <actor variable> <av name> 
-; sltsamp av_getmax $self Health  OR av_getmax $self $3  (where $3 might be "Health")
+; sltgrup Actor Value
+; sltdesc Set $$ to the actor's max value for the specified Actor Value
+; sltargs actor: target Actor
+; sltargs av name: Actor Value name e.g. Health
+; sltsamp av_get $self Health
+; sltrslt Sets the actor's max Health into $$
 function av_getmax(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -283,10 +177,13 @@ function av_getmax(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
     CmdPrimary.MostRecentResult = mate.GetActorValueMax(CmdPrimary.resolve(param[2])) as string
 endFunction
 
-; sltname av_getpercent
-; sltdesc Get current percentage of max actor value
-; sltargs <actor variable> <av name> 
-; sltsamp av_getpercent $self Health  OR av_getpercent $self $3  (where $3 might be "Health")
+; sltname av_getpercentage
+; sltgrup Actor Value
+; sltdesc Set $$ to the actor's value as a percentage of max for the specified Actor Value
+; sltargs actor: target Actor
+; sltargs av name: Actor Value name e.g. Health
+; sltsamp av_getpercentage $self Health
+; sltrslt Sets the actor's percentage of Health remaining into $$
 function av_getpercent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -299,9 +196,12 @@ function av_getpercent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
 endFunction
 
 ; sltname spell_cast
+; sltgrup Spells
 ; sltdesc Cast spell at target
-; sltargs <SPEL FormId> <actor variable>
+; sltargs spell: SPEL FormID
+; sltargs actor: target Actor
 ; sltsamp spell_cast "skyrim.esm:275236" $self
+; sltrslt Casts light spell on self
 function spell_cast(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -323,8 +223,11 @@ function spell_cast(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 endFunction
 
 ; sltname spell_dcsa
-; sltdesc Casts spell with DoCombatSpellApply Papyrus function. It is usually used for spells that are part of a melee attack (like animals that also carry poison or disease).
-; sltargs <SPEL FormId> <actor variable>
+; sltgrup Spells
+; sltdesc Casts spell with DoCombatSpellApply Papyrus function. It is usually used for spells that 
+; sltdesc are part of a melee attack (like animals that also carry poison or disease).
+; sltargs spell: SPEL FormId
+; sltargs actor: target Actor
 ; sltsamp spell_dcsa "skyrim.esm:275236" $self
 function spell_dcsa(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -347,9 +250,12 @@ function spell_dcsa(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 endFunction
 
 ; sltname spell_dispel
+; sltgrup Spells
 ; sltdesc Dispels specified SPEL by FormId from targeted Actor
-; sltargs <SPEL FormId> <actor variable>
+; sltargs spell: SPEL FormId
+; sltargs actor: target Actor
 ; sltsamp spell_dispel "skyrim.esm:275236" $self
+; sltrslt If light was currently on $self, it would now be dispelled
 function spell_dispel(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -371,9 +277,12 @@ function spell_dispel(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
 endFunction
 
 ; sltname spell_add
+; sltgrup Spells
 ; sltdesc Adds the specified SPEL by FormId to the targeted Actor, usually to add as an available power or spell in the spellbook.
-; sltargs <SPEL FormId> <actor variable>
+; sltargs spell: SPEL FormId
+; sltargs actor: target Actor
 ; sltsamp spell_add "skyrim.esm:275236" $self
+; sltrslt The light spell is now in the actor's spellbook
 function spell_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -395,9 +304,12 @@ function spell_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 endFunction
 
 ; sltname spell_remove
+; sltgrup Spells
 ; sltdesc Removes the specified SPEL by FormId from the targeted Actor, usually to remove as an available power or spell in the spellbook.
-; sltargs <SPEL FormId> <actor variable>
+; sltargs spell: SPEL FormId
+; sltargs actor: target Actor
 ; sltsamp spell_remove "skyrim.esm:275236" $self
+; sltrslt The light spell should no longer be in the actor's spellbook
 function spell_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -419,9 +331,14 @@ function spell_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
 endFunction
 
 ; sltname item_add
+; sltgrup Items
 ; sltdesc Adds the item to the actor's inventory.
-; sltargs <actor variable> <ITEM FormId> <number> <0 - show message | 1 - silent>
+; sltargs actor: target Actor
+; sltargs item: ITEM FormId
+; sltargs count: number
+; sltargs displaymessage: 0 - show message | 1 - silent
 ; sltsamp item_add $self "skyrim.esm:15" 10 0
+; sltrslt Adds 10 gold to the actor, displaying the notification
 function item_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -446,8 +363,12 @@ function item_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
 endFunction
 
 ; sltname item_addex
+; sltgrup Items
 ; sltdesc Adds the item to the actor's inventory, but check if some armor was re-equipped (if NPC)
-; sltargs <actor variable> <ITEM FormId> <number> <0 - show message | 1 - silent>
+; sltargs actor: target Actor
+; sltargs item: ITEM FormId
+; sltargs count: number
+; sltargs displaymessage: 0 - show message | 1 - silent
 ; sltsamp item_addex $self "skyrim.esm:15" 10 0
 function item_addex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -520,9 +441,14 @@ function item_addex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 endFunction
 
 ; sltname item_remove
+; sltgrup Items
 ; sltdesc Remove the item from the actor's inventory
-; sltargs <actor variable> <ITEM FormId> <number> <0 - show message | 1 - silent>
+; sltargs actor: target Actor
+; sltargs item: ITEM FormId
+; sltargs count: number
+; sltargs displaymessage: 0 - show message | 1 - silent
 ; sltsamp item_remove $self "skyrim.esm:15" 10 0
+; sltrslt Removes up to 10 gold from the actor
 function item_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -547,9 +473,14 @@ function item_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 endFunction
 
 ; sltname item_adduse
+; sltgrup Items
 ; sltdesc Add item (like item_add) and then use the added item. Useful for potions, food, and other consumables.
-; sltargs <actor variable> <ITEM FormId> <number> <0 - show message | 1 - silent>
-; sltsamp item_adduse $self "skyrim.esm:15" 10 0
+; sltargs actor: target Actor
+; sltargs item: ITEM FormId
+; sltargs count: number
+; sltargs displaymessage: 0 - show message | 1 - silent
+; sltsamp item_adduse $self "skyrim.esm:216158" 1 0
+; sltrslt Add and drink some booze
 function item_adduse(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -574,9 +505,16 @@ function item_adduse(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 endFunction
 
 ; sltname item_equipex
+; sltgrup Items
 ; sltdesc Equip item (SKSE version)
-; sltargs <actor variable> <ITEM FormId> <armor slot Id> <0 - no sound | 1 - with sound> <0 - removal allowed | 1 - removal not allowed>
-; sltsamp item_equipex "ZaZAnimationPack.esm:159072" 0 1
+; sltargs actor: target Actor
+; sltargs item: ITEM FormId
+; sltargs armorslot: number e.g. 32 for body slot
+; sltargs sound: 0 - no sound | 1 - with sound
+; sltargs removalallowed: 0 - removal allowed | 1 - removal not allowed
+; sltsamp item_equipex $self "ZaZAnimationPack.esm:159072" 32 0 1
+; sltrslt Equip the ZaZ armor on $self, at body slot 32, silently, with no removal allowed
+; sltrslt Equips item directly, Workaround for "NPCs re-equip all armor, if they get an item that looks like armor"
 function item_equipex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -601,9 +539,15 @@ function item_equipex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
 endFunction
 
 ; sltname item_equip
+; sltgrup Items
 ; sltdesc Equip item ("vanilla" version)
+; sltargs actor: target Actor
+; sltargs item: ITEM FormId
+; sltargs removalallowed: 0 - removal allowed | 1 - removal not allowed
+; sltargs sound: 0 - no sound | 1 - with sound
 ; sltargs <actor variable> <ITEM FormId> <0 - removal allowed | 1 - removal not allowed> <0 - no sound | 1 - with sound>
-; sltsamp item_equip "ZaZAnimationPack.esm:159072" 0 1
+; sltsamp item_equip $self "ZaZAnimationPack.esm:159072" 1 0
+; sltrslt Equip the ZaZ armor on $self, silently, with no removal allowed (uses whatever slot the armor uses)
 function item_equip(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -627,9 +571,13 @@ function item_equip(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 endFunction
 
 ; sltname item_unequipex
+; sltgrup Items
 ; sltdesc Unequip item
-; sltargs <actor variable> <ITEM FormId> <armor slot id>
-; sltsamp item_unequipex "ZaZAnimationPack.esm:159072" 0
+; sltargs actor: target Actor
+; sltargs item: ITEM FormId
+; sltargs armorslot: number e.g. 32 for body slot
+; sltsamp item_unequipex $self "ZaZAnimationPack.esm:159072" 32
+; sltrslt Unequips the ZaZ armor from slot 32 on $self
 function item_unequipex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -652,8 +600,10 @@ function item_unequipex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 endFunction
 
 ; sltname item_getcount
-; sltdesc Return how many of a specified item an actor has
-; sltargs <actor variable> <ITEM FormId>
+; sltgrup Items
+; sltdesc Set $$ to how many of a specified item an actor has
+; sltargs actor: target Actor
+; sltargs item: ITEM FormId
 ; sltsamp item_getcount $self "skyrim.esm:15"
 function item_getcount(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -677,9 +627,12 @@ function item_getcount(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
 endFunction
 
 ; sltname msg_notify
+; sltgrup Utility
 ; sltdesc Display the message in the standard notification area (top left of your screen by default)
-; sltargs <msg> [<msg> <msg> ...]
-; sltsamp msg_notify "Hello" "world!" OR msg_notify "Hello world!"
+; sltargs message: <msg> [<msg> <msg> ...]
+; sltsamp msg_notify "Hello" "world!"
+; sltsamp msg_notify "Hello world!"
+; sltrslt Both are the same
 function msg_notify(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -698,9 +651,12 @@ function msg_notify(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 endFunction
 
 ; sltname msg_console
+; sltgrup Utility
 ; sltdesc Display the message in the console
-; sltargs <msg> [<msg> <msg> ...]
-; sltsamp msg_console "Hello" "world!" OR msg_console "Hello world!"
+; sltargs message: <msg> [<msg> <msg> ...]
+; sltsamp msg_console "Hello" "world!"
+; sltsamp msg_console "Hello world!"
+; sltrslt Both are the same
 function msg_console(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -719,9 +675,11 @@ function msg_console(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 endFunction
 
 ; sltname rnd_list
-; sltdesc Pick one of the arguments at random and place it into the $$ result variable
-; sltargs <argument> <argument> [<argument> <argument> ...]
+; sltgrup Utility
+; sltdesc Sets $$ to one of the arguments at random
+; sltargs arguments: <argument> <argument> [<argument> <argument> ...]
 ; sltsamp rnd_list "Hello" $2 "Yo"
+; sltrslt $$ will be one of the values. $2 will be resolved to it's value before populating $$
 function rnd_list(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -734,8 +692,10 @@ function rnd_list(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
 endFunction
 
 ; sltname rnd_int
-; sltdesc Return a random integer between min and max inclusive
-; sltargs <min integer> <max integer>
+; sltgrup Utility
+; sltdesc Sets $$ to a random integer between min and max inclusive
+; sltargs min: number
+; sltargs max: number
 ; sltsamp rnd_int 1 100
 function rnd_int(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -748,9 +708,11 @@ function rnd_int(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
 endFunction
 
 ; sltname util_wait
-; sltdesc Wait specified number of seconds
-; sltargs <float>
+; sltgrup Utility
+; sltdesc Wait specified number of seconds i.e. Utility.Wait()
+; sltargs duration: float, seconds
 ; sltsamp util_wait 2.5
+; sltrslt The script will pause processing for 2.5 seconds
 function util_wait(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -762,8 +724,9 @@ function util_wait(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 endFunction
 
 ; sltname util_getrndactor
-; sltdesc Return a random actor within specified range of self
-; sltargs <range: 0 - all | >0 skyrim units>
+; sltgrup Utility
+; sltdesc Sets $iterActor to a random actor within specified range of self
+; sltargs range: 0 - all | >0 skyrim units
 ; sltsamp util_getrndactor 320
 function util_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -814,8 +777,9 @@ function util_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
 endFunction
 
 ; sltname perk_addpoints
+; sltgrup Perks
 ; sltdesc Add specified number of perk points to player
-; sltargs <number of perk points to add>
+; sltargs perkpointcount: number of perk points to add
 ; sltsamp perk_addpoints 4
 function perk_addpoints(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -828,8 +792,10 @@ function perk_addpoints(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 endFunction
 
 ; sltname perk_add
+; sltgrup Perks
 ; sltdesc Add specified perk to the targeted actor
-; sltargs <Form ID of PERK> <actor variable>
+; sltargs perk: PERK FormID
+; sltargs actor: target Actor
 ; sltsamp perk_add "skyrim.esm:12384" $self
 function perk_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -852,8 +818,10 @@ function perk_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
 endFunction
 
 ; sltname perk_remove
+; sltgrup Perks
 ; sltdesc Remove specified perk from the targeted actor
-; sltargs <Form ID of PERK> <actor variable>
+; sltargs perk: PERK FormID
+; sltargs actor: target Actor
 ; sltsamp perk_remove "skyrim.esm:12384" $self
 function perk_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -876,9 +844,14 @@ function perk_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 endFunction
 
 ; sltname actor_advskill
+; sltgrup Actor
 ; sltdesc Advance targeted actor's skill by specified amount. Only works on Player.
-; sltargs <actor variable> <skill name> <amount>
+; sltargs actor: target Actor
+; sltargs skill: skillname e.g. Alteration, Destruction
+; sltargs value: number
 ; sltsamp actor_advskill $self Alteration 1
+; sltrslt Boost Alteration by 1 point
+; sltrslt Note: Currently only works on PC/Player
 function actor_advskill(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -900,9 +873,13 @@ function actor_advskill(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 endFunction
 
 ; sltname actor_incskill
+; sltgrup Actor
 ; sltdesc Increase targeted actor's skill by specified amount
-; sltargs <actor variable> <skill name> <amount>
+; sltargs actor: target Actor
+; sltargs skill: skillname e.g. Alteration, Destruction
+; sltargs value: number
 ; sltsamp actor_incskill $self Alteration 1
+; sltrslt Boost Alteration by 1 point
 function actor_incskill(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -928,9 +905,14 @@ function actor_incskill(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 endFunction
 
 ; sltname actor_isvalid
-; sltdesc Return 1 if actor is valid, 0 if not.
-; sltargs <actor variable>
+; sltgrup Actor
+; sltdesc Set $$ to 1 if actor is valid, 0 if not.
+; sltargs actor: target Actor
 ; sltsamp actor_isvalid $actor
+; sltsamp if $$ = 0 end
+; sltsamp ...
+; sltsamp [end]
+; sltrslt Jump to the end if actor is not valid
 function actor_isvalid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -949,9 +931,12 @@ function actor_isvalid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
 endFunction
 
 ; sltname actor_haslos
-; sltdesc Return 1 if first actor can see second actor, 0 if not.
-; sltargs <actor variable> <actor variable>
+; sltgrup Actor
+; sltdesc Set $$ to 1 if first actor can see second actor, 0 if not.
+; sltargs first actor: target Actor
+; sltargs second actor: target Actor
 ; sltsamp actor_haslos $actor $self
+; sltsamp if $$ = 0 cannotseeme
 function actor_haslos(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -970,8 +955,9 @@ function actor_haslos(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
 endFunction
 
 ; sltname actor_name
-; sltdesc Return actor name
-; sltargs <actor variable>
+; sltgrup Actor
+; sltdesc Set $$ to the actor name
+; sltargs actor: target Actor
 ; sltsamp actor_name $actor
 function actor_name(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -984,9 +970,11 @@ function actor_name(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 endFunction
 
 ; sltname actor_modcrimegold
+; sltgrup Actor
 ; sltdesc Specified actor reports player, increasing bounty by specified amount.
-; sltargs <actor variable> <bounty increase>
-; sltsamp actor_haslos $actor 100
+; sltargs actor: target Actor
+; sltargs bounty: number
+; sltsamp actor_modcrimegold $actor 100
 function actor_modcrimegold(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -1004,9 +992,11 @@ function actor_modcrimegold(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary,
 endFunction
 
 ; sltname actor_qnnu
+; sltgrup Actor
 ; sltdesc Repaints actor (calls QueueNiNodeUpdate)
-; sltargs <actor variable>
+; sltargs actor: target Actor
 ; sltsamp actor_qnnu $actor
+; sltrslt Note: Do not call this too frequently as the rapid refreshes can causes crashes to desktop
 function actor_qnnu(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -1018,8 +1008,9 @@ function actor_qnnu(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 endFunction
 
 ; sltname actor_isguard
-; sltdesc Returns 1 if actor is guard, 0 otherwise.
-; sltargs <actor variable>
+; sltgrup Actor
+; sltdesc Sets $$ to 1 if actor is guard, 0 otherwise.
+; sltargs actor: target Actor
 ; sltsamp actor_isguard $actor
 function actor_isguard(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1040,8 +1031,9 @@ function actor_isquard(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
 endFunction
 
 ; sltname actor_isplayer
-; sltdesc Returns 1 if actor is the player, 0 otherwise.
-; sltargs <actor variable>
+; sltgrup Actor
+; sltdesc Sets $$ to 1 if actor is the player, 0 otherwise.
+; sltargs actor: target Actor
 ; sltsamp actor_isplayer $actor
 function actor_isplayer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1058,8 +1050,9 @@ function actor_isplayer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 endFunction
 
 ; sltname actor_getgender
-; sltdesc Return actor's gender, 0 - male, 1 - female, 2 - creature
-; sltargs <actor variable>
+; sltgrup Actor
+; sltdesc Sets $$ to the actor's gender, 0 - male, 1 - female, 2 - creature
+; sltargs actor: target Actor
 ; sltsamp actor_getgender $actor
 function actor_getgender(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1072,8 +1065,10 @@ function actor_getgender(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
 endFunction
 
 ; sltname actor_say
+; sltgrup Actor
 ; sltdesc Causes the actor to 'say' the topic indicated by FormId
-; sltargs <actor variable> <Topic FormID>
+; sltargs actor: target Actor
+; sltargs topic: TOPIC FormID
 ; sltsamp actor_say $actor "Skyrim.esm:1234"
 function actor_say(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1089,8 +1084,10 @@ function actor_say(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 endFunction
 
 ; sltname actor_haskeyword
-; sltdesc Returns 1 if actor has the keyword, 0 otherwise.
-; sltargs <actor variable> <keyword name>
+; sltgrup Actor
+; sltdesc Sets $$ to 1 if actor has the keyword, 0 otherwise.
+; sltargs actor: target Actor
+; sltargs keyword: string, keyword name
 ; sltsamp actor_isplayer $actor Vampire
 function actor_haskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1109,8 +1106,10 @@ function actor_haskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
 endFunction
 
 ; sltname actor_iswearing
-; sltdesc Returns 1 if actor is wearing the armor indicated by the FormId, 0 otherwise.
-; sltargs <actor variable> <armor FormId>
+; sltgrup Actor
+; sltdesc Sets $$ to 1 if actor is wearing the armor indicated by the FormId, 0 otherwise.
+; sltargs actor: target Actor
+; sltargs armor: ARMO FormID
 ; sltsamp actor_iswearing $actor "petcollar.esp:31017"
 function actor_iswearing(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1129,8 +1128,10 @@ function actor_iswearing(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
 endFunction
 
 ; sltname actor_worninslot
-; sltdesc Returns 1 if actor is wearing armor in the indicated slotId, 0 otherwise.
-; sltargs <actor variable> <armor slot id>
+; sltgrup Actor
+; sltdesc Sets $$ to 1 if actor is wearing armor in the indicated slotId, 0 otherwise.
+; sltargs actor: target Actor
+; sltargs armorslot: number, e.g. 32 for body slot
 ; sltsamp actor_worninslot $actor 32
 function actor_worninslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1148,8 +1149,10 @@ function actor_worninslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
 endFunction
 
 ; sltname actor_wornhaskeyword
-; sltdesc Returns 1 if actor is wearing any armor with indicated keyword, 0 otherwise.
-; sltargs <actor variable> <keyword name>
+; sltgrup Actor
+; sltdesc Sets $$ to 1 if actor is wearing any armor with indicated keyword, 0 otherwise.
+; sltargs actor: target Actor
+; sltargs keyword: string, keyword name
 ; sltsamp actor_wornhaskeyword $actor "VendorItemJewelry"
 function actor_wornhaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1168,9 +1171,12 @@ function actor_wornhaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimar
 endFunction
 
 ; sltname actor_lochaskeyword
-; sltdesc Returns 1 if actor's current location has the indicated keyword, 0 otherwise.
-; sltargs <actor variable> <keyword name>
+; sltgrup Actor
+; sltdesc Sets $$ to 1 if actor's current location has the indicated keyword, 0 otherwise.
+; sltargs actor: target Actor
+; sltargs keyword: string, keyword name
 ; sltsamp actor_lochaskeyword $actor "LocTypeInn"
+; sltrslt In a bar, inn, or tavern
 function actor_lochaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -1188,9 +1194,20 @@ function actor_lochaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary
 endFunction
 
 ; sltname actor_getrelation
-; sltdesc Return relationship rank between the two actors
-; sltargs <actor variable> <actor variable>
+; sltgrup Actor
+; sltdesc Set $$ to the relationship rank between the two actors
+; sltargs first actor: target Actor
+; sltargs second actor: target Actor
 ; sltsamp actor_getrelation $actor $player
+; sltrslt  4  - Lover
+; sltrslt  3  - Ally
+; sltrslt  2  - Confidant
+; sltrslt  1  - Friend
+; sltrslt  0  - Acquaintance
+; sltrslt  -1 - Rival
+; sltrslt  -2 - Foe
+; sltrslt  -3 - Enemy
+; sltrslt  -4 - Archnemesis
 function actor_getrelation(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -1202,9 +1219,13 @@ function actor_getrelation(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, 
 endFunction
 
 ; sltname actor_setrelation
+; sltgrup Actor
 ; sltdesc Set relationship rank between the two actors to the indicated value
-; sltargs <actor variable> <actor variable> <rank>
+; sltargs first actor: target Actor
+; sltargs second actor: target Actor
+; sltargs rank: number
 ; sltsamp actor_setrelation $actor $player 0
+; sltrslt See actor_getrelation for ranks
 function actor_setrelation(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -1216,9 +1237,12 @@ function actor_setrelation(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, 
 endFunction
 
 ; sltname actor_infaction
-; sltdesc Returns 1 if actor is in the faction indicated by the FormId, 0 otherwise
-; sltargs <actor variable> <faction FormId>
+; sltgrup Actor
+; sltdesc Sets $$ to 1 if actor is in the faction indicated by the FormId, 0 otherwise
+; sltargs actor: target Actor
+; sltargs faction: FACTION FormID
 ; sltsamp actor_infaction $actor "skyrim.esm:378958"
+; sltrslt $$ will be 1 if $actor is a follower (CurrentFollowerFaction)
 function actor_infaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -1238,8 +1262,10 @@ function actor_infaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
 endFunction
 
 ; sltname actor_getfactionrank
-; sltdesc Returns the actor's rank in the faction indicated by the FormId
-; sltargs <actor variable> <faction FormId>
+; sltgrup Actor
+; sltdesc Sets $$ to the actor's rank in the faction indicated by the FormId
+; sltargs actor: target Actor
+; sltargs faction: FACTION FormID
 ; sltsamp actor_getfactionrank $actor "skyrim.esm:378958"
 function actor_getfactionrank(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1258,9 +1284,12 @@ function actor_getfactionrank(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimar
 endFunction
 
 ; sltname actor_setfactionrank
+; sltgrup Actor
 ; sltdesc Sets the actor's rank in the faction indicated by the FormId to the indicated rank
-; sltargs <actor variable> <faction FormId> <rank>
-; sltsamp actor_setfactionrank $actor "skyrim.esm:378958" 0
+; sltargs actor: target Actor
+; sltargs faction: FACTION FormID
+; sltargs rank: number
+; sltsamp actor_setfactionrank $actor "skyrim.esm:378958" -1
 function actor_setfactionrank(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -1275,8 +1304,10 @@ function actor_setfactionrank(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimar
 endFunction
 
 ; sltname actor_isaffectedby
-; sltdesc Returns 1 if the specified actor is currently affected by the MGEF or SPEL indicated by FormID (accepts either)
-; sltargs <actor variable> <MGEF/SPEL FormId>
+; sltgrup Actor
+; sltdesc Sets $$ to 1 if the specified actor is currently affected by the MGEF or SPEL indicated by FormID (accepts either)
+; sltargs actor: target Actor
+; sltargs magic effect or spell: MGEF or SPEL FormID
 ; sltsamp actor_isaffectedby $actor "skyrim.esm:1030541"
 function actor_isaffectedby(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1322,8 +1353,10 @@ function actor_isaffectedby(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary,
 endFunction
 
 ; sltname actor_removefaction
+; sltgrup Actor
 ; sltdesc Removes the actor from the specified faction
-; sltargs <actor variable> <Faction FormId>
+; sltargs actor: target Actor
+; sltargs faction: FACTION FormID
 ; sltsamp actor_removefaction $actor "skyrim.esm:3505"
 function actor_removefaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1340,8 +1373,10 @@ function actor_removefaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary
 endFunction
 
 ; sltname actor_playanim
+; sltgrup Actor
 ; sltdesc Causes the actor to play the specified animation
-; sltargs <actor variable> <animation name>
+; sltargs actor: target Actor
+; sltargs animation: animation name
 ; sltsamp actor_playanim $self "IdleChildCryingStart"
 function actor_playanim(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1354,8 +1389,12 @@ function actor_playanim(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 endFunction
 
 ; sltname actor_sendmodevent
+; sltgrup Actor
 ; sltdesc Causes the actor to send the mod event with the provided arguments
-; sltargs <actor variable> <event name> <string argument> <float argument>
+; sltargs actor: target Actor
+; sltargs event: name of the event
+; sltargs string arg: string argument (meaning varies by event sent)
+; sltargs float arg: float argument (meaning varies by event sent)
 ; sltsamp actor_sendmodevent $self "IHaveNoIdeaButEventNamesShouldBeEasyToFind" "strarg" 0.0
 function actor_sendmodevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1375,8 +1414,11 @@ function actor_sendmodevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary,
 endFunction
 
 ; sltname actor_state
+; sltgrup Actor
 ; sltdesc Returns the state of the actor for a given sub-function
-; sltargs <actor variable> <sub-function> <varies by subfunction>
+; sltargs actor: target Actor
+; sltargs sub-function: sub-function
+; sltargs third argument: varies by sub-function
 ; sltargsmore if parameter 2 is "GetCombatState": return actors combatstate. 0-no combat, 1-combat, 2-searching
 ; sltargsmore if parameter 2 is "GetLevel": return actors level
 ; sltargsmore if parameter 2 is "GetSleepState": return actors sleep mode. 0-not, 1-not, but wants to, 2-sleeping, 3-sleeping, but wants to wake up
@@ -1423,13 +1465,16 @@ function actor_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 endFunction
 
 ; sltname actor_body
+; sltgrup Actor
 ; sltdesc Alters or queries information about the actor's body, based on sub-function
-; sltargs <actor variable> <sub-function>
+; sltargs actor: target Actor
+; sltargs sub-function: sub-function
+; sltargs third argument: varies by sub-function
 ; sltargsmore if parameter 2 is "ClearExtraArrows": clear extra arrows 
 ; sltargsmore if parameter 2 is "RegenerateHead": regenerate head
 ; sltargsmore if parameter 2 is "GetWeight": get actors weight (0-100)
 ; sltargsmore if parameter 2 is "SetWeight" (parameter 3: <float, weight>): set actors weight
-; sltargsmore ; sltsamp actor_body $self "SetWeight" 110
+; sltsamp actor_body $self "SetWeight" 110
 function actor_body(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -1472,8 +1517,10 @@ function actor_body(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 endFunction
 
 ; sltname actor_race
-; sltdesc Returns the race name based on sub-function. Blank, empty sub-function returns Vanilla racenames. e.g. "SL" can return SexLab race keynames.
-; sltargs <actor variable> <sub-function>
+; sltgrup Actor
+; sltdesc Sets $$ to the race name based on sub-function. Blank, empty sub-function returns Vanilla racenames. e.g. "SL" can return SexLab race keynames.
+; sltargs actor: target Actor
+; sltargs sub-function: sub-function
 ; sltargsmore if parameter 2 is "": return actors race name. Skyrims, original name. Like: "Nord", "Breton"
 ; sltsamp actor_race $self ""
 function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
@@ -1496,9 +1543,13 @@ function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 endFunction
 
 ; sltname actor_setalpha
+; sltgrup Actor
 ; sltdesc Set the Actor's alpha value (inverse of transparency, 1.0 is fully visible) (has no effect if IsGhost() returns true)
-; sltargs <actor variable> <alpha value: 0.0 - 1.0> <0 - instant | 1 - fade in/out>
+; sltargs actor: target Actor
+; sltargs alpha: 0.0 to 1.0 (higher is more visible)
+; sltargs fade: 0 - instance | 1 - fade to the new alpha gradually
 ; sltsamp actor_setalpha $self 0.5 1 
+; sltrslt $self will fade to new alpha of 0.5, not instantly
 function actor_setalpha(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -1515,8 +1566,10 @@ function actor_setalpha(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 endFunction
 
 ; sltname ism_applyfade
+; sltgrup Imagespace Modifier
 ; sltdesc Apply imagespace modifier - per original author, check CreationKit, SpecialEffects\Imagespace Modifier
-; sltargs <item Id> <fade duration>
+; sltargs item: ITEM FormID
+; sltargs duration: fade duration in seconds
 ; sltsamp ism_applyfade $1 2
 function ism_applyfade(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1533,8 +1586,10 @@ function ism_applyfade(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
 endFunction
 
 ; sltname ism_removefade
+; sltgrup Imagespace Modifier
 ; sltdesc Remove imagespace modifier - per original author, check CreationKit, SpecialEffects\Imagespace Modifier
-; sltargs <item Id> <fade duration>
+; sltargs item: ITEM FormID
+; sltargs duration: fade duration in seconds
 ; sltsamp ism_removefade $1 2
 function ism_removefade(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1551,8 +1606,11 @@ function ism_removefade(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 endFunction
 
 ; sltname util_sendmodevent
+; sltgrup Utility
 ; sltdesc Shorthand for actor_sendmodevent $player <event name> <string argument> <float argument>
-; sltargs <event name> <string argument> <float argument>
+; sltargs event: name of the event
+; sltargs string arg: string argument (meaning varies by event sent)
+; sltargs float arg: float argument (meaning varies by event sent)
 ; sltsamp util_sendmodevent "IHaveNoIdeaButEventNamesShouldBeEasyToFind" "strarg" 0.0
 function util_sendmodevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1574,11 +1632,16 @@ function util_sendmodevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, 
     CmdTargetActor.SendModEvent(ss1, ss2, p3)
 endFunction
 
-; sltname util_sendmodevent
+; sltname util_sendevent
+; sltgrup Utility
 ; sltdesc Send SKSE custom event, with each type/value pair being an argument to the custom event
-; sltargs <event name> <param 1 type> <param 1 value> [<param 2 type> <param 2 value> ...]
+; sltargs event: name of the event
+; sltargs param type: type of parameter e.g. "bool", "int", etc.
+; sltargs param value: value of parameter
+; sltargs [type/value, type/value ...]
 ; sltargsmore <type> can be any of [bool, int, float, string, form]
-; sltsamp util_sendmodevent "slaUpdateExposure" form $self float 33
+; sltsamp util_sendevent "slaUpdateExposure" form $self float 33
+; sltrslt The "slaUpdateExposure" event will be sent with $self, and the float value of 33.0 as the two arguments
 function util_sendevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
@@ -1627,7 +1690,8 @@ function util_sendevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 endFunction
 
 ; sltname util_getgametime
-; sltdesc Returns the value of Utility.GetCurrentGameTime() (a float value representing the number of days in game time; mid-day day 2 is 1.5)
+; sltgrup Utility
+; sltdesc Sets $$ to the value of Utility.GetCurrentGameTime() (a float value representing the number of days in game time; mid-day day 2 is 1.5)
 ; sltsamp util_getgametime
 function util_getgametime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1637,7 +1701,8 @@ function util_getgametime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
 endFunction
 
 ; sltname util_getrealtime
-; sltdesc Returns the value of Utility.GetCurrentRealTime() (a float value representing the number of seconds since Skyrim.exe was launched this session)
+; sltgrup Utility
+; sltdesc Sets $$ to the value of Utility.GetCurrentRealTime() (a float value representing the number of seconds since Skyrim.exe was launched this session)
 ; sltsamp util_getrealtime
 function util_getrealtime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1646,7 +1711,8 @@ function util_getrealtime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
 endFunction
 
 ; sltname util_getgametime
-; sltdesc Returns the in-game hour (i.e. 2:30 AM returns 2)
+; sltgrup Utility
+; sltdesc Sets $$ to the in-game hour (i.e. 2:30 AM returns 2)
 ; sltsamp util_getgametime
 function util_gethour(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1661,8 +1727,10 @@ function util_gethour(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
 endFunction
 
 ; sltname util_game
+; sltgrup Utility
 ; sltdesc Perform game related functions based on sub-function
-; sltargs <sub-function> <varies by sub-function>
+; sltargs sub-function: sub-function
+; sltargs parameter: varies by sub-function
 ; sltargsmore if sub-function is "IncrementStat", (parameter 3, <stat name>, parameter 4, <amount>), see https://ck.uesp.net/wiki/IncrementStat_-_Game
 ; sltargsmore if sub-function is "QueryStat", (parameter 3, <stat name>), returns the value
 ; sltsamp util_game "IncrementStat" "Bribes" 1
@@ -1688,8 +1756,10 @@ function util_game(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 endFunction
 
 ; sltname snd_play
+; sltgrup Sound
 ; sltdesc Return the sound instance handle from playing the specified audio from the specified actor
-; sltargs <audio FormID> <actor variable>
+; sltargs audio: AUDIO FormID
+; sltargs actor: target Actor
 ; sltsamp snd_play "skyrim.esm:318128" $self
 function snd_play(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1712,9 +1782,13 @@ function snd_play(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
 endFunction
 
 ; sltname snd_setvolume
+; sltgrup Sound
 ; sltdesc Set the sound volume using the specified sound instance handle (from snd_play)
-; sltargs <sound instance handle> <volume 0..1.0>
+; sltargs handle: sound instance handle from snd_play
+; sltargs actor: target Actor
+; sltargs volume: 0.0 - 1.0
 ; sltsamp snd_setvolume $1 0.5
+; sltrslt Set the volume of the audio sound playing with handle stored in $1 to 50%
 function snd_setvolume(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
@@ -1737,8 +1811,9 @@ function snd_setvolume(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
 endFunction
 
 ; sltname snd_stop
+; sltgrup Sound
 ; sltdesc Stops the audio specified by the sound instance handle (from snd_play)
-; sltargs <sound instance handle>
+; sltargs handle: sound instance handle from snd_play
 ; sltsamp snd_stop $1
 function snd_stop(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1758,9 +1833,14 @@ function snd_stop(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
 endFunction
 
 ; sltname console
-; sltdesc Executes the console command (requires a ConsoleUtil variant installed; recommend ConsoleUtil-Extended https://www.nexusmods.com/skyrimspecialedition/mods/133569)
-; sltargs <actor as selected console reference> <command fragment> [<command fragment> ...] ; all <command fragments> will be concatenated
-; sltsamp console $self "sgtm" "" "0.5" ; as an example... you could replace the third parameter with a variable reference
+; sltgrup Utility
+; sltdesc Executes the console command (requires a ConsoleUtil variant installed
+; sltdesc Recommend ConsoleUtil-Extended https://www.nexusmods.com/skyrimspecialedition/mods/133569)
+; sltargs actor: target Actor
+; sltargs command: <command fragment> [<command fragment> ...] ; all <command fragments> will be concatenated
+; sltsamp console $self "sgtm" "" "0.5"
+; sltsamp console $self "sgtm 0.5"
+; sltrslt Both are the same
 function console(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
@@ -1788,8 +1868,9 @@ function console(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
 endFunction
 
 ; sltname mfg_reset
+; sltgrup MfgFix
 ; sltdesc Resets facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecialedition/mods/11669)
-; sltargs <actor variable>
+; sltargs actor: target Actor
 ; sltsamp mfg_reset $self
 function mfg_reset(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1806,8 +1887,13 @@ function mfg_reset(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 endFunction
 
 ; sltname mfg_setphonememodifier
+; sltgrup MfgFix
 ; sltdesc Set facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecialedition/mods/11669)
-; sltargs <actor variable> <mode> <id> <value> ; <mode> can be 0 - set phoneme or 1 - set modifier
+; sltargs actor: target Actor
+; sltargs mode: number, 0 - set phoneme | 1 - set modifier
+; sltargs id
+; sltargs value
+; sltargs <actor variable> <mode> <id> <value>
 ; sltsamp mfg_setphonememodifier $self 0 $1 $2
 function mfg_setphonememodifier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1830,8 +1916,11 @@ function mfg_setphonememodifier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrim
 endFunction
 
 ; sltname mfg_getphonememodifier
+; sltgrup MfgFix
 ; sltdesc Return facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecialedition/mods/11669)
-; sltargs <actor variable> <mode> <id> ; <mode> can be 0 - set phoneme or 1 - set modifier
+; sltargs actor: target Actor
+; sltargs mode: number, 0 - set phoneme | 1 - set modifier
+; sltargs id
 ; sltsamp mfg_getphonememodifier $self 0 $1
 function mfg_getphonememodifier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1854,8 +1943,9 @@ function mfg_getphonememodifier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrim
 endFunction
 
 ; sltname util_waitforkbd
-; sltdesc Returns the keycode pressed after waiting for user to press any of the specified keys
-; sltargs <DXScanCode of key> [<DXScanCode of key> ...]
+; sltgrup Utility
+; sltdesc Sets $$ to the keycode pressed after waiting for user to press any of the specified keys
+; sltargs dxscancode: <DXScanCode of key> [<DXScanCode of key> ...]
 ; sltsamp util_waitforkbd 74 78 181 55
 function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1901,9 +1991,14 @@ function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
 endFunction
 
 ; sltname json_getvalue
-; sltdesc Returns value from JSON file (uses PapyrusUtil/JsonUtil)
-; sltargs <file name> <data type [int, float, string]> <key> <default value if not found>
-; sltsamp json_getvalue "../somefolder/afile" float "demofloatvalue" 2.3 ; JsonUtil automatically appends .json when not given a file extension
+; sltgrup JSON
+; sltdesc Sets $$ to value from JSON file (uses PapyrusUtil/JsonUtil)
+; sltargs filename: name of file, rooted from 'Data/SKSE/Plugins/sl_triggers'
+; sltargs datatype: int, float, string
+; sltargs key: the key
+; sltargs default: default value in case it isn't present
+; sltsamp json_getvalue "../somefolder/afile" float "demofloatvalue" 2.3
+; sltrslt JsonUtil automatically appends .json when not given a file extension
 function json_getvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
@@ -1937,9 +2032,14 @@ function json_getvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
 endFunction
 
 ; sltname json_setvalue
+; sltgrup JSON
 ; sltdesc Sets a value in a JSON file (uses PapyrusUtil/JsonUtil)
-; sltargs <file name> <data type [int, float, string]> <key> <new value>
-; sltsamp json_setvalue "../somefolder/afile" float "demofloatvalue" 2.3 ; JsonUtil automatically appends .json when not given a file extension
+; sltargs filename: name of file, rooted from 'Data/SKSE/Plugins/sl_triggers'
+; sltargs datatype: int, float, string
+; sltargs key: the key
+; sltargs new value: value to set
+; sltsamp json_setvalue "../somefolder/afile" float "demofloatvalue" 2.3
+; sltrslt JsonUtil automatically appends .json when not given a file extension
 function json_setvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
@@ -1967,8 +2067,9 @@ function json_setvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
 endFunction
 
 ; sltname json_save
+; sltgrup JSON
 ; sltdesc Tells JsonUtil to immediately save the specified file from cache
-; sltargs <file name>
+; sltargs filename: name of file, rooted from 'Data/SKSE/Plugins/sl_triggers'
 ; sltsamp json_save "../somefolder/afile"
 function json_save(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1985,6 +2086,7 @@ function json_save(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 endFunction
 
 ; sltname weather_state
+; sltgrup Utility
 ; sltdesc Weather related functions based on sub-function
 ; sltargs <sub-function> ; currently only GetClassification
 ; sltsamp weather_state GetClassification
@@ -2010,8 +2112,10 @@ function weather_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
 endFunction
 
 ; sltname math
+; sltgrup Utility
 ; sltdesc Return values from math operations based on sub-function
-; sltargs <sub-function> <variable 3 varies by sub-function>
+; sltargs sub-function: sub-function
+; sltargs variable: variable 3 varies by sub-function
 ; sltargsmore if parameter 2 1s "asint": return parameter 3 as integer
 ; sltargsmore if parameter 2 1s "floor": return parameter 3 the largest integer less than or equal to the value
 ; sltargsmore if parameter 2 1s "ceiling": return parameter 3 the smallest integer greater than or equal to the value

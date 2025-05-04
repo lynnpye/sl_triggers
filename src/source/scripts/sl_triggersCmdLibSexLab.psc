@@ -19,9 +19,11 @@ sslThreadController Function GetThread(Actor theActor) global
 EndFunction
 
 ; sltname util_waitforend
+; sltgrup SexLab
 ; sltdesc Wait until specified actor is not in SexLab scene
-; sltargs <actor variable>
+; sltargs actor: target Actor
 ; sltsamp util_waitforend $self
+; sltrslt Wait until the scene ends
 function util_waitforend(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	if !GetSexLab()
@@ -42,9 +44,15 @@ function util_waitforend(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
 endFunction
 
 ; sltname util_getrndactor
+; sltgrup Utility
 ; sltdesc Return a random actor within specified range of self
-; sltargs <range: 0 - all | >0 skyrim units> <mode: 0 - all, 1 - not in SexLab scene, 2 - must be in SexLab scene>
-; sltsamp util_getrndactor 320 2
+; sltargs range: (0 - all | >0 - range in Skyrim units)
+; sltargs option: (0 - all | 1 - not in SexLab scene | 2 - must be in SexLab scene)
+; sltsamp util_getrndactor 500 2
+; sltsamp actor_isvalid $actor
+; sltsamp if $$ = 0 end
+; sltsamp msg_notify "Someone is watching you!"
+; sltsamp [end]
 function util_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -98,8 +106,10 @@ function util_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
 endFunction
 
 ; sltname actor_say
+; sltgrup Actor
 ; sltdesc Causes the actor to 'say' the topic indicated by FormId
-; sltargs <actor variable> <Topic FormID>
+; sltargs actor: target Actor
+; sltargs topic: Topic FormID
 ; sltsamp actor_say $actor "Skyrim.esm:1234"
 function actor_say(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -120,11 +130,14 @@ function actor_say(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 endFunction
 
 ; sltname actor_race
+; sltgrup Actor
 ; sltdesc Returns the race name based on sub-function. Blank, empty sub-function returns Vanilla racenames. e.g. "SL" can return SexLab race keynames.
-; sltargs <actor variable> <sub-function>
+; sltargs actor: target Actor
+; sltargs sub-function: sub-function
 ; sltargsmore if parameter 2 is "": return actors race name. Skyrims, original name. Like: "Nord", "Breton"
 ; sltargsmore if parameter 2 is "SL": return actors Sexlab frameworks race key name. Like: "dogs", "bears", etc. Note: will return "" if actor is humanoid
-; sltsamp actor_race $self ""
+; sltsamp actor_race $self "SL"
+; sltsamp msg_notify "  Race SL: " $$
 function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -147,9 +160,14 @@ function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 endFunction
 
 ; sltname util_waitforkbd
+; sltgrup Utility
 ; sltdesc Returns the keycode pressed after waiting for user to press any of the specified keys or for the end of the SexLab scene
-; sltargs <DXScanCode of key> [<DXScanCode of key> ...]
+; sltargs dxscancode: DXScanCode of key [<DXScanCode of key> ...]
 ; sltsamp util_waitforkbd 74 78 181 55
+; sltsamp if $$ = 74 MINUS
+; sltsamp ...
+; sltsamp if $$ < 0 END
+; sltrslt Wait for Num-, Num+, Num/, or Num*, or animation expired, and then do something based on the result.
 function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	if !GetSexLab()
@@ -204,9 +222,10 @@ function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
 endFunction
 
 ; sltname sl_isin
-; sltdesc Returns 1 if the specified actor is in a SexLab scene, 0 otherwise
-; sltargs <actor variable>
-; sltsamp sl_isin $player
+; sltgrup SexLab
+; sltdesc Sets $$ to 1 if the specified actor is in a SexLab scene, 0 otherwise
+; sltargs actor: target Actor
+; sltsamp sl_isin $self
 function sl_isin(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	if !GetSexLab()
@@ -233,9 +252,11 @@ function sl_isin(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
 endFunction
 
 ; sltname sl_hastag
-; sltdesc Returns 1 if the SexLab scene has the specified tag, 0 otherwise
-; sltargs <tag name>
+; sltgrup SexLab
+; sltdesc Sets $$ to 1 if the SexLab scene has the specified tag, 0 otherwise
+; sltargs tag: tag name e.g. "Oral", "Anal", "Vaginal"
 ; sltsamp sl_hastag "Oral"
+; sltsamp if $$ = 1 ORAL
 function sl_hastag(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
@@ -264,9 +285,10 @@ function sl_hastag(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 endFunction
 
 ; sltname sl_animname
-; sltdesc Returns the current SexLab animation name
-; sltargs <tag name>
+; sltgrup SexLab
+; sltdesc Sets $$ to the current SexLab animation name
 ; sltsamp sl_animname
+; sltsamp msg_notify "Playing: " $$
 function sl_animname(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     CmdPrimary.MostRecentResult = ""
@@ -287,9 +309,11 @@ function sl_animname(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 endFunction
 
 ; sltname sl_getprop
-; sltdesc Returns the value of the requested property
-; sltargs <property name: Stage | ActorCount>
+; sltgrup SexLab
+; sltdesc Sets $$ to the value of the requested property
+; sltargs property:  Stage | ActorCount
 ; sltsamp sl_getprop Stage
+; sltsamp msg_notify "Current Stage: " $$
 function sl_getprop(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
@@ -320,9 +344,11 @@ function sl_getprop(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 endFunction
 
 ; sltname sl_advance
+; sltgrup SexLab
 ; sltdesc Changes the stage of the current SexLab scene; advances a single stage if positive, reverses a single stage if negative
-; sltargs <integer direction: negative - backwards / positive - forwards>
-; sltsamp sl_advance -3 ; still only goes back one stage
+; sltargs direction: integer, <negative - backwards / non-negative (including zero) - forwards>
+; sltsamp sl_advance -3
+; sltrslt Only goes back one stage
 function sl_advance(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -342,8 +368,10 @@ function sl_advance(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 endFunction
 
 ; sltname sl_isinslot
-; sltdesc Returns 1 if the specified actor is in the specified SexLab scene slot, 0 otherwise
-; sltargs <actor variable> <1-based SexLab thread slot number>
+; sltgrup SexLab
+; sltdesc Sets $$ to 1 if the specified actor is in the specified SexLab scene slot, 0 otherwise
+; sltargs actor: target Actor
+; sltargs slotnumber: 1-based SexLab thread slot number
 ; sltsamp sl_isinslot $player 1
 function sl_isinslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -385,9 +413,12 @@ function sl_isinslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 endFunction
 
 ; sltname sl_orgasm
+; sltgrup SexLab
 ; sltdesc Immediately forces the specified actor to have a SexLab orgasm.
-; sltargs <actor variable>
-; sltsamp sl_orgasm $player
+; sltargs actor: target Actor
+; sltsamp sl_orgasm $self
+; sltsamp sl_orgasm $partner
+; sltrslt Simultaneous orgasms
 function sl_orgasm(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     if !GetSexLab()
@@ -410,8 +441,13 @@ function sl_orgasm(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
     return
 endFunction
 
-
-function df_setdebt(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+; sltname df_resetall
+; sltgrup Devious Followers
+; sltdesc Resets all Devious Followers values (i.e. quest states, deal states, boredom, debt)
+; sltdesc back to values as if having just started out.
+; sltsamp df_resetall
+; sltrslt Should be free of all debts, deals, and rules
+function df_resetall(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
     if ParamLengthNEQ(CmdPrimary, param.Length, 2)
@@ -431,8 +467,13 @@ function df_setdebt(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
     return
 endFunction
 
-
-function df_resetall(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+; sltname df_setdebt
+; sltgrup Devious Followers
+; sltdesc Sets current debt to the specified amount
+; sltargs newdebt: new debt value
+; sltsamp df_setdebt 0
+; sltrslt We all know what you are going to use it for
+function df_setdebt(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     Form dfQuest_form = Game.GetFormFromFile(0xD62, "DeviousFollowers.esp")
 
@@ -457,6 +498,14 @@ zadLibs Function GetDDLib() global
     return ddlib
 EndFunction
 
+; sltname dd_unlockslot
+; sltgrup Devious Devices
+; sltdesc Attempts to unlock any device in the specified slot
+; sltargs actor: target Actor
+; sltargs armorslot: int value armor slot e.g. 32 is body armor
+; sltargs force: "force" to force an unlock, anything else otherwise
+; sltsamp dd_unlockslot $self 32 force
+; sltrslt Should remove anything in body slot e.g. corset, harness, etc., and forced, so including quest items (be careful!)
 function dd_unlockslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     zadLibs ddlib = GetDDLib()
@@ -468,9 +517,14 @@ function dd_unlockslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         return
     endif
 
-    bool force = (param[2] == "force")
-    int i = param[1] as int
-    Armor device = CmdTargetActor.GetEquippedArmorInSlot(i)
+    Actor _theActor = CmdPrimary.ResolveActor(param[1])
+    if !_theActor
+        return
+    endif
+
+    bool force = (param[3] == "force")
+    int i = param[2] as int
+    Armor device = _theActor.GetEquippedArmorInSlot(i)
 
     Keyword ddkeyword = ddlib.GetDeviceKeyword(device)
     if !ddkeyword
@@ -480,13 +534,19 @@ function dd_unlockslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
     Armor renderedDevice = ddlib.GetRenderedDevice(device)
 
     if force || (!renderedDevice.HasKeyWord(ddlib.zad_QuestItem) && !device.HasKeyword(ddlib.zad_QuestItem))
-        ddlib.UnlockDevice(CmdTargetActor, device, renderedDevice)
+        ddlib.UnlockDevice(_theActor, device, renderedDevice)
     endif
 
     return
 endFunction
 
-
+; sltname dd_unlockall
+; sltgrup Devious Devices
+; sltdesc Attempts to unlock all devices locked on the actor
+; sltargs actor: target Actor
+; sltargs force: "force" to force an unlock, anything else otherwise
+; sltsamp dd_unlockall $self force
+; sltrslt Will attempt to (forcibly if necessary, e.g. quest locked items) unlock all lockable items on targeted actor.
 function dd_unlockall(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     zadLibs ddlib = GetDDLib()

@@ -1,3 +1,10 @@
+114
+    enhancement: performance improvements centered around speeding up the command library access
+    enhancement: improved error reporting for your scripts (see the console for errors in your scripts; feature developing)
+    bugfix: inc no longer coerces to float; will keep it an int if it finds an int
+    enhancement: improved performance for 'set'/'inc'/'cat' (should never have been part of the command library; moved to built-in functionality; much faster)
+    enhancement: documentation is available again with the .zip (sl_triggers_function_library.txt); now being generated from source, as well as the wiki content (should be essentially identical)
+
 113
     Savegame safe with v112
     bugfix: Soft Delete is now actually respected by extensions and soft deleted triggers should no longer fire; the extensions have been reprimanded and a PIP put into place

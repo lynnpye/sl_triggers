@@ -1,0 +1,982 @@
+SLT Function Library (baseline functionality always present)
+
+Actor:
+==============
+
+actor_advskill: Advance targeted actor's skill by specified amount. Only works on Player.
+	- parameter 1: actor: target Actor
+	- parameter 2: skill: skillname e.g. Alteration, Destruction
+	- parameter 3: value: number
+
+	Example
+		actor_advskill $self Alteration 1
+
+	Boost Alteration by 1 point
+	Note: Currently only works on PC/Player
+-=-
+
+actor_body: Alters or queries information about the actor's body, based on sub-function
+	- parameter 1: actor: target Actor
+	- parameter 2: sub-function: sub-function
+	- parameter 3: third argument: varies by sub-function
+
+if parameter 2 is "ClearExtraArrows": clear extra arrows
+if parameter 2 is "RegenerateHead": regenerate head
+if parameter 2 is "GetWeight": get actors weight (0-100)
+if parameter 2 is "SetWeight" (parameter 3: <float, weight>): set actors weight
+
+	Example
+		actor_body $self "SetWeight" 110
+-=-
+
+actor_getfactionrank: Sets $$ to the actor's rank in the faction indicated by the FormId
+	- parameter 1: actor: target Actor
+	- parameter 2: faction: FACTION FormID
+
+	Example
+		actor_getfactionrank $actor "skyrim.esm:378958"
+-=-
+
+actor_getgender: Sets $$ to the actor's gender, 0 - male, 1 - female, 2 - creature
+
+	Example
+		actor_getgender $actor
+-=-
+
+actor_getrelation: Set $$ to the relationship rank between the two actors
+	- parameter 1: first actor: target Actor
+	- parameter 2: second actor: target Actor
+
+	Example
+		actor_getrelation $actor $player
+
+	4  - Lover
+	3  - Ally
+	2  - Confidant
+	1  - Friend
+	0  - Acquaintance
+	-1 - Rival
+	-2 - Foe
+	-3 - Enemy
+	-4 - Archnemesis
+-=-
+
+actor_haskeyword: Sets $$ to 1 if actor has the keyword, 0 otherwise.
+	- parameter 1: actor: target Actor
+	- parameter 2: keyword: string, keyword name
+
+	Example
+		actor_isplayer $actor Vampire
+-=-
+
+actor_haslos: Set $$ to 1 if first actor can see second actor, 0 if not.
+	- parameter 1: first actor: target Actor
+	- parameter 2: second actor: target Actor
+
+	Example
+		actor_haslos $actor $self
+		if $$ = 0 cannotseeme
+-=-
+
+actor_incskill: Increase targeted actor's skill by specified amount
+	- parameter 1: actor: target Actor
+	- parameter 2: skill: skillname e.g. Alteration, Destruction
+	- parameter 3: value: number
+
+	Example
+		actor_incskill $self Alteration 1
+
+	Boost Alteration by 1 point
+-=-
+
+actor_infaction: Sets $$ to 1 if actor is in the faction indicated by the FormId, 0 otherwise
+	- parameter 1: actor: target Actor
+	- parameter 2: faction: FACTION FormID
+
+	Example
+		actor_infaction $actor "skyrim.esm:378958"
+
+	$$ will be 1 if $actor is a follower (CurrentFollowerFaction)
+-=-
+
+actor_isaffectedby: Sets $$ to 1 if the specified actor is currently affected by the MGEF or SPEL indicated by FormID (accepts either)
+	- parameter 1: actor: target Actor
+	- parameter 2: magic effect or spell: MGEF or SPEL FormID
+
+	Example
+		actor_isaffectedby $actor "skyrim.esm:1030541"
+-=-
+
+actor_isguard: Sets $$ to 1 if actor is guard, 0 otherwise.
+
+	Example
+		actor_isguard $actor
+-=-
+
+actor_isplayer: Sets $$ to 1 if actor is the player, 0 otherwise.
+
+	Example
+		actor_isplayer $actor
+-=-
+
+actor_isvalid: Set $$ to 1 if actor is valid, 0 if not.
+
+	Example
+		actor_isvalid $actor
+		if $$ = 0 end
+		...
+		[end]
+
+	Jump to the end if actor is not valid
+-=-
+
+actor_iswearing: Sets $$ to 1 if actor is wearing the armor indicated by the FormId, 0 otherwise.
+	- parameter 1: actor: target Actor
+	- parameter 2: armor: ARMO FormID
+
+	Example
+		actor_iswearing $actor "petcollar.esp:31017"
+-=-
+
+actor_lochaskeyword: Sets $$ to 1 if actor's current location has the indicated keyword, 0 otherwise.
+	- parameter 1: actor: target Actor
+	- parameter 2: keyword: string, keyword name
+
+	Example
+		actor_lochaskeyword $actor "LocTypeInn"
+
+	In a bar, inn, or tavern
+-=-
+
+actor_modcrimegold: Specified actor reports player, increasing bounty by specified amount.
+	- parameter 1: actor: target Actor
+	- parameter 2: bounty: number
+
+	Example
+		actor_modcrimegold $actor 100
+-=-
+
+actor_name: Set $$ to the actor name
+
+	Example
+		actor_name $actor
+-=-
+
+actor_playanim: Causes the actor to play the specified animation
+	- parameter 1: actor: target Actor
+	- parameter 2: animation: animation name
+
+	Example
+		actor_playanim $self "IdleChildCryingStart"
+-=-
+
+actor_qnnu: Repaints actor (calls QueueNiNodeUpdate)
+
+	Example
+		actor_qnnu $actor
+
+	Note: Do not call this too frequently as the rapid refreshes can causes crashes to desktop
+-=-
+
+actor_race: Sets $$ to the race name based on sub-function. Blank, empty sub-function returns Vanilla racenames. e.g. "SL" can return SexLab race keynames.
+	- parameter 1: actor: target Actor
+	- parameter 2: sub-function: sub-function
+
+if parameter 2 is "": return actors race name. Skyrims, original name. Like: "Nord", "Breton"
+
+	Example
+		actor_race $self ""
+-=-
+
+actor_removefaction: Removes the actor from the specified faction
+	- parameter 1: actor: target Actor
+	- parameter 2: faction: FACTION FormID
+
+	Example
+		actor_removefaction $actor "skyrim.esm:3505"
+-=-
+
+actor_say: Causes the actor to 'say' the topic indicated by FormId
+	- parameter 1: actor: target Actor
+	- parameter 2: topic: TOPIC FormID
+
+	Example
+		actor_say $actor "Skyrim.esm:1234"
+-=-
+
+actor_sendmodevent: Causes the actor to send the mod event with the provided arguments
+	- parameter 1: actor: target Actor
+	- parameter 2: event: name of the event
+	- parameter 3: string arg: string argument (meaning varies by event sent)
+	- parameter 4: float arg: float argument (meaning varies by event sent)
+
+	Example
+		actor_sendmodevent $self "IHaveNoIdeaButEventNamesShouldBeEasyToFind" "strarg" 0.0
+-=-
+
+actor_setalpha: Set the Actor's alpha value (inverse of transparency, 1.0 is fully visible) (has no effect if IsGhost() returns true)
+	- parameter 1: actor: target Actor
+	- parameter 2: alpha: 0.0 to 1.0 (higher is more visible)
+	- parameter 3: fade: 0 - instance | 1 - fade to the new alpha gradually
+
+	Example
+		actor_setalpha $self 0.5 1
+
+	$self will fade to new alpha of 0.5, not instantly
+-=-
+
+actor_setfactionrank: Sets the actor's rank in the faction indicated by the FormId to the indicated rank
+	- parameter 1: actor: target Actor
+	- parameter 2: faction: FACTION FormID
+	- parameter 3: rank: number
+
+	Example
+		actor_setfactionrank $actor "skyrim.esm:378958" -1
+-=-
+
+actor_setrelation: Set relationship rank between the two actors to the indicated value
+	- parameter 1: first actor: target Actor
+	- parameter 2: second actor: target Actor
+	- parameter 3: rank: number
+
+	Example
+		actor_setrelation $actor $player 0
+
+	See actor_getrelation for ranks
+-=-
+
+actor_state: Returns the state of the actor for a given sub-function
+	- parameter 1: actor: target Actor
+	- parameter 2: sub-function: sub-function
+	- parameter 3: third argument: varies by sub-function
+
+if parameter 2 is "GetCombatState": return actors combatstate. 0-no combat, 1-combat, 2-searching
+if parameter 2 is "GetLevel": return actors level
+if parameter 2 is "GetSleepState": return actors sleep mode. 0-not, 1-not, but wants to, 2-sleeping, 3-sleeping, but wants to wake up
+if parameter 2 is "IsAlerted": is actor alerted
+if parameter 2 is "IsAlarmed": is actor alerted
+if parameter 2 is "IsPlayerTeammate": is actor PC team member
+if parameter 2 is "SetPlayerTeammate" (parameter 3: <bool true to set, false to unset>): set actor as PC team member
+if parameter 2 is "SendAssaultAlarm": actor will send out alarm
+
+	Example
+		actor_state $self "GetCombatState"
+-=-
+
+actor_wornhaskeyword: Sets $$ to 1 if actor is wearing any armor with indicated keyword, 0 otherwise.
+	- parameter 1: actor: target Actor
+	- parameter 2: keyword: string, keyword name
+
+	Example
+		actor_wornhaskeyword $actor "VendorItemJewelry"
+-=-
+
+actor_worninslot: Sets $$ to 1 if actor is wearing armor in the indicated slotId, 0 otherwise.
+	- parameter 1: actor: target Actor
+	- parameter 2: armorslot: number, e.g. 32 for body slot
+
+	Example
+		actor_worninslot $actor 32
+-=-
+
+Actor Value:
+==============
+
+av_damage: Damage actor value
+	- parameter 1: actor: target Actor
+	- parameter 2: av name: Actor Value name e.g. Health
+	- parameter 3: amount: amount to damage
+
+	Example
+		av_damage $self Health 100
+		av_damage $self   $3   100 ;where $3 might be "Health"
+
+	Damages Health by 100. This can result in death.
+-=-
+
+av_get: Set $$ to the actor's current value for the specified Actor Value
+	- parameter 1: actor: target Actor
+	- parameter 2: av name: Actor Value name e.g. Health
+
+	Example
+		av_get $self Health
+
+	Sets the actor's current Health into $$
+-=-
+
+av_getbase: Sets $$ to the actor's base value for the specified Actor Value
+	- parameter 1: actor: target Actor
+	- parameter 2: av name: Actor Value name e.g. Health
+
+	Example
+		av_getbase $self Health
+
+	Sets the actor's base Health into $$
+-=-
+
+av_getmax: Set $$ to the actor's max value for the specified Actor Value
+	- parameter 1: actor: target Actor
+	- parameter 2: av name: Actor Value name e.g. Health
+
+	Example
+		av_get $self Health
+
+	Sets the actor's max Health into $$
+-=-
+
+av_getpercentage: Set $$ to the actor's value as a percentage of max for the specified Actor Value
+	- parameter 1: actor: target Actor
+	- parameter 2: av name: Actor Value name e.g. Health
+
+	Example
+		av_getpercentage $self Health
+
+	Sets the actor's percentage of Health remaining into $$
+-=-
+
+av_mod: Modify actor value
+	- parameter 1: actor: target Actor
+	- parameter 2: av name: Actor Value name e.g. Health
+	- parameter 3: amount: amount to modify by
+
+	Example
+		av_mod $self Health 100
+		av_mod $self   $3   100 ;where $3 might be "Health"
+
+	Changes the max value of the actor value. Not the same as restore/damage.
+-=-
+
+av_restore: Restore actor value
+	- parameter 1: actor: target Actor
+	- parameter 2: av name: Actor Value name e.g. Health
+	- parameter 3: amount: amount to restore
+
+	Example
+		av_restore $self Health 100
+		av_restore $self   $3   100 ;where $3 might be "Health"
+
+	Restores Health by 100 e.g. healing
+-=-
+
+av_set: Set actor value
+	- parameter 1: actor: target Actor
+	- parameter 2: av name: Actor Value name e.g. Health
+	- parameter 3: amount: amount to modify by
+
+	Example
+		av_set $self Health 100
+		av_set $self   $3   100 ;where $3 might be "Health"
+
+	Sets the value of the actor value.
+-=-
+
+Imagespace Modifier:
+==============
+
+ism_applyfade: Apply imagespace modifier - per original author, check CreationKit, SpecialEffects\Imagespace Modifier
+	- parameter 1: item: ITEM FormID
+	- parameter 2: duration: fade duration in seconds
+
+	Example
+		ism_applyfade $1 2
+-=-
+
+ism_removefade: Remove imagespace modifier - per original author, check CreationKit, SpecialEffects\Imagespace Modifier
+	- parameter 1: item: ITEM FormID
+	- parameter 2: duration: fade duration in seconds
+
+	Example
+		ism_removefade $1 2
+-=-
+
+Items:
+==============
+
+item_add: Adds the item to the actor's inventory.
+	- parameter 1: actor: target Actor
+	- parameter 2: item: ITEM FormId
+	- parameter 3: count: number
+	- parameter 4: displaymessage: 0 - show message | 1 - silent
+
+	Example
+		item_add $self "skyrim.esm:15" 10 0
+
+	Adds 10 gold to the actor, displaying the notification
+-=-
+
+item_addex: Adds the item to the actor's inventory, but check if some armor was re-equipped (if NPC)
+	- parameter 1: actor: target Actor
+	- parameter 2: item: ITEM FormId
+	- parameter 3: count: number
+	- parameter 4: displaymessage: 0 - show message | 1 - silent
+
+	Example
+		item_addex $self "skyrim.esm:15" 10 0
+-=-
+
+item_adduse: Add item (like item_add) and then use the added item. Useful for potions, food, and other consumables.
+	- parameter 1: actor: target Actor
+	- parameter 2: item: ITEM FormId
+	- parameter 3: count: number
+	- parameter 4: displaymessage: 0 - show message | 1 - silent
+
+	Example
+		item_adduse $self "skyrim.esm:216158" 1 0
+
+	Add and drink some booze
+-=-
+
+item_equip: Equip item ("vanilla" version)
+	- parameter 1: actor: target Actor
+	- parameter 2: item: ITEM FormId
+	- parameter 3: removalallowed: 0 - removal allowed | 1 - removal not allowed
+	- parameter 4: sound: 0 - no sound | 1 - with sound
+	- parameter 5: <actor variable> <ITEM FormId> <0 - removal allowed | 1 - removal not allowed> <0 - no sound | 1 - with sound>
+
+	Example
+		item_equip $self "ZaZAnimationPack.esm:159072" 1 0
+
+	Equip the ZaZ armor on $self, silently, with no removal allowed (uses whatever slot the armor uses)
+-=-
+
+item_equipex: Equip item (SKSE version)
+	- parameter 1: actor: target Actor
+	- parameter 2: item: ITEM FormId
+	- parameter 3: armorslot: number e.g. 32 for body slot
+	- parameter 4: sound: 0 - no sound | 1 - with sound
+	- parameter 5: removalallowed: 0 - removal allowed | 1 - removal not allowed
+
+	Example
+		item_equipex $self "ZaZAnimationPack.esm:159072" 32 0 1
+
+	Equip the ZaZ armor on $self, at body slot 32, silently, with no removal allowed
+	Equips item directly, Workaround for "NPCs re-equip all armor, if they get an item that looks like armor"
+-=-
+
+item_getcount: Set $$ to how many of a specified item an actor has
+	- parameter 1: actor: target Actor
+	- parameter 2: item: ITEM FormId
+
+	Example
+		item_getcount $self "skyrim.esm:15"
+-=-
+
+item_remove: Remove the item from the actor's inventory
+	- parameter 1: actor: target Actor
+	- parameter 2: item: ITEM FormId
+	- parameter 3: count: number
+	- parameter 4: displaymessage: 0 - show message | 1 - silent
+
+	Example
+		item_remove $self "skyrim.esm:15" 10 0
+
+	Removes up to 10 gold from the actor
+-=-
+
+item_unequipex: Unequip item
+	- parameter 1: actor: target Actor
+	- parameter 2: item: ITEM FormId
+	- parameter 3: armorslot: number e.g. 32 for body slot
+
+	Example
+		item_unequipex $self "ZaZAnimationPack.esm:159072" 32
+
+	Unequips the ZaZ armor from slot 32 on $self
+-=-
+
+JSON:
+==============
+
+json_getvalue: Sets $$ to value from JSON file (uses PapyrusUtil/JsonUtil)
+	- parameter 1: filename: name of file, rooted from 'Data/SKSE/Plugins/sl_triggers'
+	- parameter 2: datatype: int, float, string
+	- parameter 3: key: the key
+	- parameter 4: default: default value in case it isn't present
+
+	Example
+		json_getvalue "../somefolder/afile" float "demofloatvalue" 2.3
+
+	JsonUtil automatically appends .json when not given a file extension
+-=-
+
+json_save: Tells JsonUtil to immediately save the specified file from cache
+
+	Example
+		json_save "../somefolder/afile"
+-=-
+
+json_setvalue: Sets a value in a JSON file (uses PapyrusUtil/JsonUtil)
+	- parameter 1: filename: name of file, rooted from 'Data/SKSE/Plugins/sl_triggers'
+	- parameter 2: datatype: int, float, string
+	- parameter 3: key: the key
+	- parameter 4: new value: value to set
+
+	Example
+		json_setvalue "../somefolder/afile" float "demofloatvalue" 2.3
+
+	JsonUtil automatically appends .json when not given a file extension
+-=-
+
+MfgFix:
+==============
+
+mfg_getphonememodifier: Return facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecialedition/mods/11669)
+	- parameter 1: actor: target Actor
+	- parameter 2: mode: number, 0 - set phoneme | 1 - set modifier
+	- parameter 3: id
+
+	Example
+		mfg_getphonememodifier $self 0 $1
+-=-
+
+mfg_reset: Resets facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecialedition/mods/11669)
+
+	Example
+		mfg_reset $self
+-=-
+
+mfg_setphonememodifier: Set facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecialedition/mods/11669)
+	- parameter 1: actor: target Actor
+	- parameter 2: mode: number, 0 - set phoneme | 1 - set modifier
+	- parameter 3: id
+	- parameter 4: value
+	- parameter 5: <actor variable> <mode> <id> <value>
+
+	Example
+		mfg_setphonememodifier $self 0 $1 $2
+-=-
+
+Perks:
+==============
+
+perk_add: Add specified perk to the targeted actor
+	- parameter 1: perk: PERK FormID
+	- parameter 2: actor: target Actor
+
+	Example
+		perk_add "skyrim.esm:12384" $self
+-=-
+
+perk_addpoints: Add specified number of perk points to player
+
+	Example
+		perk_addpoints 4
+-=-
+
+perk_remove: Remove specified perk from the targeted actor
+	- parameter 1: perk: PERK FormID
+	- parameter 2: actor: target Actor
+
+	Example
+		perk_remove "skyrim.esm:12384" $self
+-=-
+
+Sound:
+==============
+
+snd_play: Return the sound instance handle from playing the specified audio from the specified actor
+	- parameter 1: audio: AUDIO FormID
+	- parameter 2: actor: target Actor
+
+	Example
+		snd_play "skyrim.esm:318128" $self
+-=-
+
+snd_setvolume: Set the sound volume using the specified sound instance handle (from snd_play)
+	- parameter 1: handle: sound instance handle from snd_play
+	- parameter 2: actor: target Actor
+	- parameter 3: volume: 0.0 - 1.0
+
+	Example
+		snd_setvolume $1 0.5
+
+	Set the volume of the audio sound playing with handle stored in $1 to 50%
+-=-
+
+snd_stop: Stops the audio specified by the sound instance handle (from snd_play)
+
+	Example
+		snd_stop $1
+-=-
+
+Spells:
+==============
+
+spell_add: Adds the specified SPEL by FormId to the targeted Actor, usually to add as an available power or spell in the spellbook.
+	- parameter 1: spell: SPEL FormId
+	- parameter 2: actor: target Actor
+
+	Example
+		spell_add "skyrim.esm:275236" $self
+
+	The light spell is now in the actor's spellbook
+-=-
+
+spell_cast: Cast spell at target
+	- parameter 1: spell: SPEL FormID
+	- parameter 2: actor: target Actor
+
+	Example
+		spell_cast "skyrim.esm:275236" $self
+
+	Casts light spell on self
+-=-
+
+spell_dcsa: Casts spell with DoCombatSpellApply Papyrus function. It is usually used for spells that
+are part of a melee attack (like animals that also carry poison or disease).
+	- parameter 1: spell: SPEL FormId
+	- parameter 2: actor: target Actor
+
+	Example
+		spell_dcsa "skyrim.esm:275236" $self
+-=-
+
+spell_dispel: Dispels specified SPEL by FormId from targeted Actor
+	- parameter 1: spell: SPEL FormId
+	- parameter 2: actor: target Actor
+
+	Example
+		spell_dispel "skyrim.esm:275236" $self
+
+	If light was currently on $self, it would now be dispelled
+-=-
+
+spell_remove: Removes the specified SPEL by FormId from the targeted Actor, usually to remove as an available power or spell in the spellbook.
+	- parameter 1: spell: SPEL FormId
+	- parameter 2: actor: target Actor
+
+	Example
+		spell_remove "skyrim.esm:275236" $self
+
+	The light spell should no longer be in the actor's spellbook
+-=-
+
+Utility:
+==============
+
+console: Executes the console command (requires a ConsoleUtil variant installed
+Recommend ConsoleUtil-Extended https://www.nexusmods.com/skyrimspecialedition/mods/133569)
+	- parameter 1: actor: target Actor
+	- parameter 2: command: <command fragment> [<command fragment> ...] ; all <command fragments> will be concatenated
+
+	Example
+		console $self "sgtm" "" "0.5"
+		console $self "sgtm 0.5"
+
+	Both are the same
+-=-
+
+deb_msg: Joins all <msg> arguments together and adds the text to SKSE\Plugins\sl_triggers\debugmsg.log
+Text is always appended to the log, so if you use this, it will only grow in size until you truncate it.
+
+	Example
+		deb_msg "Hello" "world!"
+		deb_msg "Hello world!"
+
+	Both do the same thing
+-=-
+
+math: Return values from math operations based on sub-function
+	- parameter 1: sub-function: sub-function
+	- parameter 2: variable: variable 3 varies by sub-function
+
+if parameter 2 1s "asint": return parameter 3 as integer
+if parameter 2 1s "floor": return parameter 3 the largest integer less than or equal to the value
+if parameter 2 1s "ceiling": return parameter 3 the smallest integer greater than or equal to the value
+if parameter 2 1s "abs": return parameter 3 as absolute value of the passed in value - N for N, and N for (-N)
+if parameter 2 1s "toint": return parameter 3 as integer. Parameter 3 can be in dec or hex. If it starts with 0, its converted as hex value
+
+	Example
+		math floor 1.2
+-=-
+
+msg_console: Display the message in the console
+
+	Example
+		msg_console "Hello" "world!"
+		msg_console "Hello world!"
+
+	Both are the same
+-=-
+
+msg_notify: Display the message in the standard notification area (top left of your screen by default)
+
+	Example
+		msg_notify "Hello" "world!"
+		msg_notify "Hello world!"
+
+	Both are the same
+-=-
+
+rnd_int: Sets $$ to a random integer between min and max inclusive
+	- parameter 1: min: number
+	- parameter 2: max: number
+
+	Example
+		rnd_int 1 100
+-=-
+
+rnd_list: Sets $$ to one of the arguments at random
+
+	Example
+		rnd_list "Hello" $2 "Yo"
+
+	$$ will be one of the values. $2 will be resolved to it's value before populating $$
+-=-
+
+util_game: Perform game related functions based on sub-function
+	- parameter 1: sub-function: sub-function
+	- parameter 2: parameter: varies by sub-function
+
+if sub-function is "IncrementStat", (parameter 3, <stat name>, parameter 4, <amount>), see https://ck.uesp.net/wiki/IncrementStat_-_Game
+if sub-function is "QueryStat", (parameter 3, <stat name>), returns the value
+
+	Example
+		util_game "IncrementStat" "Bribes" 1
+-=-
+
+util_getgametime: Sets $$ to the value of Utility.GetCurrentGameTime() (a float value representing the number of days in game time; mid-day day 2 is 1.5)
+
+	Example
+		util_getgametime
+-=-
+
+util_getgametime: Sets $$ to the in-game hour (i.e. 2:30 AM returns 2)
+
+	Example
+		util_getgametime
+-=-
+
+util_getrealtime: Sets $$ to the value of Utility.GetCurrentRealTime() (a float value representing the number of seconds since Skyrim.exe was launched this session)
+
+	Example
+		util_getrealtime
+-=-
+
+util_getrndactor: Sets $iterActor to a random actor within specified range of self
+
+	Example
+		util_getrndactor 320
+-=-
+
+util_sendevent: Send SKSE custom event, with each type/value pair being an argument to the custom event
+	- parameter 1: event: name of the event
+	- parameter 2: param type: type of parameter e.g. "bool", "int", etc.
+	- parameter 3: param value: value of parameter
+	- parameter 4: [type/value, type/value ...]
+
+<type> can be any of [bool, int, float, string, form]
+
+	Example
+		util_sendevent "slaUpdateExposure" form $self float 33
+
+	The "slaUpdateExposure" event will be sent with $self, and the float value of 33.0 as the two arguments
+-=-
+
+util_sendmodevent: Shorthand for actor_sendmodevent $player <event name> <string argument> <float argument>
+	- parameter 1: event: name of the event
+	- parameter 2: string arg: string argument (meaning varies by event sent)
+	- parameter 3: float arg: float argument (meaning varies by event sent)
+
+	Example
+		util_sendmodevent "IHaveNoIdeaButEventNamesShouldBeEasyToFind" "strarg" 0.0
+-=-
+
+util_wait: Wait specified number of seconds i.e. Utility.Wait()
+
+	Example
+		util_wait 2.5
+
+	The script will pause processing for 2.5 seconds
+-=-
+
+util_waitforkbd: Sets $$ to the keycode pressed after waiting for user to press any of the specified keys
+
+	Example
+		util_waitforkbd 74 78 181 55
+-=-
+
+weather_state: Weather related functions based on sub-function
+
+	Example
+		weather_state GetClassification
+-=-
+
+
+===================================================================================
+
+SexLab Function Library (only functional with SexLab present, contains multiple overrides for SLT behavior)
+
+Actor:
+==============
+
+actor_race: Returns the race name based on sub-function. Blank, empty sub-function returns Vanilla racenames. e.g. "SL" can return SexLab race keynames.
+	- parameter 1: actor: target Actor
+	- parameter 2: sub-function: sub-function
+
+if parameter 2 is "": return actors race name. Skyrims, original name. Like: "Nord", "Breton"
+if parameter 2 is "SL": return actors Sexlab frameworks race key name. Like: "dogs", "bears", etc. Note: will return "" if actor is humanoid
+
+	Example
+		actor_race $self "SL"
+		msg_notify "  Race SL: " $$
+-=-
+
+actor_say: Causes the actor to 'say' the topic indicated by FormId
+	- parameter 1: actor: target Actor
+	- parameter 2: topic: Topic FormID
+
+	Example
+		actor_say $actor "Skyrim.esm:1234"
+-=-
+
+Devious Devices:
+==============
+
+dd_unlockall: Attempts to unlock all devices locked on the actor
+	- parameter 1: actor: target Actor
+	- parameter 2: force: "force" to force an unlock, anything else otherwise
+
+	Example
+		dd_unlockall $self force
+
+	Will attempt to (forcibly if necessary, e.g. quest locked items) unlock all lockable items on targeted actor.
+-=-
+
+dd_unlockslot: Attempts to unlock any device in the specified slot
+	- parameter 1: actor: target Actor
+	- parameter 2: armorslot: int value armor slot e.g. 32 is body armor
+	- parameter 3: force: "force" to force an unlock, anything else otherwise
+
+	Example
+		dd_unlockslot $self 32 force
+
+	Should remove anything in body slot e.g. corset, harness, etc., and forced, so including quest items (be careful!)
+-=-
+
+Devious Followers:
+==============
+
+df_resetall: Resets all Devious Followers values (i.e. quest states, deal states, boredom, debt)
+back to values as if having just started out.
+
+	Example
+		df_resetall
+
+	Should be free of all debts, deals, and rules
+-=-
+
+df_setdebt: Sets current debt to the specified amount
+
+	Example
+		df_setdebt 0
+
+	We all know what you are going to use it for
+-=-
+
+SexLab:
+==============
+
+sl_advance: Changes the stage of the current SexLab scene; advances a single stage if positive, reverses a single stage if negative
+
+	Example
+		sl_advance -3
+
+	Only goes back one stage
+-=-
+
+sl_animname: Sets $$ to the current SexLab animation name
+
+	Example
+		sl_animname
+		msg_notify "Playing: " $$
+-=-
+
+sl_getprop: Sets $$ to the value of the requested property
+
+	Example
+		sl_getprop Stage
+		msg_notify "Current Stage: " $$
+-=-
+
+sl_hastag: Sets $$ to 1 if the SexLab scene has the specified tag, 0 otherwise
+
+	Example
+		sl_hastag "Oral"
+		if $$ = 1 ORAL
+-=-
+
+sl_isin: Sets $$ to 1 if the specified actor is in a SexLab scene, 0 otherwise
+
+	Example
+		sl_isin $self
+-=-
+
+sl_isinslot: Sets $$ to 1 if the specified actor is in the specified SexLab scene slot, 0 otherwise
+	- parameter 1: actor: target Actor
+	- parameter 2: slotnumber: 1-based SexLab thread slot number
+
+	Example
+		sl_isinslot $player 1
+-=-
+
+sl_orgasm: Immediately forces the specified actor to have a SexLab orgasm.
+
+	Example
+		sl_orgasm $self
+		sl_orgasm $partner
+
+	Simultaneous orgasms
+-=-
+
+util_waitforend: Wait until specified actor is not in SexLab scene
+
+	Example
+		util_waitforend $self
+
+	Wait until the scene ends
+-=-
+
+Utility:
+==============
+
+util_getrndactor: Return a random actor within specified range of self
+	- parameter 1: range: (0 - all | >0 - range in Skyrim units)
+	- parameter 2: option: (0 - all | 1 - not in SexLab scene | 2 - must be in SexLab scene)
+
+	Example
+		util_getrndactor 500 2
+		actor_isvalid $actor
+		if $$ = 0 end
+		msg_notify "Someone is watching you!"
+		[end]
+-=-
+
+util_waitforkbd: Returns the keycode pressed after waiting for user to press any of the specified keys or for the end of the SexLab scene
+
+	Example
+		util_waitforkbd 74 78 181 55
+		if $$ = 74 MINUS
+		...
+		if $$ < 0 END
+
+	Wait for Num-, Num+, Num/, or Num*, or animation expired, and then do something based on the result.
+-=-
+
+
+===================================================================================
+
+Core Function Library (provides functionality for the Core extension)
+
+Core:
+==============
+
+toh_elapsed_time: Returns the actual game time passed at the time of the last "Top of the Hour"
+For example, if you slept from 1:30 to 4:00, you would get a Top of the Hour event at 4 with a value of 2.5
+
+	Example
+		toh_elapsed_time
+
+	$$ would contain the actual elapsed game time from the previous "Top of the Hour" event
+-=-
+

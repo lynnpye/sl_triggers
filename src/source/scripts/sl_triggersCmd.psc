@@ -417,6 +417,110 @@ Function RunScript()
                         cmdidx = _slt_FindGosub(Resolve(cmdLine[1]), cmdidx)
                     endif
                     cmdidx += 1
+                elseIf code == "set"
+                    if cmdLine.Length == 3 || cmdLine.Length == 5
+                        int varindex = IsVarString(cmdLine[1])
+                        int g_varindex = IsVarStringG(cmdLine[1])
+                    
+                        if (varindex > 0) || (g_varindex > 0)
+                            if g_varindex > -1
+                                varindex = g_varindex
+                            endif
+                        
+                            string strparm2 = resolve(cmdLine[2])
+                        
+                            if cmdLine.length == 3
+                                if g_varindex > -1
+                                    globalvars_set(varindex, strparm2)
+                                else
+                                    vars_set(varindex, strparm2)
+                                endif
+                            elseif cmdLine.length == 5
+                                string strparm4 = Resolve(cmdLine[4])
+                                float op1 = strparm2 as float
+                                float op2 = strparm4 as float
+                                string operat = cmdLine[3]
+                        
+                                string strresult
+                        
+                                if operat == "+"
+                                    strresult = (op1 + op2) as string
+                                elseIf operat == "-"
+                                    strresult = (op1 - op2) as string
+                                elseIf operat == "*"
+                                    strresult = (op1 * op2) as string
+                                elseIf operat == "/"
+                                    strresult = (op1 / op2) as string
+                                elseIf operat == "&"
+                                    strresult = strparm2 + strparm4
+                                else
+                                    DebMsg("SLT: [" + cmdName + "][lineNum:" + lineNum + "] unexpected operator for 'set' (" + operat + ")")
+                                endif
+                                if g_varindex > -1
+                                    globalvars_set(varindex, strresult)
+                                else
+                                    vars_set(varindex, strresult)
+                                endif
+                            endif
+                        endif
+                    else
+                        DebMsg("SLT: [" + cmdName + "][lineNum:" + lineNum + "] unexpected number of arguments for 'set' got " + cmdLine.length + " expected 3 or 5")
+                    endif
+                    cmdidx += 1
+                elseIf code == "inc"
+                    if cmdLine.Length >= 3
+                        string varstr = cmdLine[1]
+                        int incrInt = resolve(cmdLine[2]) as int
+                        float incrFloat = resolve(cmdLine[2]) as float
+                        bool isIncrInt = (incrInt == incrFloat)
+                    
+                        int varindex = IsVarStringG(varstr)
+                        if varindex >= 0
+                            int varint = globalvars_get(varindex) as int
+                            float varfloat = globalvars_get(varindex) as float
+                            if (varint == varfloat && isIncrInt)
+                                globalvars_set(varindex, (varint + incrInt) as string)
+                            else
+                                globalvars_set(varindex, (varfloat + incrFloat) as string)
+                            endif
+                        else
+                            varindex = IsVarString(varstr)
+                            if varindex >= 0
+                                int varint = vars_get(varindex) as int
+                                float varfloat = vars_get(varindex) as float
+                                if (varint == varfloat && isIncrInt)
+                                    vars_set(varindex, (varint + incrInt) as string)
+                                else
+                                    vars_set(varindex, (varfloat + incrFloat) as string)
+                                endif
+                            else
+                                DebMsg("SLT: [" + cmdName + "][lineNum:" + lineNum + "] no resolve found for variable parameter (" + cmdLine[1] + ")")
+                            endif
+                        endif
+                    else
+                        ParamLengthLT(self, cmdLine.Length, 3)
+                    endif
+                    cmdidx += 1
+                elseIf code == "cat"
+                    if cmdLine.Length >= 3
+                        string varstr = cmdLine[1]
+                        float incrAmount = resolve(cmdLine[2]) as float
+                    
+                        int varindex = IsVarStringG(varstr)
+                        if varindex >= 0
+                            globalvars_set(varindex, (globalvars_get(varindex) + resolve(cmdLine[2])) as string)
+                        else
+                            varindex = IsVarString(varstr)
+                            if varindex >= 0
+                                vars_set(varindex, (vars_get(varindex) + resolve(cmdLine[2])) as string)
+                            else
+                                MiscUtil.PrintConsole("SLT: [" + cmdName + "][lineNum:" + lineNum + "] no resolve found for variable parameter (" + cmdLine[1] + ")")
+                            endif
+                        endif
+                    else
+                        ParamLengthLT(self, cmdLine.Length, 3)
+                    endif
+                    cmdidx += 1
                 elseIf code == "if"
                     if cmdLine.Length == 5
                         ; ["if", "$$", "=", "0", "end"],
