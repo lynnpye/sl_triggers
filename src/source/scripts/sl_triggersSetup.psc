@@ -9,6 +9,7 @@ string		PSEUDO_INSTANCE_KEY = "sl_triggersSetup"
 
 string		DELETE_BUTTON = "--DELETETHISITEM--"
 string		RESTORE_BUTTON = "--RESTORETHISITEM--"
+string		HARD_DELETE_BUTTON = "--HARDDELETETHISITEM--"
 
 
 int			WIDG_ERROR			= 0
@@ -409,13 +410,17 @@ Function ShowExtensionPage()
 		; blank row
 		AddEmptyOption()
 		AddEmptyOption()
-		
-		AddEmptyOption()
+
 		if !triggerIsSoftDeleted
+			AddEmptyOption()
+
 			; and option to delete
 			_oid = AddTextOption("$SLT_BTN_DELETE", "")
 			AddOid(_oid, triggerKey, DELETE_BUTTON)
 		else
+			_oid = AddTextOption("$SLT_BTN_HARD_DELETE", "")
+			AddOid(_oid, triggerKey, HARD_DELETE_BUTTON)
+			
 			; and option to undelete
 			_oid = AddTextOption("$SLT_BTN_RESTORE", "")
 			AddOid(_oid, triggerKey, RESTORE_BUTTON)
@@ -528,6 +533,9 @@ Event OnOptionHighlight(int option)
 			return
 		elseif attrName == RESTORE_BUTTON
 			SetInfoText("$SLT_HIGHLIGHT_OID_RESTOREITEM")
+			return
+		elseif attrName == HARD_DELETE_BUTTON
+			SetInfoText("$SLT_HIGHLIGHT_OID_HARDDELETEITEM")
 			return
 		endif
 	endif
@@ -756,6 +764,10 @@ Event OnOptionSelect(int option)
 	elseif attrName == RESTORE_BUTTON
 		JsonUtil.UnsetStringValue(_dataFile, DELETED_ATTRIBUTE())
 		JsonUtil.Save(_dataFile)
+		ForcePageReset()
+		return
+	elseif attrName == HARD_DELETE_BUTTON
+		sl_triggers_internal.SafeDeleteTrigger(CurrentExtensionKey, triKey)
 		ForcePageReset()
 		return
 	endif

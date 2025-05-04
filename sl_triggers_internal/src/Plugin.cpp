@@ -12,6 +12,7 @@ using namespace SKSE::stl;
 namespace plugin {
     namespace Util {
 
+        /*
         RE::BSTSmartPointer<RE::BSScript::Object> GetScriptObject_AME(RE::ActiveEffect* ae) {
             auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
             auto* handlePolicy = vm->GetObjectHandlePolicy();
@@ -44,6 +45,7 @@ namespace plugin {
 
             return nullptr;
         }
+        */
 
         class VoidCallbackFunctor : public RE::BSScript::IStackCallbackFunctor {
             public:
@@ -75,10 +77,9 @@ namespace plugin {
                 RE::BSFixedString callbackEvent("OnSetOperationCompleted");
 
                 auto resultCallback = RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor>(
-                    new VoidCallbackFunctor([vm, vmhandle, callbackEvent, _cmdPrimary, callbackArgs]() {
+                    new VoidCallbackFunctor([vm, vmhandle, callbackEvent, callbackArgs]() {
                         SKSE::GetTaskInterface()->AddTask(
-                            [vm, vmhandle, callbackEvent, _cmdPrimary, callbackArgs]() {
-                            //auto scrobj = GetScriptObject_AME(_cmdPrimary);
+                            [vm, vmhandle, callbackEvent, callbackArgs]() {
                             RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> setterCallback{nullptr};
 
                             vm->SendEvent(vmhandle, callbackEvent, RE::MakeFunctionArguments());
@@ -310,6 +311,56 @@ namespace plugin {
 
             return tokens;
         }
+
+
+        namespace fs = std::filesystem;
+
+        bool IsValidPathComponent(const std::string& input) {
+            // Disallow characters illegal in Windows filenames
+            static const std::regex validPattern(R"(^[^<>:"/\\|?*\x00-\x1F]+$)");
+            return std::regex_match(input, validPattern);
+        }
+
+        bool DeleteTrigger(RE::BSFixedString extensionKey, RE::BSFixedString triggerKey) {
+            std::string extKeyStr = extensionKey.c_str();
+            std::string trigKeyStr = triggerKey.c_str();
+
+            if (!IsValidPathComponent(extKeyStr) || !IsValidPathComponent(trigKeyStr)) {
+                logger::error("Invalid characters in extensionKey ({}) or triggerKey ({})", extKeyStr, trigKeyStr);
+                return false;
+            }
+
+            if (extKeyStr.empty() || trigKeyStr.empty()) {
+                logger::error("extensionKey and triggerKey may not be empty extensionKey[{}]  triggerKey[{}]", extKeyStr, trigKeyStr);
+                return false;
+            }
+
+            // Ensure triggerKey ends with ".json"
+            if (trigKeyStr.length() < 5 || trigKeyStr.substr(trigKeyStr.length() - 5) != ".json") {
+                trigKeyStr += ".json";
+            }
+
+            fs::path filePath = fs::path("Data") / "SKSE" / "Plugins" / "sl_triggers" / "extensions" / extKeyStr / trigKeyStr;
+
+            std::error_code ec;
+
+            if (!fs::exists(filePath, ec)) {
+                logger::info("Trigger file not found: {}", filePath.string());
+                return false;
+            }
+
+            if (fs::remove(filePath, ec)) {
+                logger::info("Successfully deleted: {}", filePath.string());
+                return true;
+            } else {
+                logger::info("Failed to delete {}: {}", filePath.string(), ec.message());
+                return false;
+            }
+        }
+
+
+
+
     }  // namespace Util
 
     namespace Papyrus {
@@ -344,14 +395,19 @@ namespace plugin {
             return Util::Tokenize(_tokenString.c_str());
         }
 
+        bool DeleteTrigger(RE::StaticFunctionTag*, RE::BSFixedString extensionKey, RE::BSFixedString triggerKey) {
+            return Util::DeleteTrigger(extensionKey, triggerKey);
+        }
+
         bool Register(RE::BSScript::IVirtualMachine* vm) {
             vm->RegisterFunction("_RunOperationOnActor", "sl_triggers_internal", RunOperationOnActor);
             vm->RegisterFunction("_SplitLinesTrimmed", "sl_triggers_internal", SplitLinesTrimmed, true);
-            vm->RegisterFunction("_GetTranslatedString", "sl_triggers_internal", GetTranslatedString, true);
+            vm->RegisterFunction("_GetTranslatedString", "sl_triggers_internal", GetTranslatedString);
             vm->RegisterFunction("_GetActiveMagicEffectsForActor", "sl_triggers_internal", GetActiveMagicEffectsForActor);
             vm->RegisterFunction("_IsLoaded", "sl_triggers_internal", IsLoaded, true);
             vm->RegisterFunction("_SplitLines", "sl_triggers_internal", SplitLines, true);
             vm->RegisterFunction("_Tokenize", "sl_triggers_internal", Tokenize, true);
+            vm->RegisterFunction("_DeleteTrigger", "sl_triggers_internal", DeleteTrigger, true);
 
             return true;
         }

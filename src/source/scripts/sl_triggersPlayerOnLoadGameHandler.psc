@@ -6,14 +6,26 @@ sl_triggersMain			Property SLT Auto
 
 Event OnPlayerLoadGame()
 	SLT.DoOnPlayerLoadGame()
-	UnregisterForMenu("Console")
-	RegisterForMenu("Console")
+	InitiateConsoleHook()
 EndEvent
 
 Event OnInit()
-	UnregisterForMenu("Console")
-	RegisterForMenu("Console")
+	InitiateConsoleHook()
 EndEvent
+
+Function InitiateConsoleHook()
+    if SKSE.GetPluginVersion("ConsoleUtilSSE") != -1
+		; Per ConsoleUtil Extended documentation:
+		; The scripts API version (will return 777 or greater for ConsoleUtil Extended)
+        if ConsoleUtil.GetVersion() < 777
+			; So only do our pseudo hook if the far superior option of CUE is not available
+			UnregisterForMenu("Console")
+			RegisterForMenu("Console")
+		else
+			UnregisterForMenu("Console")
+        endIf
+    endIf
+EndFunction
  
 Event OnMenuOpen(string menuName)
 	if menuName=="Console"
@@ -48,7 +60,7 @@ Event OnKeyDown(int keyCode)
 						if !_theActor
 							_theActor = Game.GetCurrentCrosshairRef() as Actor
 							if !_theActor
-								_theActor = GetReference() as Actor
+								_theActor = Game.GetPlayer()
 							endif
 						endif
 
@@ -86,7 +98,7 @@ Event OnKeyDown(int keyCode)
 						MiscUtil.PrintConsole("Usage: slt version          ; displays sl_triggers mod version")
 						MiscUtil.PrintConsole("Usage: slt list             ; lists the scripts available to run from SLT")
 						MiscUtil.PrintConsole("Usage: slt run <scriptname> ; where <scriptname> is a valid script for SLT")
-						consoleLinesToSkip += 2
+						consoleLinesToSkip += 3
 					endif
 					
 					; Remove last line (error line)

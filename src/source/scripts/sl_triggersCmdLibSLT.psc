@@ -1481,6 +1481,25 @@ function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
     CmdPrimary.MostRecentResult = result
 endFunction
 
+; sltname actor_setalpha
+; sltdesc Set the Actor's alpha value (inverse of transparency, 1.0 is fully visible) (has no effect if IsGhost() returns true)
+; sltargs <actor variable> <alpha value: 0.0 - 1.0> <0 - instant | 1 - fade in/out>
+; sltsamp actor_setalpha $self 0.5 1 
+function actor_setalpha(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
+        return
+    endif
+    
+    Actor mate = CmdPrimary.resolveActor(param[1])
+    
+    if mate && !mate.IsGhost()
+        float newalpha = param[2] as float
+        mate.SetAlpha(newalpha)
+    endIf
+endFunction
+
 ; sltname ism_applyfade
 ; sltdesc Apply imagespace modifier - per original author, check CreationKit, SpecialEffects\Imagespace Modifier
 ; sltargs <item Id> <fade duration>

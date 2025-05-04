@@ -1,0 +1,22 @@
+version: 1
+name: sl_triggers
+alias: slt
+script: sl_triggersCUE
+help: sl_triggers related console functions
+subs:
+  - name: Version
+    alias: version
+    func: slt_version
+    help: Prints the sl_triggers mod version number.
+  - name: List
+    alias: list
+    func: slt_list
+    help: Prints a list of valid sl_triggers scripts.
+  - name: Run
+    alias: run
+    func: slt_run
+    help: Requests SLT run the script if valid.
+    args:
+      - name: scrname
+        type: string
+        required: true

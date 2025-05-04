@@ -166,15 +166,20 @@ Function RefreshTriggerCache()
 	triggerKeys_topOfTheHour = PapyrusUtil.StringArray(0)
 	triggerKeys_keyDown = PapyrusUtil.StringArray(0)
 	int i = 0
+	
 	while i < TriggerKeys.Length
 		string _triggerFile = FN_T(TriggerKeys[i])
-		int eventCode = JsonUtil.GetIntValue(_triggerFile, ATTR_EVENT)
 
-		if eventCode == 2 ; topofthehour
-			triggerKeys_topOfTheHour = PapyrusUtil.PushString(triggerKeys_topOfTheHour, TriggerKeys[i])
-		elseif eventCode == 1
-			triggerKeys_keyDown = PapyrusUtil.PushString(triggerKeys_keyDown, TriggerKeys[i])
+		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+			int eventCode = JsonUtil.GetIntValue(_triggerFile, ATTR_EVENT)
+	
+			if eventCode == 2 ; topofthehour
+				triggerKeys_topOfTheHour = PapyrusUtil.PushString(triggerKeys_topOfTheHour, TriggerKeys[i])
+			elseif eventCode == 1
+				triggerKeys_keyDown = PapyrusUtil.PushString(triggerKeys_keyDown, TriggerKeys[i])
+			endif
 		endif
+
 		i += 1
 	endwhile
 

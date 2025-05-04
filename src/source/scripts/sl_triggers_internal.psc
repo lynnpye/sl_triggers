@@ -32,6 +32,10 @@ string[] Function SafeTokenize(string _tokenString) global
     return sl_triggers_internal._Tokenize(_tokenString)
 EndFunction
 
+bool Function SafeDeleteTrigger(string _extensionKey, string _triggerKey) global
+    return sl_triggers_internal._DeleteTrigger(_extensionKey, _triggerKey)
+EndFunction
+
 ; direct access
 
 bool Function _RunOperationOnActor(string[] _scriptnames, Actor CmdTargetActor, ActiveMagicEffect CmdPrimary, string[] _param) global native
@@ -47,3 +51,5 @@ bool Function _IsLoaded() global native
 string[] Function _SplitLines(string _fileString) global native
 
 string[] Function _Tokenize(string _tokenString) global native
+
+bool Function _DeleteTrigger(string _extensionKey, string _triggerKey) global native

@@ -1,3 +1,9 @@
+113
+    Savegame safe with v112
+    bugfix: Soft Delete is now actually respected by extensions and soft deleted triggers should no longer fire; the extensions have been reprimanded and a PIP put into place
+    feature: FULLY DELETE is now an option for Soft Deleted triggers (originally the intent was to require manual deletion from the filesystem)
+    feature: added compatibility files for ConsoleUtil Extended for improved console command implementation
+
 112
     PROBABLY-SAVE-BREAKING: Reuse a save at your own risk. :)
     bugfixes: yes, plural. just... take a look at the last few commits if you are curious

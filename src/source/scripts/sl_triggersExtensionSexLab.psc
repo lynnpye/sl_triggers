@@ -200,15 +200,17 @@ Function RefreshTriggerCache()
 	int i = 0
 	while i < TriggerKeys.Length
 		string _triggerFile = FN_T(TriggerKeys[i])
-		int eventCode = JsonUtil.GetIntValue(_triggerFile, ATTR_EVENT)
-		if eventCode == EVENT_ID_START
-			triggerKeys_Start = PapyrusUtil.PushString(triggerKeys_Start, TriggerKeys[i])
-		elseif eventCode == EVENT_ID_ORGASM
-			triggerKeys_Orgasm = PapyrusUtil.PushString(triggerKeys_Orgasm, TriggerKeys[i])
-		elseif eventCode == EVENT_ID_STOP
-			triggerKeys_Stop = PapyrusUtil.PushString(triggerKeys_Stop, TriggerKeys[i])
-		elseif eventCode == EVENT_ID_ORGASM_SLSO
-			triggerKeys_Orgasm_S = PapyrusUtil.PushString(triggerKeys_Orgasm_S, TriggerKeys[i])
+		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+			int eventCode = JsonUtil.GetIntValue(_triggerFile, ATTR_EVENT)
+			if eventCode == EVENT_ID_START
+				triggerKeys_Start = PapyrusUtil.PushString(triggerKeys_Start, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_ORGASM
+				triggerKeys_Orgasm = PapyrusUtil.PushString(triggerKeys_Orgasm, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_STOP
+				triggerKeys_Stop = PapyrusUtil.PushString(triggerKeys_Stop, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_ORGASM_SLSO
+				triggerKeys_Orgasm_S = PapyrusUtil.PushString(triggerKeys_Orgasm_S, TriggerKeys[i])
+			endif
 		endif
 		
 		i += 1
