@@ -82,41 +82,138 @@ public class SltParser {
         return sections;
     }
 
+    public static Map<String, List<SltSection>> sortSltSections(List<SltSection> sltlist) {
+        return sltlist.stream()
+            .collect(Collectors.groupingBy(
+                SltSection::getGroup,
+                TreeMap::new, // Use TreeMap to maintain sorted order of group keys
+                Collectors.collectingAndThen(
+                    Collectors.toList(),
+                    list -> {
+                        list.sort(Comparator.comparing(SltSection::getName));
+                        return list;
+                    }
+                )
+            ));
+    }
+
+    public static void exportMD(
+        Map<String, List<SltSection>> sortedslts,
+        Map<String, List<SltSection>> sortedsexlabs,
+        Map<String, List<SltSection>> sortedcores) {
+/*
+        sortedGroupedAndSorted.forEach((group, sectionsInGroup) -> {
+            //System.out.println("# " + group);
+            System.out.println(String.format("%s:\n==============\n", group));
+            sectionsInGroup.forEach(section -> {
+                System.out.println(Tmpl02(section));
+            });
+        });
+        */
+       StringBuilder sb = new StringBuilder();
+
+        sb.append("# Function Libraries\nSL Triggers ships with three \"function libraries\". Function libraries allow functions to be overridden to change or enhance functionality contextually. For example, util_waitforkbd will return at the end of a SexLab scene when SexLab is present, in addition to when one of the selected keys is present, as SexLab overrides the behavior.\n\nAs a result, some functions will appear twice. If it is in the SexLab section it is an override to the baseline functionality in the SLT library.\n\n***\n\n# SLT Function Library (base functionality)\n\n***\n\n");
+
+        sortedslts.forEach((group, sectionsInGroup) -> {
+            sb.append(String.format("# %s\n\n", group ));
+            //sb.append(String.format("\n%s:\n==============\n\n", group));
+            sectionsInGroup.forEach(section -> {
+                sb.append(Tmpl01(section));
+            });
+        });
+
+        sb.append("\n\n***\n\n# SexLab Function Library (only functional if SexLab is present)\n\n***\n\n");
+
+        sortedsexlabs.forEach((group, sectionsInGroup) -> {
+            sb.append(String.format("# %s\n\n", group ));
+            //sb.append(String.format("\n%s:\n==============\n\n", group));
+            sectionsInGroup.forEach(section -> {
+                sb.append(Tmpl01(section));
+            });
+        });
+
+        sb.append("\n\n***\n\n# Core Function Library (supports the Core extension)\n\n***\n\n");
+
+        sortedcores.forEach((group, sectionsInGroup) -> {
+            sb.append(String.format("# %s\n\n", group ));
+            //sb.append(String.format("\n%s:\n==============\n\n", group));
+            sectionsInGroup.forEach(section -> {
+                sb.append(Tmpl01(section));
+            });
+        });
+
+        Path path = Paths.get("./src/sl_triggers_function_library.md");
+        byte[] inbytes = sb.toString().getBytes();
+
+        try {
+            Files.write(path, inbytes);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+    }
+
+    public static void exportTXT(
+        Map<String, List<SltSection>> sortedslts,
+        Map<String, List<SltSection>> sortedsexlabs,
+        Map<String, List<SltSection>> sortedcores) {
+        
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("SLT Function Library (baseline functionality always present)\n\n");
+
+        sortedslts.forEach((group, sectionsInGroup) -> {
+            //System.out.println("# " + group);
+            sb.append(String.format("\n%s:\n==============\n\n", group));
+            sectionsInGroup.forEach(section -> {
+                sb.append(Tmpl02(section));
+            });
+        });
+
+        sb.append("\n\n===================================================================================\n\nSexLab Function Library (only functional with SexLab present, contains multiple overrides for SLT behavior)\n\n");
+
+        sortedsexlabs.forEach((group, sectionsInGroup) -> {
+            //System.out.println("# " + group);
+            sb.append(String.format("\n%s:\n==============\n\n", group));
+            sectionsInGroup.forEach(section -> {
+                sb.append(Tmpl02(section));
+            });
+        });
+
+        sb.append("\n\n===================================================================================\n\nCore Function Library (provides functionality for the Core extension)\n\n");
+
+        sortedcores.forEach((group, sectionsInGroup) -> {
+            //System.out.println("# " + group);
+            sb.append(String.format("\n%s:\n==============\n\n", group));
+            sectionsInGroup.forEach(section -> {
+                sb.append(Tmpl02(section));
+            });
+        });
+
+        Path path = Paths.get("./src/sl_triggers_function_library.txt");
+        byte[] inbytes = sb.toString().getBytes();
+
+        try {
+            Files.write(path, inbytes);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
     // Example usage
     public static void main(String[] args) throws IOException {
-        if (args.length < 1) {
-            System.out.println("Must provide a filename.");
-            return;
-        }
-        List<SltSection> sections = parseSltSections(args[0]);
+        
+        List<SltSection> slts = parseSltSections("./src/source/scripts/sl_triggersCmdLibSLT.psc");
+        List<SltSection> sexlabs = parseSltSections("./src/source/scripts/sl_triggersCmdLibSexLab.psc");
+        List<SltSection> cores = parseSltSections("./src/source/scripts/sl_triggersCmdLibCore.psc");
 
-Map<String, List<SltSection>> sortedGroupedAndSorted = sections.stream()
-    .collect(Collectors.groupingBy(
-        SltSection::getGroup,
-        TreeMap::new, // Use TreeMap to maintain sorted order of group keys
-        Collectors.collectingAndThen(
-            Collectors.toList(),
-            list -> {
-                list.sort(Comparator.comparing(SltSection::getName));
-                return list;
-            }
-        )
-    ));
-    
+        Map<String, List<SltSection>> sortedslts = sortSltSections(slts);
+        Map<String, List<SltSection>> sortedsexlabs = sortSltSections(sexlabs);
+        Map<String, List<SltSection>> sortedcores = sortSltSections(cores);
+        
 
-    sortedGroupedAndSorted.forEach((group, sectionsInGroup) -> {
-        //System.out.println("# " + group);
-        System.out.println(String.format("%s:\n==============\n", group));
-        sectionsInGroup.forEach(section -> {
-            System.out.println(Tmpl02(section));
-        });
-    });
-
-/*
-        for (SltSection section : sections) {
-            System.out.println(Tmpl01(section));
-        }
-        */
+        exportMD(sortedslts, sortedsexlabs, sortedcores);
+        exportTXT(sortedslts, sortedsexlabs, sortedcores);
     }
 
     public static String Tmpl01(SltSection section) {
@@ -204,7 +301,7 @@ Map<String, List<SltSection>> sortedGroupedAndSorted = sections.stream()
                 sb.append(String.format("\t%s\n", r));
             }
         }
-        sb.append("-=-\n");
+        sb.append("\n-=-\n\n");
 
         return sb.toString();
     }
