@@ -7,7 +7,7 @@ string Function slt_version() global
 EndFunction
 
 string Function slt_list() global
-    string[] commandsList = sl_triggersMain.GetInstance().GetCommandsList()
+    string[] commandsList = sl_triggersMain.GetInstance().GetScriptsList()
     string longString = PapyrusUtil.StringJoin(commandsList, "\n")
     return "SLT ScriptsList Start:\n" + longString + "\nSLT Scripts ListEnd"
 EndFunction

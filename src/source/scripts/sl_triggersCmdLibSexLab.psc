@@ -2,20 +2,8 @@ scriptname sl_triggersCmdLibSexLab
 
 import sl_triggersStatics
 
-SexLabFramework Function GetSexLab() global
-    Form slform = Game.GetFormFromFile(0xD62, "SexLab.esm")
-    SexLabFramework slf = slform as SexLabFramework
-    return slf
-EndFunction
-
-Faction Function GetSexLabAnimatingFaction() global
-    Form factionform = Game.GetFormFromFile(0xE50F, "SexLab.esm")
-    Faction animfaction = factionform as Faction
-    return animfaction
-EndFunction
-
-sslThreadController Function GetThread(Actor theActor) global
-    return GetSexLab().GetActorController(theActor)
+sl_triggersExtensionSexLab Function GetExtension() global
+    return GetForm_SLT_ExtensionSexLab() as sl_triggersExtensionSexLab
 EndFunction
 
 ; sltname util_waitforend
@@ -26,107 +14,108 @@ EndFunction
 ; sltrslt Wait until the scene ends
 function util_waitforend(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-	if !GetSexLab()
-		return
-	endif
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 1)
-        return
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+	if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        Faction anmfc = slExtension.SexLabAnimatingFaction
+        
+        while _targetActor.GetFactionRank(anmfc) >= 0 && CmdPrimary.InSameCell(_targetActor)
+            Utility.wait(4)
+        endWhile
     endif
-	
-    Actor mate = CmdPrimary.ResolveActor(param[1])
-	
-    while mate.GetFactionRank(GetSexLabAnimatingFaction()) >= 0 && CmdPrimary.InSameCell(mate)
-        Utility.wait(4)
-    endWhile
-
-	return
 endFunction
 
-; sltname util_getrndactor
-; sltgrup Utility
+; sltname sl_getrndactor
+; sltgrup SexLab
 ; sltdesc Return a random actor within specified range of self
 ; sltargs range: (0 - all | >0 - range in Skyrim units)
-; sltargs option: (0 - all | 1 - not in SexLab scene | 2 - must be in SexLab scene)
-; sltsamp util_getrndactor 500 2
+; sltargs option: (0 - all | 1 - not in SexLab scene | 2 - must be in SexLab scene) (optional: default 0 - all)
+; sltsamp sl_getrndactor 500 2
 ; sltsamp actor_isvalid $actor
 ; sltsamp if $$ = 0 end
 ; sltsamp msg_notify "Someone is watching you!"
 ; sltsamp [end]
-function util_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+function sl_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
-    endif
-    
-    Actor[] inCell = MiscUtil.ScanCellNPCs(CmdPrimary.PlayerRef, CmdPrimary.resolve(param[1]) as float)
-    if !(inCell.Length)
-        return 
-    endif
+    sl_triggersExtensionSexLab slExtension = GetExtension()
 
-    int mode = CmdPrimary.resolve(param[2]) as int
+    Actor nextIterActor
 
-    Keyword ActorTypeNPC = Game.GetFormFromFile(0x13794, "Skyrim.esm") as Keyword
-    Cell    cc = CmdPrimary.PlayerRef.getParentCell()
+    if ParamLengthLT(CmdPrimary, param.Length, 4)
+        Actor[] inCell = MiscUtil.ScanCellNPCs(CmdPrimary.PlayerRef, CmdPrimary.resolve(param[1]) as float)
+        if inCell.Length
+            int mode
+            if param.Length > 2
+                mode = CmdPrimary.resolve(param[2]) as int
+            endif
+        
+            Keyword ActorTypeNPC = GetForm_Skyrim_ActorTypeNPC() as Keyword
+            Cell    cc = CmdPrimary.PlayerRef.getParentCell()
+            Faction anmfc = slExtension.SexLabAnimatingFaction
+            bool xenabled = slExtension.IsEnabled
+        
+            int i = 0
+            int nuns = 0
+            while i < inCell.Length
+                Actor _targetActor = inCell[i]
+                if !_targetActor || _targetActor == CmdPrimary.PlayerRef || !_targetActor.isEnabled() || _targetActor.isDead() || _targetActor.isInCombat() || _targetActor.IsUnconscious() || (ActorTypeNPC && !_targetActor.HasKeyWord(ActorTypeNPC)) || !_targetActor.Is3DLoaded() || (cc && cc != _targetActor.getParentCell()) || (mode == 1 && xenabled &&  _targetActor.IsInFaction(anmfc)) || (mode == 2 && xenabled && !_targetActor.IsInFaction(anmfc))
+                    inCell[i] = none
+                    nuns += 1
+                endif
+                i += 1
+            endwhile
+        
+            int remainder = inCell.Length - nuns
+            if remainder > 0
+                int _targetMetaIndex = Utility.RandomInt(0, remainder - 1)
+                int _metaIndex = -1
 
-    int i = 0
-    int nuns = 0
-    while i < inCell.Length
-        Actor mate = inCell[i]
-        if !mate || mate == CmdPrimary.PlayerRef || !mate.isEnabled() || mate.isDead() || mate.isInCombat() || mate.IsUnconscious() || !mate.HasKeyWord(ActorTypeNPC) || !mate.Is3DLoaded() || cc != mate.getParentCell() || (mode == 1 && mate.IsInFaction(GetSexLabAnimatingFaction())) || (mode == 2 && !mate.IsInFaction(GetSexLabAnimatingFaction()))
-            inCell[i] = none
-            nuns += 1
+                i = 0
+                while i < inCell.Length && _metaIndex < _targetMetaIndex
+                    if inCell[i]
+                        _metaIndex += 1
+                    endif
+                    if _metaIndex < _targetMetaIndex
+                        i += 1
+                    endif
+                endwhile
+
+                if _metaIndex == _targetMetaIndex
+                    nextIterActor = inCell[i]
+                endif
+            endif
         endif
-        i += 1
-    endwhile
-
-    CmdPrimary.iterActor = none
-
-    if inCell.Length == nuns
-        return
     endif
 
-    Form[] noblanks = PapyrusUtil.FormArray(inCell.Length - nuns)
-
-    i = 0
-    int j = 0
-    while i < inCell.Length
-        if inCell[i]
-            noblanks[j] = inCell[i]
-            j += 1
-        endif
-        i += 1
-    endwhile
-
-    i = Utility.RandomInt(0, noblanks.Length)
-    CmdPrimary.iterActor = noblanks[i] as Actor
-
-	return
+    CmdPrimary.iterActor = nextIterActor
+endfunction
+function util_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+    sl_getrndactor(CmdTargetActor, _CmdPrimary, param)
 endFunction
 
 ; sltname actor_say
 ; sltgrup Actor
-; sltdesc Causes the actor to 'say' the topic indicated by FormId
+; sltdesc Causes the actor to 'say' the topic indicated by FormId; not usable on the Player
 ; sltargs actor: target Actor
 ; sltargs topic: Topic FormID
 ; sltsamp actor_say $actor "Skyrim.esm:1234"
 function actor_say(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
-    endif
-    
-    Topic thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2])) as Topic
-    if thing
-        Actor mate = CmdPrimary.ResolveActor(param[1])
-        if !(mate == CmdPrimary.PlayerRef && GetSexLab() && GetSexLab().Config.ToggleFreeCamera)
-            mate.Say(thing)
-        endIf
-    endIf
+    sl_triggersExtensionSexLab slExtension = GetExtension()
 
-	return
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Topic thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2])) as Topic
+        if thing
+            Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+            if !slExtension.IsEnabled || !slExtension.SexLab.Config.ToggleFreeCamera || _targetActor != CmdPrimary.PlayerRef
+                _targetActor.Say(thing)
+            endif
+        endIf
+    endif
 endFunction
 
 ; sltname actor_race
@@ -141,27 +130,32 @@ endFunction
 function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 2)
-        return
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    string nextResult = ""
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if _targetActor
+            string ss1
+            if param.Length > 2
+                ss1 = CmdPrimary.resolve(param[2])
+            endif
+            if !ss1 || !slExtension.IsEnabled
+                nextResult = _targetActor.GetRace().GetName()
+            elseIf "SL" == ss1 && slExtension.IsEnabled
+                nextResult = sslCreatureAnimationSlots.GetRaceKey(_targetActor.GetRace())
+            endIf
+        endif
     endif
-    
-    Actor mate = CmdPrimary.resolveActor(param[1])
-    
-    string result = ""
-    if mate
-        string ss1 = CmdPrimary.resolve(param[2])
-        if ss1 == ""
-            result = mate.GetRace().GetName()
-        elseIf ss1 == "SL"
-            result = sslCreatureAnimationSlots.GetRaceKey(mate.GetRace())
-        endIf
-    endIf
-    CmdPrimary.MostRecentResult = result
+
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname util_waitforkbd
 ; sltgrup Utility
 ; sltdesc Returns the keycode pressed after waiting for user to press any of the specified keys or for the end of the SexLab scene
+; sltargs actor: target Actor
 ; sltargs dxscancode: DXScanCode of key [<DXScanCode of key> ...]
 ; sltsamp util_waitforkbd 74 78 181 55
 ; sltsamp if $$ = 74 MINUS
@@ -170,55 +164,58 @@ endFunction
 ; sltrslt Wait for Num-, Num+, Num/, or Num*, or animation expired, and then do something based on the result.
 function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-	if !GetSexLab()
-        CmdPrimary.MostRecentResult = "-1"
-		return
-	endif
-	
-    if ParamLengthLT(CmdPrimary, param.Length, 2)
-        return
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    int nextResult = -1
+
+	if ParamLengthGT(CmdPrimary, param.Length, 1)
+        string ss
+        string ssx
+        int cnt = param.length
+        int idx
+        int startidx = 1
+        int scancode
+
+        if CmdTargetActor
+            if (CmdTargetActor != CmdPrimary.PlayerRef) || (cnt <= 1) || !(slExtension.IsEnabled && CmdPrimary.PlayerRef.GetFactionRank(slExtension.SexLabAnimatingFaction) >= 0)
+                nextResult = -1
+            else
+                CmdPrimary.UnregisterForAllKeys()
+            
+                idx = startidx
+                while idx < cnt
+                    ss = CmdPrimary.resolve(param[idx])
+                    scancode = ss as int
+                    if scancode > 0
+                        CmdPrimary.RegisterForKey(scanCode)
+                    endIf
+                    idx += 1
+                endWhile
+                
+                CmdPrimary.LastKey = 0
+
+                Actor plyrf = CmdPrimary.PlayerRef
+                Faction anfac = slExtension.SexLabAnimatingFaction
+                
+                while CmdPrimary && CmdPrimary.LastKey == 0 && (slExtension.IsEnabled && plyrf.GetFactionRank(anfac) >= 0)
+                    Utility.Wait(0.5)
+                endWhile
+                
+                if CmdPrimary
+                    CmdPrimary.UnregisterForAllKeys()
+                    
+                    if slExtension.IsEnabled && !(plyrf.GetFactionRank(anfac) >= 0)
+                        nextResult = -1
+                    else
+                        nextResult = CmdPrimary.LastKey
+                    endIf
+                endif
+            endIf
+        endif
     endif
-	
-    string ss
-    string ssx
-    int cnt
-    int idx
-    int scancode
 
-    cnt = param.length
-
-    if (CmdTargetActor != CmdPrimary.PlayerRef) || (cnt <= 1) || !(CmdPrimary.PlayerRef.GetFactionRank(GetSexLabAnimatingFaction()) >= 0)
-        CmdPrimary.MostRecentResult = "-1"
-        return
-    endIf
-
-    CmdPrimary.UnregisterForAllKeys()
-
-    idx = 1
-    while idx < cnt
-        ss = CmdPrimary.resolve(param[idx])
-        scancode = ss as int
-        if scancode > 0
-            CmdPrimary.RegisterForKey(scanCode)
-        endIf
-        idx += 1
-    endWhile
-    
-    CmdPrimary.LastKey = 0
-    
-    while CmdPrimary && CmdPrimary.LastKey == 0 && CmdPrimary.PlayerRef.GetFactionRank(GetSexLabAnimatingFaction()) >= 0
-        Utility.Wait(0.5)
-    endWhile
-    
-    CmdPrimary.UnregisterForAllKeys()
-    
-    if !(CmdPrimary.PlayerRef.GetFactionRank(GetSexLabAnimatingFaction()) >= 0)
-        CmdPrimary.MostRecentResult = "-1"
-    else
-        CmdPrimary.MostRecentResult = CmdPrimary.lastKey as string
-    endIf
-
-	return
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname sl_isin
@@ -228,58 +225,50 @@ endFunction
 ; sltsamp sl_isin $self
 function sl_isin(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-	if !GetSexLab()
-        CmdPrimary.MostRecentResult = "0"
-		return
-	endif
-	
-    if ParamLengthNEQ(CmdPrimary, param.Length, 2)
-        return
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+    
+    int nextResult = 0
+
+	if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor && _targetActor.GetFactionRank(slExtension.SexLabAnimatingFaction) >= 0 && CmdPrimary.InSameCell(_targetActor)
+            nextResult = 1
+        endIf
     endif
-	
-    Actor mate
-    int retVal
-    
-    mate = CmdPrimary.ResolveActor(param[1])
-    
-    
-    if mate.GetFactionRank(GetSexLabAnimatingFaction()) >= 0 && CmdPrimary.InSameCell(mate)
-        CmdPrimary.MostRecentResult = "1"
-    else
-        CmdPrimary.MostRecentResult = "0"
-    endIf
-	return
+
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname sl_hastag
 ; sltgrup SexLab
 ; sltdesc Sets $$ to 1 if the SexLab scene has the specified tag, 0 otherwise
 ; sltargs tag: tag name e.g. "Oral", "Anal", "Vaginal"
-; sltsamp sl_hastag "Oral"
+; sltargs actor: target Actor
+; sltsamp sl_hastag "Oral" $self
 ; sltsamp if $$ = 1 ORAL
 function sl_hastag(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-	
-	if !GetSexLab()
-        CmdPrimary.MostRecentResult = "0"
-		return
-	endif
-	
-    if ParamLengthNEQ(CmdPrimary, param.Length, 2)
-        return
-    endif
-	
-    sslThreadController thread = GetThread(CmdTargetActor)
 
-    if thread
-        string ss = CmdPrimary.resolve(param[1])
-        if thread.Animation.HasTag(ss)
-            CmdPrimary.MostRecentResult = "1"
-            return
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    int nextResult = 0
+	
+	if slExtension.IsEnabled && ParamLengthLT(CmdPrimary, param.Length, 4)
+        Actor _targetActor = CmdTargetActor
+        if param.Length > 2
+            _targetActor = CmdPrimary.ResolveActor(param[2])
+        endif
+        sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
+        if thread
+            string ss = CmdPrimary.resolve(param[1])
+            if thread.Animation.HasTag(ss)
+                nextResult = 1
+            endIf
         endIf
-    endIf
+    endif
     
-    CmdPrimary.MostRecentResult = "0"
+    CmdPrimary.MostRecentResult = nextResult
 
 	return
 endFunction
@@ -287,23 +276,27 @@ endFunction
 ; sltname sl_animname
 ; sltgrup SexLab
 ; sltdesc Sets $$ to the current SexLab animation name
-; sltsamp sl_animname
+; sltsamp sl_animname $self
 ; sltsamp msg_notify "Playing: " $$
 function sl_animname(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-    CmdPrimary.MostRecentResult = ""
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    string nextResult = ""
 	
-	if !GetSexLab()
-		return
-	endif
-    
-    sslThreadController thread = GetThread(CmdTargetActor)
-    
-    if thread
-        CmdPrimary.MostRecentResult = thread.Animation.Name
-    else
-        CmdPrimary.MostRecentResult = ""
-    endIf
+	if slExtension.IsEnabled && ParamLengthLT(CmdPrimary, param.Length, 3)
+        Actor _targetActor = CmdTargetActor
+        if param.Length > 1
+            _targetActor = CmdPrimary.ResolveActor(param[1])
+        endif
+        sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
+        if thread
+            nextResult = thread.Animation.Name
+        endIf
+    endif
+
+    CmdPrimary.MostRecentResult = nextResult
 
 	return
 endFunction
@@ -312,59 +305,56 @@ endFunction
 ; sltgrup SexLab
 ; sltdesc Sets $$ to the value of the requested property
 ; sltargs property:  Stage | ActorCount
-; sltsamp sl_getprop Stage
+; sltargs actor: target Actor
+; sltsamp sl_getprop Stage $self
 ; sltsamp msg_notify "Current Stage: " $$
 function sl_getprop(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    string nextResult = ""
 	
-	if !GetSexLab()
-		return
-	endif
-	
-    if ParamLengthNEQ(CmdPrimary, param.Length, 2)
-        return
-    endif
-    
-    sslThreadController thread = GetThread(CmdTargetActor)
-    
-    if thread
-        string ss = CmdPrimary.resolve(param[1])
-        if ss == "Stage"
-            CmdPrimary.MostRecentResult = thread.Stage as string
-            return
-        elseif ss == "ActorCount"
-            CmdPrimary.MostRecentResult = thread.ActorCount as string
-            return
+	if slExtension.IsEnabled && ParamLengthLT(CmdPrimary, param.Length, 4)
+        Actor _targetActor = CmdTargetActor
+        if param.Length > 2
+            _targetActor = CmdPrimary.ResolveActor(param[2])
+        endif
+        sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
+        if thread
+            string ss = CmdPrimary.resolve(param[1])
+            if ss == "Stage"
+                nextResult = thread.Stage as string
+            elseif ss == "ActorCount"
+                nextResult = thread.ActorCount as string
+            endIf
         endIf
-    endIf
+    endif
 
-    CmdPrimary.MostRecentResult = ""
-
-	return
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname sl_advance
 ; sltgrup SexLab
-; sltdesc Changes the stage of the current SexLab scene; advances a single stage if positive, reverses a single stage if negative
+; sltdesc Changes the stage of the current SexLab scene, for the target Actor; advances a single stage if positive, reverses a single stage if negative
 ; sltargs direction: integer, <negative - backwards / non-negative (including zero) - forwards>
-; sltsamp sl_advance -3
+; sltargs actor: target Actor
+; sltsamp sl_advance -3 $self
 ; sltrslt Only goes back one stage
 function sl_advance(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-	if !GetSexLab()
-		return
-	endif
-	
-    if ParamLengthNEQ(CmdPrimary, param.Length, 2)
-        return
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+	if slExtension.IsEnabled && ParamLengthLT(CmdPrimary, param.Length, 4)
+        Actor _targetActor = CmdTargetActor
+        if param.Length > 2
+            _targetActor = CmdPrimary.ResolveActor(param[2])
+        endif
+        sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
+        int ss = CmdPrimary.resolve(param[1]) as int
+        thread.AdvanceStage(ss < 0)
     endif
-    
-    sslThreadController thread = GetThread(CmdTargetActor)
-	
-	int ss = CmdPrimary.resolve(param[1]) as int
-	thread.AdvanceStage(ss < 0)
-	return
 endFunction
 
 ; sltname sl_isinslot
@@ -375,41 +365,34 @@ endFunction
 ; sltsamp sl_isinslot $player 1
 function sl_isinslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-	
-	if !GetSexLab()
-	    CmdPrimary.MostRecentResult = "0"
-		return
-	endif
-	
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
-    endif
-    
-    sslThreadController thread = GetThread(CmdTargetActor)
-	
-	int slPosition = CmdPrimary.resolve(param[2]) as int
-	if slPosition < 1 || slPosition > 4
-		return
-	endif
 
-    int actorIdx = 0
-    while actorIdx < thread.Positions.Length
-        if slPosition == actorIdx + 1 && thread.Positions[actorIdx]
-	        Actor mate = CmdPrimary.ResolveActor(param[1])
-            Actor slActor = thread.Positions[actorIdx]
+    sl_triggersExtensionSexLab slExtension = GetExtension()
 
-            if slActor == mate
-                CmdPrimary.MostRecentResult = "1"
-                return
+    int nextResult = 0
+	
+	if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor
+            sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
+            if thread
+                int slPosition = CmdPrimary.resolve(param[2]) as int
+                if slPosition > 0 && slPosition < 5
+                    int actorIdx = 0
+                    while actorIdx < thread.Positions.Length
+                        if slPosition == actorIdx + 1 && thread.Positions[actorIdx]
+                            if _targetActor ==  thread.Positions[actorIdx]
+                                nextResult = 1
+                                actorIdx = thread.Positions.Length
+                            endif
+                        endif
+                        actorIdx += 1
+                    endwhile
+                endif
             endif
-
-            return
         endif
-        actorIdx += 1
-    endwhile
+	endif
 	
-	CmdPrimary.MostRecentResult = "0"
-	return
+	CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname sl_orgasm
@@ -421,24 +404,16 @@ endFunction
 ; sltrslt Simultaneous orgasms
 function sl_orgasm(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-    if !GetSexLab()
-        return
-    endif
-	
-    if ParamLengthNEQ(CmdPrimary, param.Length, 2)
-        return
-    endif
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
     
-    sslThreadController thread = GetThread(CmdTargetActor)
-
-    Actor mate = CmdPrimary.ResolveActor(param[1])
-    if !mate
-        return
+    if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor
+            sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
+            thread.ActorAlias(_targetActor).OrgasmEffect()
+        endif
     endif
-
-    thread.ActorAlias(mate).OrgasmEffect()
-
-    return
 endFunction
 
 ; sltname df_resetall
@@ -449,22 +424,17 @@ endFunction
 ; sltrslt Should be free of all debts, deals, and rules
 function df_resetall(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-	
-    if ParamLengthNEQ(CmdPrimary, param.Length, 2)
-        return
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 1)
+        Form dfMCM_form = GetForm_DeviousFollowers_MCM()
+
+        if dfMCM_form
+            _DFlowMCM dfMCM = dfMCM_form as _DFlowMCM
+            dfMCM.ResetQuests(true)
+        endif
     endif
-
-    Form dfMCM_form = Game.GetFormFromFile(0xC545, "DeviousFollowers.esp")
-
-    if !dfMCM_form
-        return
-    endif
-
-    _DFlowMCM dfMCM = dfMCM_form as _DFlowMCM
-
-    dfMCM.ResetQuests(true)
-
-    return
 endFunction
 
 ; sltname df_setdebt
@@ -475,28 +445,21 @@ endFunction
 ; sltrslt We all know what you are going to use it for
 function df_setdebt(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-    Form dfQuest_form = Game.GetFormFromFile(0xD62, "DeviousFollowers.esp")
 
-    if !dfQuest_form
-        return
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Form dfQuest_form = GetForm_DeviousFollowers_dfQuest()
+
+        if dfQuest_form
+            QF__Gift_09000D62 dfQuest = dfQuest_form as QF__Gift_09000D62
+            if dfQuest
+                int debt = param[1] as int
+                dfQuest.SetDebt(debt)
+            endif
+        endif
     endif
-
-    QF__Gift_09000D62 dfQuest = dfQuest_form as QF__Gift_09000D62
-
-    int debt = param[1] as int
-    dfQuest.SetDebt(debt)
-
-    return
 endFunction
-
-
-zadLibs Function GetDDLib() global
-    zadLibs ddlib = Game.GetFormFromFile(0xF624, "Devious Devices - Integration.esm") as zadLibs
-    if !ddlib
-        Debug.Trace("Devious Devices zadlibs requested but .esm not found")
-    endif
-    return ddlib
-EndFunction
 
 ; sltname dd_unlockslot
 ; sltgrup Devious Devices
@@ -508,36 +471,31 @@ EndFunction
 ; sltrslt Should remove anything in body slot e.g. corset, harness, etc., and forced, so including quest items (be careful!)
 function dd_unlockslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-    zadLibs ddlib = GetDDLib()
-    if !ddlib
-        return
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    if slExtension.IsEnabled && ParamLengthLT(CmdPrimary, param.Length, 5)
+        zadLibs ddlib = GetForm_DeviousDevices_zadLibs() as zadLibs
+        
+        if ddlib
+            Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+            if _targetActor
+                bool force = (param.Length > 3 && param[3] == "force")
+                int i = param[2] as int
+
+                Armor device = _targetActor.GetEquippedArmorInSlot(i)
+                if device
+                    Keyword ddkeyword = ddlib.GetDeviceKeyword(device)
+                    if ddkeyword
+                        Armor renderedDevice = ddlib.GetRenderedDevice(device)
+                        if renderedDevice && (force || (!renderedDevice.HasKeyWord(ddlib.zad_QuestItem) && !device.HasKeyword(ddlib.zad_QuestItem)))
+                            ddlib.UnlockDevice(_targetActor, device, renderedDevice)
+                        endif
+                    endif
+                endif
+            endif
+        endif
     endif
-	
-    if ParamLengthLT(CmdPrimary, param.Length, 2)
-        return
-    endif
-
-    Actor _theActor = CmdPrimary.ResolveActor(param[1])
-    if !_theActor
-        return
-    endif
-
-    bool force = (param[3] == "force")
-    int i = param[2] as int
-    Armor device = _theActor.GetEquippedArmorInSlot(i)
-
-    Keyword ddkeyword = ddlib.GetDeviceKeyword(device)
-    if !ddkeyword
-        return
-    endif
-
-    Armor renderedDevice = ddlib.GetRenderedDevice(device)
-
-    if force || (!renderedDevice.HasKeyWord(ddlib.zad_QuestItem) && !device.HasKeyword(ddlib.zad_QuestItem))
-        ddlib.UnlockDevice(_theActor, device, renderedDevice)
-    endif
-
-    return
 endFunction
 
 ; sltname dd_unlockall
@@ -549,31 +507,35 @@ endFunction
 ; sltrslt Will attempt to (forcibly if necessary, e.g. quest locked items) unlock all lockable items on targeted actor.
 function dd_unlockall(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-    zadLibs ddlib = GetDDLib()
-    if !ddlib
-        return
-    endif
 
-    bool force = (param[1] == "force")
-    bool lockable
-    int i = 0
-    Armor device
-    Armor renderedDevice
-    while i < 61
-        device = CmdTargetActor.GetEquippedArmorInSlot(i)
-        renderedDevice = ddlib.GetRenderedDevice(device)
+    sl_triggersExtensionSexLab slExtension = GetExtension()
 
-        lockable = device.HasKeyword(ddlib.zad_lockable) || renderedDevice.HasKeyword(ddlib.zad_lockable)
+    if slExtension.IsEnabled && ParamLengthLT(CmdPrimary, param.Length, 4)
+        zadLibs ddlib = GetForm_DeviousDevices_zadLibs() as zadLibs
 
-        if lockable
-            if force || (!renderedDevice.HasKeyWord(ddlib.zad_QuestItem) && !device.HasKeyword(ddlib.zad_QuestItem))
-                ddlib.UnlockDevice(CmdTargetActor, device, renderedDevice)
+        if ddlib
+            Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+            if _targetActor
+                bool force = (param.Length > 2 && param[2] == "force")
+                bool lockable
+                int i = 0
+                Armor device
+                Armor renderedDevice
+                while i < 61
+                    device = _targetActor.GetEquippedArmorInSlot(i)
+                    if device
+                        renderedDevice = ddlib.GetRenderedDevice(device)
+                        lockable = device.HasKeyword(ddlib.zad_lockable) || renderedDevice.HasKeyword(ddlib.zad_lockable)
+
+                        if lockable && (force || (!(renderedDevice && renderedDevice.HasKeyWord(ddlib.zad_QuestItem)) && !device.HasKeyword(ddlib.zad_QuestItem)))
+                            ddlib.UnlockDevice(_targetActor, device, renderedDevice)
+                        endif
+                    endif
+            
+                    i += 1
+                endwhile
             endif
         endif
-
-        i += 1
-    endwhile
-
-    return
+    endif
 endFunction
 

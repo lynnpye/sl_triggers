@@ -3,7 +3,7 @@ scriptname sl_triggersCmdLibCore
 import sl_triggersStatics
 
 sl_triggersExtensionCore Function GetExtension() global
-    return Game.GetFormFromFile(0xD62, "sl_triggers.esp") as sl_triggersExtensionCore
+    return GetForm_SLT_ExtensionCore() as sl_triggersExtensionCore
 EndFunction
 
 ; sltname toh_elapsed_time

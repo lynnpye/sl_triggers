@@ -68,7 +68,7 @@ Event OnKeyDown(int keyCode)
 							MiscUtil.PrintConsole("SLT version: " + GetModVersion())
 							consoleLinesToSkip += 1
 						elseif subcommand == "list"
-							string[] commandsList = SLT.GetCommandsList()
+							string[] commandsList = SLT.GetScriptsList()
 							int i = 0
 							MiscUtil.PrintConsole("SLT Scripts List Start:")
 							consoleLinesToSkip += 1

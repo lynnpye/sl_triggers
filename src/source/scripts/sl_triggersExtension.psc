@@ -143,13 +143,17 @@ EndEvent
 ; returns - true if BOTH sl_triggers AND this extension are enabled; false otherwise
 bool				Property IsEnabled
 	bool Function Get()
-		return _bEnabled && SLT.bEnabled
+		return __bEnabled && SLT.bEnabled && _slt_AdditionalEnabledRequirements()
 	EndFunction
 	
 	Function Set(bool value)
-		_bEnabled = value
+		__bEnabled = value
 	EndFunction
 EndProperty
+
+bool Function _slt_AdditionalEnabledRequirements()
+	return true
+EndFunction
 
 ; bool IsDebugMsg
 ; debug logging status for this extension
@@ -256,7 +260,7 @@ EndFunction
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; note: SLT also has these properties defined
-bool				Property _bEnabled = true Auto Hidden ; enable/disable our extension
+bool				Property __bEnabled = true Auto Hidden ; enable/disable our extension
 bool				Property _bDebugMsg = false Auto Hidden ; enable/disable debug logging for our extension
 string				Property currentTriggerId Auto Hidden ; used for simple iteration
 
@@ -291,13 +295,13 @@ Function _slt_BootstrapSLTInit()
 	endif
 	; fetch and store some key properties dynamically
 	if !SLT
-		SLT = Game.GetFormFromFile(0xD62, "sl_triggers.esp") as sl_triggersMain
+		SLT = GetForm_SLT_Main() as sl_triggersMain
 	endif
 	if !ActorTypeNPC
-		ActorTypeNPC = Game.GetFormFromFile(0x13794, "Skyrim.esm") as Keyword
+		ActorTypeNPC = GetForm_Skyrim_ActorTypeNPC() as Keyword
 	endif
 	if !ActorTypeUndead
-		ActorTypeUndead = Game.GetFormFromFile(0x13796, "Skyrim.esm") as Keyword
+		ActorTypeUndead = GetForm_Skyrim_ActorTypeUndead() as Keyword
 	endif
 
 	InitSettingsFile(FN_X_Settings(GetExtensionKey()))
@@ -314,6 +318,7 @@ Function _slt_RegisterExtension()
 
 	if !SLT
 		Debug.Trace("Extension.RegisterExtension: cannot locate global SLT instance, unable to register extension (" + GetExtensionKey() + ")")
+		DebMsg("Extension.RegisterExtension: cannot locate global SLT instance, unable to register extension (" + GetExtensionKey() + ")")
 	endif
 	sl_triggersMain.SelfRegisterExtension(self)
 EndFunction

@@ -236,14 +236,10 @@ Function AlignToNextHour(float _curTime = -1.0)
     RegisterForSingleUpdateGameTime(untilNextHour * 1.04)
 EndFunction
 
-string Function GetDAKModname()
-	return JsonUtil.GetStringValue(FN_S, SETTINGS_DYNAMICACTIVATIONKEY_MODNAME, DEFAULT_DYNAMICACTIVATIONKEY_MODFILE)
-endfunction
-
 Function UpdateDAKStatus()
 	dakavailable = false
-	DAKStatus = Game.GetFormFromFile(0x801, GetDAKModname()) as GlobalVariable
-	DAKHotKey = Game.GetFormFromFile(0x804, GetDAKModname()) as GlobalVariable
+	DAKStatus = GetForm_DAK_Status() as GlobalVariable
+	DAKHotKey = GetForm_DAK_HotKey() as GlobalVariable
 	
 	if DAKStatus
 		dakavailable = true
@@ -252,10 +248,6 @@ EndFunction
 
 ; selectively enables only events with triggers
 Function RegisterEvents()
-    if IsDebugMsg
-        Debug.Notification("SL Triggers Core: register events")
-    endIf
-	
 	UnregisterForModEvent(EVENT_TOP_OF_THE_HOUR)
 	handlingTopOfTheHour = false
 	if IsEnabled && triggerKeys_topOfTheHour.Length > 0

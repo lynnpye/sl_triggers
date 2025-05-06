@@ -18,7 +18,7 @@ function DebMsgForce(string msg, bool shouldIDoAnything) global
 endfunction
 
 int Function GetModVersion() global
-	return 114
+	return 115
 EndFunction
 
 ;;;;;;;
@@ -115,6 +115,54 @@ EndFunction
 ; "Constants" - the "Aliens" guy
 string FUNCTION DELETED_ATTRIBUTE() global
 	return "trigger_deleted_by_user_via_mcm"
+EndFunction
+
+Form Function GetForm_SLT_Main() global
+	return Game.GetFormFromFile(0xD62, "sl_triggers.esp")
+EndFunction
+
+Form Function GetForm_SLT_ExtensionCore() global
+	return Game.GetFormFromFile(0x83C, "sl_triggers.esp")
+EndFunction
+
+Form Function GetForm_SLT_ExtensionSexLab() global
+	return Game.GetFormFromFile(0x85B, "sl_triggers.esp")
+EndFunction
+
+Form Function GetForm_Skyrim_ActorTypeNPC() global
+	return Game.GetFormFromFile(0x13794, "Skyrim.esm")
+EndFunction
+
+Form Function GetForm_Skyrim_ActorTypeUndead() global
+	return Game.GetFormFromFile(0x13796, "Skyrim.esm")
+EndFunction
+
+Form Function GetForm_DAK_Status() global
+	return Game.GetFormFromFile(0x801, "Dynamic Activation Key.esp")
+EndFunction
+
+Form Function GetForm_DAK_HotKey() global
+	return Game.GetFormFromFile(0x804, "Dynamic Activation Key.esp")
+EndFunction
+
+Form Function GetForm_SexLab_Framework() global
+	return Game.GetFormFromFile(0xD62, "SexLab.esm")
+EndFunction
+
+Form Function GetForm_SexLab_AnimatingFaction() global
+	return Game.GetFormFromFile(0xE50F, "SexLab.esm")
+EndFunction
+
+Form Function GetForm_DeviousDevices_zadLibs() global
+	return Game.GetFormFromFile(0xF624, "Devious Devices - Integration.esm")
+EndFunction
+
+Form Function GetForm_DeviousFollowers_dfQuest() global
+	return Game.GetFormFromFile(0xD62, "DeviousFollowers.esp")
+EndFunction
+
+Form Function GetForm_DeviousFollowers_MCM() global
+	return Game.GetFormFromFile(0xC545, "DeviousFollowers.esp")
 EndFunction
 
 
@@ -222,41 +270,25 @@ Function SquawkFunctionError(sl_triggersCmd _cmdPrimary, string msg) global
 EndFunction
 
 bool Function ParamLengthLT(sl_triggersCmd _cmdPrimary, int actualLength, int neededLength) global
-    if actualLength < neededLength
-        SquawkFunctionError(_cmdPrimary, "insufficient parameters (needed at least " + neededLength + " but only provided " + actualLength + ")")
-        return true
+    if actualLength >= neededLength
+        SquawkFunctionError(_cmdPrimary, "too many parameters (needed no more than " + neededLength + " but was provided " + actualLength + ")")
+        return false
     endif
-    return false
+    return true
 EndFunction
 
 bool Function ParamLengthGT(sl_triggersCmd _cmdPrimary, int actualLength, int neededLength) global
-    if actualLength < neededLength
-        SquawkFunctionError(_cmdPrimary, "too many parameters (needed no more than " + neededLength + " but was provided " + actualLength + ")")
-        return true
+    if actualLength <= neededLength
+        SquawkFunctionError(_cmdPrimary, "insufficient parameters (needed at least " + neededLength + " but only provided " + actualLength + ")")
+        return false
     endif
-    return false
+    return true
 EndFunction
 
 bool Function ParamLengthEQ(sl_triggersCmd _cmdPrimary, int actualLength, int neededLength) global
-    if actualLength < neededLength
-        SquawkFunctionError(_cmdPrimary, "was provided incorrect number of parameters (was provided " + actualLength + ")")
-        return true
+    if actualLength != neededLength
+        SquawkFunctionError(_cmdPrimary, "was provided incorrect number of parameters (was provided " + actualLength + " but needed " + neededLength + ")")
+        return false
     endif
-    return false
-EndFunction
-
-bool Function ParamLengthNEQ(sl_triggersCmd _cmdPrimary, int actualLength, int neededLength) global
-    if actualLength < neededLength
-        SquawkFunctionError(_cmdPrimary, "was provided incorrect number of parameters (needed " + neededLength + " but was provided " + actualLength + ")")
-        return true
-    endif
-    return false
-EndFunction
-
-bool Function ParamLengthNEQ2(sl_triggersCmd _cmdPrimary, int actualLength, int neededLength, int neededLength2) global
-    if actualLength < neededLength
-        SquawkFunctionError(_cmdPrimary, "was provided incorrect number of parameters (needed " + neededLength + " or " + neededLength2 + " but was provided " + actualLength + ")")
-        return true
-    endif
-    return false
+    return true
 EndFunction

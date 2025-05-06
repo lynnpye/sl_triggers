@@ -91,6 +91,14 @@ Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form s
 	RefreshData()
 EndEvent
 
+bool Function _slt_AdditionalEnabledRequirements()
+	return SexLab != none
+EndFunction
+
+sslThreadController Function GetThreadForActor(Actor theActor)
+    return SexLab.GetActorController(theActor)
+EndFunction
+
 bool Function CustomResolveActor(sl_triggersCmd CmdPrimary, string _code)
 
     if !SexLab
@@ -221,18 +229,14 @@ Function UpdateSexLabStatus()
 	SexLabAnimatingFaction = none
 	SexLab = none
 	
-	SexLab = Game.GetFormFromFile(0xD62, "SexLab.esm") as SexLabFramework
+	SexLab = GetForm_SexLab_Framework() as SexLabFramework
 	if SexLab
-		SexLabAnimatingFaction = Game.GetFormFromFile(0xE50F, "SexLab.esm") as Faction
+		SexLabAnimatingFaction = GetForm_SexLab_AnimatingFaction() as Faction
 	endif
 EndFunction
 
 ; selectively enables only events with triggers
 Function RegisterEvents()
-    if IsDebugMsg
-        Debug.Notification("SL Triggers SL: register events")
-    endIf
-	
 	UnregisterForModEvent(EVENT_SEXLAB_START)
 	if IsEnabled && triggerKeys_Start.Length > 0 && SexLab
 		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_START, EVENT_SEXLAB_START_HANDLER)

@@ -25,18 +25,18 @@ endFunction
 ; sltrslt Both do the same thing
 Function deb_msg(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-    if param.Length < 2
-        return
+
+    if ParamLengthGT(CmdPrimary, param.Length, 1)
+        string[] darr = PapyrusUtil.StringArray(param.Length)
+        darr[0] = "DebMsg> "
+        int i = 1
+        while i < darr.Length
+            darr[i] = CmdPrimary.Resolve(param[i])
+            i += 1
+        endwhile
+        string dmsg = PapyrusUtil.StringJoin(darr, "")
+        DebMsg(dmsg)
     endif
-    string[] darr = PapyrusUtil.StringArray(param.Length)
-    darr[0] = "DebMsg> "
-    int i = 1
-    while i < darr.Length
-        darr[i] = CmdPrimary.Resolve(param[i])
-        i += 1
-    endwhile
-    string dmsg = PapyrusUtil.StringJoin(darr, "")
-    DebMsg(dmsg)
 endFunction
  
 ; sltname av_restore
@@ -50,13 +50,13 @@ endFunction
 ; sltrslt Restores Health by 100 e.g. healing
 function av_restore(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-    
-    if ParamLengthNEQ(CmdPrimary, param.Length, 4)
-        return
-    endif
 
-    Actor mate = CmdPrimary.resolveActor(param[1])
-    mate.RestoreActorValue(CmdPrimary.resolve(param[2]), CmdPrimary.resolve(param[3]) as float)
+    if ParamLengthEQ(CmdPrimary, param.Length, 4)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if _targetActor
+            _targetActor.RestoreActorValue(CmdPrimary.resolve(param[2]), CmdPrimary.resolve(param[3]) as float)
+        endif
+    endif
 endFunction
 
 ; sltname av_damage
@@ -71,12 +71,12 @@ endFunction
 function av_damage(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 4)
-        return
+    if ParamLengthEQ(CmdPrimary, param.Length, 4)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if _targetActor
+            _targetActor.DamageActorValue(CmdPrimary.resolve(param[2]), CmdPrimary.resolve(param[3]) as float)
+        endif
     endif
-
-    Actor mate = CmdPrimary.resolveActor(param[1])
-    mate.DamageActorValue(CmdPrimary.resolve(param[2]), CmdPrimary.resolve(param[3]) as float)
 endFunction
 
 ; sltname av_mod
@@ -91,12 +91,12 @@ endFunction
 function av_mod(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 4)
-        return
+    if ParamLengthEQ(CmdPrimary, param.Length, 4)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if _targetActor
+            _targetActor.ModActorValue(CmdPrimary.resolve(param[2]), CmdPrimary.resolve(param[3]) as float)
+        endif
     endif
-
-    Actor mate = CmdPrimary.resolveActor(param[1])
-    mate.ModActorValue(CmdPrimary.resolve(param[2]), CmdPrimary.resolve(param[3]) as float)
 endFunction
 
 ; sltname av_set
@@ -111,12 +111,12 @@ endFunction
 function av_set(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 4)
-        return
+    if ParamLengthEQ(CmdPrimary, param.Length, 4)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if _targetActor
+            _targetActor.SetActorValue(CmdPrimary.resolve(param[2]), CmdPrimary.resolve(param[3]) as float)
+        endif
     endif
-
-    Actor mate = CmdPrimary.resolveActor(param[1])
-    mate.SetActorValue(CmdPrimary.resolve(param[2]), CmdPrimary.resolve(param[3]) as float)
 endFunction
 
 ; sltname av_getbase
@@ -129,14 +129,17 @@ endFunction
 function av_getbase(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
+    string nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+
+        if _targetActor
+            nextResult = _targetActor.GetBaseActorValue(CmdPrimary.resolve(param[2])) as string
+        endif
     endif
 
-    Actor mate
-    
-    mate = CmdPrimary.resolveActor(param[1])
-    CmdPrimary.MostRecentResult = mate.GetBaseActorValue(CmdPrimary.resolve(param[2])) as string
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname av_get
@@ -149,14 +152,17 @@ endFunction
 function av_get(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
+    string nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+
+        if _targetActor
+            nextResult = _targetActor.GetActorValue(CmdPrimary.resolve(param[2])) as string
+        endif
     endif
 
-    Actor mate
-    
-    mate = CmdPrimary.resolveActor(param[1])
-    CmdPrimary.MostRecentResult = mate.GetActorValue(CmdPrimary.resolve(param[2])) as string
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname av_getmax
@@ -169,12 +175,17 @@ endFunction
 function av_getmax(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
+    string nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+
+        if _targetActor
+            nextResult = _targetActor.GetActorValueMax(CmdPrimary.resolve(param[2])) as string
+        endif
     endif
 
-    Actor mate = CmdPrimary.resolveActor(param[1])
-    CmdPrimary.MostRecentResult = mate.GetActorValueMax(CmdPrimary.resolve(param[2])) as string
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname av_getpercentage
@@ -187,12 +198,16 @@ endFunction
 function av_getpercent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
+    string nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if _targetActor
+            nextResult = (_targetActor.GetActorValuePercentage(CmdPrimary.resolve(param[2])) * 100.0) as string
+        endif
     endif
 
-    Actor mate = CmdPrimary.resolveActor(param[1])
-    CmdPrimary.MostRecentResult = (mate.GetActorValuePercentage(CmdPrimary.resolve(param[2])) * 100.0) as string
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname spell_cast
@@ -205,21 +220,19 @@ endFunction
 function spell_cast(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
-    endif
-
-    Spell thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Spell
-    if thing
-        Actor mate = CmdPrimary.resolveActor(param[2])
-        if mate
-            thing.RemoteCast(mate, mate, mate)
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Spell thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Spell
+        if thing
+            Actor _targetActor = CmdPrimary.resolveActor(param[2])
+            if _targetActor
+                thing.RemoteCast(_targetActor, _targetActor, _targetActor)
+            else
+                MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[2] + ")")
+            endif
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[2] + ")")
-        endif
-    else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve SPEL with FormId (" + param[1] + ")")
-    endIf
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve SPEL with FormId (" + param[1] + ")")
+        endIf
+    endif
 endFunction
 
 ; sltname spell_dcsa
@@ -232,20 +245,18 @@ endFunction
 function spell_dcsa(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
-    endif
-
-    Spell thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Spell
-    if thing
-        Actor mate = CmdPrimary.resolveActor(param[2])
-        if mate
-            mate.DoCombatSpellApply(thing, mate)
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Spell thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Spell
+        if thing
+            Actor _targetActor = CmdPrimary.resolveActor(param[2])
+            if _targetActor
+                _targetActor.DoCombatSpellApply(thing, _targetActor)
+            else
+                MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[2] + ")")
+            endif
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[2] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve SPEL with FormId (" + param[1] + ")")
         endif
-    else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve SPEL with FormId (" + param[1] + ")")
     endif
 endFunction
 
@@ -259,20 +270,18 @@ endFunction
 function spell_dispel(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
-    endif
-
-    Spell thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Spell
-    if thing
-        Actor mate = CmdPrimary.resolveActor(param[2])
-        if mate
-            mate.DispelSpell(thing)
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Spell thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Spell
+        if thing
+            Actor _targetActor = CmdPrimary.resolveActor(param[2])
+            if _targetActor
+                _targetActor.DispelSpell(thing)
+            else
+                MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[2] + ")")
+            endif
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[2] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve SPEL with FormId (" + param[1] + ")")
         endif
-    else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve SPEL with FormId (" + param[1] + ")")
     endif
 endFunction
 
@@ -286,20 +295,18 @@ endFunction
 function spell_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
-    endif
-
-    Spell thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Spell
-    if thing
-        Actor mate = CmdPrimary.resolveActor(param[2])
-        if mate
-            mate.AddSpell(thing)
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Spell thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Spell
+        if thing
+            Actor _targetActor = CmdPrimary.resolveActor(param[2])
+            if _targetActor
+                _targetActor.AddSpell(thing)
+            else
+                MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[2] + ")")
+            endif
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[2] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve SPEL with FormId (" + param[1] + ")")
         endif
-    else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve SPEL with FormId (" + param[1] + ")")
     endif
 endFunction
 
@@ -313,20 +320,18 @@ endFunction
 function spell_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
-    endif
-
-    Spell thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Spell
-    if thing
-        Actor mate = CmdPrimary.resolveActor(param[2])
-        if mate
-            mate.RemoveSpell(thing)
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Spell thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Spell
+        if thing
+            Actor _targetActor = CmdPrimary.resolveActor(param[2])
+            if _targetActor
+                _targetActor.RemoveSpell(thing)
+            else
+                MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[2] + ")")
+            endif
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[2] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve SPEL with FormId (" + param[1] + ")")
         endif
-    else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve SPEL with FormId (" + param[1] + ")")
     endif
 endFunction
 
@@ -335,30 +340,34 @@ endFunction
 ; sltdesc Adds the item to the actor's inventory.
 ; sltargs actor: target Actor
 ; sltargs item: ITEM FormId
-; sltargs count: number
-; sltargs displaymessage: 0 - show message | 1 - silent
+; sltargs count: number (optional: default 1)
+; sltargs displaymessage: 0 - show message | 1 - silent (optional: default 0 - show message)
 ; sltsamp item_add $self "skyrim.esm:15" 10 0
 ; sltrslt Adds 10 gold to the actor, displaying the notification
 function item_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 5)
-        return
-    endif
-
-    Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))
-    if thing
-        Actor mate = CmdPrimary.resolveActor(param[1])
-        int count = CmdPrimary.resolve(param[3]) as int
-        bool isSilent = CmdPrimary.resolve(param[4]) as int
-
-        if mate
-            mate.AddItem(thing, count, isSilent)
+    if ParamLengthLT(CmdPrimary, param.Length, 6)
+        Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))
+        if thing
+            Actor _targetActor = CmdPrimary.resolveActor(param[1])
+    
+            if _targetActor
+                int count = 1
+                if param.Length > 3
+                    count = CmdPrimary.resolve(param[3]) as int
+                endif
+                bool isSilent = false
+                if param.Length > 4
+                    isSilent = CmdPrimary.resolve(param[4]) as int
+                endif
+                _targetActor.AddItem(thing, count, isSilent)
+            else
+                DebMsg("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
+            endif
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
+            DebMsg("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
         endif
-    else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
     endif
 endFunction
 
@@ -367,76 +376,81 @@ endFunction
 ; sltdesc Adds the item to the actor's inventory, but check if some armor was re-equipped (if NPC)
 ; sltargs actor: target Actor
 ; sltargs item: ITEM FormId
-; sltargs count: number
-; sltargs displaymessage: 0 - show message | 1 - silent
+; sltargs count: number (optional: default 1)
+; sltargs displaymessage: 0 - show message | 1 - silent (optional: default 0 - show message)
 ; sltsamp item_addex $self "skyrim.esm:15" 10 0
 function item_addex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 5)
-        return
-    endif
+    if ParamLengthLT(CmdPrimary, param.Length, 6)
     
-    Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))
-    if thing
-        Actor mate = CmdPrimary.resolveActor(param[1])
-        int count = CmdPrimary.resolve(param[3]) as int
-        bool isSilent = CmdPrimary.resolve(param[4]) as int
-        
-        Form[] itemSlots = new Form[34]
-        int index
-        int slotsChecked
-        int thisSlot
-        
-        If mate != CmdPrimary.PlayerRef
-            index = 0
-            slotsChecked += 0x00100000
-            slotsChecked += 0x00200000
-            slotsChecked += 0x80000000
-            thisSlot = 0x01
-            While (thisSlot < 0x80000000)
-                if (Math.LogicalAnd(slotsChecked, thisSlot) != thisSlot) 
-                    Form thisArmor = mate.GetWornForm(thisSlot)
-                    if (thisArmor)
-                        itemSlots[index] = thisArmor
-                        index += 1
-                        slotsChecked += (thisArmor as Armor).GetSlotMask() 
-                    else 
-                        slotsChecked += thisSlot
+        Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))
+        if thing
+            int count = 1
+            if param.Length > 3
+                count = CmdPrimary.resolve(param[3]) as int
+            endif
+            bool isSilent = false
+            if param.Length > 4
+                isSilent = CmdPrimary.resolve(param[4]) as int
+            endif
+            Actor _targetActor = CmdPrimary.resolveActor(param[1])
+            
+            Form[] itemSlots = new Form[34]
+            int index
+            int slotsChecked
+            int thisSlot
+            
+            If _targetActor != CmdPrimary.PlayerRef
+                index = 0
+                slotsChecked += 0x00100000
+                slotsChecked += 0x00200000
+                slotsChecked += 0x80000000
+                thisSlot = 0x01
+                While (thisSlot < 0x80000000)
+                    if (Math.LogicalAnd(slotsChecked, thisSlot) != thisSlot) 
+                        Form thisArmor = _targetActor.GetWornForm(thisSlot)
+                        if (thisArmor)
+                            itemSlots[index] = thisArmor
+                            index += 1
+                            slotsChecked += (thisArmor as Armor).GetSlotMask() 
+                        else 
+                            slotsChecked += thisSlot
+                        endif
                     endif
-                endif
-                thisSlot *= 2 
-            endWhile
-        EndIf
-        
-        mate.AddItem(thing, count, isSilent)
-
-        If mate != CmdPrimary.PlayerRef
-            index = 0
-            slotsChecked = 0
-            slotsChecked += 0x00100000
-            slotsChecked += 0x00200000
-            slotsChecked += 0x80000000
-            thisSlot = 0x01
-            While (thisSlot < 0x80000000)
-                if (Math.LogicalAnd(slotsChecked, thisSlot) != thisSlot)
-                    Form thisArmor = mate.GetWornForm(thisSlot)
-                    if (thisArmor)
-                        If itemSlots.Find(thisArmor) < 0
-                            CmdTargetActor.UnequipItemEx(thisArmor, 0)
-                        EndIf
-                        slotsChecked += (thisArmor as Armor).GetSlotMask()
-                    else
-                        slotsChecked += thisSlot
+                    thisSlot *= 2 
+                endWhile
+            EndIf
+            
+            _targetActor.AddItem(thing, count, isSilent)
+    
+            If _targetActor != CmdPrimary.PlayerRef
+                index = 0
+                slotsChecked = 0
+                slotsChecked += 0x00100000
+                slotsChecked += 0x00200000
+                slotsChecked += 0x80000000
+                thisSlot = 0x01
+                While (thisSlot < 0x80000000)
+                    if (Math.LogicalAnd(slotsChecked, thisSlot) != thisSlot)
+                        Form thisArmor = _targetActor.GetWornForm(thisSlot)
+                        if (thisArmor)
+                            If itemSlots.Find(thisArmor) < 0
+                                _targetActor.UnequipItemEx(thisArmor, 0)
+                            EndIf
+                            slotsChecked += (thisArmor as Armor).GetSlotMask()
+                        else
+                            slotsChecked += thisSlot
+                        endif
                     endif
-                endif
-                thisSlot *= 2 
-            endWhile
+                    thisSlot *= 2 
+                endWhile
+            else
+                MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
+            endif
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
         endif
-    else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
     endif
 endFunction
 
@@ -446,29 +460,30 @@ endFunction
 ; sltargs actor: target Actor
 ; sltargs item: ITEM FormId
 ; sltargs count: number
-; sltargs displaymessage: 0 - show message | 1 - silent
+; sltargs displaymessage: 0 - show message | 1 - silent (optional: default 0 - show message)
 ; sltsamp item_remove $self "skyrim.esm:15" 10 0
 ; sltrslt Removes up to 10 gold from the actor
 function item_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 5)
-        return
-    endif
-    
-    Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))
-    thing
-    if thing
-        Actor mate = CmdPrimary.resolveActor(param[1])
-        int count = CmdPrimary.resolve(param[3]) as int
-        bool isSilent = CmdPrimary.resolve(param[4]) as int
-        if mate
-            mate.RemoveItem(thing, count, isSilent)
+    if ParamLengthLT(CmdPrimary, param.Length, 6)
+        Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))
+        if thing
+            Actor _targetActor = CmdPrimary.resolveActor(param[1])
+
+            if _targetActor
+                int count = CmdPrimary.resolve(param[3]) as int
+                bool isSilent = false
+                if param.Length > 4
+                    isSilent = CmdPrimary.resolve(param[4]) as int
+                endif
+                _targetActor.RemoveItem(thing, count, isSilent)
+            else
+                MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
+            endif
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
         endif
-    else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
     endif
 endFunction
 
@@ -477,30 +492,34 @@ endFunction
 ; sltdesc Add item (like item_add) and then use the added item. Useful for potions, food, and other consumables.
 ; sltargs actor: target Actor
 ; sltargs item: ITEM FormId
-; sltargs count: number
-; sltargs displaymessage: 0 - show message | 1 - silent
+; sltargs count: number (optional: default 1)
+; sltargs displaymessage: 0 - show message | 1 - silent (optional: default 0 - show message)
 ; sltsamp item_adduse $self "skyrim.esm:216158" 1 0
 ; sltrslt Add and drink some booze
 function item_adduse(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 5)
-        return
-    endif
-
-    Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))    
-    if thing
-        Actor mate = CmdPrimary.resolveActor(param[1])
-        int count = CmdPrimary.resolve(param[3]) as int
-        bool isSilent = CmdPrimary.resolve(param[4]) as int
-        if mate
-            mate.AddItem(thing, count, isSilent)
-            mate.EquipItem(thing, false, isSilent)
+    if ParamLengthLT(CmdPrimary, param.Length, 6)
+        Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))    
+        if thing
+            Actor _targetActor = CmdPrimary.resolveActor(param[1])
+            if _targetActor
+                int count = 1
+                if param.Length > 3
+                    count = CmdPrimary.resolve(param[3]) as int
+                endif
+                bool isSilent = false
+                if param.Length > 4
+                    isSilent = CmdPrimary.resolve(param[4]) as int
+                endif
+                _targetActor.AddItem(thing, count, isSilent)
+                _targetActor.EquipItem(thing, false, isSilent)
+            else
+                MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
+            endif
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
         endif
-    else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
     endif
 endFunction
 
@@ -518,23 +537,21 @@ endFunction
 function item_equipex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 4)
-        return
-    endif
-
-    Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))    
-    if thing
-        Actor mate = CmdPrimary.resolveActor(param[1])
-        if mate
-            int slotId = CmdPrimary.resolve(param[3]) as int
-            bool isSilent = CmdPrimary.resolve(param[4]) as int
-            bool isRemovalPrevented = CmdPrimary.Resolve(param[5]) as int
-            mate.EquipItemEx(thing, slotId, isRemovalPrevented, isSilent)
+    if ParamLengthEQ(CmdPrimary, param.Length, 6)
+        Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))    
+        if thing
+            Actor _targetActor = CmdPrimary.resolveActor(param[1])
+            if _targetActor
+                int slotId = CmdPrimary.resolve(param[3]) as int
+                bool isSilent = CmdPrimary.resolve(param[4]) as int
+                bool isRemovalPrevented = CmdPrimary.Resolve(param[5]) as int
+                _targetActor.EquipItemEx(thing, slotId, isRemovalPrevented, isSilent)
+            else
+                MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
+            endif
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
         endif
-    else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
     endif
 endFunction
 
@@ -551,22 +568,20 @@ endFunction
 function item_equip(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 4)
-        return
-    endif
-    
-    Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))
-    if thing
-        Actor mate = CmdPrimary.resolveActor(param[1])
-        if mate
-            int slotId = CmdPrimary.resolve(param[3]) as int
-            bool isSilent = CmdPrimary.resolve(param[4]) as int
-            mate.EquipItem(thing, slotId, isSilent)
+    if ParamLengthEQ(CmdPrimary, param.Length, 5)
+        Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))
+        if thing
+            Actor _targetActor = CmdPrimary.resolveActor(param[1])
+            if _targetActor
+                int slotId = CmdPrimary.resolve(param[3]) as int
+                bool isSilent = CmdPrimary.resolve(param[4]) as int
+                _targetActor.EquipItem(thing, slotId, isSilent)
+            else
+                MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
+            endif
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
         endif
-    else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
     endif
 endFunction
 
@@ -581,21 +596,19 @@ endFunction
 function item_unequipex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
-    endif
-
-    Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))
-    if thing
-        Actor mate = CmdPrimary.resolveActor(param[1])
-        if mate
-            int slotId = CmdPrimary.resolve(param[3]) as int
-            mate.UnEquipItemEx(thing, slotId)
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))
+        if thing
+            Actor _targetActor = CmdPrimary.resolveActor(param[1])
+            if _targetActor
+                int slotId = CmdPrimary.resolve(param[3]) as int
+                _targetActor.UnEquipItemEx(thing, slotId)
+            else
+                MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
+            endif
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
         endif
-    else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
     endif
 endFunction
 
@@ -608,22 +621,23 @@ endFunction
 function item_getcount(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
+    int nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))    
+        if thing
+            Actor _targetActor = CmdPrimary.resolveActor(param[1])
+            if _targetActor
+                nextResult = _targetActor.GetItemCount(thing)
+            else
+                MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
+            endif
+        else
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
+        endif
     endif
 
-    Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))    
-    if thing
-        Actor mate = CmdPrimary.resolveActor(param[1])
-        if mate
-            int retVal = mate.GetItemCount(thing)
-            CmdPrimary.MostRecentResult = retVal as string
-        else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
-        endif
-    else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
-    endif
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname msg_notify
@@ -636,18 +650,16 @@ endFunction
 function msg_notify(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthLT(CmdPrimary, param.Length, 2)
-        return
+    if ParamLengthGT(CmdPrimary, param.Length, 1)
+        string[] darr = PapyrusUtil.StringArray(param.Length)
+        int i = 1
+        while i < darr.Length
+            darr[i] = CmdPrimary.Resolve(param[i])
+            i += 1
+        endwhile
+        string msg = PapyrusUtil.StringJoin(darr, "")
+        Debug.Notification(msg)
     endif
-
-    string[] darr = PapyrusUtil.StringArray(param.Length)
-    int i = 1
-    while i < darr.Length
-        darr[i] = CmdPrimary.Resolve(param[i])
-        i += 1
-    endwhile
-    string msg = PapyrusUtil.StringJoin(darr, "")
-    Debug.Notification(msg)
 endFunction
 
 ; sltname msg_console
@@ -660,18 +672,16 @@ endFunction
 function msg_console(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthLT(CmdPrimary, param.Length, 2)
-        return
+    if ParamLengthGT(CmdPrimary, param.Length, 1)
+        string[] darr = PapyrusUtil.StringArray(param.Length)
+        int i = 1
+        while i < darr.Length
+            darr[i] = CmdPrimary.Resolve(param[i])
+            i += 1
+        endwhile
+        string msg = PapyrusUtil.StringJoin(darr, "")
+        MiscUtil.PrintConsole(msg)
     endif
-
-    string[] darr = PapyrusUtil.StringArray(param.Length)
-    int i = 1
-    while i < darr.Length
-        darr[i] = CmdPrimary.Resolve(param[i])
-        i += 1
-    endwhile
-    string msg = PapyrusUtil.StringJoin(darr, "")
-    MiscUtil.PrintConsole(msg)
 endFunction
 
 ; sltname rnd_list
@@ -683,12 +693,14 @@ endFunction
 function rnd_list(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthLT(CmdPrimary, param.Length, 2)
-        return
+    string nextResult
+
+    if ParamLengthGT(CmdPrimary, param.Length, 1)
+        int idx = Utility.RandomInt(1, param.Length - 1)
+        nextResult = CmdPrimary.Resolve(param[idx])
     endif
-    
-    int idx = Utility.RandomInt(1, param.Length - 1)
-    CmdPrimary.MostRecentResult = CmdPrimary.Resolve(param[idx])
+
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname rnd_int
@@ -700,11 +712,13 @@ endFunction
 function rnd_int(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
+    string nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        nextResult = Utility.RandomInt(CmdPrimary.resolve(param[1]) as int, CmdPrimary.resolve(param[2]) as int) as string
     endif
-    
-    CmdPrimary.MostRecentResult = Utility.RandomInt(CmdPrimary.resolve(param[1]) as int, CmdPrimary.resolve(param[2]) as int) as string
+
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname util_wait
@@ -716,64 +730,61 @@ endFunction
 function util_wait(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 2)
-        return
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Utility.Wait(CmdPrimary.resolve(param[1]) as float)
     endif
-    
-    Utility.Wait(CmdPrimary.resolve(param[1]) as float)
 endFunction
 
-; sltname util_getrndactor
+; sltname util_getrandomactor
 ; sltgrup Utility
 ; sltdesc Sets $iterActor to a random actor within specified range of self
 ; sltargs range: 0 - all | >0 skyrim units
-; sltsamp util_getrndactor 320
-function util_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+; sltsamp util_getrandomactor 320
+function util_getrandomactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 1)
-        return
-    endif
-    
-    Actor[] inCell = MiscUtil.ScanCellNPCs(CmdPrimary.PlayerRef, CmdPrimary.resolve(param[1]) as float)
-    if !(inCell.Length)
-        return 
-    endif
+    Actor nextIterActor
 
-    Keyword ActorTypeNPC = Game.GetFormFromFile(0x13794, "Skyrim.esm") as Keyword
-    Cell    cc = CmdPrimary.PlayerRef.getParentCell()
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor[] inCell = MiscUtil.ScanCellNPCs(CmdPrimary.PlayerRef, CmdPrimary.resolve(param[1]) as float)
+        if inCell.Length
+            Keyword ActorTypeNPC = GetForm_Skyrim_ActorTypeNPC() as Keyword
+            Cell    cc = CmdPrimary.PlayerRef.getParentCell()
+        
+            int i = 0
+            int nuns = 0
+            while i < inCell.Length
+                Actor _targetActor = inCell[i]
+                if !_targetActor || _targetActor == CmdPrimary.PlayerRef || !_targetActor.isEnabled() || _targetActor.isDead() || _targetActor.isInCombat() || _targetActor.IsUnconscious() || !_targetActor.HasKeyWord(ActorTypeNPC) || !_targetActor.Is3DLoaded() || cc != _targetActor.getParentCell()
+                    inCell[i] = none
+                    nuns += 1
+                endif
+                i += 1
+            endwhile
+        
+            int remainder = inCell.Length - nuns
+            if remainder > 0
+                int _targetMetaIndex = Utility.RandomInt(0, remainder - 1)
+                int _metaIndex = -1
 
-    int i = 0
-    int nuns = 0
-    while i < inCell.Length
-        Actor mate = inCell[i]
-        if !mate || mate == CmdPrimary.PlayerRef || !mate.isEnabled() || mate.isDead() || mate.isInCombat() || mate.IsUnconscious() || !mate.HasKeyWord(ActorTypeNPC) || !mate.Is3DLoaded() || cc != mate.getParentCell()
-            inCell[i] = none
-            nuns += 1
+                i = 0
+                while i < inCell.Length && _metaIndex < _targetMetaIndex
+                    if inCell[i]
+                        _metaIndex += 1
+                    endif
+                    if _metaIndex < _targetMetaIndex
+                        i += 1
+                    endif
+                endwhile
+
+                if _metaIndex == _targetMetaIndex
+                    nextIterActor = inCell[i]
+                endif
+            endif
         endif
-        i += 1
-    endwhile
-
-    CmdPrimary.iterActor = none
-
-    if inCell.Length == nuns
-        return
     endif
 
-    Form[] noblanks = PapyrusUtil.FormArray(inCell.Length - nuns)
-
-    i = 0
-    int j = 0
-    while i < inCell.Length
-        if inCell[i]
-            noblanks[j] = inCell[i]
-            j += 1
-        endif
-        i += 1
-    endwhile
-
-    i = Utility.RandomInt(0, noblanks.Length)
-    CmdPrimary.iterActor = noblanks[i] as Actor
+    CmdPrimary.iterActor = nextIterActor
 endFunction
 
 ; sltname perk_addpoints
@@ -784,11 +795,9 @@ endFunction
 function perk_addpoints(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 2)
-        return
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Game.AddPerkPoints(CmdPrimary.resolve(param[1]) as int)
     endif
-    
-    Game.AddPerkPoints(CmdPrimary.resolve(param[1]) as int)
 endFunction
 
 ; sltname perk_add
@@ -800,20 +809,18 @@ endFunction
 function perk_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
-    endif
-
-    Perk thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Perk    
-    if thing
-        Actor mate = CmdPrimary.resolveActor(param[2])
-        if mate
-            mate.AddPerk(thing)
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Perk thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Perk    
+        if thing
+            Actor _targetActor = CmdPrimary.resolveActor(param[2])
+            if _targetActor
+                _targetActor.AddPerk(thing)
+            else
+                MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[2] + ")")
+            endif
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[2] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[1] + ")")
         endif
-    else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[1] + ")")
     endif
 endFunction
 
@@ -826,20 +833,18 @@ endFunction
 function perk_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
-    endif
-
-    Perk thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Perk    
-    if thing
-        Actor mate = CmdPrimary.resolveActor(param[2])
-        if mate
-            mate.RemovePerk(thing)
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Perk thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Perk    
+        if thing
+            Actor _targetActor = CmdPrimary.resolveActor(param[2])
+            if _targetActor
+                _targetActor.RemovePerk(thing)
+            else
+                MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[2] + ")")
+            endif
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[2] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[1] + ")")
         endif
-    else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[1] + ")")
     endif
 endFunction
 
@@ -855,20 +860,18 @@ endFunction
 function actor_advskill(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 4)
-        return
-    endif
-
-    Actor mate = CmdPrimary.resolveActor(param[1])
-    if mate
-        string skillName = CmdPrimary.resolve(param[2])
-        if skillName
-            Game.AdvanceSkill(skillName, CmdPrimary.resolve(param[3]) as int)
+    if ParamLengthEQ(CmdPrimary, param.Length, 4)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if _targetActor
+            string skillName = CmdPrimary.resolve(param[2])
+            if skillName
+                Game.AdvanceSkill(skillName, CmdPrimary.resolve(param[3]) as int)
+            else
+                MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve skill name (" + param[2] + ")")
+            endif
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve skill name (" + param[2] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
         endif
-    else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
     endif
 endFunction
 
@@ -883,24 +886,22 @@ endFunction
 function actor_incskill(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 4)
-        return
-    endif
-
-    Actor mate = CmdPrimary.resolveActor(param[1])
-    if mate
-        string skillName = CmdPrimary.resolve(param[2])
-        if skillName
-            if mate == CmdPrimary.PlayerRef
-                Game.IncrementSkillBy(skillName, CmdPrimary.resolve(param[3]) as int)
+    if ParamLengthEQ(CmdPrimary, param.Length, 4)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if _targetActor
+            string skillName = CmdPrimary.resolve(param[2])
+            if skillName
+                if _targetActor == CmdPrimary.PlayerRef
+                    Game.IncrementSkillBy(skillName, CmdPrimary.resolve(param[3]) as int)
+                else
+                    _targetActor.ModActorValue(skillName, CmdPrimary.resolve(param[3]) as int)
+                endif
             else
-                mate.ModActorValue(skillName, CmdPrimary.resolve(param[3]) as int)
+                MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve skill name (" + param[2] + ")")
             endif
         else
-            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve skill name (" + param[2] + ")")
+            MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
         endif
-    else
-        MiscUtil.PrintConsole("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
     endif
 endFunction
 
@@ -916,18 +917,18 @@ endFunction
 function actor_isvalid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 2)
-        return
+    int nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Cell  cc = CmdPrimary.PlayerRef.getParentCell()
+        
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if _targetActor && _targetActor.isEnabled() && !_targetActor.isDead() && !_targetActor.isInCombat() && !_targetActor.IsUnconscious() && _targetActor.Is3DLoaded() && cc == _targetActor.getParentCell()
+            nextResult = 1
+        endIf
     endif
 
-    Cell  cc = CmdPrimary.PlayerRef.getParentCell()
-    
-    Actor mate = CmdPrimary.resolveActor(param[1])
-    if mate && mate.isEnabled() && !mate.isDead() && !mate.isInCombat() && !mate.IsUnconscious() && mate.Is3DLoaded() && cc == mate.getParentCell()
-        CmdPrimary.MostRecentResult = "1"
-    else
-        CmdPrimary.MostRecentResult = "0"
-    endIf
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname actor_haslos
@@ -940,18 +941,18 @@ endFunction
 function actor_haslos(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
+    int nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor _actorOne = CmdPrimary.resolveActor(param[1])
+        Actor _actorTwo = CmdPrimary.resolveActor(param[2])
+        
+        if _actorOne && _actorTwo && _actorOne.hasLOS(_actorTwo)
+            nextResult = 1
+        endIf
     endif
 
-    Actor mate = CmdPrimary.resolveActor(param[1])
-    Actor mate2 = CmdPrimary.resolveActor(param[2])
-    
-    if mate.hasLOS(mate2)
-        CmdPrimary.MostRecentResult = "1"
-    else
-        CmdPrimary.MostRecentResult = "0"
-    endIf
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname actor_name
@@ -962,11 +963,16 @@ endFunction
 function actor_name(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 2)
-        return
+    string nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if _targetActor
+            nextResult = CmdPrimary.ActorName(_targetActor)
+        endif
     endif
     
-    CmdPrimary.MostRecentResult = CmdPrimary.ActorName(CmdPrimary.resolveActor(param[1]))
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname actor_modcrimegold
@@ -978,16 +984,14 @@ endFunction
 function actor_modcrimegold(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
-    endif
-
-    Actor mate = CmdPrimary.resolveActor(param[1])
-    if mate
-        Faction crimeFact = mate.GetCrimeFaction()
-        if crimeFact
-            crimeFact.ModCrimeGold(CmdPrimary.resolve(param[2]) as int, false)
-        endIf
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if _targetActor
+            Faction crimeFact = _targetActor.GetCrimeFaction()
+            if crimeFact
+                crimeFact.ModCrimeGold(CmdPrimary.resolve(param[2]) as int, false)
+            endIf
+        endif
     endif
 endFunction
 
@@ -1000,11 +1004,12 @@ endFunction
 function actor_qnnu(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 2)
-        return
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if _targetActor
+            _targetActor.QueueNiNodeUpdate()
+        endif
     endif
-    
-    CmdPrimary.resolveActor(param[1]).QueueNiNodeUpdate()
 endFunction
 
 ; sltname actor_isguard
@@ -1015,15 +1020,16 @@ endFunction
 function actor_isguard(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 2)
-        return
+    int nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if _targetActor && _targetActor.IsGuard()
+            nextResult = 1
+        endIf
     endif
-    
-    if CmdPrimary.resolveActor(param[1]).IsGuard()
-        CmdPrimary.MostRecentResult = "1"
-    else
-        CmdPrimary.MostRecentResult = "0"
-    endIf
+
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 function actor_isquard(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1038,49 +1044,56 @@ endFunction
 function actor_isplayer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 2)
-        return
+    int nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if _targetActor && _targetActor == CmdPrimary.PlayerRef
+            nextResult = 1
+        endIf
     endif
-    
-    if CmdPrimary.resolveActor(param[1]) == CmdPrimary.PlayerRef
-        CmdPrimary.MostRecentResult = "1"
-    else
-        CmdPrimary.MostRecentResult = "0"
-    endIf
+
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname actor_getgender
 ; sltgrup Actor
-; sltdesc Sets $$ to the actor's gender, 0 - male, 1 - female, 2 - creature
+; sltdesc Sets $$ to the actor's gender, 0 - male, 1 - female, 2 - creature, "" otherwise
 ; sltargs actor: target Actor
 ; sltsamp actor_getgender $actor
 function actor_getgender(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 2)
-        return
+    string nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if _targetActor
+            nextResult = CmdPrimary.ActorGender(_targetActor)
+        endif
     endif
-    
-    CmdPrimary.MostRecentResult = CmdPrimary.ActorGender(CmdPrimary.resolveActor(param[1]))
+
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname actor_say
 ; sltgrup Actor
-; sltdesc Causes the actor to 'say' the topic indicated by FormId
+; sltdesc Causes the actor to 'say' the topic indicated by FormId; not usable on the Player
 ; sltargs actor: target Actor
 ; sltargs topic: TOPIC FormID
 ; sltsamp actor_say $actor "Skyrim.esm:1234"
 function actor_say(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Topic thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2])) as Topic
+        if thing
+            Actor _targetActor = CmdPrimary.resolveActor(param[1])
+            if _targetActor != CmdPrimary.PlayerRef
+                _targetActor.Say(thing)
+            endif
+        endIf
     endif
-    
-    Topic thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2])) as Topic
-    if thing
-        CmdPrimary.resolveActor(param[1]).Say(thing)
-    endIf
 endFunction
 
 ; sltname actor_haskeyword
@@ -1088,21 +1101,21 @@ endFunction
 ; sltdesc Sets $$ to 1 if actor has the keyword, 0 otherwise.
 ; sltargs actor: target Actor
 ; sltargs keyword: string, keyword name
-; sltsamp actor_isplayer $actor Vampire
+; sltsamp actor_haskeyword $actor Vampire
 function actor_haskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
+    int nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Keyword keyw = Keyword.GetKeyword(CmdPrimary.resolve(param[2]))
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if keyw && _targetActor && _targetActor.HasKeyword(keyw)
+            nextResult = 1
+        endIf
     endif
-    
-    Keyword keyw = Keyword.GetKeyword(CmdPrimary.resolve(param[2]))
-    
-    if keyw && CmdPrimary.resolveActor(param[1]).HasKeyword(keyw)
-        CmdPrimary.MostRecentResult = "1"
-    else
-        CmdPrimary.MostRecentResult = "0"
-    endIf
+
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname actor_iswearing
@@ -1114,17 +1127,17 @@ endFunction
 function actor_iswearing(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
+    int nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Armor thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2])) as Armor
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if thing && _targetActor && _targetActor.IsEquipped(thing)
+            nextResult = 1
+        endIf
     endif
-	
-	Armor thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2])) as Armor
-	
-	if thing && CmdPrimary.resolveActor(param[1]).IsEquipped(thing)
-        CmdPrimary.MostRecentResult = "1"
-    else
-        CmdPrimary.MostRecentResult = "0"
-    endIf
+
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname actor_worninslot
@@ -1136,16 +1149,16 @@ endFunction
 function actor_worninslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
+    int nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if _targetActor && _targetActor.GetEquippedArmorInSlot(CmdPrimary.Resolve(param[2]) as int)
+            nextResult = 1
+        endIf
     endif
 
-	Actor mate = CmdPrimary.resolveActor(param[1])
-	if mate && mate.GetEquippedArmorInSlot(param[2] as int)
-		CmdPrimary.MostRecentResult = "1"
-	else
-		CmdPrimary.MostRecentResult = "0"
-	endIf
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname actor_wornhaskeyword
@@ -1157,17 +1170,18 @@ endFunction
 function actor_wornhaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
+    int nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Keyword keyw = Keyword.GetKeyword(CmdPrimary.resolve(param[2]))
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        
+        if keyw && _targetActor && _targetActor.WornHasKeyword(keyw)
+            nextResult = 1
+        endIf
     endif
 
-    Keyword keyw = Keyword.GetKeyword(CmdPrimary.resolve(param[2]))
-    
-    if keyw && CmdPrimary.resolveActor(param[1]).WornHasKeyword(keyw)
-        CmdPrimary.MostRecentResult = "1"
-    else
-        CmdPrimary.MostRecentResult = "0"
-    endIf
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname actor_lochaskeyword
@@ -1180,17 +1194,18 @@ endFunction
 function actor_lochaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
+    int nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Keyword keyw = Keyword.GetKeyword(CmdPrimary.resolve(param[2]))
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        
+        if keyw && _targetActor && _targetActor.GetCurrentLocation().HasKeyword(keyw)
+            nextResult = 1
+        endIf
     endif
-    
-    Keyword keyw = Keyword.GetKeyword(CmdPrimary.resolve(param[2]))
-    
-    if keyw && CmdPrimary.resolveActor(param[1]).GetCurrentLocation().HasKeyword(keyw)
-        CmdPrimary.MostRecentResult = "1"
-    else
-        CmdPrimary.MostRecentResult = "0"
-    endIf
+
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname actor_getrelation
@@ -1211,11 +1226,17 @@ endFunction
 function actor_getrelation(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
+    int nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor _actorOne = CmdPrimary.resolveActor(param[1])
+        Actor _actorTwo = CmdPrimary.resolveActor(param[2])
+        if _actorOne && _actorTwo
+            nextResult = _actorOne.GetRelationshipRank(_actorTwo) as int
+        endif
     endif
     
-    CmdPrimary.MostRecentResult = CmdPrimary.resolveActor(param[1]).GetRelationshipRank(CmdPrimary.resolveActor(param[2])) as int
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname actor_setrelation
@@ -1229,11 +1250,13 @@ endFunction
 function actor_setrelation(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 4)
-        return
+    if ParamLengthEQ(CmdPrimary, param.Length, 4)
+        Actor _actorOne = CmdPrimary.resolveActor(param[1])
+        Actor _actorTwo = CmdPrimary.resolveActor(param[2])
+        if _actorOne && _actorTwo
+            _actorOne.SetRelationshipRank(_actorTwo, CmdPrimary.resolve(param[3]) as int)
+        endif
     endif
-
-    CmdPrimary.resolveActor(param[1]).SetRelationshipRank(CmdPrimary.resolveActor(param[2]), CmdPrimary.resolve(param[3]) as int)
 endFunction
 
 ; sltname actor_infaction
@@ -1246,19 +1269,17 @@ endFunction
 function actor_infaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
-    endif
+    int nextResult = 0
 
-    Faction thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2])) as Faction
-    
-    if thing
-        if CmdPrimary.resolveActor(param[1]).IsInFaction(thing)
-            CmdPrimary.MostRecentResult = "1"
-            return
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        Faction thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2])) as Faction
+        if _targetActor && thing && _targetActor.IsInFaction(thing)
+            nextResult = 1
         endif
     endif
-    CmdPrimary.MostRecentResult = "0"
+
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname actor_getfactionrank
@@ -1270,17 +1291,20 @@ endFunction
 function actor_getfactionrank(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
+    int nextResult = 0
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if _targetActor
+            Faction thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2])) as Faction
+            
+            if thing
+                nextResult = _targetActor.GetFactionRank(thing)
+            endif
+        endif
     endif
 
-    Faction thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2])) as Faction
-    
-    if thing
-        CmdPrimary.MostRecentResult = CmdPrimary.resolveActor(param[1]).GetFactionRank(thing)
-    else
-        CmdPrimary.MostRecentResult = "0"
-    endif
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname actor_setfactionrank
@@ -1293,13 +1317,14 @@ endFunction
 function actor_setfactionrank(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 4)
-        return
-    endif
-    
-    Faction thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2])) as Faction
-    if thing
-        CmdPrimary.resolveActor(param[1]).SetFactionRank(thing, CmdPrimary.resolve(param[3]) as int)
+    if ParamLengthEQ(CmdPrimary, param.Length, 4)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if _targetActor
+            Faction thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2])) as Faction
+            if thing
+                _targetActor.SetFactionRank(thing, CmdPrimary.resolve(param[3]) as int)
+            endif
+        endif
     endif
 endFunction
 
@@ -1307,49 +1332,70 @@ endFunction
 ; sltgrup Actor
 ; sltdesc Sets $$ to 1 if the specified actor is currently affected by the MGEF or SPEL indicated by FormID (accepts either)
 ; sltargs actor: target Actor
-; sltargs magic effect or spell: MGEF or SPEL FormID
+; sltargs (optional) "ALL": if specified, all following MGEF or SPEL FormIDs must be found on the target Actor
+; sltargs magic effect or spell: MGEF or SPEL FormID [<MGEF or SPEL FormID> <MGEF or SPEL FormID> ...]
 ; sltsamp actor_isaffectedby $actor "skyrim.esm:1030541"
+; sltsamp actor_isaffectedby $actor "skyrim.esm:1030541" "skyrim.esm:1030542" "skyrim.esm:1030543"
+; sltsamp actor_isaffectedby $actor ALL "skyrim.esm:1030541" "skyrim.esm:1030542" "skyrim.esm:1030543"
 function actor_isaffectedby(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
+    int nextResult = -1
+
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if _targetActor
+            int idx = 2
+            bool needAll
+            int spelidx
+            int numeffs
+            while idx < param.Length && nextResult < -1
+                string pstr = CmdPrimary.Resolve(param[idx])
+                if idx == 2 && "ALL" == pstr
+                    needAll = true
+                    idx += 1
+                else
+                    Form wizardStuff = CmdPrimary.GetFormId(pstr)
+                    if !wizardStuff
+                        wizardStuff = CmdPrimary.GetFormId(CmdPrimary.Resolve(pstr))
+                    endif
+
+                    if wizardStuff
+                        if !needAll
+                            MagicEffect mgef = wizardStuff as MagicEffect
+                            if mgef
+                                if _targetActor.HasMagicEffect(mgef)
+                                    nextResult = 1
+                                endif
+                            endif
+                            
+                            Spell spel = wizardStuff as Spell
+                            if spel
+                                spelidx = 0
+                                numeffs = spel.GetNumEffects()
+                                while spelidx < numeffs && nextResult < 0
+                                    mgef = spel.GetNthEffectMagicEffect(spelidx)
+                                    if _targetActor.HasMagicEffect(mgef)
+                                        nextResult = 1
+                                    endif
+                                    
+                                    spelidx += 1
+                                endwhile
+                            endif
+                        endif
+                    elseif needAll
+                        nextResult = 0
+                    endif
+                endif
+            endwhile
+        endif
+    endif
+
+    if nextResult < 0
+        nextResult = 0
     endif
 	
-	Actor mate = CmdPrimary.resolveActor(param[1])
-	if !mate
-		CmdPrimary.MostRecentResult = "0"
-		return
-	endif
-	
-	Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))
-	
-	MagicEffect mgef = thing as MagicEffect
-	if mgef
-		if mate.HasMagicEffect(mgef)
-			CmdPrimary.MostRecentResult = "1"
-		else
-			CmdPrimary.MostRecentResult = "0"
-		endif
-		return
-	endif
-	
-	Spell spel = thing as Spell
-	if spel
-		int i = 0
-		int numeffs = spel.GetNumEffects()
-		while i < numeffs
-			mgef = spel.GetNthEffectMagicEffect(i)
-			if mate.HasMagicEffect(mgef)
-				CmdPrimary.MostRecentResult = "1"
-				return
-			endif
-			
-			i += 1
-		endwhile
-	endif
-	
-	CmdPrimary.MostRecentResult = "0"
+	CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname actor_removefaction
@@ -1361,14 +1407,13 @@ endFunction
 function actor_removefaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
-    endif
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        Faction thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2])) as Faction
     
-    Faction thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2])) as Faction
-
-    if thing
-        CmdPrimary.resolveActor(param[1]).RemoveFromFaction(thing)
+        if thing && _targetActor
+            _targetActor.RemoveFromFaction(thing)
+        endif
     endif
 endFunction
 
@@ -1381,11 +1426,9 @@ endFunction
 function actor_playanim(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Debug.SendAnimationEvent(CmdPrimary.resolveActor(param[1]), CmdPrimary.resolve(param[2]))
     endif
-    
-    Debug.SendAnimationEvent(CmdPrimary.resolveActor(param[1]), CmdPrimary.resolve(param[2]))
 endFunction
 
 ; sltname actor_sendmodevent
@@ -1393,24 +1436,28 @@ endFunction
 ; sltdesc Causes the actor to send the mod event with the provided arguments
 ; sltargs actor: target Actor
 ; sltargs event: name of the event
-; sltargs string arg: string argument (meaning varies by event sent)
-; sltargs float arg: float argument (meaning varies by event sent)
-; sltsamp actor_sendmodevent $self "IHaveNoIdeaButEventNamesShouldBeEasyToFind" "strarg" 0.0
+; sltargs string arg: string argument (meaning varies by event sent) (optional: default "")
+; sltargs float arg: float argument (meaning varies by event sent) (optional: default 0.0)
+; sltsamp actor_sendmodevent $self "IHaveNoIdeaButEventNamesShouldBeEasyToFind" "strarg" 20.0
 function actor_sendmodevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 5)
-        return
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor
+            string ss1 = CmdPrimary.resolve(param[2])
+            string ss2
+            if param.Length > 3
+                ss2 = CmdPrimary.resolve(param[3])
+            endif
+            float  p3
+            if param.Length > 4
+                p3 = CmdPrimary.resolve(param[4]) as float
+            endif
+            
+            _targetActor.SendModEvent(ss1, ss2, p3)
+        endif
     endif
-    
-    Actor mate = CmdPrimary.resolveActor(param[1])
-    
-    if mate
-        string ss1 = CmdPrimary.resolve(param[2])
-        string ss2 = CmdPrimary.resolve(param[3])
-        float p3 = CmdPrimary.resolve(param[4]) as float
-        mate.SendModEvent(ss1, ss2, p3)
-    endIf
 endFunction
 
 ; sltname actor_state
@@ -1431,37 +1478,39 @@ endFunction
 function actor_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthLT(CmdPrimary, param.Length, 2)
-        return
-    endif
-    
-    Actor mate = CmdPrimary.resolveActor(param[1])
-    string ss1 = CmdPrimary.resolve(param[2])
-    
-    CmdPrimary.MostRecentResult = ""
-    if mate 
-        if ss1 == "GetCombatState"
-            CmdPrimary.MostRecentResult = mate.GetCombatState() as string
-        elseif ss1 == "GetLevel"
-            CmdPrimary.MostRecentResult = mate.GetLevel() as string
-        elseif ss1 == "GetSleepState"
-            CmdPrimary.MostRecentResult = mate.GetSleepState() as string
-        elseif ss1 == "IsAlerted"
-            CmdPrimary.MostRecentResult = mate.IsAlerted() as string
-        elseif ss1 == "IsAlarmed"
-            CmdPrimary.MostRecentResult = mate.IsAlarmed() as string
-        elseif ss1 == "IsPlayerTeammate"
-            CmdPrimary.MostRecentResult = mate.IsPlayerTeammate() as string
-        elseif ss1 == "SetPlayerTeammate"
-            int p3 = 0
-			if param.Length > 2
-				p3 = CmdPrimary.resolve(param[3]) as int
-			endif
-            mate.SetPlayerTeammate(p3 as bool)
-        elseif ss1 == "SendAssaultAlarm"
-            mate.SendAssaultAlarm()
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        string ss1 = CmdPrimary.resolve(param[2])
+        
+        string nextResult
+        if _targetActor 
+            if ss1 == "GetCombatState"
+                nextResult = _targetActor.GetCombatState() as string
+            elseif ss1 == "GetLevel"
+                nextResult = _targetActor.GetLevel() as string
+            elseif ss1 == "GetSleepState"
+                nextResult = _targetActor.GetSleepState() as string
+            elseif ss1 == "IsAlerted"
+                nextResult = _targetActor.IsAlerted() as string
+            elseif ss1 == "IsAlarmed"
+                nextResult = _targetActor.IsAlarmed() as string
+            elseif ss1 == "IsPlayerTeammate"
+                nextResult = _targetActor.IsPlayerTeammate() as string
+            elseif ss1 == "SetPlayerTeammate"
+                int p3 = 0
+                if param.Length > 3
+                    p3 = CmdPrimary.resolve(param[3]) as int
+                endif
+                _targetActor.SetPlayerTeammate(p3 as bool)
+            elseif ss1 == "SendAssaultAlarm"
+                _targetActor.SendAssaultAlarm()
+            endIf
         endIf
-    endIf
+
+        if StringUtil.GetLength(nextResult) > 0
+            CmdPrimary.MostRecentResult = nextResult
+        endif
+    endif
 endFunction
 
 ; sltname actor_body
@@ -1478,42 +1527,39 @@ endFunction
 function actor_body(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthLT(CmdPrimary, param.Length, 2)
-        return
-    endif
-    
-    Actor mate = CmdPrimary.resolveActor(param[1])
-    string ss1 = CmdPrimary.resolve(param[2])
-    
-    CmdPrimary.MostRecentResult = ""
-    if mate 
-        if ss1 == "ClearExtraArrows"
-            mate.ClearExtraArrows()
-        elseif ss1 == "RegenerateHead"
-            mate.RegenerateHead()
-        elseif ss1 == "GetWeight"
-            CmdPrimary.MostRecentResult = mate.GetActorBase().GetWeight() as string
-        elseif ss1 == "SetWeight"
-            float baseW = mate.GetActorBase().GetWeight()
-			float p3
-			if param.Length > 2
-				p3 = CmdPrimary.resolve(param[3]) as float
-			endif
-				
-            float newW  = p3
-            If newW < 0
-                newW = 0
-            ElseIf newW > 100
-                newW = 100
-            EndIf
-            float neckD = (baseW - newW) / 100
-	
-            If neckD
-                mate.GetActorBase().SetWeight(newW)
-                mate.UpdateWeight(neckD)
-            EndIf
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        string ss1 = CmdPrimary.resolve(param[2])
+        
+        if _targetActor 
+            if ss1 == "ClearExtraArrows"
+                _targetActor.ClearExtraArrows()
+            elseif ss1 == "RegenerateHead"
+                _targetActor.RegenerateHead()
+            elseif ss1 == "GetWeight"
+                CmdPrimary.MostRecentResult = _targetActor.GetActorBase().GetWeight() as string
+            elseif ss1 == "SetWeight"
+                float baseW = _targetActor.GetActorBase().GetWeight()
+                float p3
+                if param.Length > 3
+                    p3 = CmdPrimary.resolve(param[3]) as float
+                endif
+                    
+                float newW  = p3
+                If newW < 0
+                    newW = 0
+                ElseIf newW > 100
+                    newW = 100
+                EndIf
+                float neckD = (baseW - newW) / 100
+        
+                If neckD
+                    _targetActor.GetActorBase().SetWeight(newW)
+                    _targetActor.UpdateWeight(neckD)
+                EndIf
+            endIf
         endIf
-    endIf
+    endif
 endFunction
 
 ; sltname actor_race
@@ -1526,20 +1572,20 @@ endFunction
 function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 2)
-        return
-    endif
-    
-    Actor mate = CmdPrimary.resolveActor(param[1])
-    
-    string result = ""
-    if mate
-        string ss1 = CmdPrimary.resolve(param[2])
-        if ss1 == ""
-            result = mate.GetRace().GetName()
+    string nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        
+        if _targetActor
+            string ss1 = CmdPrimary.resolve(param[2])
+            if !ss1
+                nextResult = _targetActor.GetRace().GetName()
+            endIf
         endIf
-    endIf
-    CmdPrimary.MostRecentResult = result
+    endif
+
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname actor_setalpha
@@ -1547,22 +1593,24 @@ endFunction
 ; sltdesc Set the Actor's alpha value (inverse of transparency, 1.0 is fully visible) (has no effect if IsGhost() returns true)
 ; sltargs actor: target Actor
 ; sltargs alpha: 0.0 to 1.0 (higher is more visible)
-; sltargs fade: 0 - instance | 1 - fade to the new alpha gradually
+; sltargs fade: 0 - instance | 1 - fade to the new alpha gradually (optional: default 1 - fade)
 ; sltsamp actor_setalpha $self 0.5 1 
 ; sltrslt $self will fade to new alpha of 0.5, not instantly
 function actor_setalpha(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
+    if ParamLengthLT(CmdPrimary, param.Length, 5)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        
+        if _targetActor && !_targetActor.IsGhost()
+            float alpha = CmdPrimary.Resolve(param[2]) as float
+            bool abFade = true
+            if param.Length > 3
+                abFade = (CmdPrimary.Resolve(param[3]) as int) != 0
+            endif
+            _targetActor.SetAlpha(alpha, abFade)
+        endIf
     endif
-    
-    Actor mate = CmdPrimary.resolveActor(param[1])
-    
-    if mate && !mate.IsGhost()
-        float newalpha = param[2] as float
-        mate.SetAlpha(newalpha)
-    endIf
 endFunction
 
 ; sltname ism_applyfade
@@ -1574,15 +1622,13 @@ endFunction
 function ism_applyfade(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
-    endif
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        ImageSpaceModifier thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as ImageSpaceModifier
     
-    ImageSpaceModifier thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as ImageSpaceModifier
-
-    if thing
-        thing.ApplyCrossFade(CmdPrimary.resolve(param[2]) as float)
-    endIf
+        if thing
+            thing.ApplyCrossFade(CmdPrimary.resolve(param[2]) as float)
+        endIf
+    endif
 endFunction
 
 ; sltname ism_removefade
@@ -1594,48 +1640,45 @@ endFunction
 function ism_removefade(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
-    endif
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1]))
     
-    Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1]))
-
-    if thing
-        ImageSpaceModifier.RemoveCrossFade(CmdPrimary.resolve(param[2]) as float)
-    endIf
+        if thing
+            ImageSpaceModifier.RemoveCrossFade(CmdPrimary.resolve(param[2]) as float)
+        endIf
+    endif
 endFunction
 
 ; sltname util_sendmodevent
 ; sltgrup Utility
 ; sltdesc Shorthand for actor_sendmodevent $player <event name> <string argument> <float argument>
 ; sltargs event: name of the event
-; sltargs string arg: string argument (meaning varies by event sent)
-; sltargs float arg: float argument (meaning varies by event sent)
+; sltargs string arg: string argument (meaning varies by event sent) (optional: default "")
+; sltargs float arg: float argument (meaning varies by event sent) (optional: default 0.0)
 ; sltsamp util_sendmodevent "IHaveNoIdeaButEventNamesShouldBeEasyToFind" "strarg" 0.0
 function util_sendmodevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthNEQ(CmdPrimary, param.Length, 4)
-        return
+    if ParamLengthGT(CmdPrimary, param.Length, 1)
+        string ss1 = CmdPrimary.resolve(param[1])
+        string ss2
+        if param.Length > 2
+            ss2 = CmdPrimary.resolve(param[2])
+        endif
+        float  p3
+        if param.Length > 3
+            p3 = CmdPrimary.resolve(param[3]) as float
+        endif
+        
+        CmdTargetActor.SendModEvent(ss1, ss2, p3)
     endif
-	
-    string ss1
-    string ss2
-    string ss3
-    float  p3
-    
-    ss1 = CmdPrimary.resolve(param[1])
-    ss2 = CmdPrimary.resolve(param[2])
-    ss3 = CmdPrimary.resolve(param[3])
-    p3 = ss3 as float
-    
-    CmdTargetActor.SendModEvent(ss1, ss2, p3)
 endFunction
 
 ; sltname util_sendevent
 ; sltgrup Utility
 ; sltdesc Send SKSE custom event, with each type/value pair being an argument to the custom event
 ; sltargs event: name of the event
+; sltargs (type/value pairs are optional; this devolves to util_sendmodevent <eventname>, though with such a call the event signature would require having no arguments)
 ; sltargs param type: type of parameter e.g. "bool", "int", etc.
 ; sltargs param value: value of parameter
 ; sltargs [type/value, type/value ...]
@@ -1645,48 +1688,52 @@ endFunction
 function util_sendevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
-    if ParamLengthLT(CmdPrimary, param.Length, 4)
-        return
-    endif
-	
-    string eventName
-    string typeId
-    string ss
-    int idxArg
-    
-    eventName = CmdPrimary.resolve(param[1])
-    int eid = ModEvent.Create(eventName)
-    
-    if eid
-        idxArg = 2 
-        while idxArg + 1 < param.Length
-            typeId = CmdPrimary.resolve(param[idxArg])
-            if typeId == "bool"
-                ss = CmdPrimary.resolve(param[idxArg + 1])
-                if (ss as int)
-                    ModEvent.PushBool(eid, true)
-                else
-                    ModEvent.PushBool(eid, false)
-                endIf
-            elseif typeId == "int"
-                ss = CmdPrimary.resolve(param[idxArg + 1])
-                ModEvent.PushInt(eid, ss as int)
-            elseif typeId == "float"
-                ss = CmdPrimary.resolve(param[idxArg + 1])
-                ModEvent.PushFloat(eid, ss as float)
-            elseif typeId == "string"
-                ss = CmdPrimary.resolve(param[idxArg + 1])
-                ModEvent.PushString(eid, ss)
-            elseif typeId == "form"
-                actor mate1 = CmdPrimary.resolveActor(param[idxArg + 1])
-                ModEvent.PushForm(eid, mate1)
-            endif
+    if ParamLengthGT(CmdPrimary, param.Length, 1)
+        string eventName = CmdPrimary.resolve(param[1])
+        if eventName
+            int eid = ModEvent.Create(eventName)
             
-            idxArg += 2
-        endWhile
-        
-        ModEvent.Send(eid)
-    endIf
+            if eid
+                string typeId
+                string ss
+                
+                int idxArg = 2 
+                while idxArg + 1 < param.Length
+                    typeId = CmdPrimary.resolve(param[idxArg])
+                    if typeId == "bool"
+                        ss = CmdPrimary.resolve(param[idxArg + 1])
+                        if (ss as int)
+                            ModEvent.PushBool(eid, true)
+                        else
+                            ModEvent.PushBool(eid, false)
+                        endIf
+                    elseif typeId == "int"
+                        ss = CmdPrimary.resolve(param[idxArg + 1])
+                        ModEvent.PushInt(eid, ss as int)
+                    elseif typeId == "float"
+                        ss = CmdPrimary.resolve(param[idxArg + 1])
+                        ModEvent.PushFloat(eid, ss as float)
+                    elseif typeId == "string"
+                        ss = CmdPrimary.resolve(param[idxArg + 1])
+                        ModEvent.PushString(eid, ss)
+                    elseif typeId == "form"
+                        actor mate1 = CmdPrimary.resolveActor(param[idxArg + 1])
+                        ModEvent.PushForm(eid, mate1)
+                    else
+                        SquawkFunctionError(CmdPrimary, "util_sendevent: unexpected type provided: '" + typeId + "'")
+                    endif
+                    
+                    idxArg += 2
+                endWhile
+
+                if idxArg >= param.Length
+                    SquawkFunctionError(CmdPrimary, "util_sendevent: imbalanced type/value pairs provided")
+                endif
+                
+                ModEvent.Send(eid)
+            endIf
+        endif
+    endif
 endFunction
 
 ; sltname util_getgametime
@@ -1695,9 +1742,15 @@ endFunction
 ; sltsamp util_getgametime
 function util_getgametime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-    float dayTime = Utility.GetCurrentGameTime()
-    
-    CmdPrimary.MostRecentResult = dayTime as string
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 1)
+        float dayTime = Utility.GetCurrentGameTime()
+        dayTime = Math.Floor(dayTime * 100.0) / 100.0
+        
+        CmdPrimary.MostRecentResult = dayTime
+    else
+        CmdPrimary.MostRecentResult = ""
+    endif
 endFunction
 
 ; sltname util_getrealtime
@@ -1707,7 +1760,14 @@ endFunction
 function util_getrealtime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    CmdPrimary.MostRecentResult = Utility.GetCurrentRealTime() as string
+    if ParamLengthEQ(CmdPrimary, param.Length, 1)
+        float realTime = Utility.GetCurrentRealTime()
+        realTime = Math.Floor(realTime * 100.0) / 100.0
+
+        CmdPrimary.MostRecentResult = realTime
+    else
+        CmdPrimary.MostRecentResult = ""
+    endif
 endFunction
 
 ; sltname util_getgametime
@@ -1716,14 +1776,19 @@ endFunction
 ; sltsamp util_getgametime
 function util_gethour(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-	float dayTime = Utility.GetCurrentGameTime()
- 
-	dayTime -= Math.Floor(dayTime)
-	dayTime *= 24
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 1)
+        float dayTime = Utility.GetCurrentGameTime()
     
-    int theHour = dayTime as int
-    
-    CmdPrimary.MostRecentResult = theHour as string
+        dayTime -= Math.Floor(dayTime)
+        dayTime *= 24
+        
+        int theHour = dayTime as int
+        
+        CmdPrimary.MostRecentResult = theHour as string
+    else
+        CmdPrimary.MostRecentResult = ""
+    endif
 endFunction
 
 ; sltname util_game
@@ -1737,22 +1802,21 @@ endFunction
 function util_game(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
+        string p1 = CmdPrimary.resolve(param[1])
+        
+        if "IncrementStat" == p1
+            string p2 = CmdPrimary.resolve(param[2])
+            int iModAmount
+            if param.Length > 3
+                iModAmount = CmdPrimary.resolve(param[3]) as Int
+            endif
+            Game.IncrementStat(p2, iModAmount)
+        elseIf "QueryStat" == p1
+            string p2 = CmdPrimary.resolve(param[2])
+            CmdPrimary.MostRecentResult = Game.QueryStat(p2) as string
+        endIf
     endif
-	
-    string p1
-    string p2
-    
-    p1 = CmdPrimary.resolve(param[1])
-    if p1 == "IncrementStat"
-        p2 = CmdPrimary.resolve(param[2])
-        int iModAmount = CmdPrimary.resolve(param[3]) as Int
-        Game.IncrementStat(p2, iModAmount)
-    elseIf p1 == "QueryStat"
-        p2 = CmdPrimary.resolve(param[2])
-        CmdPrimary.MostRecentResult = Game.QueryStat(p2) as string
-    endIf
 endFunction
 
 ; sltname snd_play
@@ -1763,22 +1827,19 @@ endFunction
 ; sltsamp snd_play "skyrim.esm:318128" $self
 function snd_play(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    int nextResult = 0
 	
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Sound   thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Sound
+        Actor   _targetActor = CmdPrimary.resolveActor(param[2])
+        int     retVal
+        if thing && _targetActor
+            nextResult = thing.Play(_targetActor)
+        endIf
     endif
-	
-    Sound   thing
-    Actor   mate
-    int     retVal
-    
-    thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Sound
-    mate = CmdPrimary.resolveActor(param[2])
-    
-    if thing
-        retVal = thing.Play(mate)
-        CmdPrimary.MostRecentResult = retVal as string
-    endIf
+
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname snd_setvolume
@@ -1792,22 +1853,11 @@ endFunction
 function snd_setvolume(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
-    if ParamLengthNEQ(CmdPrimary, param.Length, 3)
-        return
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        int    soundId = CmdPrimary.resolve(param[1]) as int
+        float  vol     = CmdPrimary.resolve(param[2]) as float
+        Sound.SetInstanceVolume(soundId, vol)
     endif
-	
-    string ss
-    int    soundId
-    float  vol
-    
-    ss = CmdPrimary.resolve(param[1])
-    soundId = ss as int
-    
-    ss = CmdPrimary.resolve(param[2])
-    vol = ss as float
-
-    
-    Sound.SetInstanceVolume(soundId, vol)
 endFunction
 
 ; sltname snd_stop
@@ -1818,18 +1868,10 @@ endFunction
 function snd_stop(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
-    if ParamLengthNEQ(CmdPrimary, param.Length, 2)
-        return
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        int    soundId = CmdPrimary.resolve(param[1]) as int
+        Sound.StopInstance(soundId)
     endif
-	
-    string ss
-    int    soundId
-
-    ss = CmdPrimary.resolve(param[1])
-    soundId = ss as int
-    
-    
-    Sound.StopInstance(soundId)
 endFunction
 
 ; sltname console
@@ -1844,27 +1886,24 @@ endFunction
 function console(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
-    if ParamLengthLT(CmdPrimary, param.Length, 3)
-        return
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+
+        if _targetActor
+            int cnt = param.length
+            int idx = 2
+        
+            string ss
+            string ssx
+            while idx < cnt
+                ss = CmdPrimary.resolve(param[idx])
+                ssx += ss
+                idx += 1
+            endWhile
+            
+            sl_TriggersConsole.exec_console(_targetActor, ssx)
+        endif
     endif
-	
-    string ss
-    string ssx
-    int cnt
-    int idx
-    Actor mate
-    
-    mate = CmdPrimary.resolveActor(param[1])
-    
-    cnt = param.length
-    idx = 2
-    while idx < cnt
-        ss = CmdPrimary.resolve(param[idx])
-        ssx += ss
-        idx += 1
-    endWhile
-    
-    sl_TriggersConsole.exec_console(mate, ssx)
 endFunction
 
 ; sltname mfg_reset
@@ -1875,15 +1914,12 @@ endFunction
 function mfg_reset(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
-    if ParamLengthNEQ(CmdPrimary, param.Length, 2)
-        return
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if _targetActor
+            sl_TriggersMfg.mfg_reset(_targetActor)
+        endif
     endif
-	
-    Actor mate
-    
-    mate = CmdPrimary.resolveActor(param[1])
-
-    sl_TriggersMfg.mfg_reset(mate)
 endFunction
 
 ; sltname mfg_setphonememodifier
@@ -1891,28 +1927,23 @@ endFunction
 ; sltdesc Set facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecialedition/mods/11669)
 ; sltargs actor: target Actor
 ; sltargs mode: number, 0 - set phoneme | 1 - set modifier
-; sltargs id
-; sltargs value
+; sltargs id: an id  (I'm not familiar with MfgFix :/)
+; sltargs value: int
 ; sltargs <actor variable> <mode> <id> <value>
 ; sltsamp mfg_setphonememodifier $self 0 $1 $2
 function mfg_setphonememodifier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
-    if ParamLengthNEQ(CmdPrimary, param.Length, 5)
-        return
+    if ParamLengthEQ(CmdPrimary, param.Length, 5)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if !_targetActor
+            int p1 = CmdPrimary.resolve(param[2]) as Int
+            int p2 = CmdPrimary.resolve(param[3]) as Int
+            int p3 = CmdPrimary.resolve(param[4]) as Int
+            
+            sl_TriggersMfg.mfg_SetPhonemeModifier(_targetActor, p1, p2, p3)
+        endif
     endif
-	
-    Actor mate
-    int   p1
-    int   p2
-    int   p3
-    
-    mate = CmdPrimary.resolveActor(param[1])
-    p1 = CmdPrimary.resolve(param[2]) as Int
-    p2 = CmdPrimary.resolve(param[3]) as Int
-    p3 = CmdPrimary.resolve(param[4]) as Int
-    
-    sl_TriggersMfg.mfg_SetPhonemeModifier(mate, p1, p2, p3)
 endFunction
 
 ; sltname mfg_getphonememodifier
@@ -1920,26 +1951,24 @@ endFunction
 ; sltdesc Return facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecialedition/mods/11669)
 ; sltargs actor: target Actor
 ; sltargs mode: number, 0 - set phoneme | 1 - set modifier
-; sltargs id
+; sltargs id: an id (I'm not familiar with MfgFix :/)
 ; sltsamp mfg_getphonememodifier $self 0 $1
 function mfg_getphonememodifier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    int nextResult
 	
-    if ParamLengthNEQ(CmdPrimary, param.Length, 4)
-        return
+    if ParamLengthEQ(CmdPrimary, param.Length, 4)
+        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        if _targetActor
+            int p1 = CmdPrimary.resolve(param[2]) as Int
+            int p2 = CmdPrimary.resolve(param[3]) as Int
+        
+            nextResult = sl_TriggersMfg.mfg_GetPhonemeModifier(_targetActor, p1, p2)
+        endif
     endif
-	
-    Actor mate
-    int   p1
-    int   p2
-    int   retVal
-    
-    mate = CmdPrimary.resolveActor(param[1])
-    p1 = CmdPrimary.resolve(param[2]) as Int
-    p2 = CmdPrimary.resolve(param[3]) as Int
-    
-    retVal = sl_TriggersMfg.mfg_GetPhonemeModifier(mate, p1, p2)
-    CmdPrimary.MostRecentResult = retVal as string
+
+    CmdPrimary.MostRecentResult = nextResult as string
 endFunction
 
 ; sltname util_waitforkbd
@@ -1949,45 +1978,42 @@ endFunction
 ; sltsamp util_waitforkbd 74 78 181 55
 function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    int nextResult = -1
 	
-    if ParamLengthLT(CmdPrimary, param.Length, 2)
-        return
+    if ParamLengthGT(CmdPrimary, param.Length, 1) && CmdTargetActor == CmdPrimary.PlayerRef
+        int cnt         = param.length
+        string ss
+        string ssx
+        int idx
+        int scancode
+    
+        CmdPrimary.UnregisterForAllKeys()
+    
+        idx = 1
+        while idx < cnt
+            ss = CmdPrimary.resolve(param[idx])
+            scancode = ss as int
+            if scancode > 0
+                CmdPrimary.RegisterForKey(scanCode)
+            endIf
+            idx += 1
+        endWhile
+        
+        CmdPrimary.lastKey = 0
+        
+        while CmdPrimary && CmdPrimary.lastKey == 0
+            Utility.Wait(0.5)
+        endWhile
+    
+        CmdPrimary.UnregisterForAllKeys()
+
+        if CmdPrimary.lastKey ; and at this point, it really ought to be
+            nextResult = CmdPrimary.lastKey
+        endif
     endif
-	
-    string ss
-    string ssx
-    int cnt
-    int idx
-    int scancode
 
-    cnt = param.length
-
-    if (CmdTargetActor != CmdPrimary.PlayerRef) || (cnt <= 1)
-        CmdPrimary.MostRecentResult = "-1"
-        return
-    endIf
-
-    CmdPrimary.UnregisterForAllKeys()
-
-    idx = 1
-    while idx < cnt
-        ss = CmdPrimary.resolve(param[idx])
-        scancode = ss as int
-        if scancode > 0
-            CmdPrimary.RegisterForKey(scanCode)
-        endIf
-        idx += 1
-    endWhile
-    
-    CmdPrimary.lastKey = 0
-    
-    while CmdPrimary && CmdPrimary.lastKey == 0
-        Utility.Wait(0.5)
-    endWhile
-
-    CmdPrimary.UnregisterForAllKeys()
-    
-    CmdPrimary.MostRecentResult = CmdPrimary.lastKey as string
+    CmdPrimary.MostRecentResult = nextResult as string
 endFunction
 
 ; sltname json_getvalue
@@ -1996,39 +2022,48 @@ endFunction
 ; sltargs filename: name of file, rooted from 'Data/SKSE/Plugins/sl_triggers'
 ; sltargs datatype: int, float, string
 ; sltargs key: the key
-; sltargs default: default value in case it isn't present
+; sltargs default: default value in case it isn't present (optional: default for type)
 ; sltsamp json_getvalue "../somefolder/afile" float "demofloatvalue" 2.3
 ; sltrslt JsonUtil automatically appends .json when not given a file extension
 function json_getvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    string nextResult
 	
-    if ParamLengthNEQ(CmdPrimary, param.Length, 5)
-        return
+    if ParamLengthGT(CmdPrimary, param.Length, 3)
+        string pname = CmdPrimary.resolve(param[1])
+        string ptype = CmdPrimary.resolve(param[2])
+        string pkey  = CmdPrimary.resolve(param[3])
+        string pdef
+        if param.Length > 4
+            pdef = CmdPrimary.resolve(param[4])
+        endif
+        
+        if pname && ptype && pkey
+            if ptype == "int"
+                int iRet = JsonUtil.GetIntValue(pname, pkey, pdef as int)
+                nextResult = iRet as string
+            elseif ptype == "float"
+                float fRet = JsonUtil.GetFloatValue(pname, pkey, pdef as float)
+                nextResult = fRet as string
+            else
+                string sRet = JsonUtil.GetStringValue(pname, pkey, pdef)
+                nextResult = sRet
+            endIf
+        else
+            if !pname
+                SquawkFunctionError(CmdPrimary, "could not resolve JSON filename")
+            endif
+            if !ptype
+                SquawkFunctionError(CmdPrimary, "could not resolve JSON type")
+            endif
+            if !pkey
+                SquawkFunctionError(CmdPrimary, "could not resolve JSON key")
+            endif
+        endif
     endif
-	
-    string pname
-    string ptype
-    string pkey
-    string pdef
-    
-    pname = CmdPrimary.resolve(param[1])
-    ptype = CmdPrimary.resolve(param[2])
-    pkey  = CmdPrimary.resolve(param[3])
-    pdef  = CmdPrimary.resolve(param[4])
-    
-    if ptype == "int"
-        int iRet
-        iRet = JsonUtil.GetIntValue(pname, pkey, pdef as int)
-        CmdPrimary.MostRecentResult = iRet as string
-    elseif ptype == "float"
-        float fRet
-        fRet = JsonUtil.GetFloatValue(pname, pkey, pdef as float)
-        CmdPrimary.MostRecentResult = fRet as string
-    else
-        string sRet
-        sRet = JsonUtil.GetStringValue(pname, pkey, pdef)
-        CmdPrimary.MostRecentResult = sRet
-    endIf
+
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname json_setvalue
@@ -2043,27 +2078,34 @@ endFunction
 function json_setvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
-    if ParamLengthNEQ(CmdPrimary, param.Length, 5)
-        return
-    endif
-	
-    string pname
-    string ptype
-    string pkey
-    string pdef
+    if ParamLengthEQ(CmdPrimary, param.Length, 5)
+        string pname = CmdPrimary.resolve(param[1])
+        string ptype = CmdPrimary.resolve(param[2])
+        string pkey  = CmdPrimary.resolve(param[3])
+        string pdef  = CmdPrimary.resolve(param[4])
     
-    pname = CmdPrimary.resolve(param[1])
-    ptype = CmdPrimary.resolve(param[2])
-    pkey  = CmdPrimary.resolve(param[3])
-    pdef  = CmdPrimary.resolve(param[4])
-
-    if ptype == "int"
-        JsonUtil.SetIntValue(pname, pkey, pdef as int)
-    elseif ptype == "float"
-        JsonUtil.SetFloatValue(pname, pkey, pdef as float)
-    else
-        JsonUtil.SetStringValue(pname, pkey, pdef)
-    endIf
+        if pname && ptype && pkey
+            if ptype == "int"
+                JsonUtil.SetIntValue(pname, pkey, pdef as int)
+            elseif ptype == "float"
+                JsonUtil.SetFloatValue(pname, pkey, pdef as float)
+            elseif ptype == "string"
+                JsonUtil.SetStringValue(pname, pkey, pdef)
+            else
+                SquawkFunctionError(CmdPrimary, "json_setvalue: unexpected type '" + ptype +  "'")
+            endIf
+        else
+            if !pname
+                SquawkFunctionError(CmdPrimary, "json_setvalue: could not resolve JSON filename")
+            endif
+            if !ptype
+                SquawkFunctionError(CmdPrimary, "json_setvalue: could not resolve JSON type")
+            endif
+            if !pkey
+                SquawkFunctionError(CmdPrimary, "json_setvalue: could not resolve JSON key")
+            endif
+        endif
+    endif
 endFunction
 
 ; sltname json_save
@@ -2074,15 +2116,12 @@ endFunction
 function json_save(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
-    if ParamLengthNEQ(CmdPrimary, param.Length, 2)
-        return
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        string pname = CmdPrimary.resolve(param[1])
+        if pname
+            JsonUtil.Save(pname)
+        endif
     endif
-	
-    string pname
-    
-    pname = CmdPrimary.resolve(param[1])
-    
-    JsonUtil.Save(pname)
 endFunction
 
 ; sltname weather_state
@@ -2092,23 +2131,21 @@ endFunction
 ; sltsamp weather_state GetClassification
 function weather_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    string nextResult = ""
 	
-    if ParamLengthNEQ(CmdPrimary, param.Length, 2)
-        return
-    endif
-	
-    string ss1
-    string ss2
-    
-    ss1 = CmdPrimary.resolve(param[1])
-    
-    CmdPrimary.MostRecentResult = ""
-    if ss1 == "GetClassification"
-        Weather curr = Weather.GetCurrentWeather()
-        if curr
-            CmdPrimary.MostRecentResult = curr.GetClassification() as string
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        string ss1 = CmdPrimary.resolve(param[1])
+        
+        if ss1 == "GetClassification"
+            Weather curr = Weather.GetCurrentWeather()
+            if curr
+                nextResult = curr.GetClassification() as string
+            endIf
         endIf
-    endIf
+    endif
+
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
 
 ; sltname math
@@ -2122,51 +2159,50 @@ endFunction
 ; sltargsmore if parameter 2 1s "abs": return parameter 3 as absolute value of the passed in value - N for N, and N for (-N)
 ; sltargsmore if parameter 2 1s "toint": return parameter 3 as integer. Parameter 3 can be in dec or hex. If it starts with 0, its converted as hex value
 ; sltsamp math floor 1.2
-function math(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+function Math(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    string nextResult = ""
 	
-    if ParamLengthLT(CmdPrimary, param.Length, 3)
-        return
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
+        string ss1 = CmdPrimary.resolve(param[1])
+        string ss2
+        int    ii1
+        float  ff1
+        
+        if ss1 == "asint"
+            ss2 = CmdPrimary.resolve(param[2])
+            if ss2 
+                ii1 = ss2 as int
+            else
+                ii1 = 0
+            endIf
+            nextResult = ii1 as string
+        elseIf ss1 == "floor"
+            ss1 = CmdPrimary.resolve(param[2])
+            ii1 = Math.floor(ss1 as float)
+            nextResult = ii1 as string
+        elseIf ss1 == "ceiling"
+            ss1 = CmdPrimary.resolve(param[2])
+            ii1 = Math.Ceiling(ss1 as float)
+            nextResult = ii1 as string
+        elseIf ss1 == "abs"
+            ss1 = CmdPrimary.resolve(param[2])
+            ff1 = Math.abs(ss1 as float)
+            nextResult = ff1 as string
+        elseIf ss1 == "toint"
+            ss2 = CmdPrimary.resolve(param[2])
+            if ss2 && (StringUtil.GetNthChar(ss2, 0) == "0")
+                ii1 = CmdPrimary.hextoint(ss2)
+            elseIf ss2
+                ii1 = ss2 as int
+            else 
+                ii1 = 0
+            endIf
+            nextResult = ii1 as string
+        endIf
     endif
-	
-    string ss1
-    string ss2
-    int    ii1
-    float  ff1
-    
-    ss1 = CmdPrimary.resolve(param[1])
-    
-    CmdPrimary.MostRecentResult = ""
-    if ss1 == "asint"
-        ss2 = CmdPrimary.resolve(param[2])
-        if ss2 
-            ii1 = ss2 as int
-        else
-            ii1 = 0
-        endIf
-        CmdPrimary.MostRecentResult = ii1 as string
-    elseIf ss1 == "floor"
-        ss1 = CmdPrimary.resolve(param[2])
-        ii1 = Math.floor(ss1 as float)
-        CmdPrimary.MostRecentResult = ii1 as string
-    elseIf ss1 == "ceiling"
-        ss1 = CmdPrimary.resolve(param[2])
-        ii1 = Math.Ceiling(ss1 as float)
-        CmdPrimary.MostRecentResult = ii1 as string
-    elseIf ss1 == "abs"
-        ss1 = CmdPrimary.resolve(param[2])
-        ff1 = Math.abs(ss1 as float)
-        CmdPrimary.MostRecentResult = ff1 as string
-    elseIf ss1 == "toint"
-        ss2 = CmdPrimary.resolve(param[2])
-        if ss2 && (StringUtil.GetNthChar(ss2, 0) == "0")
-            ii1 = CmdPrimary.hextoint(ss2)
-        elseIf ss2
-            ii1 = ss2 as int
-        else 
-            ii1 = 0
-        endIf
-        CmdPrimary.MostRecentResult = ii1 as string
-    endIf
+
+    CmdPrimary.MostRecentResult = nextResult
 endFunction
  

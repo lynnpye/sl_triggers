@@ -1,3 +1,14 @@
+115
+    Savegame compatibility: tested succesfully with an update from v114 (install 114, new game, verify, save, update to 115, load, verify)
+    bugfix: Core function library (toh_elapsed_time only) was looking for the extension with the wrong formID
+    bugfix: corrected several functions with edge case failures to set $$ appropriately
+    bugfix: several logic bugfixes while going through the function libraries
+    enhancement: completed the addition of argument checking for all operations/functions
+    enhancement: actor_isaffectedby now can match for ALL (see updated documentation)
+    enhancement: several sl_ functions did not take an actor; an actor has been added as an optional param (e.g. sl_animname)
+    enhancement: added protective checks around param index access and object referencing
+    change: added roughly 4 second (technically 3.9 second) additional delay on SLT start before trying to register extensions to improve startup sync
+
 114
     enhancement: performance improvements centered around speeding up the command library access
     enhancement: improved error reporting for your scripts (see the console for errors in your scripts; feature developing)

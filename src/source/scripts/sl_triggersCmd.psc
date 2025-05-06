@@ -334,7 +334,6 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
     CallstackId = "Callstack" + _callstackIdNextUp
     _callstackIdNextUp += 1
     VARS_KEY_PREFIX = "sl_triggers:" + InstanceId + ":" + CallstackId + ":vars"
-    
 
     RegisterForScriptEvents()
 

@@ -26,7 +26,7 @@ sl_TriggersMain		Property SLT Auto
 
 string				Property CurrentExtensionKey Auto Hidden
 
-string[] Property CommandsList Auto Hidden
+string[] Property ScriptsList Auto Hidden
 
 
 ; Variables
@@ -203,7 +203,7 @@ int Function ShowAttribute(string attrName, int widgetOptions, string triggerKey
 		string menuValue = ""
 		if JsonUtil.HasStringValue(_dataFile, attrName)
 			string _cval = JsonUtil.GetStringValue(_dataFile, attrName)
-			if CommandsList.find(_cval) > -1
+			if ScriptsList.find(_cval) > -1
 				menuValue = _cval
 			endif
 		endif
@@ -895,7 +895,7 @@ Event OnOptionMenuOpen(int option)
 	string menuValue = ""
 	string[] menuSelections
 	if attrWidg == WIDG_COMMANDLIST
-		menuSelections = CommandsList
+		menuSelections = ScriptsList
 	elseif attrWidg == WIDG_MENU
 		menuSelections = GetAttrMenuSelections(_istk, attrName)
 	endif
@@ -956,7 +956,7 @@ Event OnOptionMenuAccept(int option, int index)
 	if attrWidg == WIDG_MENU
 		menuSelections = GetAttrMenuSelections(_istk, attrName)
 	elseif attrWidg == WIDG_COMMANDLIST
-		menuSelections = CommandsList
+		menuSelections = ScriptsList
 	endif
 	
 	string _dataFile

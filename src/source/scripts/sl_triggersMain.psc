@@ -103,19 +103,18 @@ Event OnUpdate()
 		SLTUpdateState = SLT_HEARTBEAT
 
 		QueueUpdateLoop(0.1)
-		return
-	endif
+	else
+		if _registrationBeaconCount > 0
+			_registrationBeaconCount -= 1
+			DoRegistrationBeacon()
+		endif
 	
-	if _registrationBeaconCount > 0
-		_registrationBeaconCount -= 1
-		DoRegistrationBeacon()
+		 ; if SLT_HEARTBEAT ; this is the default behavior
+		; Heartbeats
+		SendSLTHeartbeats()
+	
+		QueueUpdateLoop()
 	endif
-
-	 ; if SLT_HEARTBEAT ; this is the default behavior
-	; Heartbeats
-	SendSLTHeartbeats()
-
-	QueueUpdateLoop()
 EndEvent
 
 Event OnSLTRegisterExtension(string _eventName, string _strArg, float _fltArg, Form _frmArg)
@@ -141,7 +140,7 @@ Event OnSLTRequestList(string _eventName, string _storageUtilStringListKey, floa
 		returnEvent = StorageUtil.StringListGet(suAnchor, _storageUtilStringListKey, 0)
 	endif
 
-	string[] list = GetCommandsList()
+	string[] list = GetScriptsList()
 	if list.Length
 		StorageUtil.StringListCopy(suAnchor, _storageUtilStringListKey, list)
 
@@ -163,7 +162,6 @@ Event OnSLTRequestCommand(string _eventName, string _commandName, float __ignore
 	if !_actualActor
 		_actualActor = PlayerRef
 	endif
-	
 	StartCommand(_actualActor, _commandName)
 EndEvent
 
@@ -179,11 +177,13 @@ EndEvent
 ;; Functions
 Function SelfRegisterExtension(sl_triggersExtension _theExtension) global
 	Heap_FormSetX(sl_triggersMain.GetInstance(), sl_triggersMain.GLOBAL_PSEUDO_INSTANCE_KEY(), GLOBAL_SLT_EXTENSION_REGISTRATION_QUEUE() + _theExtension.GetExtensionKey(), _theExtension)
-	;Heap_FormListAddX(SLT, PSEUDO_INSTANCE_KEY(), SUKEY_EXTENSION_REGISTRATION_QUEUE(), self, false)
 	_theExtension.SendModEvent(EVENT_SLT_REGISTER_EXTENSION(), _theExtension.GetExtensionKey())
 EndFunction
 
 Function OnInitBody()
+	if !self
+		return
+	endif
 	_enabledFlag = true
 	StorageUtil.SetFormValue(none, SLT_MAIN_INSTANCE_KEY, self)
 	BootstrapSLTInit()
@@ -197,7 +197,7 @@ Function BootstrapSLTInit()
 	_registrationBeaconCount = REGISTRATION_BEACON_COUNT
 
 	UnregisterForUpdate()
-	QueueUpdateLoop(0.1)
+	QueueUpdateLoop(4.0)
 EndFunction
 
 Function DoOnPlayerLoadGame()
@@ -208,18 +208,23 @@ Function DoOnPlayerLoadGame()
 	BootstrapSLTInit()
 EndFunction
 
+Function UpdateLibraryCache()
+	Libraries = GetFunctionLibraries()
+	if sl_triggers_internal.SafePrecacheLibraries(Libraries)
+		if bDebugMsg
+			DebMsg("Main.DoBootstrapActivity: Libraries pre-cached in sl-triggers-internal")
+		endif
+	endif
+EndFunction
+
 Function DoBootstrapActivity()
 	if !self
 		return
 	endif
 
-	Libraries = GetCommandLibraries()
-	if sl_triggers_internal.SafePrecacheLibraries(Libraries)
-		DebMsg("Libraries pre-cached in sl-triggers-internal")
-	else
-		DebMsg("Unable to pre-cache libraries; performance will be reduced as a result")
+	if bDebugMsg
+		DebMsg("Main.DoBootstrapActivity: Post library cache checkpoint")
 	endif
-
 	InitSettingsFile(FN_Settings())
 
 	bool _userStoredFlag = (JsonUtil.GetIntValue(FN_Settings(), "enabled") != 0)
@@ -257,8 +262,10 @@ Function DoBootstrapActivity()
 		endif
 	endwhile
 
+	UpdateLibraryCache()
+
 	if SLTMCM
-		SLTMCM.CommandsList = GetCommandsList()
+		SLTMCM.ScriptsList = GetScriptsList()
 	endif
 EndFunction
 
@@ -328,6 +335,8 @@ Function DoRegistrationActivity(string _extensionKeyToRegister)
 			endwhile
 		endif
 	endif
+
+	UpdateLibraryCache()
 	
 	if SLTMCM
 		int i = 0
@@ -393,6 +402,9 @@ Function SendInternalSettingsUpdateEvents()
 	if !self
 		return
 	endif
+
+	UpdateLibraryCache()
+
 	int i = 0
 	while i < settingsUpdateEvents.Length
 		SendModEvent(settingsUpdateEvents[i])
@@ -421,6 +433,18 @@ EndFunction
 
 sl_triggersExtension Function GetExtensionByIndex(int _index)
 	return extensions[_index] as sl_triggersExtension
+EndFunction
+
+sl_triggersExtension Function GetExtensionByKey(string _extensionKey)
+	int i = 0
+	while i < Extensions.Length
+		sl_triggersExtension slext = Extensions[i] as sl_triggersExtension
+		if slext && slext.GetExtensionKey() == _extensionKey
+			return slext
+		endif
+		i += 1
+	endwhile
+	return none
 EndFunction
 
 ; StartCommand
@@ -473,7 +497,7 @@ string Function _NextInstanceId()
 	return "sl_triggersMain(" + _NextCycledInstanceNumber() + ")"
 EndFunction
 
-string[] Function GetCommandsList()
+string[] Function GetScriptsList()
 	string[] if1 = MiscUtil.FilesInFolder(FullCommandsFolder(), "ini")
 	string[] if2 = MiscUtil.FilesInFolder(FullCommandsFolder(), "json")
 
@@ -482,7 +506,7 @@ string[] Function GetCommandsList()
 	return commandsListCache
 EndFunction
 
-string[] Function GetCommandLibraries()
+string[] Function GetFunctionLibraries()
 	string[] libs = PapyrusUtil.StringArray(1)
 	int[] libpris = PapyrusUtil.IntArray(1)
 
@@ -499,19 +523,23 @@ string[] Function GetCommandLibraries()
 		int taillen = StringUtil.GetLength("-libraries.json")
 		string tail = StringUtil.Substring(libconfigs[i], configlen - taillen)
 		if tail == "-libraries.json"
-			string[] cfglibs = JsonUtil.PathMembers(libfilename, ".")
-			j = 0
-			while j < cfglibs.Length
-				string lib = cfglibs[j]
-				int libpri = JsonUtil.GetPathIntValue(libfilename, lib, 1000)
-
-
-				; populate both, keeping in sync
-				libs = PapyrusUtil.PushString(libs, lib)
-				libpris = PapyrusUtil.PushInt(libpris, libpri)
-
-				j += 1
-			endwhile
+			string _maybeExtensionKey = StringUtil.Substring(libconfigs[i], 0, configlen - taillen)
+			sl_triggersExtension _maybeExtension = GetExtensionByKey(_maybeExtensionKey)
+			if _maybeExtension && _maybeExtension.IsEnabled
+				string[] cfglibs = JsonUtil.PathMembers(libfilename, ".")
+				j = 0
+				while j < cfglibs.Length
+					string lib = cfglibs[j]
+					int libpri = JsonUtil.GetPathIntValue(libfilename, lib, 1000)
+	
+	
+					; populate both, keeping in sync
+					libs = PapyrusUtil.PushString(libs, lib)
+					libpris = PapyrusUtil.PushInt(libpris, libpri)
+	
+					j += 1
+				endwhile
+			endif
 		endif
 
 		i += 1
