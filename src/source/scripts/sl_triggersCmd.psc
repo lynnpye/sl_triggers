@@ -370,7 +370,7 @@ Event OnSLTReset(string eventName, string strArg, float numArg, Form sender)
 EndEvent
 
 Function RunScript()
-    string   code
+    string   command
     string   p1
     string   p2
     string   po
@@ -390,33 +390,12 @@ Function RunScript()
             cmdLine = currentCmdLine
 
             if cmdLine.Length
-                code = resolve(cmdLine[0])
+                command = resolve(cmdLine[0])
+                cmdLine[0] = command
 
-                if (cmdtype == "json" && code == ":") || (cmdtype == "ini" && cmdLine.Length == 1 && StringUtil.GetNthChar(code, 0) == "[" && StringUtil.GetNthChar(code, StringUtil.GetLength(code) - 1) == "]")
-                    if cmdtype == "json"
-                        _slt_AddGoto(cmdidx, Resolve(cmdLine[1]))
-                    elseif cmdtype == "ini"
-                        _slt_AddGoto(cmdidx, Resolve(StringUtil.Substring(code, 1, StringUtil.GetLength(code) - 2)))
-                    endif
+                If !command
                     cmdidx += 1
-                elseIf code == "beginsub"
-                    _slt_AddGosub(cmdidx, Resolve(cmdLine[1]))
-                    cmdidx = _slt_FindEndsub(cmdidx)
-                    cmdidx += 1
-                elseIf code == "endsub"
-                    cmdidx = _slt_PopSubIdx()
-                    cmdidx += 1
-                elseIf code == "goto"
-                    if cmdLine.Length == 2
-                        cmdidx = _slt_FindGoto(Resolve(cmdLine[1]), cmdidx, cmdtype)
-                    endif
-                    cmdidx += 1
-                elseIf code == "gosub"
-                    if cmdLine.Length == 2
-                        cmdidx = _slt_FindGosub(Resolve(cmdLine[1]), cmdidx)
-                    endif
-                    cmdidx += 1
-                elseIf code == "set"
+                elseIf command == "set"
                     if cmdLine.Length == 3 || cmdLine.Length == 5
                         int varindex = IsVarString(cmdLine[1])
                         int g_varindex = IsVarStringG(cmdLine[1])
@@ -466,7 +445,20 @@ Function RunScript()
                         DebMsg("SLT: [" + cmdName + "][lineNum:" + lineNum + "] unexpected number of arguments for 'set' got " + cmdLine.length + " expected 3 or 5")
                     endif
                     cmdidx += 1
-                elseIf code == "inc"
+                elseIf command == "if"
+                    if ParamLengthEQ(self, cmdLine.Length, 5)
+                        ; ["if", "$$", "=", "0", "end"],
+                        p1 = resolve(cmdLine[1])
+                        p2 = resolve(cmdLine[3])
+                        po = cmdLine[2]
+                        
+                        bool ifTrue = resolveCond(p1, p2, po)
+                        if ifTrue
+                            cmdidx = _slt_FindGoto(Resolve(cmdLine[4]), cmdidx, cmdtype)
+                        endIf
+                    endif
+                    cmdidx += 1
+                elseIf command == "inc"
                     if ParamLengthGT(self, cmdLine.Length, 1)
                         string varstr = cmdLine[1]
                         int incrInt = 1
@@ -503,8 +495,13 @@ Function RunScript()
                         endif
                     endif
                     cmdidx += 1
-                elseIf code == "cat"
-                    if cmdLine.Length >= 3
+                elseIf command == "goto"
+                    if ParamLengthEQ(self, cmdLine.Length, 2)
+                        cmdidx = _slt_FindGoto(Resolve(cmdLine[1]), cmdidx, cmdtype)
+                    endif
+                    cmdidx += 1
+                elseIf command == "cat"
+                    if ParamLengthGT(self, cmdLine.Length, 2)
                         string varstr = cmdLine[1]
                         float incrAmount = resolve(cmdLine[2]) as float
                     
@@ -519,48 +516,47 @@ Function RunScript()
                                 MiscUtil.PrintConsole("SLT: [" + cmdName + "][lineNum:" + lineNum + "] no resolve found for variable parameter (" + cmdLine[1] + ")")
                             endif
                         endif
-                    else
-                        ParamLengthLT(self, cmdLine.Length, 3)
                     endif
                     cmdidx += 1
-                elseIf code == "if"
-                    if cmdLine.Length == 5
-                        ; ["if", "$$", "=", "0", "end"],
-                        p1 = resolve(cmdLine[1])
-                        p2 = resolve(cmdLine[3])
-                        po = cmdLine[2]
-                        
-                        bool ifTrue = resolveCond(p1, p2, po)
-                        if ifTrue
-                            cmdidx = _slt_FindGoto(Resolve(cmdLine[4]), cmdidx, cmdtype)
-                        endIf
+                elseIf command == "gosub"
+                    if ParamLengthEQ(self, cmdLine.Length, 2)
+                        cmdidx = _slt_FindGosub(Resolve(cmdLine[1]), cmdidx)
                     endif
                     cmdidx += 1
-                elseIf code == "return"
-                    if !_cs_cmdIdx || _cs_cmdIdx.Length < 1
-                        PerformDigitalHygiene()
-
-                        return
-                    endif
-                    
-                    _slt_PopCallstack()
-                    cmdidx += 1
-                elseIf code == "call"
-                    string callTarget = Resolve(cmdLine[1])
-                    if cmdLine.Length == 2 && _slt_IsFileParseable(callTarget)
-                        _callArgs = PapyrusUtil.SliceStringArray(cmdLine, 2)
-                        int caidx = 0
-                        while caidx < _callArgs.Length
-                            _callArgs[caidx] = resolve(_callArgs[caidx])
-                            caidx += 1
-                        endwhile
-                        
-                        _slt_PushCallstack(callTarget)
+                elseIf command == "call"
+                    if ParamLengthGT(self, cmdLine.Length, 1)
+                        string callTarget = Resolve(cmdLine[1])
+                        if _slt_IsFileParseable(callTarget)
+                            if cmdLine.Length > 2
+                                _callArgs = PapyrusUtil.SliceStringArray(cmdLine, 2)
+                                int caidx = 0
+                                while caidx < _callArgs.Length
+                                    _callArgs[caidx] = resolve(_callArgs[caidx])
+                                    caidx += 1
+                                endwhile
+                            endif
+                            
+                            _slt_PushCallstack(callTarget)
+                        else
+                            cmdidx += 1
+                        endif
                     else
                         cmdidx += 1
                     endif
-                elseIf code == "callarg"
-                    if cmdLine.Length == 3
+                elseIf command == "endsub"
+                    if ParamLengthEQ(self, cmdLine.Length, 1)
+                        cmdidx = _slt_PopSubIdx()
+                    endif
+                    cmdidx += 1
+                elseIf command == "beginsub"
+                    if ParamLengthEQ(self, cmdLine.Length, 2)
+                        _slt_AddGosub(cmdidx, Resolve(cmdLine[1]))
+                    endif
+                    ; still try to go through with finding the end
+                    cmdidx = _slt_FindEndsub(cmdidx)
+                    cmdidx += 1
+                elseIf command == "callarg"
+                    if ParamLengthEQ(self, cmdLine.Length, 3)
                         int argidx = cmdLine[1] as int
                         string arg = cmdLine[2]
                         string newval
@@ -580,12 +576,26 @@ Function RunScript()
                         endif
                     endif
                     cmdidx += 1
-                elseIf !code
+                elseIf command == "return"
+                    if !_cs_cmdIdx || _cs_cmdIdx.Length < 1
+                        PerformDigitalHygiene()
+
+                        return
+                    endif
+                    
+                    _slt_PopCallstack()
                     cmdidx += 1
                 else
-                    Send_X_ActualOper(code)
-                    return
-                endIf
+                    string _slt_mightBeLabel = _slt_IsLabel(cmdType, cmdLine)
+                    if _slt_mightBeLabel
+                        _slt_AddGoto(cmdidx, _slt_mightBeLabel)
+                    else
+                        Send_X_ActualOper(command)
+                        return
+                    endif
+
+                    cmdidx += 1
+                endif
             else
                 cmdidx += 1
             endif
@@ -841,10 +851,90 @@ int Function _slt_PopSubIdx()
     return value
 EndFunction
 
-Function _slt_AddGoto(int _idx, string _label)
-    int idx
+; _slt_IsLabel
+; _cmdtype:string: "ini" | "json"
+; _tokens:string[]: the current token list being considered
+;     assumptions:
+;       currently only called as part of processing goto labels
+;       assumes that the first token in the list (_tokens[0]) has already been resolved
+;       assumes this is a probe, so no errors are squawked even if it is a "bad" label
+;          unless you give me a stupid cmdtype, seriously
+;       returns the resolve of the result, so in a json, second item could be a variable... we resolve that
+;          yes, in an ini, you can have [$32]  and I will happily go find the value of $32 and use it as a label
+;              yes, dynamic labels... so... I think you would have to:
+;/
+bloody hell, so much easier, so I think you would have to:
+
+script.ini
+----
+
+; I am going to be fancy here
+; what I ultimately want is a block of code that I can repeatedly call
+; to let me configure that label... problem is, how can you do that
+; easily? conventionally, you can set up some labels but
+; I added subroutines and I want to show what you can do
+
+; this is the start of a subroutine definition...at the top of the script
+; initially the executor is going to ignore this block, noting the label
+; for later use, 'config32'
+[beginsub config32]
+
+
+; here is our weird little label
+[$32]
+
+
+
+; when the executor hits the matching 'beginsub', meaning it's not trying to run it, it will scan for endsub and drop out
+; we can take advantage of that... because it means there is nothing magical about subroutines
+; they are just convenient markers in the scripts you can take advantage of
+[endsub]
+
+
+; now let's do something funny
+; behind the scenes, if you put a regular label in the script, like so:
+[a regular label]
+; I just make a note of the line number so I can know where to pick up execution
+; that is it... it is a label and a line number... nothing suspicious about that
+; except since I resolve the $32 we can do this:
+
+set $32 "first label"
+gosub config32
+set $32 "second label"
+gosub config32
+
+
+It means you can dynamically define different points that your script might jump to.
+Yes, you would have to know the points to allow injection, but it does afford a little more flexibility.
+I'll keep it. It doesn't hurt me, but use it at your own risk. I mean.. it's not dangerous, just saying
+don't be surprised if you hurt yourself in your own confusion. :)
+
+
+/;
+string Function _slt_IsLabel(string _cmdtype, string[] _tokens = none)
+    string isLabel
     
-    idx = 0
+    if "ini" == _cmdtype
+        if _tokens.Length == 1
+            int _labelLen = StringUtil.GetLength(_tokens[0])
+
+            if _labelLen > 2 && StringUtil.GetNthChar(_tokens[0], 0) == "[" && StringUtil.GetNthChar(_tokens[0], _labelLen - 1) == "]"
+                isLabel = Resolve(StringUtil.Substring(_tokens[0], 1, _labelLen - 2))
+            endif
+        endif
+    elseif "json" == _cmdtype
+        if ":" == _tokens[0] && _tokens.Length >= 2 && _tokens[1]
+            isLabel = Resolve(_tokens[1])
+        endif
+    else
+        SquawkFunctionError(self, "label: unimplemented cmdtype provided (" + _cmdtype + ")")
+    endif
+
+    return isLabel
+EndFunction
+
+Function _slt_AddGoto(int _idx, string _label)
+    int idx = 0
     while idx < gotoCnt
         if gotoLabels[idx] == _label
             return 
@@ -858,42 +948,44 @@ Function _slt_AddGoto(int _idx, string _label)
 EndFunction
 
 Int Function _slt_FindGoto(string _label, int _cmdIdx, string _cmdtype)
-    int idx
-    
-    idx = gotoLabels.find(_label)
-    if idx >= 0
-        return gotoIdx[idx]
-    endIf
-    
+    int idx = 0
     string[] cmdLine1
-    string   code
+    string callstackIdxKey
     
-    idx = _cmdIdx + 1
-    while idx < cmdNum
-        cmdLine1 = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + idx + "]")
-        if cmdLine1.Length
-            if (_cmdtype == "json" && cmdLine1[0] == ":") || (_cmdtype == "ini" && cmdLine1.Length == 1 && StringUtil.GetNthChar(cmdLine1[0], 0) == "[" && StringUtil.GetNthChar(cmdLine1[0], StringUtil.GetLength(cmdLine1[0]) - 1) == "]")
-                if _cmdtype == "json"
-                    _slt_AddGoto(idx, cmdLine1[1])
-                elseif _cmdtype == "ini"
-                    _slt_AddGoto(idx, StringUtil.Substring(cmdLine1[0], 1, StringUtil.GetLength(cmdLine1[0]) - 2))
-                endif
-            endIf
-        endIf
-        idx += 1
-    endWhile
+    while !idx
+        idx = gotoLabels.find(_label)
+        if idx >= 0
+            return gotoIdx[idx]
+        elseif callstackIdxKey ; had to have been set once in the loop below
+            return cmdNum
+        else
+            idx = _cmdIdx + 1
 
-    idx = gotoLabels.find(_label)
-    if idx >= 0
-        return gotoIdx[idx]
-    endIf
+            callstackIdxKey = "[]" ; just to keep my promise above in case idx == cmdNum
+            
+            while idx < cmdNum
+                callstackIdxKey = CallstackId + "[" + idx + "]"
+                if Heap_StringListCountX(CmdTargetActor, GetInstanceId(), callstackIdxKey) > 0
+                    cmdLine1 = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), callstackIdxKey)
+                    string _builtLabel = _slt_IsLabel(_cmdtype, cmdLine1)
+                    if _builtLabel
+                        _slt_AddGoto(idx, _builtLabel)
+                    endIf
+                endIf
+                idx += 1
+            endWhile
+
+            idx = 0
+        endIf
+    endwhile
+
+    DebMsg("again, another presumably impossible to reach line of code")
+
     return cmdNum
 EndFunction
 
 Function _slt_AddGosub(int _idx, string _label)
-    int idx
-    
-    idx = 0
+    int idx = 0
     while idx < gosubCnt
         if gosubLabels[idx] == _label
             return 

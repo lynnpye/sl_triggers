@@ -335,12 +335,13 @@ namespace plugin {
             std::vector<std::string> tokens;
             std::string current;
             bool inQuotes = false;
+            bool inBrackets = false;
             size_t i = 0;
 
             while (i < input.size()) {
                 char c = input[i];
 
-                if (!inQuotes && c == ';') {
+                if (!inQuotes && !inBrackets && c == ';') {
                     // Comment detected — ignore rest of line
                     break;
                 }
@@ -360,6 +361,17 @@ namespace plugin {
                         current += c;
                         i++;
                     }
+                } else if (inBrackets) {
+                    if (c == ']') {
+                        inBrackets = false;
+                        current = '[' + current + c;
+                        tokens.push_back(current);
+                        current.clear();
+                        i++;
+                    } else {
+                        current += c;
+                        i++;
+                    }
                 } else {
                     if (std::isspace(static_cast<unsigned char>(c))) {
                         if (!current.empty()) {
@@ -369,6 +381,9 @@ namespace plugin {
                         i++;
                     } else if (c == '"') {
                         inQuotes = true;
+                        i++;
+                    } else if (c == '[') {
+                        inBrackets = true;
                         i++;
                     } else {
                         current += c;
@@ -381,9 +396,12 @@ namespace plugin {
                 tokens.push_back(current);
             }
 
+            //logger::info("With input({}) Token count: {}", input, tokens.size());
+            for (i = 0; i < tokens.size(); ++i) {
+                //logger::info("Token {}: [{}]", i, tokens[i]);
+            }
             return tokens;
         }
-
 
         namespace fs = std::filesystem;
 
