@@ -467,11 +467,16 @@ Function RunScript()
                     endif
                     cmdidx += 1
                 elseIf code == "inc"
-                    if cmdLine.Length >= 3
+                    if ParamLengthGT(self, cmdLine.Length, 1)
                         string varstr = cmdLine[1]
-                        int incrInt = resolve(cmdLine[2]) as int
-                        float incrFloat = resolve(cmdLine[2]) as float
-                        bool isIncrInt = (incrInt == incrFloat)
+                        int incrInt = 1
+                        float incrFloat = 1.0
+                        bool isIncrInt = true
+                        if cmdLine.Length > 2
+                            incrInt = resolve(cmdLine[2]) as int
+                            incrFloat = resolve(cmdLine[2]) as float
+                            isIncrInt = (incrInt == incrFloat)
+                        endif
                     
                         int varindex = IsVarStringG(varstr)
                         if varindex >= 0
@@ -496,8 +501,6 @@ Function RunScript()
                                 DebMsg("SLT: [" + cmdName + "][lineNum:" + lineNum + "] no resolve found for variable parameter (" + cmdLine[1] + ")")
                             endif
                         endif
-                    else
-                        ParamLengthLT(self, cmdLine.Length, 3)
                     endif
                     cmdidx += 1
                 elseIf code == "cat"

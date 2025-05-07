@@ -1,3 +1,6 @@
+116
+    enhancement: added jsonutil and storageutil functions as wrappers around PapyrusUtil scripts of the same name
+
 115
     Savegame compatibility: tested succesfully with an update from v114 (install 114, new game, verify, save, update to 115, load, verify)
     bugfix: Core function library (toh_elapsed_time only) was looking for the extension with the wrong formID
