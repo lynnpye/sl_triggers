@@ -1,5 +1,7 @@
 116
     enhancement: added jsonutil and storageutil functions as wrappers around PapyrusUtil scripts of the same name
+    enhancement: minor performance tuning (restructured sequence of certain built-in lookups)
+    enhancement: more documentation, both on the wiki and in .txt file form with the mod
 
 115
     Savegame compatibility: tested succesfully with an update from v114 (install 114, new game, verify, save, update to 115, load, verify)
