@@ -1140,6 +1140,47 @@ function actor_iswearing(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
     CmdPrimary.MostRecentResult = nextResult
 endFunction
 
+; sltname actor_getscale
+; sltgrup Actor
+; sltdesc Sets $$ to the 'scale' value of the specified Actor
+; sltdesc Note: this is properly a function of ObjectReference, so may get pushed to a different group at some point
+; sltargs actor: target Actor
+; sltsamp actor_getscale $self
+; sltsamp msg_console "Scale reported: " $$
+function actor_getscale(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    string nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor
+            nextResult = _targetActor.GetScale() as string
+        endif
+    endif
+
+    CmdPrimary.MostRecentResult = nextResult
+endFunction
+
+; sltname actor_setscale
+; sltgrup Actor
+; sltdesc Sets the actor's scale to the specified value
+; sltdesc Note: this is properly a function of ObjectReference, so may get pushed to a different group at some point
+; sltargs actor: target Actor
+; sltargs scale: float, new scale value to replace the old
+; sltsamp actor_setscale $self 1.01
+function actor_setscale(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        float newScale = CmdPrimary.Resolve(param[2]) as float
+        if _targetActor
+            _targetActor.SetScale(newScale)
+        endif
+    endif
+endFunction
+
 ; sltname actor_worninslot
 ; sltgrup Actor
 ; sltdesc Sets $$ to 1 if actor is wearing armor in the indicated slotId, 0 otherwise.

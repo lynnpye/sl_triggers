@@ -40,6 +40,10 @@ bool Function SafeDeleteTrigger(string _extensionKey, string _triggerKey) global
     return sl_triggers_internal._DeleteTrigger(_extensionKey, _triggerKey)
 EndFunction
 
+int Function SafeGetSessionId() global
+    return sl_triggers_internal._GetSessionId()
+EndFunction
+
 ; direct access
 
 bool Function _PrecacheLibraries(string[] _scriptnames) global native
@@ -59,3 +63,5 @@ string[] Function _SplitLines(string _fileString) global native
 string[] Function _Tokenize(string _tokenString) global native
 
 bool Function _DeleteTrigger(string _extensionKey, string _triggerKey) global native
+
+int Function _GetSessionId() global native

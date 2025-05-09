@@ -162,3 +162,9 @@
 
 using namespace std::literals;
 namespace logger = SKSE::log;
+
+namespace plugin {
+    namespace Util {
+        void GenerateNewSessionId();
+    }
+}

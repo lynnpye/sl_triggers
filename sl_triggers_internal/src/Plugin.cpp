@@ -30,6 +30,17 @@ namespace plugin {
                 std::function<void()> onDone;
         };
 
+        
+        std::int32_t sessionId;
+
+        void GenerateNewSessionId() {
+            static std::random_device rd;
+            static std::mt19937 engine(rd());
+            static std::uniform_int_distribution<std::int32_t> dist(std::numeric_limits<std::int32_t>::min(),
+                                                                    std::numeric_limits<std::int32_t>::max());
+            sessionId = dist(engine);
+        }
+
         static std::unordered_map<std::string_view, std::string_view> functionScriptCache;
 
         /*
@@ -493,16 +504,23 @@ namespace plugin {
             return Util::DeleteTrigger(extensionKey, triggerKey);
         }
 
+        int GetSessionId(RE::StaticFunctionTag*) {
+            return plugin::Util::sessionId;
+        }
+
         bool Register(RE::BSScript::IVirtualMachine* vm) {
-            vm->RegisterFunction("_PrecacheLibraries", "sl_triggers_internal", PrecacheLibraries, true);
-            vm->RegisterFunction("_RunOperationOnActor", "sl_triggers_internal", RunOperationOnActor);
-            vm->RegisterFunction("_SplitLinesTrimmed", "sl_triggers_internal", SplitLinesTrimmed, true);
-            vm->RegisterFunction("_GetTranslatedString", "sl_triggers_internal", GetTranslatedString);
-            vm->RegisterFunction("_GetActiveMagicEffectsForActor", "sl_triggers_internal", GetActiveMagicEffectsForActor);
-            vm->RegisterFunction("_IsLoaded", "sl_triggers_internal", IsLoaded, true);
-            vm->RegisterFunction("_SplitLines", "sl_triggers_internal", SplitLines, true);
-            vm->RegisterFunction("_Tokenize", "sl_triggers_internal", Tokenize, true);
-            vm->RegisterFunction("_DeleteTrigger", "sl_triggers_internal", DeleteTrigger, true);
+            // I may have untreated problems?? :)
+            // but the alignment... so pretty...
+            vm->RegisterFunction("_PrecacheLibraries"               ,"sl_triggers_internal" ,PrecacheLibraries               ,true  );
+            vm->RegisterFunction("_RunOperationOnActor"             ,"sl_triggers_internal" ,RunOperationOnActor                    );
+            vm->RegisterFunction("_SplitLinesTrimmed"               ,"sl_triggers_internal" ,SplitLinesTrimmed               ,true  );
+            vm->RegisterFunction("_GetTranslatedString"             ,"sl_triggers_internal" ,GetTranslatedString                    );
+            vm->RegisterFunction("_GetActiveMagicEffectsForActor"   ,"sl_triggers_internal" ,GetActiveMagicEffectsForActor          );
+            vm->RegisterFunction("_IsLoaded"                        ,"sl_triggers_internal" ,IsLoaded                        ,true  );
+            vm->RegisterFunction("_SplitLines"                      ,"sl_triggers_internal" ,SplitLines                      ,true  );
+            vm->RegisterFunction("_Tokenize"                        ,"sl_triggers_internal" ,Tokenize                        ,true  );
+            vm->RegisterFunction("_DeleteTrigger"                   ,"sl_triggers_internal" ,DeleteTrigger                   ,true  );
+            vm->RegisterFunction("_GetSessionId"                    ,"sl_triggers_internal" ,GetSessionId                    ,true  );
 
             return true;
         }

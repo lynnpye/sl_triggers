@@ -5,6 +5,5 @@ namespace plugin {
     }
 
     void Hooks::quitGame() {
-        logger::info("Game quitting");
     }
 }  // namespace plugin

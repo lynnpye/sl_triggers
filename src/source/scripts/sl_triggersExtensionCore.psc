@@ -282,18 +282,23 @@ Function HandleTopOfTheHour()
 	while i < triggerKeys_topOfTheHour.Length
 		triggerKey = triggerKeys_topOfTheHour[i]
 		string _triggerFile = FN_T(triggerKey)
-		command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
-		if command
-			RequestCommand(PlayerRef, command)
-		endIf
-		command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
-		if command
-			RequestCommand(PlayerRef, command)
-		endIf
-		command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
-		if command
-			RequestCommand(PlayerRef, command)
-		endIf
+
+		float chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
+
+		if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
+		endif
 		i += 1
 	endwhile
 EndFunction

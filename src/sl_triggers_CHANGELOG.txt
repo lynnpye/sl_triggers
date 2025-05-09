@@ -1,3 +1,8 @@
+117
+    bugfix: Top of the Hour events were not respecting Chance
+    enhancement: actor_getscale/actor_setscale
+    change: removed the roughly 4 second (technically 3.9 second) additional delay and have sacked the ones responsible for it
+
 116
     enhancement: added jsonutil and storageutil functions as wrappers around PapyrusUtil scripts of the same name
     enhancement: minor performance tuning (restructured sequence of certain built-in lookups)

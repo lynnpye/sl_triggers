@@ -197,7 +197,7 @@ Function BootstrapSLTInit()
 	_registrationBeaconCount = REGISTRATION_BEACON_COUNT
 
 	UnregisterForUpdate()
-	QueueUpdateLoop(4.0)
+	QueueUpdateLoop(0.1)
 EndFunction
 
 Function DoOnPlayerLoadGame()
@@ -425,11 +425,13 @@ string Function globalvars_set(int varsindex, string value)
 	return Heap_StringSetFK(self, MakeInstanceKey(PSEUDO_INSTANCE_KEY, GLOBALVARS_KEYNAME_PREFIX + varsindex), value)
 EndFunction
 
+;/
 Function EnqueueAMEValues(Actor _theActor, string cmd, string instanceId)
 	if !self
 		return
 	endif
 EndFunction
+/;
 
 sl_triggersExtension Function GetExtensionByIndex(int _index)
 	return extensions[_index] as sl_triggersExtension
