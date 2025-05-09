@@ -416,6 +416,33 @@ function sl_orgasm(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
     endif
 endFunction
 
+; sltname slso_bonus_enjoyment
+; sltgrup SexLab Separate Orgasms
+; sltdesc Applies BonusEnjoyment to the specified actor
+; sltargs actor: target Actor
+; sltargs enjoyment: int, 1-100?
+; sltsamp slso_bonus_enjoyment $self 30
+function slso_bonus_enjoyment(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor
+            int enjoyment = CmdPrimary.Resolve(param[2]) as int
+
+            sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
+            if thread
+                sslActorAlias saa = thread.ActorAlias(_targetActor)
+                if saa
+                    saa.BonusEnjoyment(_targetActor, enjoyment)
+                endif
+            endif
+        endif
+    endif
+endFunction
+
 ; sltname df_resetall
 ; sltgrup Devious Followers
 ; sltdesc Resets all Devious Followers values (i.e. quest states, deal states, boredom, debt)
@@ -537,5 +564,197 @@ function dd_unlockall(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
             endif
         endif
     endif
+endFunction
+
+; sltname osla_get_arousal
+; sltgrup OSLAroused
+; sltdesc Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
+; sltargs actor: target Actor
+; sltsamp osla_get_arousal $self
+; sltsamp msg_console "Arousal is: " $$
+function osla_get_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    string newResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor
+            newResult = sl_triggersAdapterOSLA.GetArousal(_targetActor)
+        endif
+    endif
+
+    CmdPrimary.MostRecentResult = newResult
+endFunction
+
+; sltname osla_get_arousal_multiplier
+; sltgrup OSLAroused
+; sltdesc Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
+; sltargs actor: target Actor
+; sltsamp osla_get_arousal_multiplier $self
+; sltsamp msg_console "Arousal multiplier is: " $$
+function osla_get_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    string newResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor
+            newResult = sl_triggersAdapterOSLA.GetArousalMultiplier(_targetActor)
+        endif
+    endif
+
+    CmdPrimary.MostRecentResult = newResult
+endFunction
+
+; sltname osla_get_exposure
+; sltgrup OSLAroused
+; sltdesc Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
+; sltargs actor: target Actor
+; sltsamp osla_get_exposure $self
+; sltsamp msg_console "Exposure is: " $$
+function osla_get_exposure(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    string newResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor
+            newResult = sl_triggersAdapterOSLA.GetExposure(_targetActor)
+        endif
+    endif
+
+    CmdPrimary.MostRecentResult = newResult
+endFunction
+
+; sltname osla_get_actor_days_since_last_orgasm
+; sltgrup OSLAroused
+; sltdesc Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
+; sltargs actor: target Actor
+; sltsamp osla_get_actor_days_since_last_orgasm $self
+; sltsamp msg_console "Arousal is: " $$
+function osla_get_actor_days_since_last_orgasm(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    string newResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor
+            newResult = sl_triggersAdapterOSLA.GetActorDaysSinceLastOrgasm(_targetActor)
+        endif
+    endif
+
+    CmdPrimary.MostRecentResult = newResult
+endFunction
+
+; sltname osla_modify_arousal
+; sltgrup OSLAroused
+; sltdesc Sets $$ to the result of OSLAroused_ModInterface.ModifyArousal(Actor, float, string)
+; sltargs actor: target Actor
+; sltargs value: float value
+; sltargs reason: string, optional (default "unknown")
+; sltsamp osla_modify_arousal $self 20.0 "for reasons"
+function osla_modify_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    string newResult
+
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor
+            float value = CmdPrimary.Resolve(param[2]) as float
+            string reason
+            if param.Length > 3
+                reason = CmdPrimary.Resolve(param[3])
+            endif
+            newResult = sl_triggersAdapterOSLA.ModifyArousal(_targetActor, value, reason)
+        endif
+    endif
+
+    CmdPrimary.MostRecentResult = newResult
+endFunction
+
+; sltname osla_set_arousal
+; sltgrup OSLAroused
+; sltdesc Sets $$ to the result of OSLAroused_ModInterface.SetArousal(Actor, float, string)
+; sltargs actor: target Actor
+; sltargs value: float value
+; sltargs reason: string, optional (default "unknown")
+; sltsamp osla_set_arousal $self 50.0 "for reasons"
+function osla_set_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    string newResult
+
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor
+            float value = CmdPrimary.Resolve(param[2]) as float
+            string reason
+            if param.Length > 3
+                reason = CmdPrimary.Resolve(param[3])
+            endif
+            newResult = sl_triggersAdapterOSLA.SetArousal(_targetActor, value, reason)
+        endif
+    endif
+
+    CmdPrimary.MostRecentResult = newResult
+endFunction
+
+; sltname osla_modify_arousal_multiplier
+; sltgrup OSLAroused
+; sltdesc Sets $$ to the result of OSLAroused_ModInterface.ModifyArousalMultiplier(Actor, float, string)
+; sltargs actor: target Actor
+; sltargs value: float value
+; sltargs reason: string, optional (default "unknown")
+; sltsamp osla_modify_arousal_multiplier $self 0.5 "for reasons"
+function osla_modify_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    string newResult
+
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor
+            float value = CmdPrimary.Resolve(param[2]) as float
+            string reason
+            if param.Length > 3
+                reason = CmdPrimary.Resolve(param[3])
+            endif
+            newResult = sl_triggersAdapterOSLA.ModifyArousalMultiplier(_targetActor, value, reason)
+        endif
+    endif
+
+    CmdPrimary.MostRecentResult = newResult
+endFunction
+
+; sltname osla_set_arousal_multiplier
+; sltgrup OSLAroused
+; sltdesc Sets $$ to the result of OSLAroused_ModInterface.SetArousalMultiplier(Actor, float, string)
+; sltargs actor: target Actor
+; sltargs value: float value
+; sltargs reason: string, optional (default "unknown")
+; sltsamp osla_set_arousal_multiplier $self 2.0 "for reasons"
+function osla_set_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    string newResult
+
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor
+            float value = CmdPrimary.Resolve(param[2]) as float
+            string reason
+            if param.Length > 3
+                reason = CmdPrimary.Resolve(param[3])
+            endif
+            newResult = sl_triggersAdapterOSLA.SetArousalMultiplier(_targetActor, value, reason)
+        endif
+    endif
+
+    CmdPrimary.MostRecentResult = newResult
 endFunction
 
