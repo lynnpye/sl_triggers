@@ -1012,6 +1012,91 @@ Set facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecialed
 
 
 
+# PapyrusUtil
+
+### jsonutil
+
+**Description**
+Wrapper around most JsonUtil functions
+
+**Parameters**
+
+    <sub-function> - JsonUtil functionality to perform  
+    <filename> - JSON file to interact with  
+
+Valid sub-functions are:  
+load              : <filename>  
+save              : <filename>  
+ispendingsave     : <filename>  
+isgood            : <filename>  
+geterrors         : <filename>  
+exists            : <filename>  
+unload            : <filename> [saveChanges: 0 - false | 1 - true] [minify: 0 - false | 1 - true]  
+set               : <filename> <key> <type: int | float | string> <value>  
+get               : <filename> <key> <type: int | float | string> [<default value>]  
+unset             : <filename> <key> <type: int | float | string>  
+has               : <filename> <key> <type: int | float | string>  
+adjust            : <filename> <key> <type: int | float>          <amount>  
+listadd           : <filename> <key> <type: int | float | string> <value>  
+listget           : <filename> <key> <type: int | float | string> <index>  
+listset           : <filename> <key> <type: int | float | string> <index> <value>  
+listremoveat      : <filename> <key> <type: int | float | string> <index>  
+listinsertat      : <filename> <key> <type: int | float | string> <index> <value>  
+listclear         : <filename> <key> <type: int | float | string>  
+listcount         : <filename> <key> <type: int | float | string>  
+listcountvalue    : <filename> <key> <type: int | float | string> <value> [<exclude: 0 - false | 1 - true>]  
+listfind          : <filename> <key> <type: int | float | string> <value>  
+listhas           : <filename> <key> <type: int | float | string> <value>  
+listresize        : <filename> <key> <type: int | float | string> <toLength> [<filler value>]  
+
+
+
+
+### storageutil
+
+**Description**
+Wrapper around most StorageUtil functions
+
+**Parameters**
+
+    <sub-function> - StorageUtil functionality to perform  
+    <form identifier> - object to interact with; see below for details  
+
+<form identifier> - represents the object you want StorageUtil activity keyed to  
+StorageUtil accepts 'none' (null) to represent "global" StorageUtil space  
+For SLTScript purposes, any identifier that will resolve to a Form object can be used  
+Or you may specify the empty string ("") for the global space  
+For example, any of the following might be valid:  
+$self, $player, $actor   ; these all resolve to Actor  
+"sl_triggers.esp:3426"   ; the FormID for the main Quest object for sl_triggers  
+Read more about StorageUtil for more details  
+Valid sub-functions are:  
+set               : <form identifier> <key> <type: int | float | string> <value>  
+get               : <form identifier> <key> <type: int | float | string> [<default value>]  
+pluck             : <form identifier> <key> <type: int | float | string> [<default value>]  
+unset             : <form identifier> <key> <type: int | float | string>  
+has               : <form identifier> <key> <type: int | float | string>  
+adjust            : <form identifier> <key> <type: int | float>          <amount>  
+listadd           : <form identifier> <key> <type: int | float | string> <value>  
+listget           : <form identifier> <key> <type: int | float | string> <index>  
+listpluck         : <form identifier> <key> <type: int | float | string> <index> <default value>  
+listset           : <form identifier> <key> <type: int | float | string> <index> <value>  
+listremoveat      : <form identifier> <key> <type: int | float | string> <index>  
+listinsertat      : <form identifier> <key> <type: int | float | string> <index> <value>  
+listadjust        : <form identifier> <key> <type: int | float | string> <index> <amount>  
+listclear         : <form identifier> <key> <type: int | float | string>  
+listpop           : <form identifier> <key> <type: int | float | string>  
+listshift         : <form identifier> <key> <type: int | float | string>  
+listsort          : <form identifier> <key> <type: int | float | string>  
+listcount         : <form identifier> <key> <type: int | float | string>  
+listcountvalue    : <form identifier> <key> <type: int | float | string> <value> [<exclude: 0 - false | 1 - true>]  
+listfind          : <form identifier> <key> <type: int | float | string> <value>  
+listhas           : <form identifier> <key> <type: int | float | string> <value>  
+listresize        : <form identifier> <key> <type: int | float | string> <toLength> [<filler value>]  
+
+
+
+
 # Perks
 
 ### perk_add
@@ -1626,6 +1711,148 @@ Sets current debt to the specified amount
 We all know what you are going to use it for  
 
 
+# OSLAroused
+
+### osla_get_actor_days_since_last_orgasm
+
+**Description**
+Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
+
+**Parameters**
+
+    actor: target Actor  
+
+
+**Example**
+
+    osla_get_actor_days_since_last_orgasm $self  
+    msg_console "Arousal is: " $$  
+
+
+
+### osla_get_arousal
+
+**Description**
+Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
+
+**Parameters**
+
+    actor: target Actor  
+
+
+**Example**
+
+    osla_get_arousal $self  
+    msg_console "Arousal is: " $$  
+
+
+
+### osla_get_arousal_multiplier
+
+**Description**
+Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
+
+**Parameters**
+
+    actor: target Actor  
+
+
+**Example**
+
+    osla_get_arousal_multiplier $self  
+    msg_console "Arousal multiplier is: " $$  
+
+
+
+### osla_get_exposure
+
+**Description**
+Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
+
+**Parameters**
+
+    actor: target Actor  
+
+
+**Example**
+
+    osla_get_exposure $self  
+    msg_console "Exposure is: " $$  
+
+
+
+### osla_modify_arousal
+
+**Description**
+Sets $$ to the result of OSLAroused_ModInterface.ModifyArousal(Actor, float, string)
+
+**Parameters**
+
+    actor: target Actor  
+    value: float value  
+    reason: string, optional (default "unknown")  
+
+
+**Example**
+
+    osla_modify_arousal $self 20.0 "for reasons"  
+
+
+
+### osla_modify_arousal_multiplier
+
+**Description**
+Sets $$ to the result of OSLAroused_ModInterface.ModifyArousalMultiplier(Actor, float, string)
+
+**Parameters**
+
+    actor: target Actor  
+    value: float value  
+    reason: string, optional (default "unknown")  
+
+
+**Example**
+
+    osla_modify_arousal_multiplier $self 0.5 "for reasons"  
+
+
+
+### osla_set_arousal
+
+**Description**
+Sets $$ to the result of OSLAroused_ModInterface.SetArousal(Actor, float, string)
+
+**Parameters**
+
+    actor: target Actor  
+    value: float value  
+    reason: string, optional (default "unknown")  
+
+
+**Example**
+
+    osla_set_arousal $self 50.0 "for reasons"  
+
+
+
+### osla_set_arousal_multiplier
+
+**Description**
+Sets $$ to the result of OSLAroused_ModInterface.SetArousalMultiplier(Actor, float, string)
+
+**Parameters**
+
+    actor: target Actor  
+    value: float value  
+    reason: string, optional (default "unknown")  
+
+
+**Example**
+
+    osla_set_arousal_multiplier $self 2.0 "for reasons"  
+
+
+
 # SexLab
 
 ### sl_advance
@@ -1782,6 +2009,25 @@ Wait until specified actor is not in SexLab scene
     util_waitforend $self  
 
 Wait until the scene ends  
+
+
+# SexLab Separate Orgasms
+
+### slso_bonus_enjoyment
+
+**Description**
+Applies BonusEnjoyment to the specified actor
+
+**Parameters**
+
+    actor: target Actor  
+    enjoyment: int, 1-100?  
+
+
+**Example**
+
+    slso_bonus_enjoyment $self 30  
+
 
 
 # Utility
