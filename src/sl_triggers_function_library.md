@@ -113,6 +113,24 @@ Set $$ to the relationship rank between the two actors
 -4 - Archnemesis  
 
 
+### actor_getscale
+
+**Description**
+Sets $$ to the 'scale' value of the specified Actor
+Note: this is properly a function of ObjectReference, so may get pushed to a different group at some point
+
+**Parameters**
+
+    actor: target Actor  
+
+
+**Example**
+
+    actor_getscale $self  
+    msg_console "Scale reported: " $$  
+
+
+
 ### actor_haskeyword
 
 **Description**
@@ -485,6 +503,24 @@ Set relationship rank between the two actors to the indicated value
     actor_setrelation $actor $player 0  
 
 See actor_getrelation for ranks  
+
+
+### actor_setscale
+
+**Description**
+Sets the actor's scale to the specified value
+Note: this is properly a function of ObjectReference, so may get pushed to a different group at some point
+
+**Parameters**
+
+    actor: target Actor  
+    scale: float, new scale value to replace the old  
+
+
+**Example**
+
+    actor_setscale $self 1.01  
+
 
 
 ### actor_state
@@ -1619,23 +1655,6 @@ if parameter 2 is "SL": return actors Sexlab frameworks race key name. Like: "do
 
     actor_race $self "SL"  
     msg_notify "  Race SL: " $$  
-
-
-
-### actor_say
-
-**Description**
-Causes the actor to 'say' the topic indicated by FormId; not usable on the Player
-
-**Parameters**
-
-    actor: target Actor  
-    topic: Topic FormID  
-
-
-**Example**
-
-    actor_say $actor "Skyrim.esm:1234"  
 
 
 
