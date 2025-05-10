@@ -96,27 +96,51 @@ function util_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
     sl_getrndactor(CmdTargetActor, _CmdPrimary, param)
 endFunction
 
-; sltname actor_say
-; sltgrup Actor
-; sltdesc Causes the actor to 'say' the topic indicated by FormId; not usable on the Player
-; sltargs actor: target Actor
-; sltargs topic: Topic FormID
-; sltsamp actor_say $actor "Skyrim.esm:1234"
+; xsltname actor_say
+; xsltgrup Actor
+; xsltdesc Causes the actor to 'say' the topic indicated by FormId; not usable on the Player
+; xsltargs actor: target Actor
+; xsltargs topic: Topic FormID
+; xsltsamp actor_say $actor "Skyrim.esm:1234"
+;/
+ Disabling this variant as the restriction about player/freecam may not be an actual restriction
+ And that logically devolves to the baseline version.
+ Keeping this one commented for now
 function actor_say(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+    
+    DebMsg("SexLab.actor_say: starting")
 
     sl_triggersExtensionSexLab slExtension = GetExtension()
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Topic thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2])) as Topic
+        DebMsg("param count good")
+        string thingFormId = CmdPrimary.resolve(param[2])
+        Topic thing = CmdPrimary.GetFormId(thingFormId) as Topic
         if thing
+            DebMsg("topic good")
             Actor _targetActor = CmdPrimary.ResolveActor(param[1])
-            if !slExtension.IsEnabled || !slExtension.SexLab.Config.ToggleFreeCamera || _targetActor != CmdPrimary.PlayerRef
-                _targetActor.Say(thing)
+            if _targetActor
+                DebMsg("actor good")
+                if _targetActor == CmdPrimary.PlayerRef && (slExtension.IsEnabled && slExtension.SexLab && slExtension.SexLab.Config.ToggleFreeCamera)
+                    ; nop
+                    DebMsg("SexLab.actor_say: target is actor and currently in SexLab freecam mode; per original implementation, do not run Actor.Say()")
+                else
+                    DebMsg("pre-say")
+                    _targetActor.Say(thing)
+                    DebMsg("post-say")
+                endif
+            else
+                DebMsg("_targetActor did not resolve(" + param[1] + ")")
             endif
+        else
+            DebMsg("thing did not resolve(" + thingFormId + ") resolved from(" + param[2] +")")
         endIf
     endif
+    
+    DebMsg("SexLab.actor_say: done")
 endFunction
+/;
 
 ; sltname actor_race
 ; sltgrup Actor

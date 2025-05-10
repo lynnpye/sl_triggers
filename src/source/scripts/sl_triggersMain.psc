@@ -436,12 +436,12 @@ EndFunction
 
 
 ; simple get handler for infini-globals
-string Function globalvars_get(int varsindex)
+string Function globalvars_get(string varsindex)
 	return Heap_StringGetFK(self, MakeInstanceKey(PSEUDO_INSTANCE_KEY, GLOBALVARS_KEYNAME_PREFIX + varsindex))
 EndFunction
 
 ; simple set handler for infini-globals
-string Function globalvars_set(int varsindex, string value)
+string Function globalvars_set(string varsindex, string value)
 	return Heap_StringSetFK(self, MakeInstanceKey(PSEUDO_INSTANCE_KEY, GLOBALVARS_KEYNAME_PREFIX + varsindex), value)
 EndFunction
 

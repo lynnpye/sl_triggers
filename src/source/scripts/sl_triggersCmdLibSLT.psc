@@ -1086,10 +1086,11 @@ function actor_say(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Topic thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2])) as Topic
+        string thingFormId = CmdPrimary.resolve(param[2])
+        Topic thing = CmdPrimary.GetFormId(thingFormId) as Topic
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[1])
-            if _targetActor != CmdPrimary.PlayerRef
+            if _targetActor
                 _targetActor.Say(thing)
             endif
         endIf

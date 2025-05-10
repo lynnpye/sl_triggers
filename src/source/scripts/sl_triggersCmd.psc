@@ -124,27 +124,18 @@ Bool Function InSameCell(Actor _actor)
 	return True
 EndFunction
 
-int function IsVarPrefixed(string _code, string _prefix)
-	if !_code || !_prefix || StringUtil.SubString(_code, 0, StringUtil.GetLength(_prefix)) != _prefix
-		return -1
-	endif
-	
-	string numchunk = StringUtil.Substring(_code, StringUtil.GetLength(_prefix))
-	int num = numchunk as int
-	
-	if (num as string) == numchunk
-		return num
-	else
-		return -1
-	endif
+string function IsVarString(string _code)
+    if _code && StringUtil.GetLength(_code) > 1 && StringUtil.GetNthChar(_code, 0) == "$"
+        return StringUtil.Substring(_code, 1)
+    endif
+	return ""
 endfunction
 
-int function IsVarString(string _code)
-	return IsVarPrefixed(_code, "$")
-endfunction
-
-int function IsVarStringG(string _code)
-	return IsVarPrefixed(_code, "$g")
+string function IsVarStringG(string _code)
+    if _code && StringUtil.GetLength(_code) > 1 && StringUtil.GetNthChar(_code, 0) == "!"
+        return StringUtil.Substring(_code, 1)
+    endif
+	return ""
 endfunction
 
 ;/
@@ -157,21 +148,21 @@ Function QueueUpdateLoop(float afDelay = 1.0)
 	RegisterForSingleUpdate(afDelay)
 EndFunction
 
-string Function vars_get(int varsindex)
+string Function vars_get(string varsindex)
 	return Heap_StringGetFK(CmdTargetActor, VARS_KEY_PREFIX + varsindex)
 EndFunction
 
-string Function vars_set(int varsindex, string value)
+string Function vars_set(string varsindex, string value)
 	return Heap_StringSetFK(CmdTargetActor, VARS_KEY_PREFIX + varsindex, value)
 EndFunction
 
 ; simple get handler for infini-globals
-string Function globalvars_get(int varsindex)
+string Function globalvars_get(string varsindex)
 	return SLT.globalvars_get(varsindex)
 EndFunction
 
 ; simple set handler for infini-globals
-string Function globalvars_set(int varsindex, string value)
+string Function globalvars_set(string varsindex, string value)
 	return SLT.globalvars_set(varsindex, value)
 EndFunction
 
@@ -384,18 +375,18 @@ Function RunScript()
                     cmdidx += 1
                 elseIf command == "set"
                     if cmdLine.Length == 3 || cmdLine.Length == 5
-                        int varindex = IsVarString(cmdLine[1])
-                        int g_varindex = IsVarStringG(cmdLine[1])
+                        string varindex = IsVarString(cmdLine[1])
+                        string g_varindex = IsVarStringG(cmdLine[1])
                     
-                        if (varindex > 0) || (g_varindex > 0)
-                            if g_varindex > -1
+                        if varindex || g_varindex
+                            if g_varindex
                                 varindex = g_varindex
                             endif
                         
                             string strparm2 = resolve(cmdLine[2])
                         
                             if cmdLine.length == 3
-                                if g_varindex > -1
+                                if g_varindex
                                     globalvars_set(varindex, strparm2)
                                 else
                                     vars_set(varindex, strparm2)
@@ -421,7 +412,7 @@ Function RunScript()
                                 else
                                     DebMsg("SLT: [" + cmdName + "][lineNum:" + lineNum + "] unexpected operator for 'set' (" + operat + ")")
                                 endif
-                                if g_varindex > -1
+                                if g_varindex
                                     globalvars_set(varindex, strresult)
                                 else
                                     vars_set(varindex, strresult)
@@ -457,8 +448,8 @@ Function RunScript()
                             isIncrInt = (incrInt == incrFloat)
                         endif
                     
-                        int varindex = IsVarStringG(varstr)
-                        if varindex >= 0
+                        string varindex = IsVarStringG(varstr)
+                        if varindex
                             int varint = globalvars_get(varindex) as int
                             float varfloat = globalvars_get(varindex) as float
                             if (varint == varfloat && isIncrInt)
@@ -468,7 +459,7 @@ Function RunScript()
                             endif
                         else
                             varindex = IsVarString(varstr)
-                            if varindex >= 0
+                            if varindex
                                 int varint = vars_get(varindex) as int
                                 float varfloat = vars_get(varindex) as float
                                 if (varint == varfloat && isIncrInt)
@@ -477,7 +468,7 @@ Function RunScript()
                                     vars_set(varindex, (varfloat + incrFloat) as string)
                                 endif
                             else
-                                DebMsg("SLT: [" + cmdName + "][lineNum:" + lineNum + "] no resolve found for variable parameter (" + cmdLine[1] + ")")
+                                DebMsg("SLT: [" + cmdName + "][lineNum:" + lineNum + "] no resolve found for variable parameter (" + cmdLine[1] + ") varstr(" + varstr + ") varindex(" + varindex + ")")
                             endif
                         endif
                     endif
@@ -492,8 +483,8 @@ Function RunScript()
                         string varstr = cmdLine[1]
                         float incrAmount = resolve(cmdLine[2]) as float
                     
-                        int varindex = IsVarStringG(varstr)
-                        if varindex >= 0
+                        string varindex = IsVarStringG(varstr)
+                        if varindex
                             globalvars_set(varindex, (globalvars_get(varindex) + resolve(cmdLine[2])) as string)
                         else
                             varindex = IsVarString(varstr)
@@ -553,12 +544,12 @@ Function RunScript()
                             newval = callargs_get(argidx) 
                         endif
 
-                        int vidx = IsVarStringG(arg)
-                        if vidx > 0
+                        string vidx = IsVarStringG(arg)
+                        if vidx
                             SLT.globalvars_set(vidx, newval)
                         else
                             vidx = IsVarString(arg)
-                            if vidx > 0
+                            if vidx
                                 vars_set(vidx, newval)
                             endif
                         endif
@@ -1021,25 +1012,24 @@ string Function _slt_ParseCommandFile()
 EndFunction
 
 bool Function _slt_SLTResolve(string _code)
-	int varindex = -1
-    if StringUtil.getNthChar(_code, 0) == "$"
-        if _code == "$$"
-            CustomResolveResult = MostRecentResult
+    if _code == "$$"
+        CustomResolveResult = MostRecentResult
+        return true
+    endif
+
+	string varindex = IsVarString(_code)
+
+    if varindex
+        CustomResolveResult = vars_get(varindex)
+        return true
+    else
+        varindex = IsVarStringG(_code)
+        if varindex
+            CustomResolveResult = globalvars_get(varindex)
             return true
-        else
-			varindex = IsVarStringG(_code)
-			if varindex >= 0
-                CustomResolveResult = globalvars_get(varindex)
-                return true
-            else
-                varindex = IsVarString(_code)
-                if varindex >= 0
-                    CustomResolveResult = vars_get(varindex)
-                    return true
-                endif
-			endif
-        endIf
-    endIf
+        endif
+    endif
+    
     return false
 EndFunction
 

@@ -1,3 +1,13 @@
+118
+    Savegame compatibility: tested succesfully with an update from v117
+    Savegame compatibility: SCRIPT-BREAKING if using the old "$g" style global variable names
+        Shipped scripts in the 'sl_triggers/commands' subfolder have been updated
+    MAJOR enhancement: variable names, i.e. not just numbers
+        $<any-non-breaking-characters> - local variables
+        !<any-non-breaking-characters> - global variables
+        Yes, this means that any existing scripts you have written that make use of the previous "$g" global variable approach is now actually referencing local variables
+    bugfix: SLT.actor_say not working if self is player
+
 117
     Savegame compatibility: tested succesfully with an update from v116
     MAJOR enhancement: running scripts should now resume on loading a save (you can have suuuuuper long-running scripts now; theoretically lifetime)
@@ -10,6 +20,7 @@
     change: removed the roughly 4 second (technically 3.9 second) additional delay and have sacked the ones responsible for it
 
 116
+    Savegame compatibility: tested succesfully with an update from v115
     enhancement: added jsonutil and storageutil functions as wrappers around PapyrusUtil scripts of the same name
     enhancement: minor performance tuning (restructured sequence of certain built-in lookups)
     enhancement: more documentation, both on the wiki and in .txt file form with the mod
