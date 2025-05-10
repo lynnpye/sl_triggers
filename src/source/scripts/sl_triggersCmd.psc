@@ -23,58 +23,12 @@ Keyword			Property ActorTypeUndead Auto
 string			Property InstanceId Auto Hidden
 
 Actor			Property CmdTargetActor Auto Hidden
-string		    Property MostRecentResult Auto Hidden
 
-bool            Property CustomResolveReady Auto Hidden
-bool            Property CustomResolveHandled Auto Hidden
-string _customResolveResult
-string          Property CustomResolveResult Hidden
-    string Function Get()
-        return _customResolveResult
-    EndFunction
-
-    Function Set(string value)
-        _customResolveResult = value
-        CustomResolveHandled = true
-    EndFunction
-EndProperty
-
-bool            Property CustomResolveActorReady Auto Hidden
-bool            Property CustomResolveActorHandled Auto Hidden
-Actor _customResolveActorResult
-Actor           Property CustomResolveActorResult Hidden
-    Actor Function Get()
-        return _customResolveActorResult
-    EndFunction
-
-    Function Set(Actor value)
-        _customResolveActorResult = value
-        CustomResolveActorHandled = true
-    EndFunction
-EndProperty
-
-bool            Property CustomResolveCondReady Auto Hidden
-bool            Property CustomResolveCondHandled Auto Hidden
-bool _customResolveCondResult
-bool            Property CustomResolveCondResult Hidden
-    bool Function Get()
-        return _customResolveCondResult
-    EndFunction
-
-    Function Set(bool value)
-        _customResolveCondResult = value
-        CustomResolveCondHandled = true
-    EndFunction
-EndProperty
+string          Property CustomResolveResult Auto Hidden
+Actor           Property CustomResolveActorResult Auto Hidden
+bool            Property CustomResolveCondResult Auto Hidden
 
 ; Properties
-int			Property lastKey Auto Hidden
-Actor		Property iterActor Auto Hidden
-string      Property cmdName Auto Hidden
-int         Property cmdIdx Auto Hidden
-int         Property lineNum Auto Hidden
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -193,9 +147,11 @@ int function IsVarStringG(string _code)
 	return IsVarPrefixed(_code, "$g")
 endfunction
 
+;/
 String Function GetInstanceId()
 	return InstanceId
 EndFunction
+/;
 
 Function QueueUpdateLoop(float afDelay = 1.0)
 	RegisterForSingleUpdate(afDelay)
@@ -265,80 +221,104 @@ EndFunction
 
 
 ; internal variables
-string      VARS_KEY_PREFIX
 
 bool executionNotBegun
 
 string[] currentCmdLine
-bool firstPass = true
-
-string[]    _callArgs
-float       _maxSeconds = 10.0
 
 string _xn_execute_line
 string _xn_actual_oper
 
-; callstack variables
-;int			cmdIdx
-int			cmdNum
-;string		cmdName
-string      cmdType
-int[]		gotoIdx 
-string[]	gotoLabels 
-int			gotoCnt 
-int[]       gosubIdx
-string[]    gosubLabels
-int         gosubCnt
-int[]       gosubReturnStack
-int         gosubReturnIdx
-string	    MostRecentResult
+string  kk_callstack_pointer
+string  kk_callstack_list_pointer
 
-; multi-callstack support
-string      CallstackId
-int         _callstackIdNextUp
-string[]    _callstack_stack ; ugh
-int[]       _cs_cmdIdx
-int[]       _cs_cmdNum
-string[]    _cs_cmdType
-string[]    _cs_cmdName
-int[]       _cs_gotoIdx
-string[]    _cs_gotoLabels
-int[]       _cs_gotoCnt
-int[]       _cs_gosubIdx
-string[]    _cs_gosubLabels
-int[]       _cs_gosubCnt
-int[]       _cs_gosubReturnStack
-int[]       _cs_gosubReturnIdx
-string[]    _csMostRecentResult
+string  kk_cs_callstackid
+string  kk_cs_callstackid_nextup
 
-Event OnEffectStart(Actor akTarget, Actor akCaster)
-    cmdIdx = 0
-    
-    gotoCnt = 0
-    gotoIdx = new int[127]
-    gotoLabels = new string[127]
-    gosubCnt = 0
-    gosubIdx = new int[127]
-    gosubLabels = new string[127]
-    gosubReturnStack = new int[127]
-    gosubReturnIdx = -1
-    
-	CmdTargetActor = akCaster
-	
+string  kk_cs_callargs
+
+string  kk_cs_vars_key_prefix
+
+string  kk_cs_cmdidx
+string  kk_cs_cmdnum
+string  kk_cs_cmdtype
+string  kk_cs_cmdname
+string  kk_cs_gotoidx
+string  kk_cs_gotolabels
+string  kk_cs_gotocnt
+string  kk_cs_gosubidx
+string  kk_cs_gosublabels
+string  kk_cs_gosubcnt
+string  kk_cs_gosubreturnstack
+string  kk_cs_gosubreturnidx
+string  kk_cs_mostrecentresult
+
+string  kk_cs_lastkey
+string  kk_cs_iteractor
+
+Function _slt_Setup_InstanceKeys()
+    _xn_actual_oper     = "_xn_actual_oper:" + InstanceId
+    _xn_execute_line    = "_xn_execute_line:" + InstanceId
+
+    kk_callstack_pointer = MakeInstanceKey(InstanceId, "_cs_callstack_pointer")
+    kk_callstack_list_pointer = MakeInstanceKey(InstanceId, "_cs_callstack_list_pointer")
+
+    kk_cs_callstackid = MakeInstanceKey(InstanceId, "_cs_callstackid")
+    kk_cs_callstackid_nextup = MakeInstanceKey(InstanceId, "_cs_callstackid_nextup")
+
+    kk_cs_callargs = MakeInstanceKey(InstanceId, "_cs_callargs")
+
+    kk_cs_vars_key_prefix = MakeInstanceKey(InstanceId, "_cs_vars_key_prefix")
+
+    kk_cs_cmdidx = MakeInstanceKey(InstanceId, "_cs_cmdidx")
+    kk_cs_cmdnum = MakeInstanceKey(InstanceId, "_cs_cmdnum")
+    kk_cs_cmdtype = MakeInstanceKey(InstanceId, "_cs_cmdtype")
+    kk_cs_cmdname = MakeInstanceKey(InstanceId, "_cs_cmdname")
+    kk_cs_gotoidx = MakeInstanceKey(InstanceId, "_cs_gotoidx")
+    kk_cs_gotolabels = MakeInstanceKey(InstanceId, "_cs_gotolabels")
+    kk_cs_gotocnt = MakeInstanceKey(InstanceId, "_cs_gotocnt")
+    kk_cs_gosubidx = MakeInstanceKey(InstanceId, "_cs_gosubidx")
+    kk_cs_gosublabels = MakeInstanceKey(InstanceId, "_cs_gosublabels")
+    kk_cs_gosubcnt = MakeInstanceKey(InstanceId, "_cs_gosubcnt")
+    kk_cs_gosubreturnstack = MakeInstanceKey(InstanceId, "_cs_gosubreturnstack")
+    kk_cs_gosubreturnidx = MakeInstanceKey(InstanceId, "_cs_gosubreturnidx")
+    kk_cs_mostrecentresult = MakeInstanceKey(InstanceId, "_cs_mostrecentresult")
+
+    kk_cs_lastkey = MakeInstanceKey(InstanceId, "_cs_lastkey")
+    kk_cs_iteractor = MakeInstanceKey(InstanceId, "_cs_iteractor")
+EndFunction
+
+
+Event OnPlayerLoadGame()
 	instanceId = Heap_DequeueInstanceIdF(CmdTargetActor)
-   	cmdName = Heap_StringGetFK(CmdTargetActor, MakeInstanceKey(instanceId, "cmd"))
-	
+
+    currentCmdLine = Heap_StringListToArrayX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdidx + "]")
+
+    DoWhatYouShouldHaveDoneInTheFirstPlace()
+EndEvent
+
+Function DoWhatYouShouldHaveDoneInTheFirstPlace()
 	SafeRegisterForModEvent_AME(self, EVENT_SLT_HEARTBEAT(), "OnSLTHeartbeat")
 	SafeRegisterForModEvent_AME(self, EVENT_SLT_RESET(), "OnSLTReset")
 
-    CallstackId = "Callstack" + _callstackIdNextUp
-    _callstackIdNextUp += 1
-    VARS_KEY_PREFIX = "sl_triggers:" + InstanceId + ":" + CallstackId + ":vars"
-
+    _slt_Setup_InstanceKeys()
     RegisterForScriptEvents()
 
 	executionNotBegun = true
 	QueueUpdateLoop(0.1)
+EndFunction
+
+
+Event OnEffectStart(Actor akTarget, Actor akCaster)
+	CmdTargetActor = akCaster
+	
+	instanceId = Heap_DequeueInstanceIdF(CmdTargetActor)
+
+    if !instanceId
+        return
+    endif
+
+    DoWhatYouShouldHaveDoneInTheFirstPlace()
 EndEvent
 
 Event OnUpdate()
@@ -348,18 +328,15 @@ Event OnUpdate()
     
     if executionNotBegun
         executionNotBegun = false
-        
-        SetupCallstack()
 
         Send_X_ExecuteLine()
     endif
 
-    QueueUpdateLoop(5.0)
+    QueueUpdateLoop()
 EndEvent
 
 Event OnKeyDown(Int keyCode)
     lastKey = keyCode
-    ;MiscUtil.PrintConsole("KeyDown: " + lastKey)
 EndEvent
 
 Event OnSLTHeartbeat(string eventName, string strArg, float numArg, Form sender)
@@ -369,24 +346,34 @@ Event OnSLTReset(string eventName, string strArg, float numArg, Form sender)
     PerformDigitalHygiene()
 EndEvent
 
+string Property command auto hidden
+
 Function RunScript()
-    string   command
+    ;string   command
     string   p1
     string   p2
     string   po
     string[] cmdLine
 
-    while firstPass || (_cs_cmdIdx && _cs_cmdIdx.Length > 0) || cmdidx < cmdNum
-        if firstPass
-            firstPass = false
-        elseif (_cs_cmdIdx && _cs_cmdIdx.Length > 0) && cmdidx >= cmdNum
-            _slt_PopCallstack()
+    if !cmdtype && !cmdNum && !cmdidx
+        cmdType = _slt_ParseCommandFile()
+        if !cmdType
+            PerformDigitalHygiene()
+            return
+        endif
+        cmdNum = Heap_IntGetX(CmdTargetActor, InstanceId, CallstackId)
+        cmdidx = 0
+    endif
+
+    while cmdidx < cmdNum || callstackPointer
+
+        if callstackPointer && cmdidx >= cmdNum
+            sl_triggersCmd._slt_RemoveCallstack(CmdTargetActor, InstanceId)
             cmdidx += 1
         endif
 
         while cmdidx < cmdNum
-            lineNum = Heap_IntGetX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + cmdIdx + "]:line", -1)
-            currentCmdLine = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + cmdidx + "]")
+            currentCmdLine = Heap_StringListToArrayX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdidx + "]")
             cmdLine = currentCmdLine
 
             if cmdLine.Length
@@ -527,16 +514,17 @@ Function RunScript()
                     if ParamLengthGT(self, cmdLine.Length, 1)
                         string callTarget = Resolve(cmdLine[1])
                         if _slt_IsFileParseable(callTarget)
+
+                            sl_triggersCmd._slt_AddCallstack(CmdTargetActor, InstanceId, callTarget)
+
                             if cmdLine.Length > 2
-                                _callArgs = PapyrusUtil.SliceStringArray(cmdLine, 2)
+                                string[] _callArgs = PapyrusUtil.SliceStringArray(cmdLine, 2)
                                 int caidx = 0
                                 while caidx < _callArgs.Length
-                                    _callArgs[caidx] = resolve(_callArgs[caidx])
+                                    callargs_set(caidx, Resolve(_callargs[caidx]))
                                     caidx += 1
                                 endwhile
                             endif
-                            
-                            _slt_PushCallstack(callTarget)
                         else
                             cmdidx += 1
                         endif
@@ -561,8 +549,8 @@ Function RunScript()
                         string arg = cmdLine[2]
                         string newval
 
-                        if argidx < _callArgs.Length
-                            newval = _callArgs[argidx]
+                        if argidx < 128
+                            newval = callargs_get(argidx) 
                         endif
 
                         int vidx = IsVarStringG(arg)
@@ -577,13 +565,13 @@ Function RunScript()
                     endif
                     cmdidx += 1
                 elseIf command == "return"
-                    if !_cs_cmdIdx || _cs_cmdIdx.Length < 1
+                    if !callstackPointer
                         PerformDigitalHygiene()
 
                         return
                     endif
                     
-                    _slt_PopCallstack()
+                    sl_triggersCmd._slt_RemoveCallstack(CmdTargetActor, InstanceId)
                     cmdidx += 1
                 else
                     string _slt_mightBeLabel = _slt_IsLabel(cmdType, cmdLine)
@@ -602,14 +590,14 @@ Function RunScript()
         endwhile
     endwhile
 
-    if !_cs_cmdIdx || _cs_cmdIdx.Length < 1
+    if !callstackPointer
         PerformDigitalHygiene()
 
         return
     endif
     
     DebMsg("this should not be possible")
-    _slt_PopCallstack()
+    sl_triggersCmd._slt_RemoveCallstack(CmdTargetActor, InstanceId)
     cmdidx += 1
     
     Send_X_ExecuteLine()
@@ -644,201 +632,100 @@ Function Send_X_ActualOper(string _code)
     endif
 EndFunction
 
-Function SetupCallstack()
-    Heap_IntSetX(CmdTargetActor, GetInstanceId(), CallstackId, 0)
-
-    cmdType = _slt_ParseCommandFile()
-
-    cmdNum = Heap_IntGetX(CmdTargetActor, GetInstanceId(), CallstackId)
-    
-    cmdidx = 0
-EndFunction
-
 Function PerformDigitalHygiene()
     Heap_ClearPrefixF(CmdTargetActor, MakeInstanceKeyPrefix(instanceId))
+    Heap_CompleteScript(CmdTargetActor, InstanceId)
     
     UnregisterForAllModEvents()
     Self.Dispel()
 EndFunction
 
 Function RegisterForScriptEvents()
-    if !_xn_execute_line
-        _xn_actual_oper     = "_xn_actual_oper:" + InstanceId
-        _xn_execute_line    = "_xn_execute_line:" + InstanceId
-    endif
     SafeRegisterForModEvent_AME(self, _xn_actual_oper,      "On_X_ActualOper")
     SafeRegisterForModEvent_AME(self, _xn_execute_line,     "On_X_ExecuteLine")
 EndFunction
 
-Function _slt_PushCallstack(string newcommand)
-    if !_cs_cmdIdx
-        _callstack_stack = PapyrusUtil.StringArray(0)
-        _cs_cmdIdx = PapyrusUtil.IntArray(0)
-        _cs_cmdNum = PapyrusUtil.IntArray(0)
-        _cs_cmdType = PapyrusUtil.StringArray(0)
-        _cs_cmdName = PapyrusUtil.StringArray(0)
-        _cs_gotoIdx = PapyrusUtil.IntArray(0)
-        _cs_gotoLabels = PapyrusUtil.StringArray(0)
-        _cs_gotoCnt = PapyrusUtil.IntArray(0)
-        _cs_gosubIdx = PapyrusUtil.IntArray(0)
-        _cs_gosubLabels = PapyrusUtil.StringArray(0)
-        _cs_gosubCnt = PapyrusUtil.IntArray(0)
-        _cs_gosubReturnStack = PapyrusUtil.IntArray(0)
-        _cs_gosubReturnIdx = PapyrusUtil.IntArray(0)
-        _csMostRecentResult = PapyrusUtil.StringArray(0)
-    endif
-
-    _callstack_stack = PapyrusUtil.PushString(_callstack_stack, CallstackId)
-
-    CallstackId = "Callstack" + _callstackIdNextUp
-    _callstackIdNextUp += 1
-    VARS_KEY_PREFIX = "sl_triggers:" + InstanceId + ":" + CallstackId + ":vars"
-
-    int i
-    int offset = 127 * _cs_cmdIdx.Length
-    _cs_cmdIdx = PapyrusUtil.PushInt(_cs_cmdIdx, cmdIdx)
-
-    _cs_cmdNum = PapyrusUtil.PushInt(_cs_cmdNum, cmdNum)
-    _cs_cmdName = PapyrusUtil.PushString(_cs_cmdName, cmdName)
-    _cs_cmdType = PapyrusUtil.PushString(_cs_cmdType, cmdType)
-
-    _cs_gotoIdx = PapyrusUtil.ResizeIntArray(_cs_gotoIdx, _cs_gotoIdx.Length + 127)
-    i = 0
-    while i < 127
-        _cs_gotoIdx[i + offset] = gotoIdx[i]
-        i += 1
-    endwhile
-
-    _cs_gotoLabels = PapyrusUtil.ResizeStringArray(_cs_gotoLabels, _cs_gotoLabels.Length + 127)
-    i = 0
-    while i < 127
-        _cs_gotoLabels[i + offset] = gotoLabels[i]
-        i += 1
-    endwhile
-
-    _cs_gotoCnt = PapyrusUtil.PushInt(_cs_gotoCnt, gotoCnt)
-
-    _cs_gosubIdx = PapyrusUtil.ResizeIntArray(_cs_gosubIdx, _cs_gosubIdx.Length + 127)
-    i = 0
-    while i < 127
-        _cs_gosubIdx[i + offset] = gosubIdx[i]
-        i += 1
-    endwhile
-
-    _cs_gosubLabels = PapyrusUtil.ResizeStringArray(_cs_gosubLabels, _cs_gosubLabels.Length + 127)
-    i = 0
-    while i < 127
-        _cs_gosubLabels[i + offset] = gosubLabels[i]
-        i += 1
-    endwhile
-
-    _cs_gosubCnt = PapyrusUtil.PushInt(_cs_gosubCnt, gosubCnt)
-
-    _cs_gosubReturnStack = PapyrusUtil.ResizeIntArray(_cs_gosubReturnStack, _cs_gosubReturnStack.Length + 127)
-    i = 0
-    while i < 127
-        _cs_gosubReturnStack[i + offset] = gosubReturnStack[i]
-        i += 1
-    endwhile
-
-    _cs_gosubReturnIdx = PapyrusUtil.PushInt(_cs_gosubReturnIdx, gosubReturnIdx)
-    _csMostRecentResult = PapyrusUtil.PushString(_csMostRecentResult, MostRecentResult)
-
-    ; and reset for the new callstack
-    gotoIdx = new int[127]
-    gotoLabels = new string[127]
-    gotoCnt = 0
-    gosubIdx = new int[127]
-    gosubLabels = new string[127]
-    gosubCnt = 0
-    gosubReturnStack = new int[127]
-    gosubReturnIdx = -1
-    MostRecentResult = ""
+Function _slt_AddCallstack(Form _theForm, string _instanceId, string newscriptnm, int _forceCallstackPointer = 1) global
+    int newcallstackpointer = StorageUtil.AdjustIntValue(_theForm, MakeInstanceKey(_instanceId, "_cs_callstack_pointer"), _forceCallstackPointer)
     
-    cmdName = newcommand
+    StorageUtil.AdjustIntValue(_theForm, MakeInstanceKey(_instanceId, "_cs_callstack_list_pointer"), _forceCallstackPointer * 127)
 
-    SetupCallstack()
+    int nextup = StorageUtil.AdjustIntValue(_theForm, MakeInstanceKey(_instanceId, "_cs_callstackid_nextup"), 1)
+    string _callstackId = "Callstack" + nextup
+    StorageUtil.StringListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_callstackid"), _callstackId)
+
+    StorageUtil.StringListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_vars_key_prefix"), "sl_triggers:" + _instanceId + ":" + _callstackId + ":vars")
+
+    StorageUtil.IntListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdidx"), 0)
+    StorageUtil.IntListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdnum"), 0)
+    StorageUtil.StringListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdtype"), "")
+    StorageUtil.StringListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdname"), newscriptnm)
+
+    int newlen = StorageUtil.IntListCount(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdidx")) * 127
+
+    StorageUtil.StringListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_callargs"), newlen)
+
+    StorageUtil.IntListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_gotoidx"), newlen)
+    StorageUtil.StringListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_gotolabels"), newlen)
+    StorageUtil.IntListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_gotocnt"), 0)
+
+    StorageUtil.IntListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_gosubidx"), newlen)
+    StorageUtil.StringListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_gosublabels"), newlen)
+    StorageUtil.IntListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_gosubcnt"), 0)
+
+    StorageUtil.IntListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_gosubreturnstack"), newlen)
+    StorageUtil.IntListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_gosubreturnidx"), -1)
+
+    StorageUtil.StringListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_mostrecentresult"), "")
+
+    StorageUtil.IntListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_lastkey"), 0)
+
+    StorageUtil.FormListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_iteractor"), none)
+
 EndFunction
 
-Function _slt_PopCallstack()
-    if !_cs_cmdIdx || _cs_cmdIdx.Length < 1
-        return
-    endif
+Function _slt_RemoveCallstack(Form _theForm, string _instanceId) global
+    StorageUtil.AdjustIntValue(_theForm, MakeInstanceKey(_instanceId, "_cs_callstack_pointer"), -1)
+    StorageUtil.AdjustIntValue(_theForm, MakeInstanceKey(_instanceId, "_cs_callstack_list_pointer"), -127)
 
-    int i
-    int len = _cs_cmdIdx.Length - 1
-    int offset = 127 * len
-    
-    CallstackId = _callstack_stack[len]
-    _callstack_stack = PapyrusUtil.ResizeStringArray(_callstack_stack, len)
-    VARS_KEY_PREFIX = "sl_triggers:" + InstanceId + ":" + CallstackId + ":vars"
+    StorageUtil.StringListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_callstackid"))
 
-    cmdIdx = _cs_cmdIdx[len]
-    _cs_cmdIdx = PapyrusUtil.ResizeIntArray(_cs_cmdIdx, len)
+    StorageUtil.StringListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_vars_key_prefix"))
 
-    cmdNum = _cs_cmdNum[len]
-    _cs_cmdNum = PapyrusUtil.ResizeIntArray(_cs_cmdNum, len)
+    StorageUtil.IntListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdidx"))
+    StorageUtil.IntListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdnum"))
+    StorageUtil.StringListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdtype"))
+    StorageUtil.StringListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdname"))
 
-    cmdName = _cs_cmdName[len]
-    _cs_cmdName = PapyrusUtil.ResizeStringArray(_cs_cmdName, len)
+    int newlen = StorageUtil.IntListCount(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdidx")) * 127
 
-    cmdType = _cs_cmdType[len]
-    _cs_cmdType = PapyrusUtil.ResizeStringArray(_cs_cmdType, len)
+    StorageUtil.StringListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_callargs"), newlen)
 
-    i = 0
-    while i < 127
-        gotoIdx[i] = _cs_gotoIdx[i + offset]
-        i += 1
-    endwhile
-    _cs_gotoIdx = PapyrusUtil.ResizeIntArray(_cs_gotoIdx, len)
+    StorageUtil.IntListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_gotoidx"), newlen)
+    StorageUtil.StringListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_gotolabels"), newlen)
+    StorageUtil.IntListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_gotocnt"), 0)
 
-    i = 0
-    while i < 127
-        gotoLabels[i] = _cs_gotoLabels[i + offset]
-        i += 1
-    endwhile
-    _cs_gotoLabels = PapyrusUtil.ResizeStringArray(_cs_gotoLabels, len)
+    StorageUtil.IntListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_gosubidx"), newlen)
+    StorageUtil.StringListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_gosublabels"), newlen)
+    StorageUtil.IntListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_gosubcnt"))
 
-    gotoCnt = _cs_gotoCnt[len]
-    _cs_gotoCnt = PapyrusUtil.ResizeIntArray(_cs_gotoCnt, len)
+    StorageUtil.IntListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_gosubreturnstack"), newlen)
+    StorageUtil.IntListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_gosubreturnidx"))
 
-    i = 0
-    while i < 127
-        gosubIdx[i] = _cs_gosubIdx[i + offset]
-        i += 1
-    endwhile
-    _cs_gosubIdx = PapyrusUtil.ResizeIntArray(_cs_gosubIdx, len)
+    StorageUtil.StringListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_mostrecentresult"))
 
-    i = 0
-    while i < 127
-        gosubLabels[i] = _cs_gosubLabels[i + offset]
-        i += 1
-    endwhile
-    _cs_gosubLabels = PapyrusUtil.ResizeStringArray(_cs_gosubLabels, len)
+    StorageUtil.IntListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_lastkey"))
 
-    gosubCnt = _cs_gosubCnt[len]
-    _cs_gosubCnt = PapyrusUtil.ResizeIntArray(_cs_gosubCnt, len)
-
-    i = 0
-    while i < 127
-        gosubReturnStack[i] = _cs_gosubReturnStack[i + offset]
-        i += 1
-    endwhile
-    _cs_gosubReturnStack = PapyrusUtil.ResizeIntArray(_cs_gosubReturnStack, len)
-
-    gosubReturnIdx = _cs_gosubReturnIdx[len]
-    _cs_gosubReturnIdx = PapyrusUtil.ResizeIntArray(_cs_gosubReturnIdx, len)
-    MostRecentResult = _csMostRecentResult[len]
-    _csMostRecentResult = PapyrusUtil.ResizeStringArray(_csMostRecentResult, len)
+    StorageUtil.FormListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_iteractor"))
 EndFunction
 
 bool Function _slt_PushSubIdx(int index)
     int newidx = gosubReturnIdx + 1
 
-    if newidx >= gosubReturnStack.Length
+    if newidx >= 127
         return false
     endif
-    gosubReturnStack[newidx] = index
+    gosubReturnStack_set(newidx, index)
     gosubReturnIdx = newidx
 EndFunction
 
@@ -846,7 +733,7 @@ int Function _slt_PopSubIdx()
     if gosubReturnIdx < 0
         return -1
     endif
-    int value = gosubReturnStack[gosubReturnIdx]
+    int value = gosubReturnStack_get(gosubReturnIdx)
     gosubReturnIdx -= 1
     return value
 EndFunction
@@ -936,14 +823,14 @@ EndFunction
 Function _slt_AddGoto(int _idx, string _label)
     int idx = 0
     while idx < gotoCnt
-        if gotoLabels[idx] == _label
+        if gotoLabels_get(idx) == _label
             return 
         endIf    
         idx += 1
     endWhile
     
-    gotoIdx[gotoCnt] = _idx
-    gotoLabels[gotoCnt] = _label
+    gotoIdx_set(gotoCnt, _idx)
+    gotoLabels_set(gotoCnt, _label)
     gotoCnt += 1
 EndFunction
 
@@ -953,9 +840,9 @@ Int Function _slt_FindGoto(string _label, int _cmdIdx, string _cmdtype)
     string callstackIdxKey
     
     while !idx
-        idx = gotoLabels.find(_label)
+        idx = gotoLabels_find(_label)
         if idx >= 0
-            return gotoIdx[idx]
+            return gotoIdx_get(idx)
         elseif callstackIdxKey ; had to have been set once in the loop below
             return cmdNum
         else
@@ -965,8 +852,8 @@ Int Function _slt_FindGoto(string _label, int _cmdIdx, string _cmdtype)
             
             while idx < cmdNum
                 callstackIdxKey = CallstackId + "[" + idx + "]"
-                if Heap_StringListCountX(CmdTargetActor, GetInstanceId(), callstackIdxKey) > 0
-                    cmdLine1 = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), callstackIdxKey)
+                if Heap_StringListCountX(CmdTargetActor, InstanceId, callstackIdxKey) > 0
+                    cmdLine1 = Heap_StringListToArrayX(CmdTargetActor, InstanceId, callstackIdxKey)
                     string _builtLabel = _slt_IsLabel(_cmdtype, cmdLine1)
                     if _builtLabel
                         _slt_AddGoto(idx, _builtLabel)
@@ -987,24 +874,24 @@ EndFunction
 Function _slt_AddGosub(int _idx, string _label)
     int idx = 0
     while idx < gosubCnt
-        if gosubLabels[idx] == _label
+        if _label == gosubLabels_get(idx)
             return 
         endIf    
         idx += 1
     endWhile
     
-    gosubIdx[gosubCnt] = _idx
-    gosubLabels[gosubCnt] = _label
+    gosubIdx_set(gosubCnt, _idx)
+    gosubLabels_set(gosubCnt, _label)
     gosubCnt += 1
 EndFunction
 
 Int Function _slt_FindGosub(string _label, int _cmdIdx)
     int idx
     
-    idx = gosubLabels.find(_label)
+    idx = gosubLabels_find(_label)
     if idx >= 0
         _slt_PushSubIdx(_cmdIdx)
-        return gosubIdx[idx]
+        return gosubIdx_get(idx)
     endIf
     
     string[] cmdLine1
@@ -1012,7 +899,7 @@ Int Function _slt_FindGosub(string _label, int _cmdIdx)
     
     idx = _cmdIdx + 1
     while idx < cmdNum
-        cmdLine1 = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + idx + "]")
+        cmdLine1 = Heap_StringListToArrayX(CmdTargetActor, InstanceId, CallstackId + "[" + idx + "]")
         if cmdLine1.Length
             if cmdLine1[0] == "beginsub"
                 _slt_AddGosub(idx, cmdLine1[1])
@@ -1021,10 +908,10 @@ Int Function _slt_FindGosub(string _label, int _cmdIdx)
         idx += 1
     endWhile
 
-    idx = gosubLabels.find(_label)
+    idx = gosubLabels_find(_label)
     if idx >= 0
         _slt_PushSubIdx(_cmdIdx)
-        return gosubIdx[idx]
+        return gosubIdx_get(idx)
     endIf
     return cmdNum
 EndFunction
@@ -1037,7 +924,7 @@ int Function _slt_FindEndsub(int _cmdIdx)
     
     idx = _cmdIdx + 1
     while idx < cmdNum
-        cmdLine1 = Heap_StringListToArrayX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + idx + "]")
+        cmdLine1 = Heap_StringListToArrayX(CmdTargetActor, InstanceId, CallstackId + "[" + idx + "]")
         if cmdLine1.Length
             if cmdLine1[0] == "endsub"
                 return idx
@@ -1095,13 +982,13 @@ string Function _slt_ParseCommandFile()
         cmdIdx = 0
         while cmdIdx < cmdNum
             lineno += 1
-            Heap_IntSetX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + cmdIdx + "]:line", lineno)
+            Heap_IntSetX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdIdx + "]:line", lineno)
             cmdLine = JsonUtil.PathStringElements(_myCmdName, ".cmd[" + cmdIdx + "]")
             if cmdLine.Length
-                Heap_IntAdjustX(CmdTargetActor, GetInstanceId(), CallstackId, 1)
+                Heap_IntAdjustX(CmdTargetActor, InstanceId, CallstackId, 1)
                 int idx = 0
                 while idx < cmdLine.Length
-                    Heap_StringListAddX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + cmdIdx + "]", cmdLine[idx])
+                    Heap_StringListAddX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdIdx + "]", cmdLine[idx])
                     idx += 1
                 endwhile
             endif
@@ -1117,18 +1004,18 @@ string Function _slt_ParseCommandFile()
         cmdIdx = 0
         while cmdIdx < cmdNum
             lineno += 1
-            Heap_IntSetX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + cmdIdx + "]:line", lineno)
+            Heap_IntSetX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdIdx + "]:line", lineno)
             cmdLine = sl_triggers_internal.SafeTokenize(cmdlines[cmdIdx])
             if cmdLine.Length
                 int idx = 0
                 while idx < cmdLine.Length
-                    Heap_StringListAddX(CmdTargetActor, GetInstanceId(), CallstackId + "[" + cmdIdx + "]", cmdLine[idx])
+                    Heap_StringListAddX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdIdx + "]", cmdLine[idx])
                     idx += 1
                 endwhile
             endif
             cmdIdx += 1
         endwhile
-        Heap_IntSetX(CmdTargetActor, GetInstanceId(), CallstackId, cmdNum)
+        Heap_IntSetX(CmdTargetActor, InstanceId, CallstackId, cmdNum)
         return "ini"
     endif
 EndFunction
@@ -1301,3 +1188,214 @@ bool Function _slt_ActualOper(string[] param, string code)
     
     return sl_triggers_internal.SafeRunOperationOnActor(CmdTargetActor, self, opsParam)
 EndFunction
+
+
+
+
+; just the index into the StorageUtil lists
+int Property callstackPointer Hidden
+    int Function Get()
+        return StorageUtil.GetIntValue(CmdTargetActor, kk_callstack_pointer, 0)
+    EndFunction
+
+    Function Set(int value)
+        StorageUtil.SetIntValue(CmdTargetActor, kk_callstack_pointer, value)
+    EndFunction
+EndProperty
+
+; * 127
+int Property callstackListPointer Hidden
+    int Function Get()
+        return StorageUtil.GetIntValue(CmdTargetActor, kk_callstack_list_pointer, 0)
+    EndFunction
+
+    Function Set(int value)
+        StorageUtil.SetIntValue(CmdTargetActor, kk_callstack_list_pointer, value)
+    EndFunction
+EndProperty
+
+string Property CallstackId Hidden
+    string Function Get()
+        return StorageUtil.StringListGet(CmdTargetActor, kk_cs_callstackid, callstackPointer)
+    EndFunction
+
+    Function Set(string value)
+        StorageUtil.StringListSet(CmdTargetActor, kk_cs_callstackid, callstackPointer, value)
+    EndFunction
+EndProperty
+
+string Property VARS_KEY_PREFIX Hidden
+    string Function Get()
+        return StorageUtil.StringListGet(CmdTargetActor, kk_cs_vars_key_prefix, callstackPointer)
+    EndFunction
+
+    Function Set(string value)
+        StorageUtil.StringListSet(CmdTargetActor, kk_cs_vars_key_prefix, callstackPointer, value)
+    EndFunction
+EndProperty
+
+int			Property lastKey Hidden
+    int Function Get()
+        return StorageUtil.IntListGet(CmdTargetActor, kk_cs_lastkey, callstackPointer)
+    EndFunction
+
+    Function Set(int value)
+        StorageUtil.IntListSet(CmdTargetActor, kk_cs_lastkey, callstackPointer, value)
+    EndFunction
+EndProperty
+
+Actor		Property iterActor Hidden
+    Actor Function Get()
+        return StorageUtil.FormListGet(CmdTargetActor, kk_cs_iteractor, callstackPointer) as Actor
+    EndFunction
+
+    Function Set(Actor value)
+        StorageUtil.FormListSet(CmdTargetActor, kk_cs_iteractor, callstackPointer, value)
+    EndFunction
+EndProperty
+
+string      Property cmdName Hidden
+    string Function Get()
+        return StorageUtil.StringListGet(CmdTargetActor, kk_cs_cmdname, callstackPointer)
+    EndFunction
+
+    Function Set(string value)
+        StorageUtil.StringListSet(CmdTargetActor, kk_cs_cmdname, callstackPointer, value)
+    EndFunction
+EndProperty
+
+int         Property cmdIdx Hidden
+    int Function Get()
+        return StorageUtil.IntListGet(CmdTargetActor, kk_cs_cmdidx, callstackPointer)
+    EndFunction
+
+    Function Set(int value)
+        StorageUtil.IntListSet(CmdTargetActor, kk_cs_cmdidx, callstackPointer, value)
+    EndFunction
+EndProperty
+
+int         Property lineNum Hidden
+    int Function Get()
+        return Heap_IntGetX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdIdx + "]:line", -1)
+    EndFunction
+EndProperty
+
+int			Property cmdNum Hidden
+    int Function Get()
+        return StorageUtil.IntListGet(CmdTargetActor, kk_cs_cmdnum, callstackPointer)
+    EndFunction
+
+    Function Set(int value)
+        StorageUtil.IntListSet(CmdTargetActor, kk_cs_cmdnum, callstackPointer, value)
+    EndFunction
+EndProperty
+
+string      Property cmdType Hidden
+    string Function Get()
+        return StorageUtil.StringListGet(CmdTargetActor, kk_cs_cmdtype, callstackPointer)
+    EndFunction
+
+    Function Set(string value)
+        StorageUtil.StringListSet(CmdTargetActor, kk_cs_cmdtype, callstackPointer, value)
+    EndFunction
+EndProperty
+
+;string[]   _callargs
+string Function callargs_get(int idx)
+    return StorageUtil.StringListGet(CmdTargetActor, kk_cs_callargs, callstackListPointer + idx)
+EndFunction
+Function callargs_set(int idx, string value)
+    StorageUtil.StringListSet(CmdTargetActor, kk_cs_callargs, callstackListPointer + idx, value)
+EndFunction
+int Function callargs_find(string value)
+    return StorageUtil.StringListFind(CmdTargetActor, kk_cs_callargs, value)
+EndFunction
+
+;int[]		gotoIdx 
+int Function gotoIdx_get(int idx)
+    return StorageUtil.IntListGet(CmdTargetActor, kk_cs_gotoidx, callstackListPointer + idx)
+EndFunction
+Function gotoIdx_set(int idx, int value)
+    StorageUtil.IntListSet(CmdTargetActor, kk_cs_gotoidx, callstackListPointer + idx, value)
+EndFunction
+
+;string[]	gotoLabels 
+string Function gotoLabels_get(int idx)
+    return StorageUtil.StringListGet(CmdTargetActor, kk_cs_gotolabels, callstackListPointer + idx)
+EndFunction
+Function gotoLabels_set(int idx, string value)
+    StorageUtil.StringListSet(CmdTargetActor, kk_cs_gotolabels, callstackListPointer + idx, value)
+EndFunction
+int Function gotoLabels_find(string value)
+    return StorageUtil.StringListFind(CmdTargetActor, kk_cs_gotolabels, value)
+EndFunction
+
+int			Property gotoCnt Hidden
+    int Function Get()
+        return StorageUtil.IntListGet(CmdTargetActor, kk_cs_gotocnt, callstackPointer)
+    EndFunction
+
+    Function Set(int value)
+        StorageUtil.IntListSet(CmdTargetActor, kk_cs_gotocnt, callstackPointer, value)
+    EndFunction
+EndProperty
+
+;int[]       gosubIdx
+int Function gosubIdx_get(int idx)
+    return StorageUtil.IntListGet(CmdTargetActor, kk_cs_gosubidx, callstackListPointer + idx)
+EndFunction
+Function gosubIdx_set(int idx, int value)
+    StorageUtil.IntListSet(CmdTargetActor, kk_cs_gosubidx, callstackListPointer + idx, value)
+EndFunction
+
+;string[]    gosubLabels
+string Function gosubLabels_get(int idx)
+    return StorageUtil.StringListGet(CmdTargetActor, kk_cs_gosublabels, callstackListPointer + idx)
+EndFunction
+Function gosubLabels_set(int idx, string value)
+    StorageUtil.StringListSet(CmdTargetActor, kk_cs_gosublabels, callstackListPointer + idx, value)
+EndFunction
+int Function gosubLabels_find(string value)
+    return StorageUtil.StringListFind(CmdTargetActor, kk_cs_gosublabels, value)
+EndFunction
+
+int         Property gosubCnt Hidden
+    int Function Get()
+        return StorageUtil.IntListGet(CmdTargetActor, kk_cs_gosubcnt, callstackPointer)
+    EndFunction
+
+    Function Set(int value)
+        StorageUtil.IntListSet(CmdTargetActor, kk_cs_gosubcnt, callstackPointer, value)
+    EndFunction
+EndProperty
+
+;int[]       gosubReturnStack
+int Function gosubReturnStack_get(int idx)
+    return StorageUtil.IntListGet(CmdTargetActor, kk_cs_gosubreturnstack, callstackListPointer + idx)
+EndFunction
+Function gosubReturnStack_set(int idx, int value)
+    StorageUtil.IntListSet(CmdTargetActor, kk_cs_gosubreturnstack, callstackListPointer + idx, value)
+EndFunction
+int Function gosubReturnStack_size()
+    return StorageUtil.IntListCount(CmdTargetActor, kk_cs_gosubreturnstack)
+EndFunction
+
+int         Property gosubReturnIdx Hidden
+    int Function Get()
+        return StorageUtil.IntListGet(CmdTargetActor, kk_cs_gosubreturnidx, callstackPointer)
+    EndFunction
+
+    Function Set(int value)
+        StorageUtil.IntListSet(CmdTargetActor, kk_cs_gosubreturnidx, callstackPointer, value)
+    EndFunction
+EndProperty
+
+string	    Property MostRecentResult Hidden
+    string Function Get()
+        return StorageUtil.StringListGet(CmdTargetActor, kk_cs_mostrecentresult, callstackPointer)
+    EndFunction
+
+    Function Set(string value)
+        StorageUtil.StringListSet(CmdTargetActor, kk_cs_mostrecentresult, callstackPointer, value)
+    EndFunction
+EndProperty

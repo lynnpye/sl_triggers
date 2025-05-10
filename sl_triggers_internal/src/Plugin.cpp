@@ -175,11 +175,15 @@ namespace plugin {
                     RE::MakeFunctionArguments(static_cast<RE::Actor*>(_cmdTargetActor), static_cast<RE::ActiveEffect*>(_cmdPrimary),
                                               static_cast<std::vector<RE::BSFixedString>>(_param));
 
-                auto cachedIt = functionScriptCache.find(_param[0]);
-                if (cachedIt != functionScriptCache.end()) {
-                    auto& cachedScript = cachedIt->second;
-                    success = vm->DispatchStaticCall(cachedScript, _param[0], operationArgs, resultCallback);
-                    return success;
+                if (_param.size() > 0) {
+                    auto cachedIt = functionScriptCache.find(_param[0]);
+                    if (cachedIt != functionScriptCache.end()) {
+                        auto& cachedScript = cachedIt->second;
+                        success = vm->DispatchStaticCall(cachedScript, _param[0], operationArgs, resultCallback);
+                        return success;
+                    }
+                } else {
+                    logger::error("RunOperationOnActor: zero-length _param is not allowed");
                 }
 
                 /*

@@ -34,20 +34,81 @@ int Function Heap_ClearPrefixF(Form _theActor, string extensionPrefix) global
 	return StorageUtil.ClearAllObjPrefix(_theActor, extensionPrefix)
 EndFunction
 
+Function Heap_CompleteScript(Form _theActor, string _instanceId) global
+	string instanceIdKey = MakeInstanceKey("slt_heap", "instanceidlist")
+	string sessionIdKey = MakeInstanceKey("slt_heap", "sessionidlist")
+
+	int instanceIndex = StorageUtil.StringListFind(_theActor, instanceIdKey, _instanceId)
+	if instanceIndex > -1
+		StorageUtil.StringListRemoveAt(_theActor, instanceIdKey, instanceIndex)
+		StorageUtil.IntListRemoveAt(_theActor, sessionIdKey, instanceIndex)
+	endif
+EndFunction
+
+string Function _slt_Actual_Heap_DequeueInstanceIdF(Form _theActor) global
+	string instanceIdKey = MakeInstanceKey("slt_heap", "instanceidlist")
+	string sessionIdKey = MakeInstanceKey("slt_heap", "sessionidlist")
+
+	int currentSessionId = sl_triggers_internal.SafeGetSessionId()
+	int sessionIdCount = StorageUtil.IntListCount(_theActor, sessionIdKey)
+	int instanceIdCount = StorageUtil.StringListCount(_theActor, instanceIdKey)
+
+	if sessionIdCount != instanceIdCount
+		; probably a problem, possibly an edge case
+		return ""
+	endif
+
+	int i = 0
+	while i < sessionIdCount
+		int actorsession_I = StorageUtil.IntListGet(_theActor, sessionIdKey, i)
+		if currentSessionId != StorageUtil.IntListGet(_theActor, sessionIdKey, i)
+			; found our spot, get to it
+			StorageUtil.IntListSet(_theActor, sessionIdKey, i, currentSessionId)
+			return StorageUtil.StringListGet(_theActor, instanceIdKey, i)
+		endif
+		i += 1
+	endwhile
+
+	; all requests are accounted for, we can just go away
+	Debug.Trace("Heap_DequeueInstanceIdF: dequeue requested for Form(" + _theActor.GetName() + ") but no sessions are pending")
+	return ""
+EndFunction
+
 string Function Heap_DequeueInstanceIdF(Form _theActor) global
-	return StorageUtil.StringListShift(_theActor, MakeInstanceKey("slt_heap", "instanceidlist"))
+	string syncKey = "slt_synchronizationCounterForActor"
+
+	int kval = StorageUtil.AdjustIntValue(_theActor, syncKey, 1)
+	
+	while kval > 1
+		StorageUtil.AdjustIntValue(_theActor, syncKey, -1)
+		
+		int retries = 0
+		while retries < 100 && kval != 1
+			Utility.Wait(0.1)
+			kval = StorageUtil.AdjustIntValue(_theActor, syncKey, 1)
+			if kval != 1
+				StorageUtil.AdjustIntValue(_theActor, syncKey, -1)
+			endif
+			retries += 1
+		endwhile
+
+		if retries >= 100
+			Debug.Trace("Heap_DequeueInstanceIdF: synchronization timeout for actor " + _theActor.GetName())
+			return ""
+		endif
+	endwhile
+
+	;; past synchronization point
+	string result = _slt_Actual_Heap_DequeueInstanceIdF(_theActor)
+
+	StorageUtil.AdjustIntValue(_theActor, syncKey, -1)
+
+	return result
 EndFunction
 
 Function Heap_EnqueueInstanceIdF(Form _theActor, string instanceId) global
 	StorageUtil.StringListAdd(_theActor, MakeInstanceKey("slt_heap", "instanceidlist"), instanceId)
-EndFunction
-
-string Function Heap_DequeueInstanceCmdExtensionId(Form _theActor, string instanceId) global
-	return StorageUtil.StringListShift(_theActor, MakeInstanceKey(instanceId, "cmdextensionidlist"))
-EndFunction
-
-Function Heap_EnqueueInstanceCmdExtensionId(Form _theActor, string instanceId, string cmdExtensionId) global
-	StorageUtil.StringListAdd(_theActor, MakeInstanceKey(instanceId, "cmdextensionidlist"), cmdExtensionId)
+	StorageUtil.IntListAdd(_theActor, MakeInstanceKey("slt_heap", "sessionidlist"), 0)
 EndFunction
 
 

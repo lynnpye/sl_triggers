@@ -22,6 +22,7 @@ EndProperty
 string	GLOBALVARS_KEYNAME_PREFIX	= "globalvars"
 
 string	EVENT_SLT_DELAYED_SETTINGS_BROADCAST = "_slt_event_slt_delayed_settings_broadcast_"
+string  EVENT_SLT_FLUSH_SCRIPT_REQUESTS = "_slt_event_slt_flush_script_requests_"
 
 string Property SLT_MAIN_INSTANCE_KEY Hidden
 	string Function Get()
@@ -243,6 +244,8 @@ Function DoBootstrapActivity()
 
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_DELAYED_SETTINGS_BROADCAST, "OnSLTDelayedSettingsBroadcast")
 
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_FLUSH_SCRIPT_REQUESTS, "OnSLTFlushScriptRequests")
+
 	; on first launch, this will obviously be empty
 	; on subsequent loads, we need to iterate the extensions we are
 	; aware of and bootstrap them
@@ -425,14 +428,6 @@ string Function globalvars_set(int varsindex, string value)
 	return Heap_StringSetFK(self, MakeInstanceKey(PSEUDO_INSTANCE_KEY, GLOBALVARS_KEYNAME_PREFIX + varsindex), value)
 EndFunction
 
-;/
-Function EnqueueAMEValues(Actor _theActor, string cmd, string instanceId)
-	if !self
-		return
-	endif
-EndFunction
-/;
-
 sl_triggersExtension Function GetExtensionByIndex(int _index)
 	return extensions[_index] as sl_triggersExtension
 EndFunction
@@ -449,6 +444,30 @@ sl_triggersExtension Function GetExtensionByKey(string _extensionKey)
 	return none
 EndFunction
 
+Function SendFlushScriptRequestsEvent(Actor _theActor)
+	_theActor.SendModEvent(EVENT_SLT_FLUSH_SCRIPT_REQUESTS)
+EndFunction
+
+Event OnSLTFlushScriptRequests(string _eventName, string _commandName, float __ignored, Form _theForm)
+	Actor _theActor = _theForm as Actor
+    
+	Spell coreSpell = NextPooledSpellForActor(_theActor)
+	int attemptsLeft = 100
+
+	while !coreSpell && attemptsLeft > 0
+		Utility.Wait(0.1)
+		attemptsLeft -= 1
+		coreSpell = NextPooledSpellForActor(_theActor)
+	endwhile
+	
+	if coreSpell
+		; cast the core AME
+		coreSpell.RemoteCast(_theActor, _theActor, _theActor)
+	else
+		Debug.Trace("No free pool slots open for Actor: " + _theActor)
+	endif
+EndEvent
+
 ; StartCommand
 ; Actor _theActor: the Actor to attach this command to
 ; string _cmdName: the file to run; is also the triggerKey or triggerId
@@ -458,36 +477,30 @@ string Function StartCommand(Actor _theActor, string _cmdName)
 	endif
 
 	string _instanceId = _NextInstanceId()
-    
-	Spell coreSpell = NextPooledSpellForActor(_theActor)
 	
-	if !coreSpell
-        MiscUtil.PrintConsole("Too many SLT core effects on: " + _theActor)
-		return ""
-	endif
-	
-	Heap_StringSetFK(_theActor, MakeInstanceKey(_instanceId, "cmd"), _cmdName)
+	sl_triggersCmd._slt_AddCallstack(_theActor, _instanceId, _cmdName, 0)
 	Heap_EnqueueInstanceIdF(_theActor, _instanceId)
 	
-	; cast the core AME
-	coreSpell.RemoteCast(_theActor, _theActor, _theActor)
+	SendFlushScriptRequestsEvent(_theActor)
 
 	return _instanceId
 EndFunction
 
 ; NextCycledInstanceNumber
 ; DO NOT OVERRIDE
-; int oneupmin = -30000
-; int oneupmax = 30000
+; cycles between -1000000000 and 1000000000
 ; returns: the next value in the cycle; if the max is exceeded, the cycle resets to min
-; 	if you get 60000 of these launched in your game, you win /sarcasm
-int		oneupnumber
-int Function _NextCycledInstanceNumber(int oneupmin = -30000, int oneupmax = 30000)
-	int nextup = oneupnumber
-	oneupnumber += 1
-	if oneupnumber > oneupmax
-		oneupnumber = oneupmin
+; 	if you get 2,000,000,000 of these launched in your game, you win /sarcasm
+int Function _NextCycledInstanceNumber() ;int oneupmin = -1000000000, int oneupmax = 1000000000)
+	if !StorageUtil.HasIntValue(self, "cycled_instance_number")
+		StorageUtil.SetIntValue(self, "cycled_instance_number", -1000000000)
 	endif
+
+	int nextup = StorageUtil.AdjustIntValue(self, "cycled_instance_number", 1)
+	if nextup > 1000000000
+		StorageUtil.SetIntValue(self, "cycled_instance_number", -1000000000)
+	endif
+
 	return nextup
 EndFunction
 
@@ -504,7 +517,6 @@ string[] Function GetScriptsList()
 	string[] if2 = MiscUtil.FilesInFolder(FullCommandsFolder(), "json")
 
 	commandsListCache = PapyrusUtil.MergeStringArray(if1, if2)
-	;commandsListCache = JsonUtil.JsonInFolder(CommandsFolder())
 	return commandsListCache
 EndFunction
 

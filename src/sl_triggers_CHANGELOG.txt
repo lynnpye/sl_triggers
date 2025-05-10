@@ -1,4 +1,5 @@
 117
+    MAJOR enhancement: running scripts should now resume on loading a save (you can have suuuuuper long-running scripts now; theoretically lifetime)
     bugfix: Top of the Hour events were not respecting Chance
     enhancement: actor_getscale/actor_setscale
     change: removed the roughly 4 second (technically 3.9 second) additional delay and have sacked the ones responsible for it
