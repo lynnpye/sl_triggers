@@ -151,6 +151,9 @@ bool				Property IsEnabled
 	EndFunction
 EndProperty
 
+Function SLTBootstrapInit()
+EndFunction
+
 bool Function _slt_AdditionalEnabledRequirements()
 	return true
 EndFunction
@@ -283,7 +286,6 @@ Event _slt_OnSLTInternalReady(string eventName, string strArg, float numArg, For
 	endif
 	UnregisterForModEvent(EVENT_SLT_INTERNAL_READY_EVENT())
 
-	_slt_RefreshTriggers()
 	_slt_RegisterExtension()
 
 	SLTReady()
@@ -309,6 +311,10 @@ Function _slt_BootstrapSLTInit()
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_INTERNAL_READY_EVENT(), "_slt_OnSLTInternalReady")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTSettingsUpdated")
 	SafeRegisterForModEvent_Quest(self, _slt_GetSettingsUpdateEvent(), "_slt_OnSLTSettingsUpdated")
+	
+	_slt_RefreshTriggers()
+
+	SLTBootstrapInit()
 EndFunction
 
 Function _slt_RegisterExtension()

@@ -1,7 +1,11 @@
 117
     MAJOR enhancement: running scripts should now resume on loading a save (you can have suuuuuper long-running scripts now; theoretically lifetime)
-    bugfix: Top of the Hour events were not respecting Chance
+    MAJOR enhancement: new Core event: OnNewSession (fires at the start of a new game and each time you load a save; provides a unique sessionId for each session)
+    enhancement: new modevent published ("_slt_event_slt_on_new_session_"), fires at the start of a new session (i.e. at start of new game and after each save load)
+    enhancement: added function in API to retrieve the event name
     enhancement: actor_getscale/actor_setscale
+    bugfix: Top of the Hour events were not respecting Chance
+    bugfix: sl_triggersAPI.psc.headeronly not valid
     change: removed the roughly 4 second (technically 3.9 second) additional delay and have sacked the ones responsible for it
 
 116

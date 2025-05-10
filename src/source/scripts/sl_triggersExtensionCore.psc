@@ -8,11 +8,10 @@ import sl_triggersStatics
 
 string	EVENT_TOP_OF_THE_HOUR					= "TopOfTheHour"
 string	EVENT_TOP_OF_THE_HOUR_HANDLER			= "OnTopOfTheHour"
-string	SETTINGS_DYNAMICACTIVATIONKEY_MODNAME 	= "DynamicActivationKey_modname"
-string	DEFAULT_DYNAMICACTIVATIONKEY_MODFILE 	= "Dynamic Activation Key.esp"
 
-string	EVENT_ID_KEYMAPPING 					= "1"
-string	EVENT_ID_TOP_OF_THE_HOUR				= "2"
+int		EVENT_ID_KEYMAPPING 					= 1
+int		EVENT_ID_TOP_OF_THE_HOUR				= 2
+int  	EVENT_ID_NEW_SESSION					= 3
 string	ATTR_EVENT								= "event"
 string	ATTR_KEYMAPPING							= "keymapping"
 string	ATTR_MODIFIERKEYMAPPING 				= "modifierkeymapping"
@@ -43,6 +42,7 @@ bool[]		_keycode_status
 ; and edit them during MCM updates as needed
 string[]	triggerKeys_topOfTheHour
 string[]	triggerKeys_keyDown
+string[]	triggerKeys_newSession
 
 ; GetExtensionKey
 ; OVERRIDE REQUIRED
@@ -79,8 +79,10 @@ Event OnInit()
 EndEvent
 
 Function SLTReady()
+	;/
 	UpdateDAKStatus()
 	RefreshData()
+	/;
 EndFunction
 
 Function RefreshData()
@@ -117,6 +119,22 @@ Event OnUpdateGameTime()
 			RegisterForSingleUpdateGameTime((nextTopOfTheHour - currentTime) * 24.0 * 1.04)
 		EndIf
 	EndIf
+EndEvent
+
+Event OnNewSession(int _newSessionId)
+	if !self
+		Debug.Notification("Triggers: Critical error")
+		Return
+	endif
+	
+	If !IsEnabled
+		Return
+	EndIf
+
+	UpdateDAKStatus()
+	RefreshData()
+	
+	HandleNewSession(_newSessionId)
 EndEvent
 
 Event OnTopOfTheHour(String eventName, string strArg, Float fltArg, Form sender)
@@ -165,6 +183,7 @@ EndEvent
 Function RefreshTriggerCache()
 	triggerKeys_topOfTheHour = PapyrusUtil.StringArray(0)
 	triggerKeys_keyDown = PapyrusUtil.StringArray(0)
+	triggerKeys_newSession = PapyrusUtil.StringArray(0)
 	int i = 0
 	
 	while i < TriggerKeys.Length
@@ -173,10 +192,12 @@ Function RefreshTriggerCache()
 		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
 			int eventCode = JsonUtil.GetIntValue(_triggerFile, ATTR_EVENT)
 	
-			if eventCode == 2 ; topofthehour
+			if eventCode == EVENT_ID_TOP_OF_THE_HOUR ; topofthehour
 				triggerKeys_topOfTheHour = PapyrusUtil.PushString(triggerKeys_topOfTheHour, TriggerKeys[i])
-			elseif eventCode == 1
+			elseif eventCode == EVENT_ID_KEYMAPPING
 				triggerKeys_keyDown = PapyrusUtil.PushString(triggerKeys_keyDown, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_NEW_SESSION
+				triggerKeys_newSession = PapyrusUtil.PushString(triggerKeys_newSession, TriggerKeys[i])
 			endif
 		endif
 
@@ -246,6 +267,10 @@ Function UpdateDAKStatus()
 	endif
 EndFunction
 
+Function SLTBootstrapInit()
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_ON_NEW_SESSION(), "OnNewSession")
+EndFunction
+
 ; selectively enables only events with triggers
 Function RegisterEvents()
 	UnregisterForModEvent(EVENT_TOP_OF_THE_HOUR)
@@ -262,7 +287,6 @@ Function RegisterEvents()
 	endif
 EndFunction
 
-
 Function RegisterForKeyEvents()
 	int i = 0
 	while i < _keycodes_of_interest.Length
@@ -273,6 +297,31 @@ EndFunction
 
 Function UnregisterForKeyEvents()
 	UnregisterForAllKeys()
+EndFunction
+
+Function HandleNewSession(int _newSessionId)
+	int i = 0
+	string triggerKey
+	string command
+	while i < triggerKeys_newSession.Length
+		triggerKey = triggerKeys_newSession[i]
+		string _triggerFile = FN_T(triggerKey)
+		
+		command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+		if command
+			RequestCommand(PlayerRef, command)
+		endIf
+		command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+		if command
+			RequestCommand(PlayerRef, command)
+		endIf
+		command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+		if command
+			RequestCommand(PlayerRef, command)
+		endIf
+
+		i += 1
+	endwhile
 EndFunction
 
 Function HandleTopOfTheHour()

@@ -6,6 +6,7 @@ import sl_triggersHeap
 ; CONSTANTS
 int		SLT_HEARTBEAT					= 0
 int		SLT_BOOTSTRAPPING				= 100
+int		SLT_NEW_SESSION_ALERT			= 200
 
 int		REGISTRATION_BEACON_COUNT		= 30
 
@@ -100,6 +101,12 @@ Event OnUpdate()
 	; state checks
 	if SLTUpdateState == SLT_BOOTSTRAPPING
 		DoBootstrapActivity()
+
+		SLTUpdateState = SLT_NEW_SESSION_ALERT
+
+		QueueUpdateLoop(0.1)
+	elseif SLTUpdateState == SLT_NEW_SESSION_ALERT
+		SendEventSLTOnNewSession()
 
 		SLTUpdateState = SLT_HEARTBEAT
 
@@ -370,6 +377,16 @@ Function QueueUpdateLoop(float afDelay = 1.0)
 		return
 	endif
 	RegisterForSingleUpdate(afDelay)
+EndFunction
+
+Function SendEventSLTOnNewSession()
+	if !self
+		return
+	endif
+
+	int handle = ModEvent.Create(EVENT_SLT_ON_NEW_SESSION())
+	ModEvent.PushInt(handle, sl_triggers_internal.SafeGetSessionId())
+	ModEvent.Send(handle)
 EndFunction
 
 Function SendSLTHeartbeats()

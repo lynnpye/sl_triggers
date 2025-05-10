@@ -22,8 +22,8 @@
     "triggerattribute_event" : [
         ["# here is where you define aspects of the attribute"],
         ["type", "int"],
-        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Key Mapping", "Top of the Hour"],
-        ["info", "Choose which type of awesome event this trigger will use."]
+        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Key Mapping", "Top of the Hour", "New Session"],
+        ["info", "Choose which type of event this trigger will use."]
     ],
     "triggerattribute_keymapping" : 
     [
@@ -67,7 +67,8 @@
         ["# checked in sequence shown, first match determines layout selection"],
 		["event"],
         ["1", "triggerlayout_keymapping"],
-        ["2", "triggerlayout_topofthehour"]
+        ["2", "triggerlayout_topofthehour"],
+        ["3", "triggerlayout_newsession"]
     ],
     "triggerlayout_keymapping" : [
         ["event", "keymapping"],
@@ -77,6 +78,11 @@
     ],
     "triggerlayout_topofthehour" : [
         ["event", "chance"],
+        ["do_1", "do_2"],
+        ["do_3"]
+    ],
+    "triggerlayout_newsession" : [
+        ["event"],
         ["do_1", "do_2"],
         ["do_3"]
     ],

@@ -59,16 +59,20 @@ EndFunction
 ; SendModEvent(EVENT_SLT_REQUEST_COMMAND(), "<command, required>")
 ; Will run the specified command with the Player as the target.
 string Function EVENT_SLT_REQUEST_COMMAND() global
-	return "sl_triggers_SLTRequestCommand"
+	return "_slt_event_slt_request_command_"
 EndFunction
 
 string Function EVENT_SLT_REQUEST_LIST() global
-	return "sl_triggers_SLTRequestList"
+	return "_slt_event_slt_request_list_"
 EndFunction
 
 ; SLT receives these from extensions for registration
 string Function EVENT_SLT_REGISTER_EXTENSION() global
 	return "_slt_event_slt_register_extension_"
+EndFunction
+
+string Function EVENT_SLT_ON_NEW_SESSION() global
+	return "_slt_event_slt_on_new_session_"
 EndFunction
 
 ;; Internal
@@ -86,7 +90,7 @@ EndFunction
 
 ; SLT sends this when settings have been updated
 string Function EVENT_SLT_SETTINGS_UPDATED() global
-	return "sl_triggers_SLTSettingsUpdated"
+	return "_slt_event_slt_settings_updated_"
 EndFunction
 
 float Function SLT_LIST_REQUEST_SU_KEY_IS_GLOBAL() global

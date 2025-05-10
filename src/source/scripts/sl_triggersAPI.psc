@@ -19,3 +19,7 @@ Function RunScript(string _scriptname, Actor _theActor = none) global
 
     _sender.SendModEvent(sl_triggersStatics.EVENT_SLT_REQUEST_COMMAND(), _scriptname)
 EndFunction
+
+string Function GetOnNewSessionEventName() global
+    return sl_triggersStatics.EVENT_SLT_ON_NEW_SESSION()
+EndFunction
