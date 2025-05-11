@@ -1,3 +1,6 @@
+119
+    
+
 118
     Savegame compatibility: tested succesfully with an update from v117
     Savegame compatibility: SCRIPT-BREAKING if using the old "$g" style global variable names

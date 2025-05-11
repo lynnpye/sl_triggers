@@ -77,7 +77,7 @@ bool Function CustomResolve(sl_triggersCmd CmdPrimary, string _code)
 	return false
 EndFunction
 
-bool Function CustomResolveActor(sl_triggersCmd CmdPrimary, string _code)
+bool Function CustomResolveForm(sl_triggersCmd CmdPrimary, string _code)
 	return false
 EndFunction
 

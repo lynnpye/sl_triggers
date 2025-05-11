@@ -99,20 +99,20 @@ sslThreadController Function GetThreadForActor(Actor theActor)
     return SexLab.GetActorController(theActor)
 EndFunction
 
-bool Function CustomResolveActor(sl_triggersCmd CmdPrimary, string _code)
+bool Function CustomResolveForm(sl_triggersCmd CmdPrimary, string _code)
 
     if !SexLab
         return false
     endif
 
     int skip = -1
-    if _code == "$partner"
+    if "#PARTNER" == _code || "#PARTNER1" == _code || "$partner" == _code
         skip = 0
-    elseif _code == "$partner2"
+    elseif "#PARTNER2" == _code || "$partner2" == _code
         skip = 1
-    elseif _code == "$partner3"
+    elseif "#PARTNER3" == _code || "$partner3" == _code
         skip = 2
-    elseif _code == "$partner4"
+    elseif "#PARTNER4" == _code || "$partner4" == _code
         skip = 3
     else
         return false
@@ -126,7 +126,7 @@ bool Function CustomResolveActor(sl_triggersCmd CmdPrimary, string _code)
 
         if other != CmdPrimary.CmdTargetActor
             if skip == 0
-                CmdPrimary.CustomResolveActorResult = other
+                CmdPrimary.CustomResolveFormResult = other
                 return true
             else
                 skip -= 1

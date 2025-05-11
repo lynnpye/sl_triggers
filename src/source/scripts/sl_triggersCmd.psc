@@ -25,7 +25,8 @@ string			Property InstanceId Auto Hidden
 Actor			Property CmdTargetActor Auto Hidden
 
 string          Property CustomResolveResult Auto Hidden
-Actor           Property CustomResolveActorResult Auto Hidden
+;Actor           Property CustomResolveActorResult Auto Hidden
+Form            Property CustomResolveFormResult Auto Hidden
 bool            Property CustomResolveCondResult Auto Hidden
 
 ; Properties
@@ -58,7 +59,11 @@ EndFunction
 ; string _code - a variable indicating an Actor e.g. $self, $player
 ; returns: an Actor representing the specified Actor; none if unable to resolve
 Actor Function ResolveActor(string _code)
-    return _slt_ActualResolveActor(_code)
+    Actor _resolvedActor = CmdTargetActor
+    if _code
+        _resolvedActor = ResolveForm(_code) as Actor
+    endif
+    return _resolvedActor
 EndFunction
 
 ; ResolveCond
@@ -68,11 +73,22 @@ bool Function ResolveCond(string _p1, string _p2, string _oper)
     return _slt_ActualResolveCond(_p1, _p2, _oper)
 endFunction
 
+Form Function ResolveForm(string _code)
+    return _slt_ActualResolveForm(_code)
+EndFunction
+
 String Function ActorName(Actor _person)
 	if _person
 		return _person.GetLeveledActorBase().GetName()
 	EndIf
 	return "[Null actor]"
+EndFunction
+
+String Function ActorDisplayName(Actor _person)
+    if _person
+        return _person.GetDisplayName()
+    Endif
+    return "[Null actor]"
 EndFunction
 
 Int Function ActorGender(Actor _actor)
@@ -95,24 +111,51 @@ EndFunction
 Form Function GetFormId(string _data)
     Form retVal
     string[] params
-    string fname
-    string sid
-    int  id
     
-    params = StringUtil.Split(_data, ":")
-    fname = params[0]
-    sid = params[1]
-    ; check if hex or dec
-    if sid && (StringUtil.GetNthChar(sid, 0) == "0")
-        id = HexToInt(sid)
-    else
-        id = params[1] as int
-    endIf
-    
-    retVal = Game.GetFormFromFile(id, fname)
+    if _data
+        DebMsg("have data")
+        params = StringUtil.Split(_data, ":")
+        if params.Length == 2 ; e.g. "Skyrim.esm:0f"
+            DebMsg("have 2 parts")
+            string modfile = params[0]
+            if modfile
+                string sid = params[1]
+                if sid
+                    int id
+                    if StringUtil.GetNthChar(sid, 0) == "0"
+                        id = HexToInt(sid)
+                    else
+                        id = sid as int
+                    endif
+
+                    retVal = Game.GetFormFromFile(id, modfile)
+                endif
+            endif
+        elseif params.Length == 1  ; e.g. "0f"
+            DebMsg("have one part")
+            int id
+            if StringUtil.GetNthChar(_data, 0) == "0"
+                id = HexToInt(_data)
+                DebMsg("hextoint id(" + id + ")")
+            else
+                id = _data as int
+                DebMsg("using id(" + id + ") _data(" + _data + ")")
+            endif
+
+            retVal = Game.GetForm(id)
+
+            if retVal
+                DebMsg("got it")
+            else
+                DebMsg("nope")
+            endif
+        endif
+    endif
+
     if !retVal
-        MiscUtil.PrintConsole("Form not found: " + _data)
-    endIf
+        MiscUtil.PrintConsole("Form not found (" + _data + ")")
+        DebMsg("Form not found (" + _data + ")")
+    endif
     
     return retVal
 EndFunction
@@ -1060,21 +1103,37 @@ string Function _slt_ActualResolve(string _code)
 	return _code
 EndFunction
 
-bool Function _slt_SLTResolveActor(string _code)
-    if _code == "$self"
-        CustomResolveActorResult = CmdTargetActor
+bool Function _slt_SLTResolveForm(string _code)
+    if "#SELF" == _code || "$self" == _code
+        CustomResolveFormResult = CmdTargetActor
         return true
-    elseIf _code == "$player"
-        CustomResolveActorResult = PlayerRef
+    elseIf "#PLAYER" == _code || "$player" == _code
+        CustomResolveFormResult = PlayerRef
         return true
-    elseIf _code == "$actor"
-        CustomResolveActorResult = iterActor
+    elseIf "#ACTOR" == _code || "$actor" == _code
+        CustomResolveFormResult = iterActor
+        return true
+    elseIf "#NONE" == _code || "none" == _code || "" == _code
+        CustomResolveFormResult = none
         return true
     endif
+
+    _code = Resolve(_code)
+
+    DebMsg("did we get here? _code(" + _code + ")")
+    Form _form = GetFormId(_code)
+    if _form
+        DebMsg("we have a form (" + _form.GetFormID() + ") name(" + _form.GetName() + ")")
+        CustomResolveFormResult = _form
+        return true
+    else
+        DebMsg("form was null")
+    endif
+
     return false
 EndFunction
 
-Actor Function _slt_ActualResolveActor(string _code)
+Form Function _slt_ActualResolveForm(string _code)
     int i = 0
     bool _resolved = false
     bool _needSLT = true
@@ -1083,20 +1142,20 @@ Actor Function _slt_ActualResolveActor(string _code)
 
         if _needSLT && slext.GetPriority() >= 0
             _needSLT = false
-            _resolved = _slt_SLTResolveActor(_code)
+            _resolved = _slt_SLTResolveForm(_code)
             if _resolved
-                return CustomResolveActorResult
+                return CustomResolveFormResult
             endif
         endif
         
-        _resolved = slext.CustomResolveActor(self, _code)
+        _resolved = slext.CustomResolveForm(self, _code)
         if _resolved
-            return CustomResolveActorResult
+            return CustomResolveFormResult
         endif
 
         i += 1
     endwhile
-	return CmdTargetActor
+	return none
 EndFunction
 
 bool Function _slt_SLTResolveCond(string _p1, string _p2, string _oper)
