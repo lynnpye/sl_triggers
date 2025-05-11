@@ -1,5 +1,18 @@
 119
-    
+    Savegame compatibility: tested succesfully with an update from v117
+    enhancement: added the vast majority of bindings for Actor, ObjectReference, and Form under the following functions
+        actor_doaction, objectreference_doaction, form_doaction
+        actor_dogetter, objectreference_dogetter, form_dogetter
+        actor_doconsumer, objectreference_doconsumer, form_doconsumer
+        actor_dofunction, objectreference_dofunction, form_dofunction
+            These are ust wrappers around the Papyrus script functions. Check the UESP CK wiki links I included for API usage
+            These use the typical "sub-function" approach
+            action - functions that take no parameters and return no results
+            getter - functions that take no parameters and return a result
+            consumer - functions that take parameters and return no results
+            function - functions that take parameters and return a result
+            When a function returns a "Form" type, it returns a FormID
+            For function parameters that require a "Form" type, they will accept not only the typical "modname.esp:00234" format but also raw int values returned by these functions
 
 118
     Savegame compatibility: tested succesfully with an update from v117
