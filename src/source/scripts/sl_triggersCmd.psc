@@ -113,10 +113,8 @@ Form Function GetFormId(string _data)
     string[] params
     
     if _data
-        DebMsg("have data")
         params = StringUtil.Split(_data, ":")
         if params.Length == 2 ; e.g. "Skyrim.esm:0f"
-            DebMsg("have 2 parts")
             string modfile = params[0]
             if modfile
                 string sid = params[1]
@@ -132,29 +130,19 @@ Form Function GetFormId(string _data)
                 endif
             endif
         elseif params.Length == 1  ; e.g. "0f"
-            DebMsg("have one part")
             int id
             if StringUtil.GetNthChar(_data, 0) == "0"
                 id = HexToInt(_data)
-                DebMsg("hextoint id(" + id + ")")
             else
                 id = _data as int
-                DebMsg("using id(" + id + ") _data(" + _data + ")")
             endif
 
             retVal = Game.GetForm(id)
-
-            if retVal
-                DebMsg("got it")
-            else
-                DebMsg("nope")
-            endif
         endif
     endif
 
     if !retVal
         MiscUtil.PrintConsole("Form not found (" + _data + ")")
-        DebMsg("Form not found (" + _data + ")")
     endif
     
     return retVal
@@ -1120,14 +1108,10 @@ bool Function _slt_SLTResolveForm(string _code)
 
     _code = Resolve(_code)
 
-    DebMsg("did we get here? _code(" + _code + ")")
     Form _form = GetFormId(_code)
     if _form
-        DebMsg("we have a form (" + _form.GetFormID() + ") name(" + _form.GetName() + ")")
         CustomResolveFormResult = _form
         return true
-    else
-        DebMsg("form was null")
     endif
 
     return false
