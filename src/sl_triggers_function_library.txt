@@ -32,6 +32,262 @@ if parameter 2 is "SetWeight" (parameter 3: <float, weight>): set actors weight
 
 -=-
 
+actor_doaction: For the targeted Actor, perform the associated function based on the specified action
+'Action' in this case specifically refers to functions that take no parameters and return no values
+https://ck.uesp.net/wiki/Actor_Script
+	- parameter 1: actor: target Actor  (accepts special variable names ($self, $player) and both relative "Skyrim.esm:0f" and absolute "0f" values)
+	- parameter 2: action: action name
+
+;;;; These are from Actor
+ClearArrested
+ClearExpressionOverride
+ClearExtraArrows
+ClearForcedLandingMarker
+ClearKeepOffsetFromActor
+ClearLookAt
+DispelAllSpells
+DrawWeapon
+EndDeferredKill
+EvaluatePackage
+MakePlayerFriend
+MoveToPackageLocation
+RemoveFromAllFactions
+ResetHealthAndLimbs
+Resurrect
+SendAssaultAlarm
+SetPlayerResistingArrest
+ShowBarterMenu
+StartDeferredKill
+StartSneaking
+StopCombat
+StopCombatAlarm
+UnequipAll
+UnlockOwnedDoorsInCell
+;;;; will call objectreference_doaction if no matches are found
+
+	Example
+		actor_doaction $self StopCombat
+
+-=-
+
+actor_doconsumer: For the specified Actor, perform the requested consumer, provided the appropriate additional parameters
+'Consumer' in this case specifically refers to functions that take parameters but return no result
+https://ck.uesp.net/wiki/Actor_Script
+	- parameter 1: actor: target Actor (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)
+	- parameter 2: consumer: consumer name
+
+AddPerk
+AddToFaction
+AllowBleedoutDialogue
+AllowPCDialogue
+AttachAshPile
+DamageActorValue
+DamageAV
+DoCombatSpellApply
+EnableAI
+EquipItem
+EquipShout
+EquipSpell
+ForceActorValue
+ForceAV
+KeepOffsetFromActor
+Kill
+KillEssential
+KillSilent
+ModActorValue
+ModAV
+ModFactionRank
+OpenInventory
+PlaySubGraphAnimation
+RemoveFromFaction
+RemovePerk
+RestoreActorValue
+RestoreAV
+SendTrespassAlarm
+SetActorValue
+SetAlert
+SetAllowFlying
+SetAllowFlyingEx
+SetAlpha
+SetAttackActorOnSight
+SetAV
+SetBribed
+SetCrimeFaction
+SetCriticalStage
+SetDoingFavor
+SetDontMove
+SetExpressionOverride
+SetEyeTexture
+SetFactionRank
+SetForcedLandingMarker
+SetGhost
+SetHeadTracking
+SetIntimidated
+SetLookAt
+SetNoBleedoutRecovery
+SetNotShowOnStealthMeter
+SetOutfit
+SetPlayerControls
+SetPlayerTeammate
+SetRace
+SetRelationshipRank
+SetRestrained
+SetSubGraphFloatVariable
+SetUnconscious
+SetVehicle
+SetVoiceRecoveryTime
+StartCannibal
+StartCombat
+StartVampireFeed
+UnequipItem
+UnequipItemSlot
+UnequipShout
+UnequipSpell
+SendLycanthropyStateChanged
+SendVampirismStateChanged
+EquipItemEx
+EquipItemById
+UnequipItemEx
+ChangeHeadPart
+ReplaceHeadPart
+UpdateWeight
+
+	Example
+		set $newGhostStatus 1
+		actor_doconsumer $self SetGhost $newGhostStatus
+
+-=-
+
+actor_dofunction: For the targeted Actor, set $$ to the result of the specified Function
+'Function' in this case specifically refers to functions that take one or more parameters and return a value
+https://ck.uesp.net/wiki/Actor_Script
+	- parameter 1: actor: target Actor  (accepts special variable names ($self, $player) and both relative "Skyrim.esm:0f" and absolute "0f" values)
+	- parameter 2: function: function name
+
+AddShout
+AddSpell
+DispelSpell
+GetActorValue
+GetActorValuePercentage
+GetAV
+GetAVPercentage
+GetBaseActorValue
+GetBaseAV
+GetEquippedItemType
+GetFactionRank
+GetFactionReaction
+GetRelationshipRank
+HasAssociation
+HasFamilyRelationship
+HasLOS
+HasMagicEffect
+HasMagicEffectWithKeyword
+HasParentRelationship
+HasPerk
+HasSpell
+IsDetectedBy
+IsEquipped
+IsHostileToActor
+IsInFaction
+PathToReference
+PlayIdle
+PlayIdleWithTarget
+RemoveShout
+RemoveSpell
+TrapSoul
+WornHasKeyword
+GetActorValueMax
+GetAVMax
+GetEquippedItemId
+GetEquippedSpell
+GetEquippedWeapon
+GetEquippedArmorInSlot
+GetWornForm
+GetEquippedObject
+GetNthSpell
+
+	Example
+		
+
+-=-
+
+actor_dogetter: For the targeted Actor, set $$ to the result of the specified getter
+'Getter' in this case specifically refers to functions that take no parameters but return a value
+https://ck.uesp.net/wiki/Actor_Script
+	- parameter 1: actor: target Actor  (accepts special variable names ($self, $player) and both relative "Skyrim.esm:0f" and absolute "0f" values)
+	- parameter 2: getter: getter name
+
+;;;; These are from Actor
+CanFlyHere
+Dismount
+GetActorBase
+GetBribeAmount
+GetCrimeFaction
+GetCombatState
+GetCombatTarget
+GetCurrentPackage
+GetDialogueTarget
+GetEquippedShield
+GetEquippedShout
+GetFlyingState
+GetForcedLandingMarker
+GetGoldAmount
+GetHighestRelationshipRank
+GetKiller
+GetLevel
+GetLeveledActorBase
+GetLightLevel
+GetLowestRelationshipRank
+GetNoBleedoutRecovery
+GetPlayerControls
+GetRace
+GetSitState
+GetSleepState
+GetVoiceRecoveryTime
+IsAlarmed
+IsAlerted
+IsAllowedToFly
+IsArrested
+IsArrestingTarget
+IsBeingRidden - not a SexLab setting
+IsBleedingOut
+IsBribed
+IsChild
+IsCommandedActor
+IsDead
+IsDoingFavor
+IsEssential
+IsFlying
+IsGhost
+IsGuard
+IsInCombat
+IsInKillMove
+IsIntimidated
+IsOnMount - see IsBeingRidden
+IsPlayersLastRiddenHorse - I don't even need to comment now, do I?
+IsPlayerTeammate
+IsRunning
+IsSneaking
+IsSprinting
+IsTrespassing
+IsUnconscious
+IsWeaponDrawn
+;;;; These are from SKSE
+GetSpellCount
+IsAIEnabled
+IsSwimming
+;;;; These are Special Edition exclusive
+WillIntimidateSucceed
+IsOverEncumbered
+GetWarmthRating
+
+	Example
+		actor_dogetter CanFlyHere
+		if $$ = 1 ICanFlyAroundHere
+		if $$ = 0 IAmGroundedLikeAlways
+
+-=-
+
 actor_getfactionrank: Sets $$ to the actor's rank in the faction indicated by the FormId
 	- parameter 1: actor: target Actor
 	- parameter 2: faction: FACTION FormID
@@ -189,6 +445,13 @@ actor_name: Set $$ to the actor name
 
 	Example
 		actor_name $actor
+
+-=-
+
+actor_name: Set $$ to the actor displayName
+
+	Example
+		actor_display_name $actor
 
 -=-
 
@@ -432,6 +695,101 @@ av_set: Set actor value
 -=-
 
 
+Form:
+==============
+
+form_consumer: For the specified Form, perform the requested consumer, provided the appropriate additional parameters
+'Consumer' in this case specifically refers to functions that take parameters but return no result
+https://ck.uesp.net/wiki/Form_Script
+	- parameter 1: form: target Form (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)
+	- parameter 2: consumer: consumer name
+
+SetPlayerKnows
+SetWorldModelPath
+SetName
+SetWeight
+SetGoldValue
+SendModEvent
+
+	Example
+		actor_dogetter GetEquippedShield
+		set $shieldFormID $$
+		form_consumer $shieldFormID SetWeight 0.1 ; featherweight shield
+
+-=-
+
+form_doaction: For the targeted Form, perform the associated function based on the specified action
+'Action' in this case specifically refers to functions that take no parameters and return no values
+https://ck.uesp.net/wiki/Form_Script
+	- parameter 1: form: target Form (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)
+	- parameter 2: action: action name
+
+;;;; These are from Form
+RegisterForSleep
+RegisterForTrackedStatsEvent
+StartObjectProfiling
+StopObjectProfiling
+UnregisterForSleep
+UnregisterForTrackedStatsEvent
+UnregisterForUpdate
+UnregisterForUpdateGameTime
+;;;; These are from SKSE
+UnregisterForAllKeys
+UnregisterForAllControls
+UnregisterForAllMenus
+RegisterForCameraState
+UnregisterForCameraState
+RegisterForCrosshairRef
+UnregisterForCrosshairRef
+RegisterForNiNodeUpdate
+UnregisterForNiNodeUpdate
+
+	Example
+		form_doaction $self StopCombat
+
+-=-
+
+form_dofunction: For the targeted Form, set $$ to the result of the specified function
+'Function' in this case specifically refers to functions that take one or more parameters and return a value
+https://ck.uesp.net/wiki/Form_Script
+	- parameter 1: actor: target Form  (accepts special variable names ($self, $player) and both relative "Skyrim.esm:0f" and absolute "0f" values)
+	- parameter 2: function: function name
+
+HasKeywordString
+HasKeyword
+GetNthKeyword
+GetWorldModelNthTextureSet
+
+-=-
+
+form_dogetter: For the targeted Actor, set $$ to the result of the specified getter
+'Getter' in this case specifically refers to functions that take no parameters but return a value
+https://ck.uesp.net/wiki/Form_Script
+	- parameter 1: form: target Form (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)
+	- parameter 2: getter: getter name
+
+;;;; T79686hese are from Form
+GetFormID
+GetGoldValue
+PlayerKnows
+;;;; These are from SKSE
+GetType
+GetName
+GetWeight
+GetNumKeywords
+IsPlayable
+HasWorldModel
+GetWorldModelPath
+GetWorldModelNumTextureSets
+TempClone
+
+	Example
+		form_dogetter IsPlayable
+		if $$ = 1 itwasplayable
+
+-=-
+
+
 Imagespace Modifier:
 ==============
 
@@ -624,6 +982,211 @@ mfg_setphonememodifier: Set facial expression (requires MfgFix https://www.nexus
 
 	Example
 		mfg_setphonememodifier $self 0 $1 $2
+
+-=-
+
+
+ObjectReference:
+==============
+
+objectreference_doaction: For the targeted ObjectReference, perform the associated function based on the specified action
+'Action' in this case specifically refers to functions that take no parameters and return no values
+https://ck.uesp.net/wiki/ObjectReference_Script
+	- parameter 1: objectreference: target ObjectReference  (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)
+	- parameter 2: action: action name
+
+;;;; These are from ObjectReference
+ClearDestruction
+Delete
+DeleteWhenAble
+ForceAddRagdollToWorld
+ForceRemoveRagdollFromWorld
+InterruptCast
+MoveToMyEditorLocation
+RemoveAllInventoryEventFilters
+StopTranslation
+;;;; These are from SKSE
+ResetInventory
+;;;; will call form_doaction if no matches are found
+
+	Example
+		objectreference_doaction $self StopCombat
+
+-=-
+
+objectreference_doconsumer: For the specified ObjectReference, perform the requested consumer, provided the appropriate additional parameters
+'Consumer' in this case specifically refers to functions that take parameters but return no result
+https://ck.uesp.net/wiki/ObjectReference_Script
+	- parameter 1: objectreference: target ObjectReference (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)
+	- parameter 2: consumer: consumer name
+
+Activate
+AddInventoryEventFilter
+AddItem
+AddKeyIfNeeded
+AddToMap
+ApplyHavokImpulse
+BlockActivation
+CreateDetectionEvent
+DamageObject
+Disable
+DisableLinkChain
+DisableNoWait
+DropObject
+Enable
+EnableFastTravel
+EnableLinkChain
+EnableNoWait
+IgnoreFriendlyHits
+KnockAreaEffect
+Lock
+MoveTo
+MoveToInteractionLocation
+MoveToNode
+PlayTerrainEffect
+ProcessTrapHit
+PushActorAway
+RemoveAllItems
+RemoveInventoryEventFilter
+RemoveItem
+Reset
+Say
+SendStealAlarm
+SetActorCause
+SetActorOwner
+SetAngle
+SetAnimationVariableBool
+SetAnimationVariableFloat
+SetAnimationVariableInt
+SetDestroyed
+SetFactionOwner
+SetLockLevel
+SetMotionType
+SetNoFavorAllowed
+SetOpen
+SetPosition
+SetScale
+SplineTranslateTo
+SplineTranslateToRef
+SplineTranslateToRefNode
+TetherToHorse
+TranslateTo
+TranslateToRef
+SetHarvested
+SetItemHealthPercent
+SetItemMaxCharge
+SetItemCharge
+SetEnchantment
+CreateEnchantment
+
+	Example
+		actor_dogetter GetEquippedShield
+		set $shieldFormID $$
+		objectreference_doconsumer $shieldFormID CreateEnchantment 200.0 "Skyrim.esm:form-id-for-MGEF" 20.0 0.0 30.0
+
+-=-
+
+objectreference_dofunction: For the targeted ObjectReference, set $$ to the result of the specified function
+'Function' in this case specifically refers to functions that take one or more parameters and return a value
+https://ck.uesp.net/wiki/ObjectReference_Script
+	- parameter 1: actor: target ObjectReference  (accepts special variable names ($self, $player) and both relative "Skyrim.esm:0f" and absolute "0f" values)
+	- parameter 2: function: function name
+
+CalculateEncounterLevel
+CountLinkedRefChain
+GetAnimationVariableBool
+GetAnimationVariableFloat
+GetAnimationVariableInt
+GetDistance
+GetHeadingAngle
+GetItemCount
+HasEffectKeyword
+HasNode
+HasRefType
+IsActivateChild
+IsFurnitureInUse
+IsFurnitureMarkerInUse
+IsInLocation
+MoveToIfUnloaded
+PlayAnimation
+PlayAnimationAndWait
+PlayGamebryoAnimation
+PlayImpactEffect
+PlaySyncedAnimationAndWaitSS
+PlaySyncedAnimationSS
+RampRumble
+WaitForAnimationEvent
+SetDisplayName
+GetNthForm
+PlaceActorAtMe
+PlaceAtMe
+GetLinkedRef
+GetNthLinkedRef
+
+-=-
+
+objectreference_dogetter: For the targeted ObjectReference, set $$ to the result of the specified getter
+'Getter' in this case specifically refers to functions that take no parameters but return a value
+https://ck.uesp.net/wiki/ObjectReference_Script
+	- parameter 1: objectreference: target ObjectReference  (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)
+	- parameter 2: getter: getter name
+
+;;;; These are from ObjectReference
+CanFastTravelToMarker
+GetActorOwner
+GetAngleX
+GetAngleY
+GetAngleZ
+GetBaseObject
+GetCurrentDestructionStage
+GetCurrentLocation
+GetCurrentScene
+GetEditorLocation
+GetFactionOwner
+GetHeight
+GetItemHealthPercent
+GetKey
+GetLength
+GetLockLevel
+GetMass
+GetOpenState
+GetParentCell
+GetPositionX
+GetPositionY
+GetPositionZ
+GetScale
+GetTriggerObjectCount
+GetVoiceType
+GetWidth
+GetWorldSpace
+IsActivationBlocked
+Is3DLoaded
+IsDeleted
+IsDisabled
+IsEnabled
+IsIgnoringFriendlyHits
+IsInDialogueWithPlayer
+IsInInterior
+IsLocked
+IsMapMarkerVisible
+IsNearPlayer
+;;;; These are from SKSE
+GetNumItems
+GetTotalItemWeight
+GetTotalArmorWeight
+IsHarvested
+GetItemMaxCharge
+GetItemCharge
+IsOffLimits
+GetDisplayName
+GetEnableParent
+GetEnchantment
+GetNumReferenceAliases
+
+	Example
+		actor_dogetter CanFlyHere
+		if $$ = 1 ICanFlyAroundHere
+		if $$ = 0 IAmGroundedLikeAlways
 
 -=-
 
