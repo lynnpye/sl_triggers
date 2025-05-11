@@ -39,7 +39,7 @@ bool            Property CustomResolveCondResult Auto Hidden
 ;; REQUIRED to call at some point during lifecycle or that
 ;; you are likely to call while implementing your commands.
 ;;
-;; Function names are "normal" here (no underscores or anything).
+;; Function names are "normal" here (no underscore prefixes or anything).
 ;;
 ;;
 ;;
@@ -142,7 +142,7 @@ Form Function GetFormId(string _data)
     endif
 
     if !retVal
-        MiscUtil.PrintConsole("Form not found (" + _data + ")")
+        SFE("Form not found (" + _data + ")")
     endif
     
     return retVal
@@ -157,14 +157,20 @@ EndFunction
 
 string function IsVarString(string _code)
     if _code && StringUtil.GetLength(_code) > 1 && StringUtil.GetNthChar(_code, 0) == "$"
-        return StringUtil.Substring(_code, 1)
+        string varstr = StringUtil.Substring(_code, 1)
+        if StringUtil.Find(varstr, " ") < 0
+            return varstr
+        endif
     endif
 	return ""
 endfunction
 
 string function IsVarStringG(string _code)
-    if _code && StringUtil.GetLength(_code) > 1 && StringUtil.GetNthChar(_code, 0) == "!"
-        return StringUtil.Substring(_code, 1)
+    if _code && StringUtil.GetLength(_code) > 1 && StringUtil.GetNthChar(_code, 0) == "!" && _code != "!=" ; I can't believe I did this to myself *facepalm*
+        string varstr = StringUtil.Substring(_code, 1)
+        if StringUtil.Find(varstr, " ") < 0
+            return varstr
+        endif
     endif
 	return ""
 endfunction
@@ -441,7 +447,7 @@ Function RunScript()
                                 elseIf operat == "&"
                                     strresult = strparm2 + strparm4
                                 else
-                                    DebMsg("SLT: [" + cmdName + "][lineNum:" + lineNum + "] unexpected operator for 'set' (" + operat + ")")
+                                    SFE("unexpected operator for 'set' (" + operat + ")")
                                 endif
                                 if g_varindex
                                     globalvars_set(varindex, strresult)
@@ -449,9 +455,11 @@ Function RunScript()
                                     vars_set(varindex, strresult)
                                 endif
                             endif
+                        else
+                            SFE("invalid variable name, not resolvable (" + cmdLine[1] + ")")
                         endif
                     else
-                        DebMsg("SLT: [" + cmdName + "][lineNum:" + lineNum + "] unexpected number of arguments for 'set' got " + cmdLine.length + " expected 3 or 5")
+                        SFE("unexpected number of arguments for 'set' got " + cmdLine.length + " expected 3 or 5")
                     endif
                     cmdidx += 1
                 elseIf command == "if"
@@ -499,7 +507,7 @@ Function RunScript()
                                     vars_set(varindex, (varfloat + incrFloat) as string)
                                 endif
                             else
-                                DebMsg("SLT: [" + cmdName + "][lineNum:" + lineNum + "] no resolve found for variable parameter (" + cmdLine[1] + ") varstr(" + varstr + ") varindex(" + varindex + ")")
+                                SFE("no resolve found for variable parameter (" + cmdLine[1] + ") varstr(" + varstr + ") varindex(" + varindex + ")")
                             endif
                         endif
                     endif
@@ -522,7 +530,7 @@ Function RunScript()
                             if varindex >= 0
                                 vars_set(varindex, (vars_get(varindex) + resolve(cmdLine[2])) as string)
                             else
-                                MiscUtil.PrintConsole("SLT: [" + cmdName + "][lineNum:" + lineNum + "] no resolve found for variable parameter (" + cmdLine[1] + ")")
+                                SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
                             endif
                         endif
                     endif
@@ -535,6 +543,7 @@ Function RunScript()
                 elseIf command == "call"
                     if ParamLengthGT(self, cmdLine.Length, 1)
                         string callTarget = Resolve(cmdLine[1])
+                        DebMsg("callTarget(" + callTarget + ") from (" + cmdLine[1] + ")")
                         if _slt_IsFileParseable(callTarget)
 
                             sl_triggersCmd._slt_AddCallstack(CmdTargetActor, InstanceId, callTarget)
@@ -548,6 +557,7 @@ Function RunScript()
                                 endwhile
                             endif
                         else
+                            SFE("call target file not parseable(" + callTarget + ") resolved from (" + cmdLine[1] + ")")
                             cmdidx += 1
                         endif
                     else
@@ -572,7 +582,9 @@ Function RunScript()
                         string newval
 
                         if argidx < 128
-                            newval = callargs_get(argidx) 
+                            newval = callargs_get(argidx)
+                        else
+                            SFE("maximum index for callarg is 127")
                         endif
 
                         string vidx = IsVarStringG(arg)
@@ -582,6 +594,8 @@ Function RunScript()
                             vidx = IsVarString(arg)
                             if vidx
                                 vars_set(vidx, newval)
+                            else
+                                SFE("unable to resolve variable name (" + arg + ")")
                             endif
                         endif
                     endif
@@ -618,7 +632,7 @@ Function RunScript()
         return
     endif
     
-    DebMsg("this should not be possible")
+    SFE("Presumed unreachable state: callstackPointer still present, but no more operations remaining, attempting to remove a callstack and resume")
     sl_triggersCmd._slt_RemoveCallstack(CmdTargetActor, InstanceId)
     cmdidx += 1
     
@@ -836,7 +850,7 @@ string Function _slt_IsLabel(string _cmdtype, string[] _tokens = none)
             isLabel = Resolve(_tokens[1])
         endif
     else
-        SquawkFunctionError(self, "label: unimplemented cmdtype provided (" + _cmdtype + ")")
+        SFE("label: unimplemented cmdtype provided (" + _cmdtype + ")")
     endif
 
     return isLabel
@@ -888,7 +902,7 @@ Int Function _slt_FindGoto(string _label, int _cmdIdx, string _cmdtype)
         endIf
     endwhile
 
-    DebMsg("again, another presumably impossible to reach line of code")
+    SFE("Presumed unreachable state, attempting to find goto target, ran out of lines to examine but default case somehow not handled, returning EOF for script")
 
     return cmdNum
 EndFunction
@@ -988,6 +1002,7 @@ string Function _slt_ParseCommandFile()
         if !MiscUtil.FileExists(FullCommandsFolder() + _myCmdName)
             _myCmdName = cmdName + "json"
             if !JsonUtil.JsonExists(CommandsFolder() + _myCmdName)
+                SFE("attempted to parse an unknown file type(" + cmdName + ")")
                 return ""
             else
                 _last = "json"
@@ -1066,7 +1081,6 @@ EndFunction
 
 string Function _slt_ActualResolve(string _code)
     int i = 0
-    
     bool _resolved = false
     bool _needSLT = true
     while i < SLT.Extensions.Length
@@ -1144,7 +1158,7 @@ EndFunction
 
 bool Function _slt_SLTResolveCond(string _p1, string _p2, string _oper)
     bool outcome = false
-    if _oper == "="
+    if _oper == "=" || _oper == "=="
         if (_p1 as float) == (_p2 as float)
             outcome = true
         endif
@@ -1177,7 +1191,7 @@ bool Function _slt_SLTResolveCond(string _p1, string _p2, string _oper)
             outcome = true
         endif
     else
-        MiscUtil.PrintConsole("SLT: [" + cmdName + "][lineNum:" + lineNum + "] unexpected operator, this is likely an error in the SLT script")
+        SFE("unexpected operator, this is likely an error in the SLT script")
         return false
     endif
 
@@ -1222,7 +1236,9 @@ bool Function _slt_ActualOper(string[] param, string code)
     return sl_triggers_internal.SafeRunOperationOnActor(CmdTargetActor, self, opsParam)
 EndFunction
 
-
+Function SFE(string msg)
+	SquawkFunctionError(self, msg)
+EndFunction
 
 
 ; just the index into the StorageUtil lists
