@@ -1,5 +1,21 @@
+120
+    Savegame compatibility: tested succesfully with an update from v119
+    bugfix: callstack corruption could occur in some scenarios; fixed
+    bugfix: BUG IN THE REGRESSION TEST! yuck
+    bugfix: parser will no longer assume "!=" is a global variable named "="
+    bugfix: PARTIAL: strings starting with "$" will now work IF THEY HAVE A SPACE IN THEM. quirk of the whole "variables start with $, everything is a string, resolve all the things!" design
+        workaround: if you need a string with no spaces that starts with a "$"... you can can use 'cat $food "$" "therestofthestring"'; ugly, I know, needs some thinking
+    enhancement: added additional equality operator, "==" because I got tired of my brain trying to stop me from not typing it
+    enhancement: you should be able to safely mix "==", "=", and "&=" (as well as, on the opposite side, "!=" and "&!=")
+        if the two values "can be" evaluated as numbers for equality, they will be, otherwise it will perform string equality
+    enhancement: sl_triggers_internal.SafeSmartEquals(string, string) is the native logic wrapper (mostly for speed)
+    enhancement: "set <variable> resultfrom <function.....>"
+        example:
+            set $actorName resultfrom actor_name $player
+        it's what we all do anyway
+
 119
-    Savegame compatibility: tested succesfully with an update from v117
+    Savegame compatibility: tested succesfully with an update from v118
     enhancement: added the vast majority of bindings for Actor, ObjectReference, and Form under the following functions
         actor_doaction, objectreference_doaction, form_doaction
         actor_dogetter, objectreference_dogetter, form_dogetter

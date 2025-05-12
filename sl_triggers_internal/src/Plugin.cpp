@@ -464,6 +464,32 @@ namespace plugin {
         }
 
 
+        bool isNumeric(const std::string& str, double& outValue) {
+            const char* begin = str.c_str();
+            const char* end = begin + str.size();
+
+            auto result = std::from_chars(begin, end, outValue);
+            return result.ec == std::errc() && result.ptr == end;
+        }
+
+        // Main logic: numeric if both parse cleanly, else string compare
+        bool SmartEquals(const std::string& a, const std::string& b) {
+            double aNum = 0.0, bNum = 0.0;
+            bool aIsNum = isNumeric(a, aNum);
+            bool bIsNum = isNumeric(b, bNum);
+
+            bool outcome = false;
+            if (aIsNum && bIsNum) {
+                outcome = (std::fabs(aNum - bNum) < 1e-9);  // safe float comparison
+            } else {
+                outcome = (a == b);
+            }
+
+            return outcome;
+        }
+
+
+
 
 
     }  // namespace Util
@@ -512,19 +538,24 @@ namespace plugin {
             return plugin::Util::sessionId;
         }
 
+        bool SmartEquals(RE::StaticFunctionTag*, RE::BSFixedString a, RE::BSFixedString b) {
+            return Util::SmartEquals(a.c_str(), b.c_str());
+        }
+
         bool Register(RE::BSScript::IVirtualMachine* vm) {
             // I may have untreated problems?? :)
             // but the alignment... so pretty...
-            vm->RegisterFunction("_PrecacheLibraries"               ,"sl_triggers_internal" ,PrecacheLibraries               ,true  );
+            vm->RegisterFunction("_PrecacheLibraries"               ,"sl_triggers_internal" ,PrecacheLibraries              ,true   );
             vm->RegisterFunction("_RunOperationOnActor"             ,"sl_triggers_internal" ,RunOperationOnActor                    );
-            vm->RegisterFunction("_SplitLinesTrimmed"               ,"sl_triggers_internal" ,SplitLinesTrimmed               ,true  );
+            vm->RegisterFunction("_SplitLinesTrimmed"               ,"sl_triggers_internal" ,SplitLinesTrimmed              ,true   );
             vm->RegisterFunction("_GetTranslatedString"             ,"sl_triggers_internal" ,GetTranslatedString                    );
             vm->RegisterFunction("_GetActiveMagicEffectsForActor"   ,"sl_triggers_internal" ,GetActiveMagicEffectsForActor          );
-            vm->RegisterFunction("_IsLoaded"                        ,"sl_triggers_internal" ,IsLoaded                        ,true  );
-            vm->RegisterFunction("_SplitLines"                      ,"sl_triggers_internal" ,SplitLines                      ,true  );
-            vm->RegisterFunction("_Tokenize"                        ,"sl_triggers_internal" ,Tokenize                        ,true  );
-            vm->RegisterFunction("_DeleteTrigger"                   ,"sl_triggers_internal" ,DeleteTrigger                   ,true  );
-            vm->RegisterFunction("_GetSessionId"                    ,"sl_triggers_internal" ,GetSessionId                    ,true  );
+            vm->RegisterFunction("_IsLoaded"                        ,"sl_triggers_internal" ,IsLoaded                       ,true   );
+            vm->RegisterFunction("_SplitLines"                      ,"sl_triggers_internal" ,SplitLines                     ,true   );
+            vm->RegisterFunction("_Tokenize"                        ,"sl_triggers_internal" ,Tokenize                       ,true   );
+            vm->RegisterFunction("_DeleteTrigger"                   ,"sl_triggers_internal" ,DeleteTrigger                  ,true   );
+            vm->RegisterFunction("_GetSessionId"                    ,"sl_triggers_internal" ,GetSessionId                   ,true   );
+            vm->RegisterFunction("_SmartEquals"                     ,"sl_triggers_internal" ,SmartEquals                    ,true   );
 
             return true;
         }

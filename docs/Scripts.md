@@ -22,6 +22,15 @@ Scripts contain sequences of commands. A command can be a built-in operation or 
     * Example:
 
             set $1 "Hi there"
+  * `set <variable> resultfrom <function...>`
+    * Alternate form of set, sets the value of the specified variable to the result from the specified function
+    * parameter 1: `<variable>`
+    * parameter 2: `resultfrom`
+    * parameter 3: `<function...>` - the function to execute
+      * Example:
+  
+            set $playerName resultfrom actor_name $player
+            ; $playerName now contains the player's name
   * `inc`
     * Increments the numeric value of the specified variable by the provided amount
     * parameter 1: `<variable>`
@@ -70,16 +79,13 @@ Scripts contain sequences of commands. A command can be a built-in operation or 
     * parameter 1: `<resolvable value>`
       * literals like 42, "hi there", and 87.3 but also variables like $48
     * parameter 2: `<conditional operation>`
-      * one of the supported operations: `=`, `!=`, `>`, `>=`, `<`, `<=`, `&=`, and `&!=`
-        * `=`, `!=`, `>`, `>=`, `<`, `<=`
+      * one of the supported operations: `=`/`==`, `!=`, `>`, `>=`, `<`, `<=`, `&=`, and `&!=`
+        * `=`/`==`, `!=`, `>`, `>=`, `<`, `<=`
           * numeric equality, inequality, greater than, greater than or equal to, less than, and less than or equal to operators, respectively
+          * Note that for now both `=` and `==` refer to equality; eventually `=` will no longer be supported
         * `&=`, `&!=`
           * string equality, and inequality, respectively
-        * the reason for the separate string comparators is because, again, everything is a string under the hood
-          * `set $1 4.0` will become "4.0"
-          * `set $2 4.00` will become "4.00"
-          * `$1 = $2` will be true because `$1` and `$2` would be coerced to a number first, and `4.0 == 4.00`
-          * `$1 &= $2` will be false because `"4.0" != "4.00"`
+        * Using `=` and `&!=` for string equality was previously problematic, but should be safe now. For now, the string equality operators are still available but will likely be removed at some point.
     * parameter 3: `<resolvable value>`
       * literals like 42, "hi there", and 87.3 but also variables like $48
     * parameter 4: `<label>`

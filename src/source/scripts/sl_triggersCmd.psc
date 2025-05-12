@@ -411,7 +411,7 @@ Function RunScript()
                 If !command
                     cmdidx += 1
                 elseIf command == "set"
-                    if cmdLine.Length == 3 || cmdLine.Length == 5
+                    if ParamLengthGT(self, cmdLine.Length, 2)
                         string varindex = IsVarString(cmdLine[1])
                         string g_varindex = IsVarStringG(cmdLine[1])
                     
@@ -422,7 +422,18 @@ Function RunScript()
                         
                             string strparm2 = resolve(cmdLine[2])
                         
-                            if cmdLine.length == 3
+                            if cmdLine.Length > 3 && strparm2 == "resultfrom"
+                                string subcode = Resolve(cmdLine[3])
+                                if subcode
+                                    srf_pending = true
+                                    srf_varindex = varindex
+                                    srf_varindex_g = g_varindex
+                                    Send_X_ActualOper(subcode)
+                                    return
+                                else
+                                    SFE("Unable to resolve function for 'set resultfrom' with (" + cmdLine[3] + ")")
+                                endif
+                            elseif cmdLine.length == 3
                                 if g_varindex
                                     globalvars_set(varindex, strparm2)
                                 else
@@ -465,14 +476,18 @@ Function RunScript()
                 elseIf command == "if"
                     if ParamLengthEQ(self, cmdLine.Length, 5)
                         ; ["if", "$$", "=", "0", "end"],
-                        p1 = resolve(cmdLine[1])
-                        p2 = resolve(cmdLine[3])
-                        po = cmdLine[2]
+                        p1 = Resolve(cmdLine[1])
+                        p2 = Resolve(cmdLine[3])
+                        po = Resolve(cmdLine[2])
                         
-                        bool ifTrue = resolveCond(p1, p2, po)
-                        if ifTrue
-                            cmdidx = _slt_FindGoto(Resolve(cmdLine[4]), cmdidx, cmdtype)
-                        endIf
+                        if po
+                            bool ifTrue = resolveCond(p1, p2, po)
+                            if ifTrue
+                                cmdidx = _slt_FindGoto(Resolve(cmdLine[4]), cmdidx, cmdtype)
+                            endIf
+                        else
+                            SFE("unable to resolve operator (" + cmdLine[2] + ") po(" + po + ")")
+                        endif
                     endif
                     cmdidx += 1
                 elseIf command == "inc"
@@ -646,7 +661,20 @@ Function RunScript()
     Send_X_ExecuteLine()
 EndFunction
 
+bool srf_pending
+string srf_varindex
+string srf_varindex_g
 Event OnSetOperationCompleted()
+    if srf_pending
+        srf_pending = false
+        if srf_varindex_g
+            globalvars_set(srf_varindex, MostRecentResult)
+        else
+            vars_set(srf_varindex, MostRecentResult)
+        endif
+        srf_varindex = ""
+        srf_varindex_g = ""
+    endif
     cmdidx += 1
     RunScript()
 EndEvent
@@ -656,7 +684,11 @@ Event On_X_ExecuteLine()
 EndEvent
 
 Event On_X_ActualOper(string _code)
-    _slt_ActualOper(currentCmdLine, _code)
+    string[] operCmdLine = currentCmdLine
+    if srf_pending
+        operCmdLine = PapyrusUtil.SliceStringArray(operCmdLine, 3)
+    endif
+    _slt_ActualOper(operCmdLine, _code)
 EndEvent
 
 
@@ -1165,14 +1197,10 @@ EndFunction
 
 bool Function _slt_SLTResolveCond(string _p1, string _p2, string _oper)
     bool outcome = false
-    if _oper == "=" || _oper == "=="
-        if (_p1 as float) == (_p2 as float)
-            outcome = true
-        endif
-    elseIf _oper == "!="
-        if (_p1 as float) != (_p2 as float)
-            outcome = true
-        endif
+    if _oper == "=" || _oper == "==" || _oper == "&="
+        outcome = sl_triggers_internal.SafeSmartEquals(_p1, _p2)
+    elseIf _oper == "!=" || _oper == "&!="
+        outcome = !sl_triggers_internal.SafeSmartEquals(_p1, _p2)
     elseIf _oper == ">"
         if (_p1 as float) > (_p2 as float)
             outcome = true
@@ -1187,14 +1215,6 @@ bool Function _slt_SLTResolveCond(string _p1, string _p2, string _oper)
         endif
     elseIf _oper == "<="
         if (_p1 as float) <= (_p2 as float)
-            outcome = true
-        endif
-    elseIf _oper == "&="
-        if _p1 == _p2
-            outcome = true
-        endif
-    elseIf _oper == "&!="
-        if _p1 != _p2
             outcome = true
         endif
     else

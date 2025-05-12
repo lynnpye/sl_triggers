@@ -44,6 +44,10 @@ int Function SafeGetSessionId() global
     return sl_triggers_internal._GetSessionId()
 EndFunction
 
+bool Function SafeSmartEquals(string a, string b) global
+    return sl_triggers_internal._SmartEquals(a, b)
+EndFunction
+
 ; direct access
 
 bool Function _PrecacheLibraries(string[] _scriptnames) global native
@@ -65,3 +69,5 @@ string[] Function _Tokenize(string _tokenString) global native
 bool Function _DeleteTrigger(string _extensionKey, string _triggerKey) global native
 
 int Function _GetSessionId() global native
+
+bool Function _SmartEquals(string a, string b) global native
