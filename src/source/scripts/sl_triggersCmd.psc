@@ -543,7 +543,6 @@ Function RunScript()
                 elseIf command == "call"
                     if ParamLengthGT(self, cmdLine.Length, 1)
                         string callTarget = Resolve(cmdLine[1])
-                        DebMsg("callTarget(" + callTarget + ") from (" + cmdLine[1] + ")")
                         if _slt_IsFileParseable(callTarget)
 
                             sl_triggersCmd._slt_AddCallstack(CmdTargetActor, InstanceId, callTarget)
@@ -555,6 +554,14 @@ Function RunScript()
                                     callargs_set(caidx, Resolve(_callargs[caidx]))
                                     caidx += 1
                                 endwhile
+                            endif
+                            
+                            cmdType = _slt_ParseCommandFile()
+                            if !cmdType
+                                sl_triggersCmd._slt_RemoveCallstack(CmdTargetActor, InstanceId)
+                            else
+                                cmdNum = Heap_IntGetX(CmdTargetActor, InstanceId, CallstackId)
+                                cmdidx = 0
                             endif
                         else
                             SFE("call target file not parseable(" + callTarget + ") resolved from (" + cmdLine[1] + ")")
@@ -684,7 +691,7 @@ EndFunction
 Function _slt_AddCallstack(Form _theForm, string _instanceId, string newscriptnm, int _forceCallstackPointer = 1) global
     int newcallstackpointer = StorageUtil.AdjustIntValue(_theForm, MakeInstanceKey(_instanceId, "_cs_callstack_pointer"), _forceCallstackPointer)
     
-    StorageUtil.AdjustIntValue(_theForm, MakeInstanceKey(_instanceId, "_cs_callstack_list_pointer"), _forceCallstackPointer * 127)
+    StorageUtil.SetIntValue(_theForm, MakeInstanceKey(_instanceId, "_cs_callstack_list_pointer"), newcallstackpointer * 127)
 
     int nextup = StorageUtil.AdjustIntValue(_theForm, MakeInstanceKey(_instanceId, "_cs_callstackid_nextup"), 1)
     string _callstackId = "Callstack" + nextup
@@ -697,7 +704,7 @@ Function _slt_AddCallstack(Form _theForm, string _instanceId, string newscriptnm
     StorageUtil.StringListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdtype"), "")
     StorageUtil.StringListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdname"), newscriptnm)
 
-    int newlen = StorageUtil.IntListCount(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdidx")) * 127
+    int newlen = (newcallstackpointer + 1) * 127
 
     StorageUtil.StringListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_callargs"), newlen)
 
@@ -717,12 +724,12 @@ Function _slt_AddCallstack(Form _theForm, string _instanceId, string newscriptnm
     StorageUtil.IntListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_lastkey"), 0)
 
     StorageUtil.FormListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_iteractor"), none)
-
 EndFunction
 
 Function _slt_RemoveCallstack(Form _theForm, string _instanceId) global
-    StorageUtil.AdjustIntValue(_theForm, MakeInstanceKey(_instanceId, "_cs_callstack_pointer"), -1)
-    StorageUtil.AdjustIntValue(_theForm, MakeInstanceKey(_instanceId, "_cs_callstack_list_pointer"), -127)
+    int newcallstackpointer = StorageUtil.AdjustIntValue(_theForm, MakeInstanceKey(_instanceId, "_cs_callstack_pointer"), -1)
+    
+    StorageUtil.SetIntValue(_theForm, MakeInstanceKey(_instanceId, "_cs_callstack_list_pointer"), newcallstackpointer * 127)
 
     StorageUtil.StringListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_callstackid"))
 
@@ -733,7 +740,7 @@ Function _slt_RemoveCallstack(Form _theForm, string _instanceId) global
     StorageUtil.StringListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdtype"))
     StorageUtil.StringListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdname"))
 
-    int newlen = StorageUtil.IntListCount(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdidx")) * 127
+    int newlen = (newcallstackpointer + 1) * 127
 
     StorageUtil.StringListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_callargs"), newlen)
 
@@ -1357,7 +1364,15 @@ Function callargs_set(int idx, string value)
     StorageUtil.StringListSet(CmdTargetActor, kk_cs_callargs, callstackListPointer + idx, value)
 EndFunction
 int Function callargs_find(string value)
-    return StorageUtil.StringListFind(CmdTargetActor, kk_cs_callargs, value)
+    int i = callstackListPointer
+    int maxi = i + 127
+    while i < maxi
+        if StorageUtil.StringListGet(CmdTargetActor, kk_cs_callargs, i) == value
+            return i - callstackListPointer
+        endif
+        i += 1
+    endwhile
+    return -1
 EndFunction
 
 ;int[]		gotoIdx 
@@ -1376,7 +1391,15 @@ Function gotoLabels_set(int idx, string value)
     StorageUtil.StringListSet(CmdTargetActor, kk_cs_gotolabels, callstackListPointer + idx, value)
 EndFunction
 int Function gotoLabels_find(string value)
-    return StorageUtil.StringListFind(CmdTargetActor, kk_cs_gotolabels, value)
+    int i = callstackListPointer
+    int maxi = i + 127
+    while i < maxi
+        if StorageUtil.StringListGet(CmdTargetActor, kk_cs_gotolabels, i) == value
+            return i - callstackListPointer
+        endif
+        i += 1
+    endwhile
+    return -1
 EndFunction
 
 int			Property gotoCnt Hidden
@@ -1405,7 +1428,15 @@ Function gosubLabels_set(int idx, string value)
     StorageUtil.StringListSet(CmdTargetActor, kk_cs_gosublabels, callstackListPointer + idx, value)
 EndFunction
 int Function gosubLabels_find(string value)
-    return StorageUtil.StringListFind(CmdTargetActor, kk_cs_gosublabels, value)
+    int i = callstackListPointer
+    int maxi = i + 127
+    while i < maxi
+        if StorageUtil.StringListGet(CmdTargetActor, kk_cs_gosublabels, i) == value
+            return i - callstackListPointer
+        endif
+        i += 1
+    endwhile
+    return -1
 EndFunction
 
 int         Property gosubCnt Hidden
