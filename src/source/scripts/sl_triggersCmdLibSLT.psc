@@ -38,6 +38,31 @@ Function deb_msg(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
         DebMsg(dmsg)
     endif
 endFunction
+
+; sltname form_getbyid
+; sltgrup Form
+; sltdesc Performs a lookup for a Form and returns it if found; returns none otherwise
+; sltdesc Accepts FormID as: "modfile.esp:012345", "012345" (absolute ID), "anEditorId" (will attempt an editorId lookup)
+; sltdesc Note that if multiple mods introduce an object with the same editorId, the lookup would only return whichever one won
+; sltargs formID: FormID as: "modfile.esp:012345", "012345" (absolute ID), "anEditorId" (will attempt an editorId lookup)
+; sltsamp form_getbyid "Ale"
+; sltsamp form_dogetter $$ GetName
+; sltsamp msg_notify $$ "!! Yay!!"
+; sltsamp ; Ale!! Yay!!
+Function form_getbyid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    string _outcome
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Form _result = CmdPrimary.ResolveForm(param[1])
+        if _result
+            _outcome = _result.GetFormID()
+        endif
+    endif
+
+    CmdPrimary.MostRecentResult = _outcome
+endFunction
  
 ; sltname av_restore
 ; sltgrup Actor Value
@@ -221,7 +246,7 @@ function spell_cast(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Spell thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Spell
+        Spell thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[1])) as Spell
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[2])
             if _targetActor
@@ -246,7 +271,7 @@ function spell_dcsa(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Spell thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Spell
+        Spell thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[1])) as Spell
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[2])
             if _targetActor
@@ -271,7 +296,7 @@ function spell_dispel(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Spell thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Spell
+        Spell thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[1])) as Spell
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[2])
             if _targetActor
@@ -296,7 +321,7 @@ function spell_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Spell thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Spell
+        Spell thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[1])) as Spell
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[2])
             if _targetActor
@@ -321,7 +346,7 @@ function spell_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Spell thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Spell
+        Spell thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[1])) as Spell
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[2])
             if _targetActor
@@ -348,7 +373,7 @@ function item_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthLT(CmdPrimary, param.Length, 6)
-        Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))
+        Form thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2]))
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[1])
     
@@ -384,7 +409,7 @@ function item_addex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 
     if ParamLengthLT(CmdPrimary, param.Length, 6)
     
-        Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))
+        Form thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2]))
         if thing
             int count = 1
             if param.Length > 3
@@ -467,7 +492,7 @@ function item_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthLT(CmdPrimary, param.Length, 6)
-        Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))
+        Form thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2]))
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[1])
 
@@ -500,7 +525,7 @@ function item_adduse(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthLT(CmdPrimary, param.Length, 6)
-        Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))    
+        Form thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2]))    
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[1])
             if _targetActor
@@ -538,7 +563,7 @@ function item_equipex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 6)
-        Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))    
+        Form thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2]))    
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[1])
             if _targetActor
@@ -569,7 +594,7 @@ function item_equip(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 5)
-        Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))
+        Form thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2]))
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[1])
             if _targetActor
@@ -597,7 +622,7 @@ function item_unequipex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))
+        Form thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2]))
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[1])
             if _targetActor
@@ -624,7 +649,7 @@ function item_getcount(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
     int nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2]))    
+        Form thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2]))    
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[1])
             if _targetActor
@@ -810,7 +835,7 @@ function perk_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Perk thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Perk    
+        Perk thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[1])) as Perk    
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[2])
             if _targetActor
@@ -834,7 +859,7 @@ function perk_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Perk thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Perk    
+        Perk thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[1])) as Perk    
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[2])
             if _targetActor
@@ -1107,7 +1132,7 @@ function actor_say(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         string thingFormId = CmdPrimary.resolve(param[2])
-        Topic thing = CmdPrimary.GetFormId(thingFormId) as Topic
+        Topic thing = CmdPrimary.GetFormById(thingFormId) as Topic
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[1])
             if _targetActor
@@ -1151,7 +1176,7 @@ function actor_iswearing(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
     int nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Armor thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2])) as Armor
+        Armor thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2])) as Armor
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if thing && _targetActor && _targetActor.IsEquipped(thing)
             nextResult = 1
@@ -1335,7 +1360,7 @@ function actor_infaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
-        Faction thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2])) as Faction
+        Faction thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2])) as Faction
         if _targetActor && thing && _targetActor.IsInFaction(thing)
             nextResult = 1
         endif
@@ -1358,7 +1383,7 @@ function actor_getfactionrank(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimar
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if _targetActor
-            Faction thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2])) as Faction
+            Faction thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2])) as Faction
             
             if thing
                 nextResult = _targetActor.GetFactionRank(thing)
@@ -1382,7 +1407,7 @@ function actor_setfactionrank(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimar
     if ParamLengthEQ(CmdPrimary, param.Length, 4)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if _targetActor
-            Faction thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2])) as Faction
+            Faction thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2])) as Faction
             if thing
                 _targetActor.SetFactionRank(thing, CmdPrimary.resolve(param[3]) as int)
             endif
@@ -1417,9 +1442,9 @@ function actor_isaffectedby(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary,
                     needAll = true
                     idx += 1
                 else
-                    Form wizardStuff = CmdPrimary.GetFormId(pstr)
+                    Form wizardStuff = CmdPrimary.GetFormById(pstr)
                     if !wizardStuff
-                        wizardStuff = CmdPrimary.GetFormId(CmdPrimary.Resolve(pstr))
+                        wizardStuff = CmdPrimary.GetFormById(CmdPrimary.Resolve(pstr))
                     endif
 
                     if wizardStuff
@@ -1471,7 +1496,7 @@ function actor_removefaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
-        Faction thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[2])) as Faction
+        Faction thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2])) as Faction
     
         if thing && _targetActor
             _targetActor.RemoveFromFaction(thing)
@@ -2314,7 +2339,7 @@ endFunction
 ; sltargsmore GetWorldModelPath
 ; sltargsmore GetWorldModelNumTextureSets
 ; sltargsmore TempClone
-; sltsamp form_dogetter IsPlayable
+; sltsamp form_dogetter $formId IsPlayable
 ; sltsamp if $$ = 1 itwasplayable
 function form_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -4305,7 +4330,7 @@ function ism_applyfade(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        ImageSpaceModifier thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as ImageSpaceModifier
+        ImageSpaceModifier thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[1])) as ImageSpaceModifier
     
         if thing
             thing.ApplyCrossFade(CmdPrimary.resolve(param[2]) as float)
@@ -4323,7 +4348,7 @@ function ism_removefade(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Form thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1]))
+        Form thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[1]))
     
         if thing
             ImageSpaceModifier.RemoveCrossFade(CmdPrimary.resolve(param[2]) as float)
@@ -4513,7 +4538,7 @@ function snd_play(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
     int nextResult = 0
 	
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Sound   thing = CmdPrimary.GetFormId(CmdPrimary.resolve(param[1])) as Sound
+        Sound   thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[1])) as Sound
         Actor   _targetActor = CmdPrimary.resolveActor(param[2])
         int     retVal
         if thing && _targetActor
@@ -5095,7 +5120,7 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
         if param[2]
             suform = CmdPrimary.ResolveActor(param[2])
             if !suform
-                suform = CmdPrimary.GetFormId(CmdPrimary.Resolve(param[2]))
+                suform = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[2]))
             endif
         endif
 

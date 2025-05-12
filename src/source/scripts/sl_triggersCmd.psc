@@ -108,7 +108,7 @@ int Function HexToInt(string _value)
 	return GlobalHexToInt(_value)
 EndFunction
 
-Form Function GetFormId(string _data)
+Form Function GetFormById(string _data)
     Form retVal
     string[] params
     
@@ -129,7 +129,7 @@ Form Function GetFormId(string _data)
                     retVal = Game.GetFormFromFile(id, modfile)
                 endif
             endif
-        elseif params.Length == 1  ; e.g. "0f"
+        elseif params.Length == 1  ; e.g. "0f" OR "theEditorId"
             int id
             if StringUtil.GetNthChar(_data, 0) == "0"
                 id = HexToInt(_data)
@@ -137,7 +137,11 @@ Form Function GetFormId(string _data)
                 id = _data as int
             endif
 
-            retVal = Game.GetForm(id)
+            if id
+                retVal = Game.GetForm(id)
+            else
+                retVal = sl_triggers_internal.SafeFindFormByEditorId(_data)
+            endif
         endif
     endif
 
@@ -1161,7 +1165,7 @@ bool Function _slt_SLTResolveForm(string _code)
 
     _code = Resolve(_code)
 
-    Form _form = GetFormId(_code)
+    Form _form = GetFormById(_code)
     if _form
         CustomResolveFormResult = _form
         return true

@@ -48,6 +48,10 @@ bool Function SafeSmartEquals(string a, string b) global
     return sl_triggers_internal._SmartEquals(a, b)
 EndFunction
 
+Form Function SafeFindFormByEditorId(string editorId) global
+    return sl_triggers_internal._FindFormByEditorId(editorId)
+EndFunction
+
 ; direct access
 
 bool Function _PrecacheLibraries(string[] _scriptnames) global native
@@ -71,3 +75,5 @@ bool Function _DeleteTrigger(string _extensionKey, string _triggerKey) global na
 int Function _GetSessionId() global native
 
 bool Function _SmartEquals(string a, string b) global native
+
+Form Function _FindFormByEditorId(string editorId) global native

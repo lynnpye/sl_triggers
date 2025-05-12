@@ -242,6 +242,32 @@ function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
     CmdPrimary.MostRecentResult = nextResult
 endFunction
 
+; stlname sl_adjustenjoyment
+; sltgrup SexLab
+; sltdesc Calls sslActorAlias.AdjustEnjoyment()
+; sltdesc Should work for both SexLab and SexLab P+
+; sltargs actor: target Actor
+; sltargs enjoymentAdjustment: int, amount to adjust by
+; sltsamp sl_adjustenjoyment $player 30
+function sl_adjustenjoyment(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+	if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor
+            sslThreadController tc = slExtension.SexLab.GetActorController(_targetActor)
+            if tc
+                sslActorAlias talias = tc.ActorAlias(_targetActor)
+                if talias
+                    talias.AdjustEnjoyment(CmdPrimary.Resolve(param[2]) as int)
+                endif
+            endif
+        endIf
+    endif
+endFunction
+
 ; sltname sl_isin
 ; sltgrup SexLab
 ; sltdesc Sets $$ to 1 if the specified actor is in a SexLab scene, 0 otherwise

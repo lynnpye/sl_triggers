@@ -109,7 +109,6 @@ namespace plugin {
                     }
 
                     if (libfunc->GetParamCount() != 3) {
-                        logger::info("rejecting {} for paramcount != 3 (was {})", libfuncName.c_str(), libfunc->GetParamCount());
                         continue;
                     }
 
@@ -120,8 +119,6 @@ namespace plugin {
 
                     std::string Actor_name("Actor");
                     if (!paramTypeInfo.IsObject() && Actor_name != paramTypeInfo.TypeAsString()) {
-                        logger::info("rejecting {} for first param not actor (was '{}')", libfuncName.c_str(),
-                                     paramTypeInfo.TypeAsString());
                         continue;
                     }
 
@@ -129,16 +126,12 @@ namespace plugin {
 
                     std::string ActiveMagicEffect_name("ActiveMagicEffect");
                     if (!paramTypeInfo.IsObject() && ActiveMagicEffect_name != paramTypeInfo.TypeAsString()) {
-                        logger::info("rejecting {} for second param not AME (was '{}')", libfuncName.c_str(),
-                                     paramTypeInfo.TypeAsString());
                         continue;
                     }
 
                     libfunc->GetParam(2, paramName, paramTypeInfo);
 
                     if (paramTypeInfo.GetRawType() != RE::BSScript::TypeInfo::RawType::kStringArray) {
-                        logger::info("rejecting {} for third param not string[] (was '{}')", libfuncName.c_str(),
-                                     paramTypeInfo.TypeAsString());
                         continue;
                     }
 
@@ -489,6 +482,10 @@ namespace plugin {
         }
 
 
+        RE::TESForm* FindFormByEditorId(const std::string_view& a_editorID) {
+            RE::TESForm* result = RE::TESForm::LookupByEditorID(a_editorID);
+            return result;
+        }
 
 
 
@@ -542,20 +539,25 @@ namespace plugin {
             return Util::SmartEquals(a.c_str(), b.c_str());
         }
 
+        RE::TESForm* FindFormByEditorId(RE::StaticFunctionTag*, RE::BSFixedString bs_editorId) {
+            return Util::FindFormByEditorId(bs_editorId);
+        }
+
         bool Register(RE::BSScript::IVirtualMachine* vm) {
             // I may have untreated problems?? :)
             // but the alignment... so pretty...
-            vm->RegisterFunction("_PrecacheLibraries"               ,"sl_triggers_internal" ,PrecacheLibraries              ,true   );
-            vm->RegisterFunction("_RunOperationOnActor"             ,"sl_triggers_internal" ,RunOperationOnActor                    );
-            vm->RegisterFunction("_SplitLinesTrimmed"               ,"sl_triggers_internal" ,SplitLinesTrimmed              ,true   );
-            vm->RegisterFunction("_GetTranslatedString"             ,"sl_triggers_internal" ,GetTranslatedString                    );
-            vm->RegisterFunction("_GetActiveMagicEffectsForActor"   ,"sl_triggers_internal" ,GetActiveMagicEffectsForActor          );
-            vm->RegisterFunction("_IsLoaded"                        ,"sl_triggers_internal" ,IsLoaded                       ,true   );
-            vm->RegisterFunction("_SplitLines"                      ,"sl_triggers_internal" ,SplitLines                     ,true   );
-            vm->RegisterFunction("_Tokenize"                        ,"sl_triggers_internal" ,Tokenize                       ,true   );
-            vm->RegisterFunction("_DeleteTrigger"                   ,"sl_triggers_internal" ,DeleteTrigger                  ,true   );
-            vm->RegisterFunction("_GetSessionId"                    ,"sl_triggers_internal" ,GetSessionId                   ,true   );
-            vm->RegisterFunction("_SmartEquals"                     ,"sl_triggers_internal" ,SmartEquals                    ,true   );
+            vm->RegisterFunction("_PrecacheLibraries", "sl_triggers_internal", PrecacheLibraries, true);
+            vm->RegisterFunction("_RunOperationOnActor", "sl_triggers_internal", RunOperationOnActor);
+            vm->RegisterFunction("_SplitLinesTrimmed", "sl_triggers_internal", SplitLinesTrimmed, true);
+            vm->RegisterFunction("_GetTranslatedString", "sl_triggers_internal", GetTranslatedString);
+            vm->RegisterFunction("_GetActiveMagicEffectsForActor", "sl_triggers_internal", GetActiveMagicEffectsForActor);
+            vm->RegisterFunction("_IsLoaded", "sl_triggers_internal", IsLoaded, true);
+            vm->RegisterFunction("_SplitLines", "sl_triggers_internal", SplitLines, true);
+            vm->RegisterFunction("_Tokenize", "sl_triggers_internal", Tokenize, true);
+            vm->RegisterFunction("_DeleteTrigger", "sl_triggers_internal", DeleteTrigger, true);
+            vm->RegisterFunction("_GetSessionId", "sl_triggers_internal", GetSessionId, true);
+            vm->RegisterFunction("_SmartEquals", "sl_triggers_internal", SmartEquals, true);
+            vm->RegisterFunction("_FindFormByEditorId", "sl_triggers_internal", FindFormByEditorId);
 
             return true;
         }
