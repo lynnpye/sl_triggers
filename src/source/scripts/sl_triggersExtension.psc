@@ -3,6 +3,11 @@ scriptname sl_triggersExtension extends Quest
 import sl_triggersStatics
 import sl_triggersHeap
 
+; These must be set by extending scripts
+string				Property SLTExtensionKey Auto Hidden
+string				Property SLTFriendlyName Auto Hidden
+int					Property SLTPriority Auto Hidden
+
 ; Properties
 Actor               Property PlayerRef Auto
 
@@ -12,20 +17,31 @@ sl_triggersMain		Property SLT Auto Hidden ; will be populated on startup
 Keyword				Property ActorTypeNPC Auto Hidden ; will be populated on startup
 Keyword				Property ActorTypeUndead Auto Hidden ; will be populated on startup
 
+
+; bool IsEnabled
+; enabled status for this extension
+; returns - true if BOTH sl_triggers AND this extension are enabled; false otherwise
+bool				Property IsEnabled = true Auto Hidden
+bool				Property bEnabled = true Auto Hidden ; enable/disable our extension
+
+Function SetEnabled(bool _newEnabledFlag)
+	if bEnabled != _newEnabledFlag
+		bEnabled = _newEnabledFlag
+		JsonUtil.SetIntValue(FN_S, "enabled", bEnabled as int)
+	endif
+	IsEnabled = SLT.bEnabled && bEnabled
+EndFunction
+
 ; string[] TriggerKeys
 ; Holds the current known list of filenames (triggerKeys) representing triggers
 ; Transient; refreshed in OnInit()
 ; DO NOT MODIFY (I mean, unless you know what you're doing, right)
 string[]			Property TriggerKeys Auto Hidden
 
-string				Property FN_S Hidden
-	string Function Get()
-		return FN_X_Settings(GetExtensionKey())
-	EndFunction
-EndProperty
+string				Property FN_S Auto Hidden
 
 string Function FN_T(string _triggerKey)
-	return FN_Trigger(GetExtensionKey(), _triggerKey)
+	return FN_Trigger(SLTExtensionKey, _triggerKey)
 EndFunction
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -44,44 +60,11 @@ EndFunction
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; GetExtensionKey
-; OVERRIDE REQUIRED
-; returns: the unique string identifier for this extension
-;
-; NOTE: This string will be used to generate and access a .JSON file tied
-; to the extension and a folder to hold the extension's triggers. As such,
-; it must adhere to filesystem standards.
-string Function GetExtensionKey()
-	return none
-EndFunction
-
-; GetFriendlyName
-; OPTIONAL, OVERRIDE SUGGESTED
-; returns: a human readable friendly name for your mod; if not specified, your extension key will be used
-string Function GetFriendlyName()
-	return GetExtensionKey()
-EndFunction
-
-; GetPriority
-; OVERRIDE OPTIONAL
-; returns: an integer priority value indicating where in the callchain any of this extensions
-; 		added operations will take
-; 	effectively provides the ability for an extension to override another extension's (including core's)
-;		operations
-;	lower priority wins; core is priority 0
-int Function GetPriority()
-	return 1000
-EndFunction
-
 bool Function CustomResolve(sl_triggersCmd CmdPrimary, string _code)
 	return false
 EndFunction
 
 bool Function CustomResolveForm(sl_triggersCmd CmdPrimary, string _code)
-	return false
-EndFunction
-
-bool Function CustomResolveCond(sl_triggersCmd CmdPrimary, string _p1, string _p2, string _oper)
 	return false
 EndFunction
 
@@ -105,24 +88,19 @@ EndFunction
 ; DO NOT OVERRIDE
 ; REQUIRED CALL
 ; This function performs necessary setup for the extension and must be called at the start of each
-; play session, i.e. from your OnInit(). While there is no specific requirement for the call
+; play session, i.e. from your OnInit()/OnPlayerLoadGame(). While there is no specific requirement for the call
 ; to be first or last at the time of this writing, take that into consideration if you
 ; run into problems.
 Function SLTInit()
-	if !self
-		return
-	endif
-
+	FN_S = FN_X_Settings(SLTExtensionKey)
 	_slt_BootstrapSLTInit()
 EndFunction
-
 
 ; SLTReady
 ; OPTIONAL
 ; This stub gets called at the point the extension is registered. You can insert your own logic here.
 Function SLTReady()
 EndFunction
-
 
 
 ;/
@@ -133,29 +111,9 @@ If you want to do anything extra though, you can override this handler. It will
 be registered at bootstrap.
 /;
 Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
-	if !self
-		return
-	endif
 EndEvent
 
-; bool IsEnabled
-; enabled status for this extension
-; returns - true if BOTH sl_triggers AND this extension are enabled; false otherwise
-bool				Property IsEnabled
-	bool Function Get()
-		return __bEnabled && SLT.bEnabled && _slt_AdditionalEnabledRequirements()
-	EndFunction
-	
-	Function Set(bool value)
-		__bEnabled = value
-	EndFunction
-EndProperty
-
 Function SLTBootstrapInit()
-EndFunction
-
-bool Function _slt_AdditionalEnabledRequirements()
-	return true
 EndFunction
 
 ; bool IsDebugMsg
@@ -210,11 +168,7 @@ EndFunction
 ; string _theCommand: the SLT command file to execute
 ; This queues up a command to an Actor.
 ; returns: the instanceId created
-string Function RequestCommand(Actor _theActor, string _theCommand)
-	if !self
-		return ""
-	endif
-	
+bool Function RequestCommand(Actor _theActor, string _theCommand)
 	return SLT.StartCommand(_theActor, _theCommand)
 EndFunction
 
@@ -263,7 +217,6 @@ EndFunction
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; note: SLT also has these properties defined
-bool				Property __bEnabled = true Auto Hidden ; enable/disable our extension
 bool				Property _bDebugMsg = false Auto Hidden ; enable/disable debug logging for our extension
 string				Property currentTriggerId Auto Hidden ; used for simple iteration
 
@@ -271,7 +224,7 @@ string				Property currentTriggerId Auto Hidden ; used for simple iteration
 int		oneupnumber
 string	settingsUpdateEvent 
 string	gameLoadedEvent 
-string 	internalReadyEvent 
+string 	internalReadyEvent
 
 Event _slt_OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
 	if !self
@@ -291,10 +244,11 @@ Event _slt_OnSLTInternalReady(string eventName, string strArg, float numArg, For
 	SLTReady()
 EndEvent
 
+Function _slt_RefreshTriggers()
+	TriggerKeys = sl_triggers.GetTriggerKeys(SLTExtensionKey)
+EndFunction
+
 Function _slt_BootstrapSLTInit()
-	if !self
-		return
-	endif
 	; fetch and store some key properties dynamically
 	if !SLT
 		SLT = GetForm_SLT_Main() as sl_triggersMain
@@ -306,7 +260,10 @@ Function _slt_BootstrapSLTInit()
 		ActorTypeUndead = GetForm_Skyrim_ActorTypeUndead() as Keyword
 	endif
 
-	InitSettingsFile(FN_X_Settings(GetExtensionKey()))
+	InitSettingsFile(FN_X_Settings(SLTExtensionKey))
+
+	bEnabled = JsonUtil.GetIntValue(FN_S, "enabled") as bool
+	SetEnabled(bEnabled)
 	
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_INTERNAL_READY_EVENT(), "_slt_OnSLTInternalReady")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTSettingsUpdated")
@@ -318,15 +275,19 @@ Function _slt_BootstrapSLTInit()
 EndFunction
 
 Function _slt_RegisterExtension()
-	if !self
+	if !SLT
+		Debug.Trace("Extension.RegisterExtension: cannot locate global SLT instance, unable to register extension (" + SLTExtensionKey + ")")
+		DebMsg("Extension.RegisterExtension: cannot locate global SLT instance, unable to register extension (" + SLTExtensionKey + ")")
 		return
 	endif
-
-	if !SLT
-		Debug.Trace("Extension.RegisterExtension: cannot locate global SLT instance, unable to register extension (" + GetExtensionKey() + ")")
-		DebMsg("Extension.RegisterExtension: cannot locate global SLT instance, unable to register extension (" + GetExtensionKey() + ")")
+	int handle = ModEvent.Create(EVENT_SLT_REGISTER_EXTENSION())
+	if !handle
+		Debug.Trace("Extension.RegisterExtension: cannot create new modevent, unable to register extension (" + SLTExtensionKey + ")")
+		DebMsg("Extension.RegisterExtension: cannot create new modevent, unable to register extension (" + SLTExtensionKey + ")")
+		return
 	endif
-	sl_triggersMain.SelfRegisterExtension(self)
+	ModEvent.PushForm(handle, self)
+	ModEvent.Send(handle)
 EndFunction
 
 string Function _slt_GetSettingsUpdateEvent()
@@ -345,28 +306,6 @@ EndFunction
 
 bool Function _slt_HasTriggers()
 	return TriggerKeys.Length > 0
-EndFunction
-
-Function _slt_RefreshTriggers()
-	if !self
-		return
-	endif
-
-	; the settings
-	JsonUtil.Load(FN_X_Settings(GetExtensionKey()))
-
-	; the triggers
-	string triggerFolder = ExtensionTriggersFolder(GetExtensionKey())
-	TriggerKeys = JsonUtil.JsonInFolder(triggerFolder)
-	
-	if TriggerKeys
-		int i = 0
-		while i < TriggerKeys.Length
-			JsonUtil.Load(triggerFolder + TriggerKeys[i])
-
-			i += 1
-		endwhile
-	endif
 EndFunction
 
 

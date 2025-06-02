@@ -49,7 +49,7 @@ string Function _slt_Actual_Heap_DequeueInstanceIdF(Form _theActor) global
 	string instanceIdKey = MakeInstanceKey("slt_heap", "instanceidlist")
 	string sessionIdKey = MakeInstanceKey("slt_heap", "sessionidlist")
 
-	int currentSessionId = sl_triggers_internal.SafeGetSessionId()
+	int currentSessionId = sl_triggers.GetSessionId()
 	int sessionIdCount = StorageUtil.IntListCount(_theActor, sessionIdKey)
 	int instanceIdCount = StorageUtil.StringListCount(_theActor, instanceIdKey)
 

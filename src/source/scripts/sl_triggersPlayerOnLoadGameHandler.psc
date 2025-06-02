@@ -48,7 +48,7 @@ Event OnKeyDown(int keyCode)
 			cmdCount-=1
 			string cmdLine = UI.GetString("Console","_global.Console.ConsoleInstance.Commands." + cmdCount)
 			if cmdLine != ""
-				string[] cmd = sl_triggers_internal.SafeTokenize(cmdLine)
+				string[] cmd = sl_triggers.Tokenize(cmdLine)
 
 				if cmd[0] == "slt" || cmd[0] == "sl_triggers"
 					string subcommand = cmd[1]
@@ -68,7 +68,7 @@ Event OnKeyDown(int keyCode)
 							MiscUtil.PrintConsole("SLT version: " + GetModVersion())
 							consoleLinesToSkip += 1
 						elseif subcommand == "list"
-							string[] commandsList = SLT.GetScriptsList()
+							string[] commandsList = sl_triggers.GetScriptsList()
 							int i = 0
 							MiscUtil.PrintConsole("SLT Scripts List Start:")
 							consoleLinesToSkip += 1

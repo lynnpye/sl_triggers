@@ -39,6 +39,12 @@ Function deb_msg(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
     endif
 endFunction
 
+Function walk_the_stack(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    sl_triggers.WalkTheStack()
+endFunction
+
 ; sltname form_getbyid
 ; sltgrup Form
 ; sltdesc Performs a lookup for a Form and returns it if found; returns none otherwise

@@ -38,35 +38,13 @@ string[]	triggerKeys_Orgasm
 string[]	triggerKeys_Stop
 string[]	triggerKeys_Orgasm_S
 
-; GetExtensionKey
-; OVERRIDE REQUIRED
-; returns: the unique string identifier for this extension
-string Function GetExtensionKey()
-	return "sl_triggersExtensionSexLab"
-EndFunction
-
-; GetFriendlyName
-; OVERRIDE RECOMMENDED
-string Function GetFriendlyName()
-	return "SLT SexLab"
-EndFunction
-
-;/
-we have a negative priority here because we are going to be overriding
-some core functions, to expand them in the case when SexLab is present
-/;
-; GetPriority
-; OPTIONAL
-; 0 is roughly "built-in"
-; <0 has higher priority (think first in line to take a crack at the operation)
-int Function GetPriority()
-	return -500
-EndFunction
-
 Event OnInit()
 	if !self
 		return
 	endif
+	SLTExtensionKey = "sl_triggersExtensionSexLab"
+	SLTFriendlyName = "SLT SexLab"
+	SLTPriority 	= -500
 	; REQUIRED CALL
 	SLTInit()
 EndEvent
@@ -440,24 +418,15 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTrigg
 					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
 					string _instanceId
 					if command
-						_instanceId = RequestCommand(theSelf, command)
-						if _instanceId
-							Heap_IntSetFK(theSelf, MakeInstanceKey(_instanceId, "tid"), tid)
-						endif
+						RequestCommand(theSelf, command)
 					endIf
 					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
 					if command
-						_instanceId = RequestCommand(theSelf, command)
-						if _instanceId
-							Heap_IntSetFK(theSelf, MakeInstanceKey(_instanceId, "tid"), tid)
-						endif
+						RequestCommand(theSelf, command)
 					endIf
 					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
 					if command
-						_instanceId = RequestCommand(theSelf, command)
-						if _instanceId
-							Heap_IntSetFK(theSelf, MakeInstanceKey(_instanceId, "tid"), tid)
-						endif
+						RequestCommand(theSelf, command)
 					endIf
 				endIf
 					

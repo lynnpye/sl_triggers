@@ -1,7 +1,7 @@
 scriptname sl_triggersSetup extends SKI_ConfigBase
 
 import sl_triggersStatics
-import sl_triggersHeap
+;import sl_triggersHeap
 
 ; CONSTANTS
 int			CARDS_PER_PAGE = 5
@@ -115,8 +115,6 @@ event OnConfigClose()
 		SLT.DoInMemoryReset()
 	endif
 endEvent
-
-
 
 
 int Function ShowAttribute(string attrName, int widgetOptions, string triggerKey, string _dataFile, bool _isTriggerAttributes)
@@ -233,8 +231,7 @@ Function ShowExtensionSettings()
 	AddHeaderOption(currentSLTPage)
 	bool _extensionEnabledInSettings = true
 	
-	int _enabledInt = JsonUtil.GetIntValue(_dataFile, "enabled")
-	_extensionEnabledInSettings = (_enabledInt != 0)
+	_extensionEnabledInSettings = JsonUtil.GetIntValue(_dataFile, "enabled") as bool
 	oidExtensionEnabled = AddToggleOption("$SLT_LBL_ENABLED_QUESTION", _extensionEnabledInSettings)
 
 	int widgetOptions = OPTION_FLAG_NONE
@@ -669,7 +666,7 @@ Event OnOptionSelect(int option)
 	endif
 	If option == oidEnabled
 		; this should have ramifications
-		SLT.bEnabled = !SLT.bEnabled
+		SLT.SetEnabled(!SLT.bEnabled)
 		SetToggleOptionValue(option, SLT.bEnabled)
 
 		int newval = 0
@@ -729,6 +726,19 @@ Event OnOptionSelect(int option)
 
 		return
 	elseIf option == oidExtensionEnabled
+		; this should have ramifications
+		sl_triggersExtension ext = SLT.GetExtensionByKey(CurrentExtensionKey)
+		ext.SetEnabled(!ext.bEnabled)
+		SetToggleOptionValue(option, ext.bEnabled)
+
+		int newval = 0
+		if ext.bEnabled
+			newval = 1
+		endif
+		JsonUtil.SetIntValue(ext.FN_S, "enabled", newval)
+		JsonUtil.Save(ext.FN_S)
+		
+		ForcePageReset()
 		return
 	endIf
 
@@ -767,7 +777,7 @@ Event OnOptionSelect(int option)
 		ForcePageReset()
 		return
 	elseif attrName == HARD_DELETE_BUTTON
-		sl_triggers_internal.SafeDeleteTrigger(CurrentExtensionKey, triKey)
+		sl_triggers.DeleteTrigger(CurrentExtensionKey, triKey)
 		ForcePageReset()
 		return
 	endif
@@ -1010,8 +1020,8 @@ Event OnOptionKeyMapChange(int option, int keyCode, string conflictControl, stri
 	bool proceed = true
 	if conflictControl
 		string msg
-		string msg_thisKeyIsAlreadyMappedTo = sl_triggers_internal.SafeGetTranslatedString("$SLT_MSG_KEYMAP_CONFIRM_0")
-		string msg_areYouSureYouWantToContinue = sl_triggers_internal.SafeGetTranslatedString("$SLT_MSG_KEYMAP_CONFIRM_1")
+		string msg_thisKeyIsAlreadyMappedTo = sl_triggers.GetTranslatedString("$SLT_MSG_KEYMAP_CONFIRM_0")
+		string msg_areYouSureYouWantToContinue = sl_triggers.GetTranslatedString("$SLT_MSG_KEYMAP_CONFIRM_1")
 		if conflictName
 			msg = msg_thisKeyIsAlreadyMappedTo + "\n\"" + conflictControl + "\"\n(" + conflictName + ")\n\n" + msg_areYouSureYouWantToContinue
 		else
@@ -1167,7 +1177,7 @@ Function ShowHeaderPage()
 	SetCursorFillMode(TOP_TO_BOTTOM)
 	int ver = GetVersion()
 	AddHeaderOption("SL Triggers")
-	AddHeaderOption("(" + sl_triggers_internal.SafeGetTranslatedString("$SLT_LBL_VERSION") + " " + (ver as string) + ")")
+	AddHeaderOption("(" + sl_triggers.GetTranslatedString("$SLT_LBL_VERSION") + " " + (ver as string) + ")")
 	
 	AddHeaderOption("$SLT_LBL_GLOBAL_SETTINGS")
 	oidEnabled    = AddToggleOption("$SLT_LBL_ENABLED_QUESTION", SLT.bEnabled)
