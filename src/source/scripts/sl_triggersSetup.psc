@@ -1,7 +1,6 @@
 scriptname sl_triggersSetup extends SKI_ConfigBase
 
 import sl_triggersStatics
-;import sl_triggersHeap
 
 ; CONSTANTS
 int			CARDS_PER_PAGE = 5
@@ -116,6 +115,23 @@ event OnConfigClose()
 	endif
 endEvent
 
+;;;;;;;;;
+; Simple constants for Papyrus types
+int Function PTYPE_STRING() global
+	return 1
+EndFunction
+
+int Function PTYPE_INT() global
+	return 2
+EndFunction
+
+int Function PTYPE_FLOAT() global
+	return 3
+EndFunction
+
+int Function PTYPE_FORM() global
+	return 4
+EndFunction
 
 int Function ShowAttribute(string attrName, int widgetOptions, string triggerKey, string _dataFile, bool _isTriggerAttributes)
 	string extensionKey = CurrentExtensionKey

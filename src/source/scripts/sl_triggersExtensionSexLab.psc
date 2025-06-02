@@ -1,7 +1,6 @@
 scriptname sl_triggersExtensionSexLab extends sl_triggersExtension
 
 import sl_triggersStatics
-import sl_triggersHeap
 
 SexLabFramework     Property SexLab						Auto Hidden
 Faction	            Property SexLabAnimatingFaction 	Auto Hidden

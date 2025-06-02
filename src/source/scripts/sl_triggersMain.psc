@@ -1,7 +1,6 @@
 Scriptname sl_TriggersMain extends Quest
 
 import sl_triggersStatics
-import sl_triggersHeap
 
 ; CONSTANTS
 int		SLT_HEARTBEAT					= 0
@@ -20,10 +19,9 @@ string Property PSEUDO_INSTANCE_KEY
 	EndFunction
 EndProperty
 
-string	GLOBALVARS_KEYNAME_PREFIX	= "globalvars"
-
-string	EVENT_SLT_DELAYED_SETTINGS_BROADCAST = "_slt_event_slt_delayed_settings_broadcast_"
-string  EVENT_SLT_FLUSH_SCRIPT_REQUESTS = "_slt_event_slt_flush_script_requests_"
+string Function GLOBAL_SLT_MAIN_INSTANCE_KEY() global
+	return "_slt_main_instance_key_"
+EndFunction
 
 string Property SLT_MAIN_INSTANCE_KEY Hidden
 	string Function Get()
@@ -31,35 +29,17 @@ string Property SLT_MAIN_INSTANCE_KEY Hidden
 	EndFunction
 EndProperty
 
-string Property SLT_EXTENSION_REGISTRATION_QUEUE
-	string Function Get()
-		return sl_triggersMain.GLOBAL_SLT_EXTENSION_REGISTRATION_QUEUE()
-	EndFunction
-EndProperty
-
-string Function GLOBAL_SLT_MAIN_INSTANCE_KEY() global
-	return "_slt_main_instance_key_"
-EndFunction
-
-string Function GLOBAL_SLT_EXTENSION_REGISTRATION_QUEUE() global
-	return "_slt_extension_registration_queue_"
-EndFunction
-
 ; Properties
 Actor               Property PlayerRef				Auto
-Spell[]             Property customSpells			Auto
-MagicEffect[]       Property customEffects			Auto
 sl_triggersSetup	Property SLTMCM					Auto
 bool				Property bEnabled		= true	Auto	 Hidden
 bool				Property bDebugMsg		= false	Auto Hidden
 Form[]				Property Extensions				Auto Hidden
-string[]			Property Libraries				Auto Hidden
 
 ; Variables
 int			SLTUpdateState
 int			_registrationBeaconCount
 string[]	commandsListCache
-string[]	settingsUpdateEvents
 string[]	extensionInternalReadyEvents
 
 Function SetEnabled(bool _newEnabledFlag)
@@ -76,10 +56,6 @@ Function SetEnabled(bool _newEnabledFlag)
 			ext.SetEnabled(ext.bEnabled)
 		endif
 	endwhile
-EndFunction
-
-sl_triggersMain Function GetInstance() global
-	return (StorageUtil.GetFormValue(none, GLOBAL_SLT_MAIN_INSTANCE_KEY()) as sl_triggersMain)
 EndFunction
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -117,10 +93,6 @@ Event OnUpdate()
 			_registrationBeaconCount -= 1
 			DoRegistrationBeacon()
 		endif
-	
-		 ; if SLT_HEARTBEAT ; this is the default behavior
-		; Heartbeats
-		SendSLTHeartbeats()
 	
 		QueueUpdateLoop()
 	endif
@@ -178,20 +150,9 @@ Event OnSLTRequestCommand(string _eventName, string _commandName, float __ignore
 	StartCommand(_actualActor, _commandName)
 EndEvent
 
-Event OnSLTDelayedSettingsBroadcast(string _eventName, string _commandName, float __ignored, Form _theActor)
-	if !self
-		return
-	endif
-	SendSettingsUpdateBroadcast()
-EndEvent
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Functions
-Function SelfRegisterExtension(sl_triggersExtension _theExtension) global
-	Heap_FormSetX(sl_triggersMain.GetInstance(), sl_triggersMain.GLOBAL_PSEUDO_INSTANCE_KEY(), GLOBAL_SLT_EXTENSION_REGISTRATION_QUEUE() + _theExtension.SLTExtensionKey, _theExtension)
-	_theExtension.SendModEvent(EVENT_SLT_REGISTER_EXTENSION(), _theExtension.SLTExtensionKey)
-EndFunction
 
 Function OnInitBody()
 	if !self
@@ -220,16 +181,6 @@ Function DoOnPlayerLoadGame()
 	BootstrapSLTInit()
 EndFunction
 
-Function UpdateLibraryCache()
-	int i = 0
-	sl_triggersExtension sltx
-	while i < Extensions.Length
-		sltx = Extensions[i] as sl_triggersExtension
-		sl_triggers.SetLibrariesForExtensionAllowed(sltx.SLTExtensionKey, sltx.bEnabled)
-		i = i + 1
-	endwhile
-EndFunction
-
 Function DoBootstrapActivity()
 	if !self
 		return
@@ -252,10 +203,6 @@ Function DoBootstrapActivity()
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_COMMAND(), "OnSLTRequestCommand")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_LIST(), "OnSLTRequestList")
 
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_DELAYED_SETTINGS_BROADCAST, "OnSLTDelayedSettingsBroadcast")
-
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_FLUSH_SCRIPT_REQUESTS, "OnSLTFlushScriptRequests")
-
 	; on first launch, this will obviously be empty
 	; on subsequent loads, we need to iterate the extensions we are
 	; aware of and bootstrap them
@@ -274,8 +221,6 @@ Function DoBootstrapActivity()
 			i += 1
 		endif
 	endwhile
-
-	UpdateLibraryCache()
 
 	if SLTMCM
 		SLTMCM.ScriptsList = sl_triggers.GetScriptsList()
@@ -312,7 +257,6 @@ Function DoRegistrationActivity(sl_triggersExtension _extensionToRegister)
 	; our first patient
 	if !Extensions
 		Extensions						= PapyrusUtil.FormArray(0)
-		settingsUpdateEvents			= PapyrusUtil.StringArray(0)
 		extensionInternalReadyEvents 	= PapyrusUtil.StringArray(0)
 	endif
 
@@ -321,10 +265,7 @@ Function DoRegistrationActivity(sl_triggersExtension _extensionToRegister)
 
 	if _xidx < 0
 		Extensions						= PapyrusUtil.PushForm(Extensions, _extensionToRegister)
-		settingsUpdateEvents			= PapyrusUtil.PushString(settingsUpdateEvents, _extensionToRegister._slt_GetSettingsUpdateEvent())
 		extensionInternalReadyEvents 	= PapyrusUtil.PushString(extensionInternalReadyEvents, _extensionToRegister._slt_GetInternalReadyEvent())
-		; not sure if this will end up being too early in the cycle
-		sl_triggers.SetLibrariesForExtensionAllowed(_extensionToRegister.SLTExtensionKey, _extensionToRegister.bEnabled)
 		_xidx = Extensions.Length - 1
 		needSorting = true
 	endif
@@ -352,8 +293,6 @@ Function DoRegistrationActivity(sl_triggersExtension _extensionToRegister)
 			endwhile
 		endif
 	endif
-
-	UpdateLibraryCache()
 	
 	if SLTMCM
 		int i = 0
@@ -396,26 +335,11 @@ Function SendEventSLTOnNewSession()
 	ModEvent.Send(handle)
 EndFunction
 
-Function SendSLTHeartbeats()
-	if !self
-		return
-	endif
-
-	SendModEvent(EVENT_SLT_HEARTBEAT())
-EndFunction
-
 Function SendSLTInternalReady()
 	if !self
 		return
 	endif
 	SendModEvent(EVENT_SLT_INTERNAL_READY_EVENT())
-EndFunction
-
-Function SendDelayedSettingsUpdateEvent()
-	if !self
-		return
-	endif
-	SendModEvent(EVENT_SLT_DELAYED_SETTINGS_BROADCAST)
 EndFunction
 
 Function SendSettingsUpdateBroadcast()
@@ -430,15 +354,16 @@ Function SendInternalSettingsUpdateEvents()
 		return
 	endif
 
-	UpdateLibraryCache()
-
 	int i = 0
-	while i < settingsUpdateEvents.Length
-		SendModEvent(settingsUpdateEvents[i])
+	while i < Extensions.Length
+		sl_triggersExtension ext = Extensions[i] as sl_triggersExtension
+		if ext
+			ext._slt_PreSettingsUpdate()
+		endif
 		
 		i += 1
 	endwhile
-	SendDelayedSettingsUpdateEvent()
+	SendSettingsUpdateBroadcast()
 EndFunction
 
 sl_triggersExtension Function GetExtensionByIndex(int _index)

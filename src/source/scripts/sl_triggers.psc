@@ -1,5 +1,11 @@
 scriptname sl_triggers Hidden
 
+Quest Function MainQuest() global native
+
+sl_triggersMain Function Main() global
+    return MainQuest() as sl_triggersMain
+endFunction
+
 Function SetLibrariesForExtensionAllowed(string _extensionKey, bool _allowed) global native
 
 bool Function PrepareContextForTargetedScript(Actor _targetActor, string _scriptname) global native

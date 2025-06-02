@@ -1,7 +1,6 @@
 scriptname sl_triggersExtension extends Quest
 
 import sl_triggersStatics
-import sl_triggersHeap
 
 ; These must be set by extending scripts
 string				Property SLTExtensionKey Auto Hidden
@@ -29,6 +28,7 @@ Function SetEnabled(bool _newEnabledFlag)
 		bEnabled = _newEnabledFlag
 		JsonUtil.SetIntValue(FN_S, "enabled", bEnabled as int)
 	endif
+	sl_triggers.SetLibrariesForExtensionAllowed(SLTExtensionKey, bEnabled)
 	IsEnabled = SLT.bEnabled && bEnabled
 EndFunction
 
@@ -226,13 +226,6 @@ string	settingsUpdateEvent
 string	gameLoadedEvent 
 string 	internalReadyEvent
 
-Event _slt_OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
-	if !self
-		return
-	endif
-	_slt_RefreshTriggers()
-EndEvent
-
 Event _slt_OnSLTInternalReady(string eventName, string strArg, float numArg, Form sender)
 	if !self
 		return
@@ -243,6 +236,10 @@ Event _slt_OnSLTInternalReady(string eventName, string strArg, float numArg, For
 
 	SLTReady()
 EndEvent
+
+Function _slt_PreSettingsUpdate()
+	_slt_RefreshTriggers()
+EndFunction
 
 Function _slt_RefreshTriggers()
 	TriggerKeys = sl_triggers.GetTriggerKeys(SLTExtensionKey)
@@ -267,7 +264,6 @@ Function _slt_BootstrapSLTInit()
 	
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_INTERNAL_READY_EVENT(), "_slt_OnSLTInternalReady")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTSettingsUpdated")
-	SafeRegisterForModEvent_Quest(self, _slt_GetSettingsUpdateEvent(), "_slt_OnSLTSettingsUpdated")
 	
 	_slt_RefreshTriggers()
 
@@ -288,13 +284,6 @@ Function _slt_RegisterExtension()
 	endif
 	ModEvent.PushForm(handle, self)
 	ModEvent.Send(handle)
-EndFunction
-
-string Function _slt_GetSettingsUpdateEvent()
-	if !settingsUpdateEvent
-		settingsUpdateEvent = "_slt_SLT_SETTINGS_UPDATE_" + (Utility.RandomInt(100000, 999999) as string)
-	endif
-	return settingsUpdateEvent
 EndFunction
 
 string Function _slt_GetInternalReadyEvent()

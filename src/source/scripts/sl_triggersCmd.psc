@@ -30,7 +30,8 @@ string          Property CustomResolveResult Auto Hidden
 Form            Property CustomResolveFormResult Auto Hidden
 string	    Property MostRecentResult auto Hidden
 int			Property lastKey auto  Hidden
-Actor		Property iterActor auto Hidden 
+Actor		Property iterActor auto Hidden
+bool        Property cleanedup = false auto  hidden
 
 Function SFE(string msg)
 	SquawkFunctionError(self, msg)
@@ -38,20 +39,17 @@ EndFunction
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
 	CmdTargetActor = akCaster
-    DoWhatYouShouldHaveDoneInTheFirstPlace()
+    DoStartup()
 EndEvent
 
 Event OnPlayerLoadGame()
-    DoWhatYouShouldHaveDoneInTheFirstPlace()
+    DoStartup()
 EndEvent
 
-Function DoWhatYouShouldHaveDoneInTheFirstPlace()
+Function DoStartup()
     sl_triggers.Pung()
-    DebMsg("sl_triggersCmd :" + threadContextHandle + ":  :" + initialScriptName + ":")
-	SafeRegisterForModEvent_AME(self, EVENT_SLT_HEARTBEAT(), "OnSLTHeartbeat")
 	SafeRegisterForModEvent_AME(self, EVENT_SLT_RESET(), "OnSLTReset")
     
-    DebMsg("Executor.OnPlayerLoadGame :" + threadContextHandle + ":  :" + initialScriptName + ":")
     if threadContextHandle
         isExecuting = true
         QueueUpdateLoop(0.1)
@@ -59,33 +57,28 @@ Function DoWhatYouShouldHaveDoneInTheFirstPlace()
 EndFunction
 
 Event OnUpdate()
-    DebMsg("Executor.OnUpdate :" + threadContextHandle + ":  :" + initialScriptName + ":")
-    bool keepProcessing = threadContextHandle && isExecuting
+    bool keepProcessing = self && !cleanedup && threadContextHandle && isExecuting
     while keepProcessing
-        DebMsg("Executor.OnUpdate loop :" + threadContextHandle + ":  :" + initialScriptName + ":")
-        keepProcessing = sl_triggers.ExecuteAndPending()
+        keepProcessing = self && !cleanedup && threadContextHandle && isExecuting && sl_triggers.ExecuteAndPending()
     endwhile
     
     CleanupAndRemove()
 EndEvent
 
 Event OnEffectFinish(Actor akTarget, Actor akCaster)
-    DebMsg("Executor.OnEffectFinish :" + threadContextHandle + ":  :" + initialScriptName + ":")
     CleanupAndRemove()
 EndEvent
 
-bool cleanedup = false
 Function CleanupAndRemove()
     if cleanedup
         return
     endif
     cleanedup = true
-    DebMsg("Executor.CleanupAndRemove :" + threadContextHandle + ":  :" + initialScriptName + ":")
     UnregisterForAllModEvents()
     isExecuting = false
 
     if threadContextHandle
-        sl_triggers.CleanupThreadContext() ; maybe with VMStackID auto-detection instead?
+        sl_triggers.CleanupThreadContext()
     endif
 
     Self.Dispel()
@@ -97,9 +90,6 @@ EndEvent
 
 Event OnKeyDown(Int keyCode)
     lastKey = keyCode
-EndEvent
-
-Event OnSLTHeartbeat(string eventName, string strArg, float numArg, Form sender)
 EndEvent
 
 Function QueueUpdateLoop(float afDelay = 1.0)
