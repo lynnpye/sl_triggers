@@ -41,9 +41,6 @@ Event OnInit()
 	if !self
 		return
 	endif
-	SLTExtensionKey = "sl_triggersExtensionSexLab"
-	SLTFriendlyName = "SLT SexLab"
-	SLTPriority 	= -500
 	; REQUIRED CALL
 	SLTInit()
 EndEvent
@@ -60,14 +57,6 @@ Function RefreshData()
 	RegisterEvents()
 EndFunction
 
-; configuration was updated mid-game
-Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
-	if !self
-		return
-	endif
-	RefreshData()
-EndEvent
-
 bool Function _slt_AdditionalEnabledRequirements()
 	return SexLab != none
 EndFunction
@@ -76,6 +65,50 @@ sslThreadController Function GetThreadForActor(Actor theActor)
     return SexLab.GetActorController(theActor)
 EndFunction
 
+bool Function CustomResolveForm(string token, Actor targetActor, int threadContextHandle)
+    if !SexLab
+        return false
+    endif
+
+    int skip = -1
+    if "#PARTNER" == token || "#PARTNER1" == token || "$partner" == token
+        skip = 0
+    elseif "#PARTNER2" == token || "$partner2" == token
+        skip = 1
+    elseif "#PARTNER3" == token || "$partner3" == token
+        skip = 2
+    elseif "#PARTNER4" == token || "$partner4" == token
+        skip = 3
+    else
+        return false
+    endif
+
+    sslThreadController thread = SexLab.GetActorController(targetActor)
+    if !thread
+        return false
+    endif
+
+    int i = 0
+    while i < thread.Positions.Length
+        Actor other = thread.Positions[i]
+
+        if other != targetActor
+            if skip == 0
+				sl_triggers_internal.SetCustomResolveFormResult(threadContextHandle, other)
+                return true  ; Direct return of the form!
+            else
+                skip -= 1
+            endif
+        endif
+
+        i += 1
+    endwhile
+
+	sl_triggers_internal.SetCustomResolveFormResult(threadContextHandle, none)
+    return true
+EndFunction
+
+;/
 bool Function CustomResolveForm(sl_triggersCmd CmdPrimary, string _code)
 
     if !SexLab
@@ -115,6 +148,7 @@ bool Function CustomResolveForm(sl_triggersCmd CmdPrimary, string _code)
 
 	return true
 EndFunction
+/;
 
 ; EXTERNAL EVENT HANDLERS
 Event OnSexLabStart(String _eventName, String _args, Float _argc, Form _sender)

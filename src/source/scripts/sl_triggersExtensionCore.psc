@@ -49,9 +49,6 @@ Event OnInit()
 	if !self
 		return
 	endif
-	SLTExtensionKey = "sl_triggersExtensionCore"
-	SLTFriendlyName = "SLT Core"
-	SLTPriority 	= 10000
 	; REQUIRED CALL
 	SLTInit()
 EndEvent
@@ -66,14 +63,6 @@ Function RefreshData()
 	RefreshTriggerCache()
 	RegisterEvents()
 EndFunction
-
-; configuration was updated mid-game
-Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
-	if !self
-		return
-	endif
-	RefreshData()
-EndEvent
 
 Event OnUpdateGameTime()
 	if !self
@@ -107,11 +96,6 @@ Event OnNewSession(int _newSessionId)
 	If !IsEnabled
 		Return
 	EndIf
-
-	UpdateDAKStatus()
-	RefreshData()
-
-	DebMsg("Core.HandleNewSession calling")
 	
 	HandleNewSession(_newSessionId)
 EndEvent
@@ -262,12 +246,13 @@ Function UpdateDAKStatus()
 	endif
 EndFunction
 
-Function SLTBootstrapInit()
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_ON_NEW_SESSION(), "OnNewSession")
-EndFunction
-
 ; selectively enables only events with triggers
 Function RegisterEvents()
+	UnregisterForModEvent(EVENT_SLT_ON_NEW_SESSION())
+	if IsEnabled && triggerKeys_newSession.Length > 0
+		SafeRegisterForModEvent_Quest(self, EVENT_SLT_ON_NEW_SESSION(), "OnNewSession")
+	endif
+
 	UnregisterForModEvent(EVENT_TOP_OF_THE_HOUR)
 	handlingTopOfTheHour = false
 	if IsEnabled && triggerKeys_topOfTheHour.Length > 0
@@ -294,6 +279,7 @@ Function HandleNewSession(int _newSessionId)
 	int i = 0
 	string triggerKey
 	string command
+	DebMsg("Core.HandleNewSession: triggerKeys_newSession.Length(" + triggerKeys_newSession.Length + ")")
 	while i < triggerKeys_newSession.Length
 		triggerKey = triggerKeys_newSession[i]
 		string _triggerFile = FN_T(triggerKey)

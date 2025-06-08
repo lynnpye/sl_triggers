@@ -793,7 +793,7 @@ Event OnOptionSelect(int option)
 		ForcePageReset()
 		return
 	elseif attrName == HARD_DELETE_BUTTON
-		sl_triggers.DeleteTrigger(CurrentExtensionKey, triKey)
+		sl_triggers_internal.DeleteTrigger(CurrentExtensionKey, triKey)
 		ForcePageReset()
 		return
 	endif

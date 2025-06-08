@@ -5,7 +5,6 @@ import sl_triggersStatics
 ; CONSTANTS
 int		SLT_HEARTBEAT					= 0
 int		SLT_BOOTSTRAPPING				= 100
-int		SLT_NEW_SESSION_ALERT			= 200
 
 int		REGISTRATION_BEACON_COUNT		= 30
 
@@ -32,15 +31,13 @@ EndProperty
 ; Properties
 Actor               Property PlayerRef				Auto
 sl_triggersSetup	Property SLTMCM					Auto
-bool				Property bEnabled		= true	Auto	 Hidden
+bool				Property bEnabled		= true	Auto Hidden
 bool				Property bDebugMsg		= false	Auto Hidden
 Form[]				Property Extensions				Auto Hidden
 
 ; Variables
 int			SLTUpdateState
 int			_registrationBeaconCount
-string[]	commandsListCache
-string[]	extensionInternalReadyEvents
 
 Function SetEnabled(bool _newEnabledFlag)
 	if bEnabled != _newEnabledFlag
@@ -55,6 +52,7 @@ Function SetEnabled(bool _newEnabledFlag)
 		if ext
 			ext.SetEnabled(ext.bEnabled)
 		endif
+		i += 1
 	endwhile
 EndFunction
 
@@ -67,8 +65,62 @@ Event OnInit()
 		return
 	endif
 
-	OnInitBody()
+	BootstrapSLTInit()
 EndEvent
+
+Function DoPlayerLoadGame()
+	if !self
+		return
+	endif
+	BootstrapSLTInit()
+EndFunction
+
+Function BootstrapSLTInit()
+	if !self
+		return
+	endif
+	InitSettingsFile(FN_Settings())
+
+	bool _userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "enabled") as bool
+	SetEnabled(_userStoredFlag)
+
+	_userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "debugmsg") as bool
+	if _userStoredFlag != bDebugMsg
+		bDebugMsg = _userStoredFlag
+	endif
+
+	StorageUtil.SetFormValue(none, SLT_MAIN_INSTANCE_KEY, self)
+	
+	SLTUpdateState = SLT_BOOTSTRAPPING
+	_registrationBeaconCount = REGISTRATION_BEACON_COUNT
+
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REGISTER_EXTENSION(), "OnSLTRegisterExtension")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_COMMAND(), "OnSLTRequestCommand")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_LIST(), "OnSLTRequestList")
+	
+	int i = 0
+	while i < Extensions.Length
+		sl_triggersExtension sltx = Extensions[i] as sl_triggersExtension
+		if !sltx
+			; need to remove it from the list, it was removed from the game perhaps?
+			if Extensions.Length > i + 1
+				Extensions = PapyrusUtil.MergeFormArray(PapyrusUtil.SliceFormArray(Extensions, 0, i - 1), PapyrusUtil.SliceFormArray(Extensions, i + 1))
+			else
+				Extensions = PapyrusUtil.SliceFormArray(Extensions, 0, i - 1)
+			endif
+		else
+			sltx.SLTInit()
+			i += 1
+		endif
+	endwhile
+
+	if SLTMCM
+		SLTMCM.ScriptsList = sl_triggers.GetScriptsList()
+	endif
+
+	UnregisterForUpdate()
+	QueueUpdateLoop(0.1)
+EndFunction
 
 Event OnUpdate()
 	if !self
@@ -77,12 +129,7 @@ Event OnUpdate()
 
 	; state checks
 	if SLTUpdateState == SLT_BOOTSTRAPPING
-		DoBootstrapActivity()
-
-		SLTUpdateState = SLT_NEW_SESSION_ALERT
-
-		QueueUpdateLoop(0.1)
-	elseif SLTUpdateState == SLT_NEW_SESSION_ALERT
+		sl_triggers_internal.ResumeExecution()
 		SendEventSLTOnNewSession()
 
 		SLTUpdateState = SLT_HEARTBEAT
@@ -154,79 +201,6 @@ EndEvent
 ;;
 ;; Functions
 
-Function OnInitBody()
-	if !self
-		return
-	endif
-	StorageUtil.SetFormValue(none, SLT_MAIN_INSTANCE_KEY, self)
-	BootstrapSLTInit()
-EndFunction
-
-Function BootstrapSLTInit()
-	if !self
-		return
-	endif
-	SLTUpdateState = SLT_BOOTSTRAPPING
-	_registrationBeaconCount = REGISTRATION_BEACON_COUNT
-
-	UnregisterForUpdate()
-	QueueUpdateLoop(0.1)
-EndFunction
-
-Function DoOnPlayerLoadGame()
-	if !self
-		return
-	endif
-	StorageUtil.SetFormValue(none, SLT_MAIN_INSTANCE_KEY, self)
-	BootstrapSLTInit()
-EndFunction
-
-Function DoBootstrapActivity()
-	if !self
-		return
-	endif
-
-	if bDebugMsg
-		DebMsg("Main.DoBootstrapActivity: Post library cache checkpoint")
-	endif
-	InitSettingsFile(FN_Settings())
-
-	bool _userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "enabled") as bool
-	SetEnabled(_userStoredFlag)
-
-	_userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "debugmsg") as bool
-	if _userStoredFlag != bDebugMsg
-		bDebugMsg = _userStoredFlag
-	endif
-
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REGISTER_EXTENSION(), "OnSLTRegisterExtension")
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_COMMAND(), "OnSLTRequestCommand")
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_LIST(), "OnSLTRequestList")
-
-	; on first launch, this will obviously be empty
-	; on subsequent loads, we need to iterate the extensions we are
-	; aware of and bootstrap them
-	int i = 0
-	while i < Extensions.Length
-		sl_triggersExtension sltx = Extensions[i] as sl_triggersExtension
-		if !sltx
-			; need to remove it from the list, it was removed from the game perhaps?
-			if Extensions.Length > i + 1
-				Extensions = PapyrusUtil.MergeFormArray(PapyrusUtil.SliceFormArray(Extensions, 0, i - 1), PapyrusUtil.SliceFormArray(Extensions, i + 1))
-			else
-				Extensions = PapyrusUtil.SliceFormArray(Extensions, 0, i - 1)
-			endif
-		else
-			sltx._slt_BootstrapSLTInit()
-			i += 1
-		endif
-	endwhile
-
-	if SLTMCM
-		SLTMCM.ScriptsList = sl_triggers.GetScriptsList()
-	endif
-EndFunction
-
 Function DoRegistrationBeacon()
 	if !self
 		return
@@ -240,16 +214,7 @@ Function DoRegistrationActivity(sl_triggersExtension _extensionToRegister)
 	if !self
 		return
 	endif
-	bool needSorting = false
 
-	;/
-	Form _fetch = Heap_FormGetX(self, PSEUDO_INSTANCE_KEY, SLT_EXTENSION_REGISTRATION_QUEUE + _extensionKeyToRegister)
-	if !_fetch
-		Return
-	endif
-	Heap_FormUnsetX(self, PSEUDO_INSTANCE_KEY, SLT_EXTENSION_REGISTRATION_QUEUE + _extensionKeyToRegister)
-	sl_triggersExtension _extensionToRegister = _fetch as sl_triggersExtension
-	/;
 	if !_extensionToRegister
 		return
 	endif
@@ -257,7 +222,6 @@ Function DoRegistrationActivity(sl_triggersExtension _extensionToRegister)
 	; our first patient
 	if !Extensions
 		Extensions						= PapyrusUtil.FormArray(0)
-		extensionInternalReadyEvents 	= PapyrusUtil.StringArray(0)
 	endif
 
 	; do we already know about you?
@@ -265,57 +229,63 @@ Function DoRegistrationActivity(sl_triggersExtension _extensionToRegister)
 
 	if _xidx < 0
 		Extensions						= PapyrusUtil.PushForm(Extensions, _extensionToRegister)
-		extensionInternalReadyEvents 	= PapyrusUtil.PushString(extensionInternalReadyEvents, _extensionToRegister._slt_GetInternalReadyEvent())
 		_xidx = Extensions.Length - 1
-		needSorting = true
-	endif
-
-	if needSorting
-		; sort extensions by priority
-		if Extensions
-			sl_TriggersExtension f_j
-			sl_TriggersExtension f_i
-			Form f_swap
-			int j = 0
-			while j < Extensions.Length
-				f_j = Extensions[j] as sl_TriggersExtension
-				int i = j + 1
-				while i < Extensions.Length
-					f_i = Extensions[i] as sl_TriggersExtension
-					if f_i.GetPriority() < f_j.GetPriority()
-						f_swap = Extensions[j]
-						Extensions[j] = Extensions[i]
-						Extensions[i] = f_swap
-					endif
-					i = i + 1
-				endwhile
-				j = j + 1
+		
+		sl_TriggersExtension f_j
+		sl_TriggersExtension f_i
+		Form f_swap
+		int j = 0
+		while j < Extensions.Length
+			f_j = Extensions[j] as sl_TriggersExtension
+			int i = j + 1
+			while i < Extensions.Length
+				f_i = Extensions[i] as sl_TriggersExtension
+				if f_i.GetPriority() < f_j.GetPriority()
+					f_swap = Extensions[j]
+					Extensions[j] = Extensions[i]
+					Extensions[i] = f_swap
+				endif
+				i = i + 1
 			endwhile
-		endif
+			j = j + 1
+		endwhile
 	endif
 	
 	if SLTMCM
 		int i = 0
+		int j = 0
 		string[] extensionFriendlyNames = PapyrusUtil.StringArray(Extensions.Length)
 		string[] extensionKeys = PapyrusUtil.StringArray(Extensions.Length)
+		Form[] newForms = PapyrusUtil.FormArray(Extensions.Length)
 		while i < Extensions.Length
-			sl_triggersExtension _ext = GetExtensionByIndex(i)
+			sl_triggersExtension _ext = Extensions[i] as sl_triggersExtension
 
-			extensionFriendlyNames[i] = _ext.SLTFriendlyName
-			extensionKeys[i] = _ext.SLTExtensionKey
+			if _ext
+				extensionFriendlyNames[j] = _ext.SLTFriendlyName
+				extensionKeys[j] = _ext.SLTExtensionKey
+				newForms[j] = _ext
+				j += 1
+			endif
 			
 			i += 1
 		endwhile
+
+		if j < i
+			extensionFriendlyNames = PapyrusUtil.ResizeStringArray(extensionFriendlyNames, j)
+			extensionKeys = PapyrusUtil.ResizeStringArray(extensionKeys, j)
+			newForms = PapyrusUtil.ResizeFormArray(newForms, j)
+		endif
+		Extensions = newForms
 		
 		SLTMCM.SetExtensionPages(extensionFriendlyNames, extensionKeys)
+	else
+		DebMsg("SLTMCM is empty")
 	endif
 EndFunction
 
 Function DoInMemoryReset()
-	commandsListCache				= none
-
 	SendModEvent(EVENT_SLT_RESET())
-	OnInitBody()
+	BootstrapSLTInit()
 EndFunction
 
 Function QueueUpdateLoop(float afDelay = 1.0)
@@ -358,7 +328,7 @@ Function SendInternalSettingsUpdateEvents()
 	while i < Extensions.Length
 		sl_triggersExtension ext = Extensions[i] as sl_triggersExtension
 		if ext
-			ext._slt_PreSettingsUpdate()
+			ext._slt_RefreshTriggers()
 		endif
 		
 		i += 1
@@ -390,7 +360,7 @@ string Function StartCommand(Actor _theActor, string _cmdName)
 		return ""
 	endif
 
-	if !sl_triggers.PrepareContextForTargetedScript(_theActor, _cmdName)
+	if !sl_triggers_internal.PrepareContextForTargetedScript(_theActor, _cmdName)
 		DebMsg("Failed to start script " + _cmdName)
 	endif
 	

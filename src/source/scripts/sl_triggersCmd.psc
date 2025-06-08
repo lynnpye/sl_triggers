@@ -47,7 +47,7 @@ Event OnPlayerLoadGame()
 EndEvent
 
 Function DoStartup()
-    sl_triggers.Pung()
+    sl_triggers_internal.Pung()
 	SafeRegisterForModEvent_AME(self, EVENT_SLT_RESET(), "OnSLTReset")
     
     if threadContextHandle
@@ -59,7 +59,11 @@ EndFunction
 Event OnUpdate()
     bool keepProcessing = self && !cleanedup && threadContextHandle && isExecuting
     while keepProcessing
-        keepProcessing = self && !cleanedup && threadContextHandle && isExecuting && sl_triggers.ExecuteAndPending()
+        keepProcessing = self && !cleanedup && threadContextHandle && isExecuting
+        DebMsg("calling sl_triggers_internal.ExecuteAndPending")
+        bool ep = sl_triggers_internal.ExecuteAndPending()
+        DebMsg("sl_triggers_internal.ExecuteAndPending returned ep(" + ep + ")")
+        keepProcessing = keepProcessing && ep
     endwhile
     
     CleanupAndRemove()
@@ -78,7 +82,7 @@ Function CleanupAndRemove()
     isExecuting = false
 
     if threadContextHandle
-        sl_triggers.CleanupThreadContext()
+        sl_triggers_internal.CleanupThreadContext()
     endif
 
     Self.Dispel()
@@ -148,7 +152,7 @@ EndFunction
 ; string _code - a variable to retrieve the value of e.g. $$, $9, $g3
 ; returns: the value as a string; none if unable to resolve
 string Function Resolve(string _code)
-    return sl_triggers.ResolveValueVariable(_code)
+    return sl_triggers_internal.ResolveValueVariable(_code)
 EndFunction
 
 ; ResolveActor
@@ -164,5 +168,5 @@ EndFunction
 
 
 Form Function ResolveForm(string _code)
-    return sl_triggers.ResolveFormVariable(_code)
+    return sl_triggers_internal.ResolveFormVariable(_code)
 EndFunction

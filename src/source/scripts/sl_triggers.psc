@@ -1,43 +1,15 @@
 scriptname sl_triggers Hidden
 
-Quest Function MainQuest() global native
-
-sl_triggersMain Function Main() global
+sl_triggersMain Function Main() global ; YES - YOU CAN USE THIS ONE
     return MainQuest() as sl_triggersMain
 endFunction
 
-Function SetLibrariesForExtensionAllowed(string _extensionKey, bool _allowed) global native
-
-bool Function PrepareContextForTargetedScript(Actor _targetActor, string _scriptname) global native
-
-int Function GetActiveScriptCount() global native
-
-int Function GetSessionId() global native
-
-bool Function IsLoaded() global native
-
-string Function GetTranslatedString(string _translationKey) global native
-
-string[] Function Tokenize(string _tokenString) global native
-
-bool Function DeleteTrigger(string _extensionKey, string _triggerKey) global native
-
-Form Function GetForm(string someFormOfFormIdentification) global native
-
-bool Function SmartEquals(string a, string b) global native
-
-Function WalkTheStack() global native
-
-Function Pung() global native
-
-bool Function ExecuteAndPending() global native
-
-Function CleanupThreadContext() global native
-
-string Function ResolveValueVariable(string variableName) global native
-
-Form Function ResolveFormVariable(string variableName) global native
-
-string[] Function GetScriptsList() global native
-
-string[] Function GetTriggerKeys(string extensionKey) global native
+int Function        GetActiveScriptCount() global native ; YES - YOU CAN USE THIS ONE
+Form Function       GetForm(string someFormOfFormIdentification) global native ; YES - YOU CAN USE THIS ONE
+string[] Function   GetScriptsList() global native ; YES - YOU CAN USE THIS ONE
+int Function        GetSessionId() global native ; YES - YOU CAN USE THIS ONE
+string Function     GetTranslatedString(string _translationKey) global native ; YES - YOU CAN USE THIS ONE
+bool Function       IsLoaded() global native ; YES - YOU CAN USE THIS ONE
+Quest Function      MainQuest() global native ; YES - YOU CAN USE THIS ONE
+bool Function       SmartEquals(string a, string b) global native ; YES - YOU CAN USE THIS ONE
+string[] Function   Tokenize(string _tokenString) global native ; YES - YOU CAN USE THIS ONE

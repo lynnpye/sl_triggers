@@ -42,7 +42,7 @@ endFunction
 Function walk_the_stack(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    sl_triggers.WalkTheStack()
+    sl_triggers_internal.WalkTheStack()
 endFunction
 
 ; sltname form_getbyid
