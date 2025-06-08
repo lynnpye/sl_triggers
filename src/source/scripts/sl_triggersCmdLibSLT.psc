@@ -4470,17 +4470,22 @@ endFunction
 ; sltgrup Utility
 ; sltdesc Sets $$ to the value of Utility.GetCurrentRealTime() (a float value representing the number of seconds since Skyrim.exe was launched this session)
 ; sltsamp util_getrealtime
-function util_getrealtime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+string function util_getrealtime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    DebMsg("util_getrealtime called")
 
     if ParamLengthEQ(CmdPrimary, param.Length, 1)
         float realTime = Utility.GetCurrentRealTime()
         realTime = Math.Floor(realTime * 100.0) / 100.0
 
         CmdPrimary.MostRecentResult = realTime
+        DebMsg("CmdPrimary.MostRecentResult(" + CmdPrimary.MostRecentResult + ")")
     else
         CmdPrimary.MostRecentResult = ""
+        DebMsg("bad param length, empty result")
     endif
+    return CmdPrimary.MostRecentResult
 endFunction
 
 ; sltname util_getgametime

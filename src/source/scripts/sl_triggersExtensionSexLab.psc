@@ -2,7 +2,8 @@ scriptname sl_triggersExtensionSexLab extends sl_triggersExtension
 
 import sl_triggersStatics
 
-SexLabFramework     Property SexLab						Auto Hidden
+;SexLabFramework     Property SexLab						Auto Hidden
+Form				Property SexLabForm					Auto Hidden
 Faction	            Property SexLabAnimatingFaction 	Auto Hidden
 
 string	EVENT_SEXLAB_START					= "AnimationStart"
@@ -42,6 +43,11 @@ Event OnInit()
 		return
 	endif
 	; REQUIRED CALL
+	UnregisterForUpdate()
+	RegisterForSingleUpdate(0.1)
+EndEvent
+
+Event OnUpdate()
 	SLTInit()
 EndEvent
 
@@ -58,15 +64,16 @@ Function RefreshData()
 EndFunction
 
 bool Function _slt_AdditionalEnabledRequirements()
-	return SexLab != none
+	return SexLabForm != none
 EndFunction
 
 sslThreadController Function GetThreadForActor(Actor theActor)
-    return SexLab.GetActorController(theActor)
+    return (SexLabForm as SexLabFramework).GetActorController(theActor)
 EndFunction
 
+;/
 bool Function CustomResolveForm(string token, Actor targetActor, int threadContextHandle)
-    if !SexLab
+    if !self || !IsEnabled || !SexLabForm
         return false
     endif
 
@@ -83,7 +90,7 @@ bool Function CustomResolveForm(string token, Actor targetActor, int threadConte
         return false
     endif
 
-    sslThreadController thread = SexLab.GetActorController(targetActor)
+    sslThreadController thread = (SexLabForm as SexLabFramework).GetActorController(targetActor)
     if !thread
         return false
     endif
@@ -107,52 +114,11 @@ bool Function CustomResolveForm(string token, Actor targetActor, int threadConte
 	sl_triggers_internal.SetCustomResolveFormResult(threadContextHandle, none)
     return true
 EndFunction
-
-;/
-bool Function CustomResolveForm(sl_triggersCmd CmdPrimary, string _code)
-
-    if !SexLab
-        return false
-    endif
-
-    int skip = -1
-    if "#PARTNER" == _code || "#PARTNER1" == _code || "$partner" == _code
-        skip = 0
-    elseif "#PARTNER2" == _code || "$partner2" == _code
-        skip = 1
-    elseif "#PARTNER3" == _code || "$partner3" == _code
-        skip = 2
-    elseif "#PARTNER4" == _code || "$partner4" == _code
-        skip = 3
-    else
-        return false
-    endif
-
-    sslThreadController thread = SexLab.GetActorController(CmdPrimary.CmdTargetActor)
-
-    int i = 0
-    while i < thread.Positions.Length
-        Actor other = thread.Positions[i]
-
-        if other != CmdPrimary.CmdTargetActor
-            if skip == 0
-                CmdPrimary.CustomResolveFormResult = other
-                return true
-            else
-                skip -= 1
-            endif
-        endif
-
-        i += 1
-    endwhile
-
-	return true
-EndFunction
 /;
 
 ; EXTERNAL EVENT HANDLERS
 Event OnSexLabStart(String _eventName, String _args, Float _argc, Form _sender)
-	if !Self || !SexLab
+	if !Self || !SexLabForm
 		Debug.Notification("Triggers: Critical error")
 		Return
 	EndIf
@@ -167,7 +133,7 @@ Event OnSexLabStart(String _eventName, String _args, Float _argc, Form _sender)
 EndEvent
 
 Event OnSexLabOrgasm(String _eventName, String _args, Float _argc, Form _sender)
-	if !Self || !SexLab
+	if !Self || !SexLabForm
 		Debug.Notification("Triggers: Critical error")
 		Return
 	EndIf
@@ -182,7 +148,7 @@ Event OnSexLabOrgasm(String _eventName, String _args, Float _argc, Form _sender)
 EndEvent
 
 Event OnSexLabEnd(String _eventName, String _args, Float _argc, Form _sender)
-	if !Self || !SexLab
+	if !Self || !SexLabForm
 		Debug.Notification("Triggers: Critical error")
 		Return
 	EndIf
@@ -197,7 +163,7 @@ Event OnSexLabEnd(String _eventName, String _args, Float _argc, Form _sender)
 EndEvent
 
 Event OnSexLabOrgasmS(Form ActorRef, Int Thread)
-	if !Self || !SexLab
+	if !Self || !SexLabForm
 		Debug.Notification("Triggers: Critical error")
 		Return
 	EndIf
@@ -238,10 +204,10 @@ EndFunction
 
 Function UpdateSexLabStatus()
 	SexLabAnimatingFaction = none
-	SexLab = none
+	SexLabForm = none
 	
-	SexLab = GetForm_SexLab_Framework() as SexLabFramework
-	if SexLab
+	SexLabForm = GetForm_SexLab_Framework()
+	if SexLabForm
 		SexLabAnimatingFaction = GetForm_SexLab_AnimatingFaction() as Faction
 	endif
 EndFunction
@@ -249,29 +215,29 @@ EndFunction
 ; selectively enables only events with triggers
 Function RegisterEvents()
 	UnregisterForModEvent(EVENT_SEXLAB_START)
-	if IsEnabled && triggerKeys_Start.Length > 0 && SexLab
+	if IsEnabled && triggerKeys_Start.Length > 0 && SexLabForm
 		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_START, EVENT_SEXLAB_START_HANDLER)
 	endif
 	
 	UnregisterForModEvent(EVENT_SEXLAB_END)
-	if IsEnabled && triggerKeys_Stop.Length > 0 && SexLab
+	if IsEnabled && triggerKeys_Stop.Length > 0 && SexLabForm
 		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_END, EVENT_SEXLAB_END_HANDLER)
 	endif
 	
 	UnregisterForModEvent(EVENT_SEXLAB_ORGASM)
-	if IsEnabled && triggerKeys_Orgasm.Length > 0 && SexLab
+	if IsEnabled && triggerKeys_Orgasm.Length > 0 && SexLabForm
 		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_ORGASM, EVENT_SEXLAB_ORGASM_HANDLER)
 	endif
     
 	UnregisterForModEvent(EVENT_SEXLAB_ORGASM_SLSO)
-	if IsEnabled && triggerKeys_Orgasm_S.Length > 0 && SexLab
+	if IsEnabled && triggerKeys_Orgasm_S.Length > 0 && SexLabForm
 		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_ORGASM_SLSO, EVENT_SEXLAB_ORGASM_SLSO_HANDLER)
 	endif
 EndFunction
 
 
 Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTriggerKeys)
-	sslThreadController thread = Sexlab.GetController(tid)
+	sslThreadController thread = (SexLabForm as SexLabFramework).GetController(tid)
 	int actorCount = thread.Positions.Length
 	
 	int i = 0
@@ -383,9 +349,9 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTrigg
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_GENDER)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && Sexlab.GetGender(theSelf) != 0
+						if ival == 1 && (SexLabForm as SexLabFramework).GetGender(theSelf) != 0
 							doRun = false
-						elseIf ival == 2 && Sexlab.GetGender(theSelf) != 1
+						elseIf ival == 2 && (SexLabForm as SexLabFramework).GetGender(theSelf) != 1
 							doRun = false
 						endIf
 					endIf

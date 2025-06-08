@@ -14,5 +14,5 @@ Form Function       ResolveFormVariable(string variableName) global native ; nop
 string Function     ResolveValueVariable(string variableName) global native ; colder
 Function            ResumeExecution() global native ; nah
 Function            SetCustomResolveFormResult(int threadContextHandle, Form resultingForm) global native ; these are not the functions you are looking for
-Function            SetLibrariesForExtensionAllowed(string _extensionKey, bool _allowed) global native ; please don't
+Function            SetExtensionEnabled(string extensionKey, bool enabledState) global native ; heh... heheh... hehahahahahhahahahh
 Function            WalkTheStack() global native ; I mean... it won't do what you think it will

@@ -59,11 +59,7 @@ EndFunction
 Event OnUpdate()
     bool keepProcessing = self && !cleanedup && threadContextHandle && isExecuting
     while keepProcessing
-        keepProcessing = self && !cleanedup && threadContextHandle && isExecuting
-        DebMsg("calling sl_triggers_internal.ExecuteAndPending")
-        bool ep = sl_triggers_internal.ExecuteAndPending()
-        DebMsg("sl_triggers_internal.ExecuteAndPending returned ep(" + ep + ")")
-        keepProcessing = keepProcessing && ep
+        keepProcessing = self && !cleanedup && threadContextHandle && isExecuting && sl_triggers_internal.ExecuteAndPending()
     endwhile
     
     CleanupAndRemove()

@@ -28,7 +28,7 @@ Function SetEnabled(bool _newEnabledFlag)
 		bEnabled = _newEnabledFlag
 		JsonUtil.SetIntValue(FN_S, "enabled", bEnabled as int)
 	endif
-	sl_triggers_internal.SetLibrariesForExtensionAllowed(SLTExtensionKey, bEnabled)
+	sl_triggers_internal.SetExtensionEnabled(SLTExtensionKey, bEnabled)
 	IsEnabled = SLT.bEnabled && bEnabled
 EndFunction
 
@@ -44,10 +44,11 @@ string Function FN_T(string _triggerKey)
 	return FN_Trigger(SLTExtensionKey, _triggerKey)
 EndFunction
 
-
+;/
 bool Function CustomResolveForm(string token, Actor targetActor, int threadContextHandle)
 	return false
 EndFunction
+/;
 
 ; SLTReady
 ; OPTIONAL

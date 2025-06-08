@@ -6,7 +6,7 @@ import sl_triggersStatics
 int		SLT_HEARTBEAT					= 0
 int		SLT_BOOTSTRAPPING				= 100
 
-int		REGISTRATION_BEACON_COUNT		= 30
+int		REGISTRATION_BEACON_COUNT		= 15
 
 string	Function GLOBAL_PSEUDO_INSTANCE_KEY() global
 	return "_slt_global_pseudo_instance_key_sl_triggersMain_"
@@ -79,6 +79,11 @@ Function BootstrapSLTInit()
 	if !self
 		return
 	endif
+
+	SafeRegisterForModEvent_Quest(self, "OnSLTRegisterExtension", "OnSLTRegisterExtension")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_COMMAND(), "OnSLTRequestCommand")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_LIST(), "OnSLTRequestList")
+
 	InitSettingsFile(FN_Settings())
 
 	bool _userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "enabled") as bool
@@ -93,10 +98,6 @@ Function BootstrapSLTInit()
 	
 	SLTUpdateState = SLT_BOOTSTRAPPING
 	_registrationBeaconCount = REGISTRATION_BEACON_COUNT
-
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REGISTER_EXTENSION(), "OnSLTRegisterExtension")
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_COMMAND(), "OnSLTRequestCommand")
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_LIST(), "OnSLTRequestList")
 	
 	int i = 0
 	while i < Extensions.Length
@@ -114,10 +115,6 @@ Function BootstrapSLTInit()
 		endif
 	endwhile
 
-	if SLTMCM
-		SLTMCM.ScriptsList = sl_triggers.GetScriptsList()
-	endif
-
 	UnregisterForUpdate()
 	QueueUpdateLoop(0.1)
 EndFunction
@@ -130,22 +127,30 @@ Event OnUpdate()
 	; state checks
 	if SLTUpdateState == SLT_BOOTSTRAPPING
 		sl_triggers_internal.ResumeExecution()
-		SendEventSLTOnNewSession()
 
 		SLTUpdateState = SLT_HEARTBEAT
 
 		QueueUpdateLoop(0.1)
 	else
+		float afDelay = 1.0
+		if _registrationBeaconCount == REGISTRATION_BEACON_COUNT
+			afDelay = 0.1
+		endif
+		
+		if _registrationBeaconCount == REGISTRATION_BEACON_COUNT - 1
+			SendEventSLTOnNewSession()
+		endif
+
 		if _registrationBeaconCount > 0
 			_registrationBeaconCount -= 1
 			DoRegistrationBeacon()
 		endif
 	
-		QueueUpdateLoop()
+		QueueUpdateLoop(afDelay)
 	endif
 EndEvent
 
-Event OnSLTRegisterExtension(Form extensionToRegister)
+Event OnSLTRegisterExtension(Quest extensionToRegister)
 	if !self || !extensionToRegister
 		return
 	endif

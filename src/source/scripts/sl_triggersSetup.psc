@@ -95,6 +95,7 @@ Event OnConfigInit()
 EndEvent
 
 Event OnConfigOpen()
+	ScriptsList = sl_triggers.GetScriptsList()
 	if extensionPages.Length > 0
 		Pages = PapyrusUtil.MergeStringArray(headerPages, extensionPages)
 	else

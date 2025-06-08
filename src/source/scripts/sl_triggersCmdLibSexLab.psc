@@ -6,6 +6,59 @@ sl_triggersExtensionSexLab Function GetExtension() global
     return GetForm_SLT_ExtensionSexLab() as sl_triggersExtensionSexLab
 EndFunction
 
+function resolve_partner_at(Actor CmdTargetActor, sl_triggersCmd CmdPrimary, string[] param, int skip) global
+    DebMsg("resolve_partner_at (" + skip + ")")
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    sslThreadController thread = (slExtension.SexLabForm as SexLabFramework).GetActorController(CmdTargetActor)
+    if !thread
+        return
+    endif
+
+    if skip < 0 || skip > 3
+        DebMsg("Invalid skip value in resolve_partner")
+        return
+    endif
+
+    int i = 0
+    while i < thread.Positions.Length
+        Actor other = thread.Positions[i]
+
+        if other != CmdTargetActor
+            if skip == 0
+                CmdPrimary.CustomResolveFormResult = other
+                return
+            else
+                skip -= 1
+            endif
+        endif
+
+        i += 1
+    endwhile
+
+	CmdPrimary.CustomResolveFormResult = none
+endFunction
+
+function resolve_partner1(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+    resolve_partner_at(CmdTargetActor, CmdPrimary, param, 0)
+endFunction
+
+function resolve_partner2(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+    resolve_partner_at(CmdTargetActor, CmdPrimary, param, 1)
+endFunction
+
+function resolve_partner3(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+    resolve_partner_at(CmdTargetActor, CmdPrimary, param, 2)
+endFunction
+
+function resolve_partner4(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+    resolve_partner_at(CmdTargetActor, CmdPrimary, param, 3)
+endFunction
+
 ; sltname util_waitforend
 ; sltgrup SexLab
 ; sltdesc Wait until specified actor is not in SexLab scene
@@ -257,7 +310,7 @@ function sl_adjustenjoyment(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary,
 	if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
-            sslThreadController tc = slExtension.SexLab.GetActorController(_targetActor)
+            sslThreadController tc = (slExtension.SexLabForm as SexLabFramework).GetActorController(_targetActor)
             if tc
                 sslActorAlias talias = tc.ActorAlias(_targetActor)
                 if talias

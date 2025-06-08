@@ -50,6 +50,11 @@ Event OnInit()
 		return
 	endif
 	; REQUIRED CALL
+	UnregisterForUpdate()
+	RegisterForSingleUpdate(0.1)
+EndEvent
+
+Event OnUpdate()
 	SLTInit()
 EndEvent
 
@@ -279,7 +284,7 @@ Function HandleNewSession(int _newSessionId)
 	int i = 0
 	string triggerKey
 	string command
-	DebMsg("Core.HandleNewSession: triggerKeys_newSession.Length(" + triggerKeys_newSession.Length + ")")
+	
 	while i < triggerKeys_newSession.Length
 		triggerKey = triggerKeys_newSession[i]
 		string _triggerFile = FN_T(triggerKey)
