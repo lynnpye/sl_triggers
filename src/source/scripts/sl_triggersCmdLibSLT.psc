@@ -6,12 +6,12 @@ import sl_triggersStatics
 ;; 
 
 ; HAVE TO FIX THE STRING PARAM TO STRING[] PARAM BEFORE YOU CAN USE THIS
-function hextun_test(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string param) global
+function hextun_test(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 endFunction
 
 ; HAVE TO FIX THE STRING PARAM TO STRING[] PARAM BEFORE YOU CAN USE THIS
-function hextun_test2(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string param) global
+function hextun_test2(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 endFunction
 
@@ -55,7 +55,7 @@ endFunction
 ; sltsamp form_dogetter $$ GetName
 ; sltsamp msg_notify $$ "!! Yay!!"
 ; sltsamp ; Ale!! Yay!!
-Function form_getbyid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int Function form_getbyid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string _outcome
@@ -67,7 +67,7 @@ Function form_getbyid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
         endif
     endif
 
-    CmdPrimary.MostRecentResult = _outcome
+    return sl_triggersOptional.CreateString(_outcome)
 endFunction
  
 ; sltname av_restore
@@ -157,7 +157,7 @@ endFunction
 ; sltargs av name: Actor Value name e.g. Health
 ; sltsamp av_getbase $self Health
 ; sltrslt Sets the actor's base Health into $$
-function av_getbase(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function av_getbase(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string nextResult
@@ -170,7 +170,7 @@ function av_getbase(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname av_get
@@ -180,7 +180,7 @@ endFunction
 ; sltargs av name: Actor Value name e.g. Health
 ; sltsamp av_get $self Health
 ; sltrslt Sets the actor's current Health into $$
-function av_get(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function av_get(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string nextResult
@@ -193,7 +193,7 @@ function av_get(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] pa
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname av_getmax
@@ -203,7 +203,7 @@ endFunction
 ; sltargs av name: Actor Value name e.g. Health
 ; sltsamp av_get $self Health
 ; sltrslt Sets the actor's max Health into $$
-function av_getmax(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function av_getmax(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string nextResult
@@ -216,7 +216,7 @@ function av_getmax(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname av_getpercentage
@@ -226,7 +226,7 @@ endFunction
 ; sltargs av name: Actor Value name e.g. Health
 ; sltsamp av_getpercentage $self Health
 ; sltrslt Sets the actor's percentage of Health remaining into $$
-function av_getpercent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function av_getpercent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string nextResult
@@ -238,7 +238,7 @@ function av_getpercent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname spell_cast
@@ -394,10 +394,10 @@ function item_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
                 endif
                 _targetActor.AddItem(thing, count, isSilent)
             else
-                DebMsg("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
+                DebMsg("SLT: unable to resolve actor variable (" + param[1] + ")")
             endif
         else
-            DebMsg("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
+            DebMsg("SLT: unable to resolve ITEM with FormId (" + param[2] + ")")
         endif
     endif
 endFunction
@@ -649,7 +649,7 @@ endFunction
 ; sltargs actor: target Actor
 ; sltargs item: ITEM FormId
 ; sltsamp item_getcount $self "skyrim.esm:15"
-function item_getcount(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function item_getcount(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     int nextResult
@@ -668,7 +668,7 @@ function item_getcount(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname msg_notify
@@ -721,7 +721,7 @@ endFunction
 ; sltargs arguments: <argument> <argument> [<argument> <argument> ...]
 ; sltsamp rnd_list "Hello" $2 "Yo"
 ; sltrslt $$ will be one of the values. $2 will be resolved to it's value before populating $$
-function rnd_list(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function rnd_list(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string nextResult
@@ -731,7 +731,7 @@ function rnd_list(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
         nextResult = CmdPrimary.Resolve(param[idx])
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname rnd_int
@@ -740,7 +740,7 @@ endFunction
 ; sltargs min: number
 ; sltargs max: number
 ; sltsamp rnd_int 1 100
-function rnd_int(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function rnd_int(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string nextResult
@@ -749,7 +749,7 @@ function rnd_int(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
         nextResult = Utility.RandomInt(CmdPrimary.resolve(param[1]) as int, CmdPrimary.resolve(param[2]) as int) as string
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname util_wait
@@ -771,7 +771,7 @@ endFunction
 ; sltdesc Sets $iterActor to a random actor within specified range of self
 ; sltargs range: 0 - all | >0 skyrim units
 ; sltsamp util_getrandomactor 320
-function util_getrandomactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function util_getrandomactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     Actor nextIterActor
@@ -815,7 +815,7 @@ function util_getrandomactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary
         endif
     endif
 
-    CmdPrimary.iterActor = nextIterActor
+    return sl_triggersOptional.CreateForm(nextIterActor)
 endFunction
 
 ; sltname perk_addpoints
@@ -945,7 +945,7 @@ endFunction
 ; sltsamp ...
 ; sltsamp [end]
 ; sltrslt Jump to the end if actor is not valid
-function actor_isvalid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_isvalid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     int nextResult
@@ -959,7 +959,7 @@ function actor_isvalid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname actor_haslos
@@ -969,7 +969,7 @@ endFunction
 ; sltargs second actor: target Actor
 ; sltsamp actor_haslos $actor $self
 ; sltsamp if $$ = 0 cannotseeme
-function actor_haslos(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_haslos(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     int nextResult
@@ -983,7 +983,7 @@ function actor_haslos(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname actor_name
@@ -991,7 +991,7 @@ endFunction
 ; sltdesc Set $$ to the actor name
 ; sltargs actor: target Actor
 ; sltsamp actor_name $actor
-function actor_name(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_name(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string nextResult
@@ -1003,7 +1003,7 @@ function actor_name(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         endif
     endif
     
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname actor_name
@@ -1011,7 +1011,7 @@ endFunction
 ; sltdesc Set $$ to the actor displayName
 ; sltargs actor: target Actor
 ; sltsamp actor_display_name $actor
-function actor_display_name(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_display_name(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string nextResult
@@ -1023,7 +1023,7 @@ function actor_display_name(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary,
         endif
     endif
     
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname actor_modcrimegold
@@ -1068,7 +1068,7 @@ endFunction
 ; sltdesc Sets $$ to 1 if actor is guard, 0 otherwise.
 ; sltargs actor: target Actor
 ; sltsamp actor_isguard $actor
-function actor_isguard(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_isguard(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     int nextResult
@@ -1080,11 +1080,11 @@ function actor_isguard(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
-function actor_isquard(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_isquard(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-	actor_isguard(CmdTargetActor, CmdPrimary, param)
+	return actor_isguard(CmdTargetActor, CmdPrimary, param)
 endFunction
 
 ; sltname actor_isplayer
@@ -1092,7 +1092,7 @@ endFunction
 ; sltdesc Sets $$ to 1 if actor is the player, 0 otherwise.
 ; sltargs actor: target Actor
 ; sltsamp actor_isplayer $actor
-function actor_isplayer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_isplayer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     int nextResult
@@ -1104,7 +1104,7 @@ function actor_isplayer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname actor_getgender
@@ -1112,7 +1112,7 @@ endFunction
 ; sltdesc Sets $$ to the actor's gender, 0 - male, 1 - female, 2 - creature, "" otherwise
 ; sltargs actor: target Actor
 ; sltsamp actor_getgender $actor
-function actor_getgender(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_getgender(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string nextResult
@@ -1124,7 +1124,7 @@ function actor_getgender(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname actor_say
@@ -1154,7 +1154,7 @@ endFunction
 ; sltargs actor: target Actor
 ; sltargs keyword: string, keyword name
 ; sltsamp actor_haskeyword $actor Vampire
-function actor_haskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_haskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     int nextResult
@@ -1167,7 +1167,7 @@ function actor_haskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname actor_iswearing
@@ -1176,7 +1176,7 @@ endFunction
 ; sltargs actor: target Actor
 ; sltargs armor: ARMO FormID
 ; sltsamp actor_iswearing $actor "petcollar.esp:31017"
-function actor_iswearing(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_iswearing(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     int nextResult
@@ -1189,7 +1189,7 @@ function actor_iswearing(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname actor_getscale
@@ -1199,7 +1199,7 @@ endFunction
 ; sltargs actor: target Actor
 ; sltsamp actor_getscale $self
 ; sltsamp msg_console "Scale reported: " $$
-function actor_getscale(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_getscale(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string nextResult
@@ -1211,7 +1211,7 @@ function actor_getscale(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname actor_setscale
@@ -1239,7 +1239,7 @@ endFunction
 ; sltargs actor: target Actor
 ; sltargs armorslot: number, e.g. 32 for body slot
 ; sltsamp actor_worninslot $actor 32
-function actor_worninslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_worninslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     int nextResult
@@ -1251,7 +1251,7 @@ function actor_worninslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname actor_wornhaskeyword
@@ -1260,7 +1260,7 @@ endFunction
 ; sltargs actor: target Actor
 ; sltargs keyword: string, keyword name
 ; sltsamp actor_wornhaskeyword $actor "VendorItemJewelry"
-function actor_wornhaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_wornhaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     int nextResult
@@ -1274,7 +1274,7 @@ function actor_wornhaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimar
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname actor_lochaskeyword
@@ -1284,7 +1284,7 @@ endFunction
 ; sltargs keyword: string, keyword name
 ; sltsamp actor_lochaskeyword $actor "LocTypeInn"
 ; sltrslt In a bar, inn, or tavern
-function actor_lochaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_lochaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     int nextResult
@@ -1298,7 +1298,7 @@ function actor_lochaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname actor_getrelation
@@ -1316,7 +1316,7 @@ endFunction
 ; sltrslt  -2 - Foe
 ; sltrslt  -3 - Enemy
 ; sltrslt  -4 - Archnemesis
-function actor_getrelation(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_getrelation(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     int nextResult
@@ -1329,7 +1329,7 @@ function actor_getrelation(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, 
         endif
     endif
     
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname actor_setrelation
@@ -1359,7 +1359,7 @@ endFunction
 ; sltargs faction: FACTION FormID
 ; sltsamp actor_infaction $actor "skyrim.esm:378958"
 ; sltrslt $$ will be 1 if $actor is a follower (CurrentFollowerFaction)
-function actor_infaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_infaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     int nextResult = 0
@@ -1372,7 +1372,7 @@ function actor_infaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname actor_getfactionrank
@@ -1381,7 +1381,7 @@ endFunction
 ; sltargs actor: target Actor
 ; sltargs faction: FACTION FormID
 ; sltsamp actor_getfactionrank $actor "skyrim.esm:378958"
-function actor_getfactionrank(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_getfactionrank(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     int nextResult = 0
@@ -1397,7 +1397,7 @@ function actor_getfactionrank(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimar
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname actor_setfactionrank
@@ -1430,7 +1430,7 @@ endFunction
 ; sltsamp actor_isaffectedby $actor "skyrim.esm:1030541"
 ; sltsamp actor_isaffectedby $actor "skyrim.esm:1030541" "skyrim.esm:1030542" "skyrim.esm:1030543"
 ; sltsamp actor_isaffectedby $actor ALL "skyrim.esm:1030541" "skyrim.esm:1030542" "skyrim.esm:1030543"
-function actor_isaffectedby(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_isaffectedby(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     int nextResult = -1
@@ -1488,7 +1488,7 @@ function actor_isaffectedby(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary,
         nextResult = 0
     endif
 	
-	CmdPrimary.MostRecentResult = nextResult
+	return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname actor_removefaction
@@ -1568,7 +1568,7 @@ endFunction
 ; sltargsmore if parameter 2 is "SetPlayerTeammate" (parameter 3: <bool true to set, false to unset>): set actor as PC team member
 ; sltargsmore if parameter 2 is "SendAssaultAlarm": actor will send out alarm 
 ; sltsamp actor_state $self "GetCombatState"
-function actor_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthGT(CmdPrimary, param.Length, 2)
@@ -1601,9 +1601,11 @@ function actor_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
         endIf
 
         if StringUtil.GetLength(nextResult) > 0
-            CmdPrimary.MostRecentResult = nextResult
+            return sl_triggersOptional.CreateString(nextResult)
         endif
     endif
+
+    return sl_triggersOptional.CreateEmpty()
 endFunction
 
 ; sltname actor_body
@@ -1617,7 +1619,7 @@ endFunction
 ; sltargsmore if parameter 2 is "GetWeight": get actors weight (0-100)
 ; sltargsmore if parameter 2 is "SetWeight" (parameter 3: <float, weight>): set actors weight
 ; sltsamp actor_body $self "SetWeight" 110
-function actor_body(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_body(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthGT(CmdPrimary, param.Length, 2)
@@ -1627,10 +1629,12 @@ function actor_body(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         if _targetActor 
             if ss1 == "ClearExtraArrows"
                 _targetActor.ClearExtraArrows()
+                return sl_triggersOptional.CreateBool(true)
             elseif ss1 == "RegenerateHead"
                 _targetActor.RegenerateHead()
+                return sl_triggersOptional.CreateBool(true)
             elseif ss1 == "GetWeight"
-                CmdPrimary.MostRecentResult = _targetActor.GetActorBase().GetWeight() as string
+                return sl_triggersOptional.CreateString(_targetActor.GetActorBase().GetWeight())
             elseif ss1 == "SetWeight"
                 float baseW = _targetActor.GetActorBase().GetWeight()
                 float p3
@@ -1650,9 +1654,11 @@ function actor_body(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
                     _targetActor.GetActorBase().SetWeight(newW)
                     _targetActor.UpdateWeight(neckD)
                 EndIf
+                return sl_triggersOptional.CreateBool(true)
             endIf
         endIf
     endif
+    return sl_triggersOptional.CreateEmpty()
 endFunction
 
 ; sltname actor_race
@@ -1662,7 +1668,7 @@ endFunction
 ; sltargs sub-function: sub-function
 ; sltargsmore if parameter 2 is "": return actors race name. Skyrims, original name. Like: "Nord", "Breton"
 ; sltsamp actor_race $self ""
-function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string nextResult
@@ -1678,7 +1684,7 @@ function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname actor_setalpha
@@ -2347,7 +2353,7 @@ endFunction
 ; sltargsmore TempClone
 ; sltsamp form_dogetter $formId IsPlayable
 ; sltsamp if $$ = 1 itwasplayable
-function form_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function form_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string result
@@ -2367,7 +2373,7 @@ function form_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = result
+    return sl_triggersOptional.CreateString(result)
 endFunction
 
 ; sltname objectreference_dogetter
@@ -2431,7 +2437,7 @@ endFunction
 ; sltsamp actor_dogetter CanFlyHere
 ; sltsamp if $$ = 1 ICanFlyAroundHere
 ; sltsamp if $$ = 0 IAmGroundedLikeAlways
-function objectreference_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function objectreference_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string result
@@ -2451,7 +2457,7 @@ function objectreference_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPr
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = result
+    return sl_triggersOptional.CreateString(result)
 endFunction
 
 ; sltname actor_dogetter
@@ -2527,7 +2533,7 @@ endFunction
 ; sltsamp actor_dogetter CanFlyHere
 ; sltsamp if $$ = 1 ICanFlyAroundHere
 ; sltsamp if $$ = 0 IAmGroundedLikeAlways
-function actor_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string result
@@ -2547,7 +2553,7 @@ function actor_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = result
+    return sl_triggersOptional.CreateString(result)
 endFunction
 
 
@@ -3414,7 +3420,7 @@ endFunction
 ; sltsamp actor_dogetter GetEquippedShield
 ; sltsamp set $shieldFormID $$
 ; sltsamp form_consumer $shieldFormID SetWeight 0.1 ; featherweight shield
-function form_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function form_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string result
@@ -3434,7 +3440,7 @@ function form_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = result
+    return sl_triggersOptional.CreateString(result)
 endFunction
 
 ; sltname objectreference_doconsumer
@@ -3505,7 +3511,7 @@ endFunction
 ; sltsamp actor_dogetter GetEquippedShield
 ; sltsamp set $shieldFormID $$
 ; sltsamp objectreference_doconsumer $shieldFormID CreateEnchantment 200.0 "Skyrim.esm:form-id-for-MGEF" 20.0 0.0 30.0
-function objectreference_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function objectreference_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string result
@@ -3525,7 +3531,7 @@ function objectreference_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _Cmd
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = result
+    return sl_triggersOptional.CreateString(result)
 endFunction
 
 ; sltname actor_doconsumer
@@ -3612,7 +3618,7 @@ endFunction
 ; sltargsmore UpdateWeight
 ; sltsamp set $newGhostStatus 1
 ; sltsamp actor_doconsumer $self SetGhost $newGhostStatus
-function actor_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string result
@@ -3632,7 +3638,7 @@ function actor_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = result
+    return sl_triggersOptional.CreateString(result)
 endFunction
 
 string Function _slt_form_dofunction(sl_triggersCmd CmdPrimary, Form _target, string _theAction, string[] param) global
@@ -4173,7 +4179,7 @@ endFunction
 ; sltargsmore HasKeyword
 ; sltargsmore GetNthKeyword
 ; sltargsmore GetWorldModelNthTextureSet
-function form_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function form_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string result
@@ -4192,7 +4198,7 @@ function form_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
         endif
     endif
 
-    CmdPrimary.MostRecentResult = result
+    return sl_triggersOptional.CreateString(result)
 endFunction
 
 ; sltname objectreference_dofunction
@@ -4232,7 +4238,7 @@ endFunction
 ; sltargsmore PlaceAtMe
 ; sltargsmore GetLinkedRef
 ; sltargsmore GetNthLinkedRef
-function objectreference_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function objectreference_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string result
@@ -4251,7 +4257,7 @@ function objectreference_dofunction(Actor CmdTargetActor, ActiveMagicEffect _Cmd
         endif
     endif
 
-    CmdPrimary.MostRecentResult = result
+    return sl_triggersOptional.CreateString(result)
 endFunction
 
 ; sltname actor_dofunction
@@ -4303,7 +4309,7 @@ endFunction
 ; sltargsmore GetEquippedObject
 ; sltargsmore GetNthSpell
 ; sltsamp 
-function actor_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string result
@@ -4322,7 +4328,7 @@ function actor_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         endif
     endif
 
-    CmdPrimary.MostRecentResult = result
+    return sl_triggersOptional.CreateString(result)
 endFunction
 
 
@@ -4453,46 +4459,40 @@ endFunction
 ; sltgrup Utility
 ; sltdesc Sets $$ to the value of Utility.GetCurrentGameTime() (a float value representing the number of days in game time; mid-day day 2 is 1.5)
 ; sltsamp util_getgametime
-function util_getgametime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function util_getgametime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 1)
         float dayTime = Utility.GetCurrentGameTime()
         dayTime = Math.Floor(dayTime * 100.0) / 100.0
         
-        CmdPrimary.MostRecentResult = dayTime
-    else
-        CmdPrimary.MostRecentResult = ""
+        return sl_triggersOptional.CreateString(dayTime)
     endif
+    return sl_triggersOptional.CreateEmpty()
 endFunction
 
 ; sltname util_getrealtime
 ; sltgrup Utility
 ; sltdesc Sets $$ to the value of Utility.GetCurrentRealTime() (a float value representing the number of seconds since Skyrim.exe was launched this session)
 ; sltsamp util_getrealtime
-string function util_getrealtime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function util_getrealtime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-
-    DebMsg("util_getrealtime called")
 
     if ParamLengthEQ(CmdPrimary, param.Length, 1)
         float realTime = Utility.GetCurrentRealTime()
         realTime = Math.Floor(realTime * 100.0) / 100.0
 
-        CmdPrimary.MostRecentResult = realTime
-        DebMsg("CmdPrimary.MostRecentResult(" + CmdPrimary.MostRecentResult + ")")
-    else
-        CmdPrimary.MostRecentResult = ""
-        DebMsg("bad param length, empty result")
+        return sl_triggersOptional.CreateString(realTime)
     endif
-    return CmdPrimary.MostRecentResult
+    DebMsg("bad param length, empty result")
+    return sl_triggersOptional.CreateEmpty()
 endFunction
 
 ; sltname util_getgametime
 ; sltgrup Utility
 ; sltdesc Sets $$ to the in-game hour (i.e. 2:30 AM returns 2)
 ; sltsamp util_getgametime
-function util_gethour(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function util_gethour(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 1)
@@ -4503,10 +4503,9 @@ function util_gethour(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
         
         int theHour = dayTime as int
         
-        CmdPrimary.MostRecentResult = theHour as string
-    else
-        CmdPrimary.MostRecentResult = ""
+        return sl_triggersOptional.CreateString(theHour)
     endif
+    return sl_triggersOptional.CreateEmpty()
 endFunction
 
 ; sltname util_game
@@ -4517,7 +4516,7 @@ endFunction
 ; sltargsmore if sub-function is "IncrementStat", (parameter 3, <stat name>, parameter 4, <amount>), see https://ck.uesp.net/wiki/IncrementStat_-_Game
 ; sltargsmore if sub-function is "QueryStat", (parameter 3, <stat name>), returns the value
 ; sltsamp util_game "IncrementStat" "Bribes" 1
-function util_game(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function util_game(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
     if ParamLengthGT(CmdPrimary, param.Length, 2)
@@ -4530,10 +4529,12 @@ function util_game(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
                 iModAmount = CmdPrimary.resolve(param[3]) as Int
             endif
             Game.IncrementStat(p2, iModAmount)
+            return sl_triggersOptional.CreateBool(true)
         elseIf "QueryStat" == p1
             string p2 = CmdPrimary.resolve(param[2])
-            CmdPrimary.MostRecentResult = Game.QueryStat(p2) as string
+            return sl_triggersOptional.CreateString(Game.QueryStat(p2))
         endIf
+        return sl_triggersOptional.CreateEmpty()
     endif
 endFunction
 
@@ -4543,7 +4544,7 @@ endFunction
 ; sltargs audio: AUDIO FormID
 ; sltargs actor: target Actor
 ; sltsamp snd_play "skyrim.esm:318128" $self
-function snd_play(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function snd_play(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     int nextResult = 0
@@ -4557,7 +4558,7 @@ function snd_play(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname snd_setvolume
@@ -4671,7 +4672,7 @@ endFunction
 ; sltargs mode: number, 0 - set phoneme | 1 - set modifier
 ; sltargs id: an id (I'm not familiar with MfgFix :/)
 ; sltsamp mfg_getphonememodifier $self 0 $1
-function mfg_getphonememodifier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function mfg_getphonememodifier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     int nextResult
@@ -4686,7 +4687,7 @@ function mfg_getphonememodifier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrim
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult as string
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname util_waitforkbd
@@ -4694,7 +4695,7 @@ endFunction
 ; sltdesc Sets $$ to the keycode pressed after waiting for user to press any of the specified keys
 ; sltargs dxscancode: <DXScanCode of key> [<DXScanCode of key> ...]
 ; sltsamp util_waitforkbd 74 78 181 55
-function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     int nextResult = -1
@@ -4731,7 +4732,7 @@ function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult as string
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname json_getvalue
@@ -4743,7 +4744,7 @@ endFunction
 ; sltargs default: default value in case it isn't present (optional: default for type)
 ; sltsamp json_getvalue "../somefolder/afile" float "demofloatvalue" 2.3
 ; sltrslt JsonUtil automatically appends .json when not given a file extension
-function json_getvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function json_getvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string nextResult
@@ -4781,7 +4782,7 @@ function json_getvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname json_setvalue
@@ -4879,7 +4880,7 @@ endfunction
 ; sltargsmore listfind          : <filename> <key> <type: int | float | string> <value>
 ; sltargsmore listhas           : <filename> <key> <type: int | float | string> <value>
 ; sltargsmore listresize        : <filename> <key> <type: int | float | string> <toLength> [<filler value>]
-function jsonutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function jsonutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
     if ParamLengthGT(CmdPrimary, param.Length, 2)
@@ -4894,13 +4895,13 @@ function jsonutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
             elseif "save" == func
                 JsonUtil.Save(jfile)
             elseif "ispendingsave" == func
-                CmdPrimary.MostRecentResult = JsonUtil.IsPendingSave(jfile) as int
+                return sl_triggersOptional.CreateString(JsonUtil.IsPendingSave(jfile))
             elseif "isgood" == func
-                CmdPrimary.MostRecentResult = JsonUtil.IsGood(jfile) as int
+                return sl_triggersOptional.CreateString(JsonUtil.IsGood(jfile) as int)
             elseif "geterrors" == func
-                CmdPrimary.MostRecentResult = JsonUtil.GetErrors(jfile)
+                return sl_triggersOptional.CreateString(JsonUtil.GetErrors(jfile))
             elseif "exists" == func
-                CmdPrimary.MostRecentResult = 1
+                return sl_triggersOptional.CreateString(1)
             elseif "unload" == func
                 bool saveChanges = true
                 bool minify = false
@@ -4918,35 +4919,35 @@ function jsonutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
                 if jtype
                     if "unset" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.UnsetIntValue(jfile, jkey) as int
+                            return sl_triggersOptional.CreateString(JsonUtil.UnsetIntValue(jfile, jkey))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.UnsetFloatValue(jfile, jkey) as int
+                            return sl_triggersOptional.CreateString(JsonUtil.UnsetFloatValue(jfile, jkey) as int)
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.UnsetStringValue(jfile, jkey) as int
+                            return sl_triggersOptional.CreateString(JsonUtil.UnsetStringValue(jfile, jkey) as int)
                         endif
                     elseif "has" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.HasIntValue(jfile, jkey) as int
+                            return sl_triggersOptional.CreateString(JsonUtil.HasIntValue(jfile, jkey) as int)
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.HasFloatValue(jfile, jkey) as int
+                            return sl_triggersOptional.CreateString(JsonUtil.HasFloatValue(jfile, jkey) as int)
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.HasStringValue(jfile, jkey) as int
+                            return sl_triggersOptional.CreateString(JsonUtil.HasStringValue(jfile, jkey) as int)
                         endif
                     elseif "listclear" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.IntListClear(jfile, jkey)
+                            return sl_triggersOptional.CreateString(JsonUtil.IntListClear(jfile, jkey))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.FloatListClear(jfile, jkey)
+                            return sl_triggersOptional.CreateString(JsonUtil.FloatListClear(jfile, jkey))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.StringListClear(jfile, jkey)
+                            return sl_triggersOptional.CreateString(JsonUtil.StringListClear(jfile, jkey))
                         endif
                     elseif "listcount" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.IntListCount(jfile, jkey)
+                            return sl_triggersOptional.CreateString(JsonUtil.IntListCount(jfile, jkey))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.FloatListCount(jfile, jkey)
+                            return sl_triggersOptional.CreateString(JsonUtil.FloatListCount(jfile, jkey))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.StringListCount(jfile, jkey)
+                            return sl_triggersOptional.CreateString(JsonUtil.StringListCount(jfile, jkey))
                         endif
                     elseif "get" == func
                         string dval
@@ -4954,11 +4955,11 @@ function jsonutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
                             dval = CmdPrimary.Resolve(param[5])
                         endif
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.GetIntValue(jfile, jkey, dval as int)
+                            return sl_triggersOptional.CreateString(JsonUtil.GetIntValue(jfile, jkey, dval as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.GetFloatValue(jfile, jkey, dval as float)
+                            return sl_triggersOptional.CreateString(JsonUtil.GetFloatValue(jfile, jkey, dval as float))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.GetStringValue(jfile, jkey, dval)
+                            return sl_triggersOptional.CreateString(JsonUtil.GetStringValue(jfile, jkey, dval))
                         endif
 
                     elseif ParamLengthGT(CmdPrimary, param.Length, 5)
@@ -4970,106 +4971,107 @@ function jsonutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
 
                         if "set" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.SetIntValue(jfile, jkey, parm5 as int)
+                                return sl_triggersOptional.CreateString(JsonUtil.SetIntValue(jfile, jkey, parm5 as int))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.SetFloatValue(jfile, jkey, parm5 as float)
+                                return sl_triggersOptional.CreateString(JsonUtil.SetFloatValue(jfile, jkey, parm5 as float))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.SetStringValue(jfile, jkey, parm5)
+                                return sl_triggersOptional.CreateString(JsonUtil.SetStringValue(jfile, jkey, parm5))
                             endif
                         elseif "adjust" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.AdjustIntValue(jfile, jkey, parm5 as int)
+                                return sl_triggersOptional.CreateString(JsonUtil.AdjustIntValue(jfile, jkey, parm5 as int))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.AdjustFloatValue(jfile, jkey, parm5 as float)
+                                return sl_triggersOptional.CreateString(JsonUtil.AdjustFloatValue(jfile, jkey, parm5 as float))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = ""
                                 SquawkFunctionError(CmdPrimary, "jsonutil: 'string' is not a valid type for JsonUtil Adjust")
+                                return sl_triggersOptional.CreateEmpty()
                             endif
                         elseif "listadd" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.IntListAdd(jfile, jkey, parm5 as int)
+                                return sl_triggersOptional.CreateString(JsonUtil.IntListAdd(jfile, jkey, parm5 as int))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.FloatListAdd(jfile, jkey, parm5 as float)
+                                return sl_triggersOptional.CreateString(JsonUtil.FloatListAdd(jfile, jkey, parm5 as float))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.StringListAdd(jfile, jkey, parm5)
+                                return sl_triggersOptional.CreateString(JsonUtil.StringListAdd(jfile, jkey, parm5))
                             endif
                         elseif "listget" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.IntListGet(jfile, jkey, parm5 as int)
+                                return sl_triggersOptional.CreateString(JsonUtil.IntListGet(jfile, jkey, parm5 as int))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.FloatListGet(jfile, jkey, parm5 as int)
+                                return sl_triggersOptional.CreateString(JsonUtil.FloatListGet(jfile, jkey, parm5 as int))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.StringListGet(jfile, jkey, parm5 as int)
+                                return sl_triggersOptional.CreateString(JsonUtil.StringListGet(jfile, jkey, parm5 as int))
                             endif
                         elseif "listset" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.IntListSet(jfile, jkey, parm5 as int, parm6 as int)
+                                return sl_triggersOptional.CreateString(JsonUtil.IntListSet(jfile, jkey, parm5 as int, parm6 as int))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.FloatListSet(jfile, jkey, parm5 as int, parm6 as float)
+                                return sl_triggersOptional.CreateString(JsonUtil.FloatListSet(jfile, jkey, parm5 as int, parm6 as float))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.StringListSet(jfile, jkey, parm5 as int, parm6 as string)
+                                return sl_triggersOptional.CreateString(JsonUtil.StringListSet(jfile, jkey, parm5 as int, parm6 as string))
                             endif
                         elseif "listremoveat" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.IntListRemove(jfile, jkey, parm5 as int, parm6 as int)
+                                return sl_triggersOptional.CreateString(JsonUtil.IntListRemove(jfile, jkey, parm5 as int, parm6 as int))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.FloatListRemove(jfile, jkey, parm5 as float, parm6 as int)
+                                return sl_triggersOptional.CreateString(JsonUtil.FloatListRemove(jfile, jkey, parm5 as float, parm6 as int))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.StringListRemove(jfile, jkey, parm5, parm6 as int)
+                                return sl_triggersOptional.CreateString(JsonUtil.StringListRemove(jfile, jkey, parm5, parm6 as int))
                             endif
                         elseif "listinsertat" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.IntListInsertAt(jfile, jkey, parm5 as int, parm6 as int) as int
+                                return sl_triggersOptional.CreateString(JsonUtil.IntListInsertAt(jfile, jkey, parm5 as int, parm6 as int) as int)
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.FloatListInsertAt(jfile, jkey, parm5 as int, parm6 as float) as int
+                                return sl_triggersOptional.CreateString(JsonUtil.FloatListInsertAt(jfile, jkey, parm5 as int, parm6 as float) as int)
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.StringListInsertAt(jfile, jkey, parm5 as int, parm6) as int
+                                return sl_triggersOptional.CreateString(JsonUtil.StringListInsertAt(jfile, jkey, parm5 as int, parm6) as int)
                             endif
                         elseif "listremoveat" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.IntListRemoveAt(jfile, jkey, parm5 as int) as int
+                                return sl_triggersOptional.CreateString(JsonUtil.IntListRemoveAt(jfile, jkey, parm5 as int) as int)
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.FloatListRemoveAt(jfile, jkey, parm5 as int) as int
+                                return sl_triggersOptional.CreateString(JsonUtil.FloatListRemoveAt(jfile, jkey, parm5 as int) as int)
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.StringListRemoveAt(jfile, jkey, parm5 as int) as int
+                                return sl_triggersOptional.CreateString(JsonUtil.StringListRemoveAt(jfile, jkey, parm5 as int) as int)
                             endif
                         elseif "listcountvalue" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.IntListCountValue(jfile, jkey, parm5 as int, parm6 as int)
+                                return sl_triggersOptional.CreateString(JsonUtil.IntListCountValue(jfile, jkey, parm5 as int, parm6 as int))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.FloatListCountValue(jfile, jkey, parm5 as float, parm6 as int)
+                                return sl_triggersOptional.CreateString(JsonUtil.FloatListCountValue(jfile, jkey, parm5 as float, parm6 as int))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.StringListCountValue(jfile, jkey, parm5, parm6 as int)
+                                return sl_triggersOptional.CreateString(JsonUtil.StringListCountValue(jfile, jkey, parm5, parm6 as int))
                             endif
                         elseif "listfind" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.IntListFind(jfile, jkey, parm5 as int)
+                                return sl_triggersOptional.CreateString(JsonUtil.IntListFind(jfile, jkey, parm5 as int))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.FloatListFind(jfile, jkey, parm5 as float)
+                                return sl_triggersOptional.CreateString(JsonUtil.FloatListFind(jfile, jkey, parm5 as float))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.StringListFind(jfile, jkey, parm5)
+                                return sl_triggersOptional.CreateString(JsonUtil.StringListFind(jfile, jkey, parm5))
                             endif
                         elseif "listhas" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.IntListHas(jfile, jkey, parm5 as int) as int
+                                return sl_triggersOptional.CreateString(JsonUtil.IntListHas(jfile, jkey, parm5 as int) as int)
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.FloatListHas(jfile, jkey, parm5 as float) as int
+                                return sl_triggersOptional.CreateString(JsonUtil.FloatListHas(jfile, jkey, parm5 as float) as int)
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.StringListHas(jfile, jkey, parm5) as int
+                                return sl_triggersOptional.CreateString(JsonUtil.StringListHas(jfile, jkey, parm5) as int)
                             endif
                         elseif "listresize" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.IntListResize(jfile, jkey, parm5 as int, parm6 as int)
+                                return sl_triggersOptional.CreateString(JsonUtil.IntListResize(jfile, jkey, parm5 as int, parm6 as int))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.FloatListResize(jfile, jkey, parm5 as int, parm6 as float)
+                                return sl_triggersOptional.CreateString(JsonUtil.FloatListResize(jfile, jkey, parm5 as int, parm6 as float))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.StringListResize(jfile, jkey, parm5 as int, parm6)
+                                return sl_triggersOptional.CreateString(JsonUtil.StringListResize(jfile, jkey, parm5 as int, parm6))
                             endif
 
 
 
                         else
                             SquawkFunctionError(CmdPrimary, "jsonutil: unknown sub-function (" + func + ")")
+                            return sl_triggersOptional.CreateEmpty()
                         endif
                     endif
                 endif
@@ -5077,12 +5079,14 @@ function jsonutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
 
         else
             if "exists" == func
-                CmdPrimary.MostRecentResult = 0
+                return sl_triggersOptional.CreateString(0)
             else
                 SquawkFunctionError(CmdPrimary, "jsonutil: file (" + jfile + ") does not exist or cannot be opened")
+                return sl_triggersOptional.CreateEmpty()
             endif
         endif
     endif
+    return sl_triggersOptional.CreateBool(true)
 endFunction
 
 ; sltname storageutil
@@ -5121,7 +5125,7 @@ endFunction
 ; sltargsmore listfind          : <form identifier> <key> <type: int | float | string> <value>
 ; sltargsmore listhas           : <form identifier> <key> <type: int | float | string> <value>
 ; sltargsmore listresize        : <form identifier> <key> <type: int | float | string> <toLength> [<filler value>]
-function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
     if ParamLengthGT(CmdPrimary, param.Length, 2)
@@ -5142,43 +5146,43 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
             if jtype
                 if "unset" == func
                     if "int" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.UnsetIntValue(suform, jkey) as int
+                        return sl_triggersOptional.CreateString(StorageUtil.UnsetIntValue(suform, jkey) as int)
                     elseif "float" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.UnsetFloatValue(suform, jkey) as int
+                        return sl_triggersOptional.CreateString(StorageUtil.UnsetFloatValue(suform, jkey) as int)
                     elseif "string" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.UnsetStringValue(suform, jkey) as int
+                        return sl_triggersOptional.CreateString(StorageUtil.UnsetStringValue(suform, jkey) as int)
                     endif
                 elseif "has" == func
                     if "int" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.HasIntValue(suform, jkey) as int
+                        return sl_triggersOptional.CreateString(StorageUtil.HasIntValue(suform, jkey) as int)
                     elseif "float" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.HasFloatValue(suform, jkey) as int
+                        return sl_triggersOptional.CreateString(StorageUtil.HasFloatValue(suform, jkey) as int)
                     elseif "string" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.HasStringValue(suform, jkey) as int
+                        return sl_triggersOptional.CreateString(StorageUtil.HasStringValue(suform, jkey) as int)
                     endif
                 elseif "listclear" == func
                     if "int" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.IntListClear(suform, jkey)
+                        return sl_triggersOptional.CreateString(StorageUtil.IntListClear(suform, jkey))
                     elseif "float" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.FloatListClear(suform, jkey)
+                        return sl_triggersOptional.CreateString(StorageUtil.FloatListClear(suform, jkey))
                     elseif "string" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.StringListClear(suform, jkey)
+                        return sl_triggersOptional.CreateString(StorageUtil.StringListClear(suform, jkey))
                     endif
                 elseif "listpop" == func
                     if "int" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.IntListPop(suform, jkey)
+                        return sl_triggersOptional.CreateString(StorageUtil.IntListPop(suform, jkey))
                     elseif "float" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.FloatListPop(suform, jkey)
+                        return sl_triggersOptional.CreateString(StorageUtil.FloatListPop(suform, jkey))
                     elseif "string" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.StringListPop(suform, jkey)
+                        return sl_triggersOptional.CreateString(StorageUtil.StringListPop(suform, jkey))
                     endif
                 elseif "listshift" == func
                     if "int" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.IntListShift(suform, jkey)
+                        return sl_triggersOptional.CreateString(StorageUtil.IntListShift(suform, jkey))
                     elseif "float" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.FloatListShift(suform, jkey)
+                        return sl_triggersOptional.CreateString(StorageUtil.FloatListShift(suform, jkey))
                     elseif "string" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.StringListShift(suform, jkey)
+                        return sl_triggersOptional.CreateString(StorageUtil.StringListShift(suform, jkey))
                     endif
                 elseif "listsort" == func
                     if "int" == jtype
@@ -5190,11 +5194,11 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
                     endif
                 elseif "listcount" == func
                     if "int" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.IntListCount(suform, jkey)
+                        return sl_triggersOptional.CreateString(StorageUtil.IntListCount(suform, jkey))
                     elseif "float" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.FloatListCount(suform, jkey)
+                        return sl_triggersOptional.CreateString(StorageUtil.FloatListCount(suform, jkey))
                     elseif "string" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.StringListCount(suform, jkey)
+                        return sl_triggersOptional.CreateString(StorageUtil.StringListCount(suform, jkey))
                     endif
                 elseif "get" == func
                     string dval
@@ -5202,11 +5206,11 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
                         dval = CmdPrimary.Resolve(param[5])
                     endif
                     if "int" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.GetIntValue(suform, jkey, dval as int)
+                        return sl_triggersOptional.CreateString(StorageUtil.GetIntValue(suform, jkey, dval as int))
                     elseif "float" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.GetFloatValue(suform, jkey, dval as float)
+                        return sl_triggersOptional.CreateString(StorageUtil.GetFloatValue(suform, jkey, dval as float))
                     elseif "string" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.GetStringValue(suform, jkey, dval)
+                        return sl_triggersOptional.CreateString(StorageUtil.GetStringValue(suform, jkey, dval))
                     endif
                 elseif "pluck" == func
                     string dval
@@ -5214,11 +5218,11 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
                         dval = CmdPrimary.Resolve(param[5])
                     endif
                     if "int" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.GetIntValue(suform, jkey, dval as int)
+                        return sl_triggersOptional.CreateString(StorageUtil.GetIntValue(suform, jkey, dval as int))
                     elseif "float" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.GetFloatValue(suform, jkey, dval as float)
+                        return sl_triggersOptional.CreateString(StorageUtil.GetFloatValue(suform, jkey, dval as float))
                     elseif "string" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.GetStringValue(suform, jkey, dval)
+                        return sl_triggersOptional.CreateString(StorageUtil.GetStringValue(suform, jkey, dval))
                     endif
 
                 elseif ParamLengthGT(CmdPrimary, param.Length, 5)
@@ -5230,128 +5234,130 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 
                     if "set" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.SetIntValue(suform, jkey, parm5 as int)
+                            return sl_triggersOptional.CreateString(StorageUtil.SetIntValue(suform, jkey, parm5 as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.SetFloatValue(suform, jkey, parm5 as float)
+                            return sl_triggersOptional.CreateString(StorageUtil.SetFloatValue(suform, jkey, parm5 as float))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.SetStringValue(suform, jkey, parm5)
+                            return sl_triggersOptional.CreateString(StorageUtil.SetStringValue(suform, jkey, parm5))
                         endif
                     elseif "adjust" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.AdjustIntValue(suform, jkey, parm5 as int)
+                            return sl_triggersOptional.CreateString(StorageUtil.AdjustIntValue(suform, jkey, parm5 as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.AdjustFloatValue(suform, jkey, parm5 as float)
+                            return sl_triggersOptional.CreateString(StorageUtil.AdjustFloatValue(suform, jkey, parm5 as float))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = ""
                             SquawkFunctionError(CmdPrimary, "jsonutil: 'string' is not a valid type for StorageUtil Adjust")
+                            return sl_triggersOptional.CreateEmpty()
                         endif
                     elseif "listadd" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListAdd(suform, jkey, parm5 as int)
+                            return sl_triggersOptional.CreateString(StorageUtil.IntListAdd(suform, jkey, parm5 as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListAdd(suform, jkey, parm5 as float)
+                            return sl_triggersOptional.CreateString(StorageUtil.FloatListAdd(suform, jkey, parm5 as float))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListAdd(suform, jkey, parm5)
+                            return sl_triggersOptional.CreateString(StorageUtil.StringListAdd(suform, jkey, parm5))
                         endif
                     elseif "listget" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListGet(suform, jkey, parm5 as int)
+                            return sl_triggersOptional.CreateString(StorageUtil.IntListGet(suform, jkey, parm5 as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListGet(suform, jkey, parm5 as int)
+                            return sl_triggersOptional.CreateString(StorageUtil.FloatListGet(suform, jkey, parm5 as int))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListGet(suform, jkey, parm5 as int)
+                            return sl_triggersOptional.CreateString(StorageUtil.StringListGet(suform, jkey, parm5 as int))
                         endif
                     elseif "listpluck" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListPluck(suform, jkey, parm5 as int, parm6 as int)
+                            return sl_triggersOptional.CreateString(StorageUtil.IntListPluck(suform, jkey, parm5 as int, parm6 as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListPluck(suform, jkey, parm5 as int, parm6 as float)
+                            return sl_triggersOptional.CreateString(StorageUtil.FloatListPluck(suform, jkey, parm5 as int, parm6 as float))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListPluck(suform, jkey, parm5 as int, parm6 as string)
+                            return sl_triggersOptional.CreateString(StorageUtil.StringListPluck(suform, jkey, parm5 as int, parm6 as string))
                         endif
                     elseif "listset" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListSet(suform, jkey, parm5 as int, parm6 as int)
+                            return sl_triggersOptional.CreateString(StorageUtil.IntListSet(suform, jkey, parm5 as int, parm6 as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListSet(suform, jkey, parm5 as int, parm6 as float)
+                            return sl_triggersOptional.CreateString(StorageUtil.FloatListSet(suform, jkey, parm5 as int, parm6 as float))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListSet(suform, jkey, parm5 as int, parm6 as string)
+                            return sl_triggersOptional.CreateString(StorageUtil.StringListSet(suform, jkey, parm5 as int, parm6 as string))
                         endif
                     elseif "listremoveat" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListRemove(suform, jkey, parm5 as int, parm6 as int)
+                            return sl_triggersOptional.CreateString(StorageUtil.IntListRemove(suform, jkey, parm5 as int, parm6 as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListRemove(suform, jkey, parm5 as float, parm6 as int)
+                            return sl_triggersOptional.CreateString(StorageUtil.FloatListRemove(suform, jkey, parm5 as float, parm6 as int))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListRemove(suform, jkey, parm5, parm6 as int)
+                            return sl_triggersOptional.CreateString(StorageUtil.StringListRemove(suform, jkey, parm5, parm6 as int))
                         endif
                     elseif "listinsertat" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListInsert(suform, jkey, parm5 as int, parm6 as int) as int
+                            return sl_triggersOptional.CreateString(StorageUtil.IntListInsert(suform, jkey, parm5 as int, parm6 as int) as int)
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListInsert(suform, jkey, parm5 as int, parm6 as float) as int
+                            return sl_triggersOptional.CreateString(StorageUtil.FloatListInsert(suform, jkey, parm5 as int, parm6 as float) as int)
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListInsert(suform, jkey, parm5 as int, parm6) as int
+                            return sl_triggersOptional.CreateString(StorageUtil.StringListInsert(suform, jkey, parm5 as int, parm6) as int)
                         endif
                     elseif "listadjust" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListAdjust(suform, jkey, parm5 as int, parm6 as int) as int
+                            return sl_triggersOptional.CreateString(StorageUtil.IntListAdjust(suform, jkey, parm5 as int, parm6 as int) as int)
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListAdjust(suform, jkey, parm5 as int, parm6 as float) as int
+                            return sl_triggersOptional.CreateString(StorageUtil.FloatListAdjust(suform, jkey, parm5 as int, parm6 as float) as int)
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = ""
                             SquawkFunctionError(CmdPrimary, "jsonutil: 'string' is not a valid type for StorageUtil List Adjust")
+                            return sl_triggersOptional.CreateEmpty()
                         endif
                     elseif "listremoveat" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListRemoveAt(suform, jkey, parm5 as int) as int
+                            return sl_triggersOptional.CreateString(StorageUtil.IntListRemoveAt(suform, jkey, parm5 as int) as int)
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListRemoveAt(suform, jkey, parm5 as int) as int
+                            return sl_triggersOptional.CreateString(StorageUtil.FloatListRemoveAt(suform, jkey, parm5 as int) as int)
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListRemoveAt(suform, jkey, parm5 as int) as int
+                            return sl_triggersOptional.CreateString(StorageUtil.StringListRemoveAt(suform, jkey, parm5 as int) as int)
                         endif
                     elseif "listcountvalue" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListCountValue(suform, jkey, parm5 as int, parm6 as int)
+                            return sl_triggersOptional.CreateString(StorageUtil.IntListCountValue(suform, jkey, parm5 as int, parm6 as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListCountValue(suform, jkey, parm5 as float, parm6 as int)
+                            return sl_triggersOptional.CreateString(StorageUtil.FloatListCountValue(suform, jkey, parm5 as float, parm6 as int))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListCountValue(suform, jkey, parm5, parm6 as int)
+                            return sl_triggersOptional.CreateString(StorageUtil.StringListCountValue(suform, jkey, parm5, parm6 as int))
                         endif
                     elseif "listfind" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListFind(suform, jkey, parm5 as int)
+                            return sl_triggersOptional.CreateString(StorageUtil.IntListFind(suform, jkey, parm5 as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListFind(suform, jkey, parm5 as float)
+                            return sl_triggersOptional.CreateString(StorageUtil.FloatListFind(suform, jkey, parm5 as float))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListFind(suform, jkey, parm5)
+                            return sl_triggersOptional.CreateString(StorageUtil.StringListFind(suform, jkey, parm5))
                         endif
                     elseif "listhas" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListHas(suform, jkey, parm5 as int) as int
+                            return sl_triggersOptional.CreateString(StorageUtil.IntListHas(suform, jkey, parm5 as int) as int)
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListHas(suform, jkey, parm5 as float) as int
+                            return sl_triggersOptional.CreateString(StorageUtil.FloatListHas(suform, jkey, parm5 as float) as int)
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListHas(suform, jkey, parm5) as int
+                            return sl_triggersOptional.CreateString(StorageUtil.StringListHas(suform, jkey, parm5) as int)
                         endif
                     elseif "listresize" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListResize(suform, jkey, parm5 as int, parm6 as int)
+                            return sl_triggersOptional.CreateString(StorageUtil.IntListResize(suform, jkey, parm5 as int, parm6 as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListResize(suform, jkey, parm5 as int, parm6 as float)
+                            return sl_triggersOptional.CreateString(StorageUtil.FloatListResize(suform, jkey, parm5 as int, parm6 as float))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListResize(suform, jkey, parm5 as int, parm6)
+                            return sl_triggersOptional.CreateString(StorageUtil.StringListResize(suform, jkey, parm5 as int, parm6))
                         endif
 
 
 
                     else
                         SquawkFunctionError(CmdPrimary, "jsonutil: unknown sub-function (" + func + ")")
+                        return sl_triggersOptional.CreateEmpty()
                     endif
                 endif
             endif
         endif
     endif
+    return sl_triggersOptional.CreateBool(true)
 endFunction
 
 
@@ -5360,7 +5366,7 @@ endFunction
 ; sltdesc Weather related functions based on sub-function
 ; sltargs <sub-function> ; currently only GetClassification
 ; sltsamp weather_state GetClassification
-function weather_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function weather_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string nextResult = ""
@@ -5376,7 +5382,7 @@ function weather_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname math
@@ -5390,7 +5396,7 @@ endFunction
 ; sltargsmore if parameter 2 1s "abs": return parameter 3 as absolute value of the passed in value - N for N, and N for (-N)
 ; sltargsmore if parameter 2 1s "toint": return parameter 3 as integer. Parameter 3 can be in dec or hex. If it starts with 0, its converted as hex value
 ; sltsamp math floor 1.2
-function Math(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function Math(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string nextResult = ""
@@ -5434,6 +5440,6 @@ function Math(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] para
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
  

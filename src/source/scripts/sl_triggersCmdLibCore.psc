@@ -12,7 +12,7 @@ EndFunction
 ; sltdesc For example, if you slept from 1:30 to 4:00, you would get a Top of the Hour event at 4 with a value of 2.5
 ; sltsamp toh_elapsed_time
 ; sltrslt $$ would contain the actual elapsed game time from the previous "Top of the Hour" event
-function toh_elapsed_time(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function toh_elapsed_time(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-    CmdPrimary.MostRecentResult = GetExtension().TohElapsedTime as string
+    return sl_triggersOptional.CreateString(GetExtension().TohElapsedTime)
 endFunction

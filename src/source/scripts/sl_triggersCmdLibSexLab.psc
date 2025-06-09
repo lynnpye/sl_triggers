@@ -6,18 +6,18 @@ sl_triggersExtensionSexLab Function GetExtension() global
     return GetForm_SLT_ExtensionSexLab() as sl_triggersExtensionSexLab
 EndFunction
 
-function resolve_partner_at(Actor CmdTargetActor, sl_triggersCmd CmdPrimary, string[] param, int skip) global
+int function resolve_partner_at(Actor CmdTargetActor, sl_triggersCmd CmdPrimary, string[] param, int skip) global
     DebMsg("resolve_partner_at (" + skip + ")")
     sl_triggersExtensionSexLab slExtension = GetExtension()
 
     sslThreadController thread = (slExtension.SexLabForm as SexLabFramework).GetActorController(CmdTargetActor)
     if !thread
-        return
+        return sl_triggersOptional.CreateEmpty()
     endif
 
     if skip < 0 || skip > 3
         DebMsg("Invalid skip value in resolve_partner")
-        return
+        return sl_triggersOptional.CreateEmpty()
     endif
 
     int i = 0
@@ -26,8 +26,7 @@ function resolve_partner_at(Actor CmdTargetActor, sl_triggersCmd CmdPrimary, str
 
         if other != CmdTargetActor
             if skip == 0
-                CmdPrimary.CustomResolveFormResult = other
-                return
+                return sl_triggersOptional.CreateForm(other)
             else
                 skip -= 1
             endif
@@ -36,27 +35,27 @@ function resolve_partner_at(Actor CmdTargetActor, sl_triggersCmd CmdPrimary, str
         i += 1
     endwhile
 
-	CmdPrimary.CustomResolveFormResult = none
+    return sl_triggersOptional.CreateEmpty()
 endFunction
 
-function resolve_partner1(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function resolve_partner1(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-    resolve_partner_at(CmdTargetActor, CmdPrimary, param, 0)
+    return resolve_partner_at(CmdTargetActor, CmdPrimary, param, 0)
 endFunction
 
-function resolve_partner2(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function resolve_partner2(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-    resolve_partner_at(CmdTargetActor, CmdPrimary, param, 1)
+    return resolve_partner_at(CmdTargetActor, CmdPrimary, param, 1)
 endFunction
 
-function resolve_partner3(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function resolve_partner3(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-    resolve_partner_at(CmdTargetActor, CmdPrimary, param, 2)
+    return resolve_partner_at(CmdTargetActor, CmdPrimary, param, 2)
 endFunction
 
-function resolve_partner4(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function resolve_partner4(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-    resolve_partner_at(CmdTargetActor, CmdPrimary, param, 3)
+    return resolve_partner_at(CmdTargetActor, CmdPrimary, param, 3)
 endFunction
 
 ; sltname util_waitforend
@@ -90,7 +89,7 @@ endFunction
 ; sltsamp if $$ = 0 end
 ; sltsamp msg_notify "Someone is watching you!"
 ; sltsamp [end]
-function sl_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function sl_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     sl_triggersExtensionSexLab slExtension = GetExtension()
@@ -143,10 +142,10 @@ function sl_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
         endif
     endif
 
-    CmdPrimary.iterActor = nextIterActor
+    return sl_triggersOptional.CreateForm(nextIterActor)
 endfunction
-function util_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
-    sl_getrndactor(CmdTargetActor, _CmdPrimary, param)
+int function util_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+    return sl_getrndactor(CmdTargetActor, _CmdPrimary, param)
 endFunction
 
 ; xsltname actor_say
@@ -204,7 +203,7 @@ endFunction
 ; sltargsmore if parameter 2 is "SL": return actors Sexlab frameworks race key name. Like: "dogs", "bears", etc. Note: will return "" if actor is humanoid
 ; sltsamp actor_race $self "SL"
 ; sltsamp msg_notify "  Race SL: " $$
-function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     sl_triggersExtensionSexLab slExtension = GetExtension()
@@ -226,7 +225,7 @@ function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname util_waitforkbd
@@ -239,7 +238,7 @@ endFunction
 ; sltsamp ...
 ; sltsamp if $$ < 0 END
 ; sltrslt Wait for Num-, Num+, Num/, or Num*, or animation expired, and then do something based on the result.
-function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     sl_triggersExtensionSexLab slExtension = GetExtension()
@@ -292,7 +291,7 @@ function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; stlname sl_adjustenjoyment
@@ -326,7 +325,7 @@ endFunction
 ; sltdesc Sets $$ to 1 if the specified actor is in a SexLab scene, 0 otherwise
 ; sltargs actor: target Actor
 ; sltsamp sl_isin $self
-function sl_isin(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function sl_isin(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     sl_triggersExtensionSexLab slExtension = GetExtension()
@@ -340,7 +339,7 @@ function sl_isin(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname sl_hastag
@@ -350,7 +349,7 @@ endFunction
 ; sltargs actor: target Actor
 ; sltsamp sl_hastag "Oral" $self
 ; sltsamp if $$ = 1 ORAL
-function sl_hastag(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function sl_hastag(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     sl_triggersExtensionSexLab slExtension = GetExtension()
@@ -371,9 +370,7 @@ function sl_hastag(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
         endIf
     endif
     
-    CmdPrimary.MostRecentResult = nextResult
-
-	return
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname sl_animname
@@ -381,7 +378,7 @@ endFunction
 ; sltdesc Sets $$ to the current SexLab animation name
 ; sltsamp sl_animname $self
 ; sltsamp msg_notify "Playing: " $$
-function sl_animname(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function sl_animname(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     sl_triggersExtensionSexLab slExtension = GetExtension()
@@ -399,9 +396,7 @@ function sl_animname(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
-
-	return
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname sl_getprop
@@ -411,7 +406,7 @@ endFunction
 ; sltargs actor: target Actor
 ; sltsamp sl_getprop Stage $self
 ; sltsamp msg_notify "Current Stage: " $$
-function sl_getprop(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function sl_getprop(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     sl_triggersExtensionSexLab slExtension = GetExtension()
@@ -434,7 +429,7 @@ function sl_getprop(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname sl_advance
@@ -466,7 +461,7 @@ endFunction
 ; sltargs actor: target Actor
 ; sltargs slotnumber: 1-based SexLab thread slot number
 ; sltsamp sl_isinslot $player 1
-function sl_isinslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function sl_isinslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     sl_triggersExtensionSexLab slExtension = GetExtension()
@@ -495,7 +490,7 @@ function sl_isinslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
         endif
 	endif
 	
-	CmdPrimary.MostRecentResult = nextResult
+	return sl_triggersOptional.CreateString(nextResult)
 endFunction
 
 ; sltname sl_orgasm
@@ -675,7 +670,7 @@ endFunction
 ; sltargs actor: target Actor
 ; sltsamp osla_get_arousal $self
 ; sltsamp msg_console "Arousal is: " $$
-function osla_get_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function osla_get_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string newResult
@@ -687,7 +682,7 @@ function osla_get_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    return sl_triggersOptional.CreateString(newResult)
 endFunction
 
 ; sltname osla_get_arousal_multiplier
@@ -696,7 +691,7 @@ endFunction
 ; sltargs actor: target Actor
 ; sltsamp osla_get_arousal_multiplier $self
 ; sltsamp msg_console "Arousal multiplier is: " $$
-function osla_get_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function osla_get_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string newResult
@@ -708,7 +703,7 @@ function osla_get_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _Cm
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    return sl_triggersOptional.CreateString(newResult)
 endFunction
 
 ; sltname osla_get_exposure
@@ -717,7 +712,7 @@ endFunction
 ; sltargs actor: target Actor
 ; sltsamp osla_get_exposure $self
 ; sltsamp msg_console "Exposure is: " $$
-function osla_get_exposure(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function osla_get_exposure(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string newResult
@@ -729,7 +724,7 @@ function osla_get_exposure(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, 
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    return sl_triggersOptional.CreateString(newResult)
 endFunction
 
 ; sltname osla_get_actor_days_since_last_orgasm
@@ -738,7 +733,7 @@ endFunction
 ; sltargs actor: target Actor
 ; sltsamp osla_get_actor_days_since_last_orgasm $self
 ; sltsamp msg_console "Arousal is: " $$
-function osla_get_actor_days_since_last_orgasm(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function osla_get_actor_days_since_last_orgasm(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string newResult
@@ -750,7 +745,7 @@ function osla_get_actor_days_since_last_orgasm(Actor CmdTargetActor, ActiveMagic
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    return sl_triggersOptional.CreateString(newResult)
 endFunction
 
 ; sltname osla_modify_arousal
@@ -760,7 +755,7 @@ endFunction
 ; sltargs value: float value
 ; sltargs reason: string, optional (default "unknown")
 ; sltsamp osla_modify_arousal $self 20.0 "for reasons"
-function osla_modify_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function osla_modify_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string newResult
@@ -777,7 +772,7 @@ function osla_modify_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    return sl_triggersOptional.CreateString(newResult)
 endFunction
 
 ; sltname osla_set_arousal
@@ -787,7 +782,7 @@ endFunction
 ; sltargs value: float value
 ; sltargs reason: string, optional (default "unknown")
 ; sltsamp osla_set_arousal $self 50.0 "for reasons"
-function osla_set_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function osla_set_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string newResult
@@ -804,7 +799,7 @@ function osla_set_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    return sl_triggersOptional.CreateString(newResult)
 endFunction
 
 ; sltname osla_modify_arousal_multiplier
@@ -814,7 +809,7 @@ endFunction
 ; sltargs value: float value
 ; sltargs reason: string, optional (default "unknown")
 ; sltsamp osla_modify_arousal_multiplier $self 0.5 "for reasons"
-function osla_modify_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function osla_modify_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string newResult
@@ -831,7 +826,7 @@ function osla_modify_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect 
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    return sl_triggersOptional.CreateString(newResult)
 endFunction
 
 ; sltname osla_set_arousal_multiplier
@@ -841,7 +836,7 @@ endFunction
 ; sltargs value: float value
 ; sltargs reason: string, optional (default "unknown")
 ; sltsamp osla_set_arousal_multiplier $self 2.0 "for reasons"
-function osla_set_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+int function osla_set_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     string newResult
@@ -858,6 +853,6 @@ function osla_set_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _Cm
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    return sl_triggersOptional.CreateString(newResult)
 endFunction
 

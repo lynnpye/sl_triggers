@@ -59,7 +59,7 @@ EndFunction
 ; SendModEvent(EVENT_SLT_REQUEST_COMMAND(), "<command, required>")
 ; Will run the specified command with the Player as the target.
 string Function EVENT_SLT_REQUEST_COMMAND() global
-	return "_slt_event_slt_request_command_"
+	return "sl_triggers_SLTRequestCommand"
 EndFunction
 
 string Function EVENT_SLT_REQUEST_LIST() global
@@ -216,7 +216,7 @@ int Function GlobalHexToInt(string _value) global
 EndFunction
 
 Function SquawkFunctionError(sl_triggersCmd _cmdPrimary, string msg) global
-	DebMsg("SLT: [][lineNum:][command:] " + msg)
+	DebMsg("SLT: " + msg)
 EndFunction
 
 bool Function ParamLengthLT(sl_triggersCmd _cmdPrimary, int actualLength, int neededLength) global

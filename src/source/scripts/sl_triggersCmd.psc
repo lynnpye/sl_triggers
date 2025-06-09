@@ -23,14 +23,7 @@ Keyword			Property ActorTypeUndead Auto
 Actor			Property CmdTargetActor Auto Hidden
 
 
-string property cmdname auto hidden
-int property linenum auto hidden
-string          Property CustomResolveResult Auto Hidden
-;Actor           Property CustomResolveActorResult Auto Hidden
-Form            Property CustomResolveFormResult Auto Hidden
-string	    Property MostRecentResult auto Hidden
 int			Property lastKey auto  Hidden
-Actor		Property iterActor auto Hidden
 bool        Property cleanedup = false auto  hidden
 
 Function SFE(string msg)

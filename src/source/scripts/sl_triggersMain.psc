@@ -188,6 +188,7 @@ Event OnSLTRequestList(string _eventName, string _storageUtilStringListKey, floa
 EndEvent
 
 Event OnSLTRequestCommand(string _eventName, string _commandName, float __ignored, Form _theActor)
+	DebMsg("OnSLTRequestCommand (" + _eventName + ") (" + _commandName + ") (" + __ignored + ") (" + _theActor + ")")
 	if !self
 		return
 	endif
