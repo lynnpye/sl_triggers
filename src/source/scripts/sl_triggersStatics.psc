@@ -59,7 +59,7 @@ EndFunction
 ; SendModEvent(EVENT_SLT_REQUEST_COMMAND(), "<command, required>")
 ; Will run the specified command with the Player as the target.
 string Function EVENT_SLT_REQUEST_COMMAND() global
-	return "_slt_event_slt_request_command_"
+	return "sl_triggers_SLTRequestCommand"
 EndFunction
 
 string Function EVENT_SLT_REQUEST_LIST() global
@@ -80,10 +80,6 @@ string Function EVENT_SLT_INTERNAL_READY_EVENT() global
 	return "_slt_event_slt_internal_ready_event_"
 EndFunction
 
-string Function EVENT_SLT_HEARTBEAT() global
-	RETURN "_SLT_INTERNAL_HEARTBEAT_EVENT_DO_NOT_OVERRIDE_OR_CAPTURE_THIS_EVENT_"
-EndFunction
-
 string Function EVENT_SLT_RESET() global
 	return "_slt_event_slt_slt_reset_all_systems_"
 EndFunction
@@ -95,24 +91,6 @@ EndFunction
 
 float Function SLT_LIST_REQUEST_SU_KEY_IS_GLOBAL() global
 	return 1.7
-EndFunction
-
-;;;;;;;;;
-; Simple constants for Papyrus types
-int Function PTYPE_STRING() global
-	return 1
-EndFunction
-
-int Function PTYPE_INT() global
-	return 2
-EndFunction
-
-int Function PTYPE_FLOAT() global
-	return 3
-EndFunction
-
-int Function PTYPE_FORM() global
-	return 4
 EndFunction
 
 ;;;;;;;
@@ -173,13 +151,6 @@ EndFunction
 ;;;;;;;;
 ; Global general values
 ; SLT Global/General
-string Function CommandsFolder() global
-	return "../sl_triggers/commands/"
-EndFunction
-
-string Function FullCommandsFolder() global
-	return "data/SKSE/Plugins/sl_triggers/commands/"
-EndFunction
 
 string Function ExtensionTriggersFolder(string _extensionKey) global
 	return "../sl_triggers/extensions/" + _extensionKey + "/"
@@ -244,33 +215,8 @@ int Function GlobalHexToInt(string _value) global
     return retVal
 EndFunction
 
-float Function GetKeepAliveTimeWithJitter(float _time, float _jitter) global
-	float maxJitter = _jitter
-	float minJitter = -1 * maxJitter
-	return _time + Utility.RandomFloat(minJitter, maxJitter)
-EndFunction
-
-float Function DefaultGetKeepAliveTimeWithJitter(float _time) global
-	float jitter = _time * 0.1
-	return GetKeepAliveTimeWithJitter(_time, jitter)
-EndFunction
-
-string Function MakeExtensionInstanceId(string extensionKey) global
-	return extensionKey + "_instanceId"
-EndFunction
-
-string Function MakeInstanceKeyPrefix(string instance) global
-	return "sl_triggers:" + instance
-EndFunction
-
-string Function MakeInstanceKey(string instance, string keyname) global
-	return MakeInstanceKeyPrefix(instance) + ":" + keyname
-EndFunction
-
-
-
 Function SquawkFunctionError(sl_triggersCmd _cmdPrimary, string msg) global
-	DebMsg("SLT: [" + _cmdPrimary.cmdName + "][lineNum:" + _cmdPrimary.lineNum + "][command:" + _cmdPrimary.command + "] " + msg)
+	DebMsg("SLT: " + msg)
 EndFunction
 
 bool Function ParamLengthLT(sl_triggersCmd _cmdPrimary, int actualLength, int neededLength) global

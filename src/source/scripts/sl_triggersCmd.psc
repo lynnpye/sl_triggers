@@ -1,8 +1,6 @@
 Scriptname sl_TriggersCmd extends ActiveMagicEffect
 
-
 import sl_triggersStatics
-import sl_triggersHeap
 
 ; SLT
 ; sl_triggersMain
@@ -140,7 +138,7 @@ Form Function GetFormById(string _data)
             if id
                 retVal = Game.GetForm(id)
             else
-                retVal = sl_triggers_internal.SafeFindFormByEditorId(_data)
+                retVal = sl_triggers.GetForm(_data)
             endif
         endif
     endif
@@ -189,6 +187,7 @@ Function QueueUpdateLoop(float afDelay = 1.0)
 	RegisterForSingleUpdate(afDelay)
 EndFunction
 
+;/
 string Function vars_get(string varsindex)
 	return Heap_StringGetFK(CmdTargetActor, VARS_KEY_PREFIX + varsindex)
 EndFunction
@@ -206,6 +205,7 @@ EndFunction
 string Function globalvars_set(string varsindex, string value)
 	return SLT.globalvars_set(varsindex, value)
 EndFunction
+/;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

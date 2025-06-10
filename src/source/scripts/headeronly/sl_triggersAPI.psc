@@ -14,3 +14,6 @@ EndFunction
 string Function GetOnNewSessionEventName() global
     return ""
 EndFunction
+
+Function RegisterExtension(sl_triggersExtension extensionToRegister) global
+EndFunction

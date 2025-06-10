@@ -36,7 +36,8 @@ bool	handlingTopOfTheHour = false ; only because the check is in a sensitive eve
 ; so with 4 keycodes and 2 modifiers (assuming none of the modifiers are themselves also keycodes) this would be 6 in length
 int[]		_keycodes_of_interest
 ; matching length boolean state array for fast lookup
-bool[]		_keycode_status
+;bool[]		_keycode_status
+bool[]		_keystates
 
 ; onInit we will refresh these with what we find
 ; and edit them during MCM updates as needed
@@ -44,59 +45,29 @@ string[]	triggerKeys_topOfTheHour
 string[]	triggerKeys_keyDown
 string[]	triggerKeys_newSession
 
-; GetExtensionKey
-; OVERRIDE REQUIRED
-; returns: the unique string identifier for this extension
-string Function GetExtensionKey()
-	return "sl_triggersExtensionCore"
-EndFunction
-
-; GetFriendlyName
-; OVERRIDE RECOMMENDED
-string Function GetFriendlyName()
-	return "SLT Core"
-EndFunction
-
-;/
-I chose 10000 here because I am adding minor functionality and not
-overriding anything in core. There is plenty of room between me
-and core for other extensions to slide in.
-/;
-; GetPriority
-; OPTIONAL
-; 0 is roughly "built-in"
-; <0 has higher priority (think first in line to take a crack at the operation)
-int Function GetPriority()
-	return 10000
-EndFunction
-
 Event OnInit()
 	if !self
 		return
 	endif
 	; REQUIRED CALL
+	UnregisterForUpdate()
+	RegisterForSingleUpdate(0.1)
+EndEvent
+
+Event OnUpdate()
 	SLTInit()
 EndEvent
 
 Function SLTReady()
-	;/
+	_keystates = PapyrusUtil.BoolArray(256, false)
 	UpdateDAKStatus()
 	RefreshData()
-	/;
 EndFunction
 
 Function RefreshData()
 	RefreshTriggerCache()
 	RegisterEvents()
 EndFunction
-
-; configuration was updated mid-game
-Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
-	if !self
-		return
-	endif
-	RefreshData()
-EndEvent
 
 Event OnUpdateGameTime()
 	if !self
@@ -130,9 +101,6 @@ Event OnNewSession(int _newSessionId)
 	If !IsEnabled
 		Return
 	EndIf
-
-	UpdateDAKStatus()
-	RefreshData()
 	
 	HandleNewSession(_newSessionId)
 EndEvent
@@ -151,6 +119,19 @@ Event OnTopOfTheHour(String eventName, string strArg, Float fltArg, Form sender)
 	;checkEvents(-1, 4, PlayerRef)
 EndEvent
 
+Event OnKeyUp(int KeyCode, float holdTime)
+	if !self
+		Debug.Notification("Triggers: Critical error")
+		Return
+	endif
+	
+	If !IsEnabled
+		Return
+	Endif
+
+	_keystates[KeyCode] = false
+EndEvent
+
 Event OnKeyDown(Int KeyCode)
 	if !self
 		Debug.Notification("Triggers: Critical error")
@@ -160,6 +141,8 @@ Event OnKeyDown(Int KeyCode)
 	If !IsEnabled
 		Return
 	Endif
+
+	_keystates[KeyCode] = true
 	
 	; update our statii
 	; please don't say it
@@ -170,13 +153,14 @@ Event OnKeyDown(Int KeyCode)
 	we have registered for seems like a very small burden, particularly since we already went through the effort
 	of caching the keycodes we care about and popping out a little bool[] for it too
 	/;
+	;/
 	int i = 0
 	while i < _keycodes_of_interest.Length
 		int kcode = _keycodes_of_interest[i]
 		_keycode_status[i] = Input.IsKeyPressed(kcode)
 		i += 1
 	endwhile
-	
+	/;
 	HandleOnKeyDown()
 EndEvent
 
@@ -205,7 +189,7 @@ Function RefreshTriggerCache()
 	endwhile
 
 	_keycodes_of_interest = PapyrusUtil.IntArray(0)
-	_keycode_status = PapyrusUtil.BoolArray(0)
+	;_keycode_status = PapyrusUtil.BoolArray(0)
 	if triggerKeys_keyDown.Length > 0
 		i = 0
 
@@ -227,7 +211,7 @@ Function RefreshTriggerCache()
 			i += 1
 		endwhile
 
-		_keycode_status = PapyrusUtil.BoolArray(_keycodes_of_interest.Length)
+		;_keycode_status = PapyrusUtil.BoolArray(_keycodes_of_interest.Length)
 	endif
 EndFunction
 
@@ -267,12 +251,13 @@ Function UpdateDAKStatus()
 	endif
 EndFunction
 
-Function SLTBootstrapInit()
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_ON_NEW_SESSION(), "OnNewSession")
-EndFunction
-
 ; selectively enables only events with triggers
 Function RegisterEvents()
+	UnregisterForModEvent(EVENT_SLT_ON_NEW_SESSION())
+	if IsEnabled && triggerKeys_newSession.Length > 0
+		SafeRegisterForModEvent_Quest(self, EVENT_SLT_ON_NEW_SESSION(), "OnNewSession")
+	endif
+
 	UnregisterForModEvent(EVENT_TOP_OF_THE_HOUR)
 	handlingTopOfTheHour = false
 	if IsEnabled && triggerKeys_topOfTheHour.Length > 0
@@ -281,13 +266,13 @@ Function RegisterEvents()
 		handlingTopOfTheHour = true
 	endif
 	
-	UnregisterForKeyEvents()
 	if IsEnabled && triggerKeys_keyDown.Length > 0
 		RegisterForKeyEvents()
 	endif
 EndFunction
 
 Function RegisterForKeyEvents()
+	UnregisterForAllKeys()
 	int i = 0
 	while i < _keycodes_of_interest.Length
 		RegisterForKey(_keycodes_of_interest[i])
@@ -295,14 +280,11 @@ Function RegisterForKeyEvents()
 	endwhile
 EndFunction
 
-Function UnregisterForKeyEvents()
-	UnregisterForAllKeys()
-EndFunction
-
 Function HandleNewSession(int _newSessionId)
 	int i = 0
 	string triggerKey
 	string command
+	
 	while i < triggerKeys_newSession.Length
 		triggerKey = triggerKeys_newSession[i]
 		string _triggerFile = FN_T(triggerKey)
@@ -374,13 +356,15 @@ Function HandleOnKeyDown()
 		dakused = false
 		
 		ival = JsonUtil.GetIntValue(_triggerFile, ATTR_KEYMAPPING)
-		statusidx = _keycodes_of_interest.Find(ival)
+		;statusidx = _keycodes_of_interest.Find(ival)
 		
 		; check keycode status, must be true
-		if statusidx < 0
-			doRun = false
-		else
-			doRun = _keycode_status[statusidx]
+		;if statusidx < 0
+		;	doRun = false
+		;else
+		if ival
+			;doRun = _keycode_status[statusidx]
+			doRun = _keystates[ival]
 		endif
 		
 		; check dynamic activation key if in use and specified
@@ -401,12 +385,14 @@ Function HandleOnKeyDown()
 			
 			; only if mapped
 			if ival > -1
-				statusidx = _keycodes_of_interest.Find(ival)
+				;statusidx = _keycodes_of_interest.Find(ival)
 				
-				if statusidx < 0
-					doRun = false
-				else
-					doRun = _keycode_status[statusidx]
+				;if statusidx < 0
+				;	doRun = false
+				;else
+				if ival
+					;doRun = _keycode_status[statusidx]
+					doRun = _keystates[ival]
 				endif
 			endif
 		endif
@@ -414,6 +400,7 @@ Function HandleOnKeyDown()
 		if doRun
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
 			if command
+				int KeyCode = JsonUtil.GetIntValue(_triggerFile, ATTR_KEYMAPPING)
 				RequestCommand(PlayerRef, command)
 			endIf
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
