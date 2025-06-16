@@ -1,6 +1,12 @@
 Scriptname sl_TriggersCmd extends ActiveMagicEffect
 
 import sl_triggersStatics
+;import sl_triggersCallstack
+
+; Generate base key for an instance
+string Function MakeInstanceKey(string instanceId, string suffix) global
+    return "slt:inst:" + instanceId + ":" + suffix
+EndFunction
 
 ; SLT
 ; sl_triggersMain
@@ -187,25 +193,25 @@ Function QueueUpdateLoop(float afDelay = 1.0)
 	RegisterForSingleUpdate(afDelay)
 EndFunction
 
-;/
+
 string Function vars_get(string varsindex)
-	return Heap_StringGetFK(CmdTargetActor, VARS_KEY_PREFIX + varsindex)
+	return "";Heap_StringGetFK(CmdTargetActor, VARS_KEY_PREFIX + varsindex)
 EndFunction
 
 string Function vars_set(string varsindex, string value)
-	return Heap_StringSetFK(CmdTargetActor, VARS_KEY_PREFIX + varsindex, value)
+	return "";Heap_StringSetFK(CmdTargetActor, VARS_KEY_PREFIX + varsindex, value)
 EndFunction
 
 ; simple get handler for infini-globals
 string Function globalvars_get(string varsindex)
-	return SLT.globalvars_get(varsindex)
+	return "";SLT.globalvars_get(varsindex)
 EndFunction
 
 ; simple set handler for infini-globals
 string Function globalvars_set(string varsindex, string value)
-	return SLT.globalvars_set(varsindex, value)
+	return "";SLT.globalvars_set(varsindex, value)
 EndFunction
-/;
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -322,15 +328,15 @@ EndFunction
 
 
 Event OnPlayerLoadGame()
-	instanceId = Heap_DequeueInstanceIdF(CmdTargetActor)
+	;instanceId = Heap_DequeueInstanceIdF(CmdTargetActor)
 
-    currentCmdLine = Heap_StringListToArrayX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdidx + "]")
+    ;currentCmdLine = Heap_StringListToArrayX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdidx + "]")
 
     DoWhatYouShouldHaveDoneInTheFirstPlace()
 EndEvent
 
 Function DoWhatYouShouldHaveDoneInTheFirstPlace()
-	SafeRegisterForModEvent_AME(self, EVENT_SLT_HEARTBEAT(), "OnSLTHeartbeat")
+	;SafeRegisterForModEvent_AME(self, EVENT_SLT_HEARTBEAT(), "OnSLTHeartbeat")
 	SafeRegisterForModEvent_AME(self, EVENT_SLT_RESET(), "OnSLTReset")
 
     _slt_Setup_InstanceKeys()
@@ -344,7 +350,7 @@ EndFunction
 Event OnEffectStart(Actor akTarget, Actor akCaster)
 	CmdTargetActor = akCaster
 	
-	instanceId = Heap_DequeueInstanceIdF(CmdTargetActor)
+	;instanceId = Heap_DequeueInstanceIdF(CmdTargetActor)
 
     if !instanceId
         return
@@ -393,7 +399,7 @@ Function RunScript()
             PerformDigitalHygiene()
             return
         endif
-        cmdNum = Heap_IntGetX(CmdTargetActor, InstanceId, CallstackId)
+        ;cmdNum = Heap_IntGetX(CmdTargetActor, InstanceId, CallstackId)
         cmdidx = 0
     endif
 
@@ -405,7 +411,7 @@ Function RunScript()
         endif
 
         while cmdidx < cmdNum
-            currentCmdLine = Heap_StringListToArrayX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdidx + "]")
+            ;currentCmdLine = Heap_StringListToArrayX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdidx + "]")
             cmdLine = currentCmdLine
 
             if cmdLine.Length
@@ -579,7 +585,7 @@ Function RunScript()
                             if !cmdType
                                 sl_triggersCmd._slt_RemoveCallstack(CmdTargetActor, InstanceId)
                             else
-                                cmdNum = Heap_IntGetX(CmdTargetActor, InstanceId, CallstackId)
+                                ;cmdNum = Heap_IntGetX(CmdTargetActor, InstanceId, CallstackId)
                                 cmdidx = 0
                             endif
                         else
@@ -615,7 +621,7 @@ Function RunScript()
 
                         string vidx = IsVarStringG(arg)
                         if vidx
-                            SLT.globalvars_set(vidx, newval)
+                            globalvars_set(vidx, newval)
                         else
                             vidx = IsVarString(arg)
                             if vidx
@@ -712,8 +718,8 @@ Function Send_X_ActualOper(string _code)
 EndFunction
 
 Function PerformDigitalHygiene()
-    Heap_ClearPrefixF(CmdTargetActor, MakeInstanceKeyPrefix(instanceId))
-    Heap_CompleteScript(CmdTargetActor, InstanceId)
+    ;Heap_ClearPrefixF(CmdTargetActor, MakeInstanceKeyPrefix(instanceId))
+    ;Heap_CompleteScript(CmdTargetActor, InstanceId)
     
     UnregisterForAllModEvents()
     Self.Dispel()
@@ -931,8 +937,8 @@ Int Function _slt_FindGoto(string _label, int _cmdIdx, string _cmdtype)
             
             while idx < cmdNum
                 callstackIdxKey = CallstackId + "[" + idx + "]"
-                if Heap_StringListCountX(CmdTargetActor, InstanceId, callstackIdxKey) > 0
-                    cmdLine1 = Heap_StringListToArrayX(CmdTargetActor, InstanceId, callstackIdxKey)
+                if false ;Heap_StringListCountX(CmdTargetActor, InstanceId, callstackIdxKey) > 0
+                    cmdLine1 = PapyrusUtil.StringArray(0); Heap_StringListToArrayX(CmdTargetActor, InstanceId, callstackIdxKey)
                     string _builtLabel = _slt_IsLabel(_cmdtype, cmdLine1)
                     if _builtLabel
                         _slt_AddGoto(idx, _builtLabel)
@@ -978,7 +984,7 @@ Int Function _slt_FindGosub(string _label, int _cmdIdx)
     
     idx = _cmdIdx + 1
     while idx < cmdNum
-        cmdLine1 = Heap_StringListToArrayX(CmdTargetActor, InstanceId, CallstackId + "[" + idx + "]")
+        cmdLine1 = PapyrusUtil.StringArray(0);Heap_StringListToArrayX(CmdTargetActor, InstanceId, CallstackId + "[" + idx + "]")
         if cmdLine1.Length
             if cmdLine1[0] == "beginsub"
                 _slt_AddGosub(idx, cmdLine1[1])
@@ -1003,7 +1009,7 @@ int Function _slt_FindEndsub(int _cmdIdx)
     
     idx = _cmdIdx + 1
     while idx < cmdNum
-        cmdLine1 = Heap_StringListToArrayX(CmdTargetActor, InstanceId, CallstackId + "[" + idx + "]")
+        cmdLine1 = PapyrusUtil.StringArray(0);Heap_StringListToArrayX(CmdTargetActor, InstanceId, CallstackId + "[" + idx + "]")
         if cmdLine1.Length
             if cmdLine1[0] == "endsub"
                 return idx
@@ -1021,9 +1027,9 @@ bool Function _slt_IsFileParseable(string _theCmdName)
     string[] cmdLine
     if _last != "json" && _last != ".ini"
         _myCmdName = _theCmdName + ".ini"
-        if !MiscUtil.FileExists(FullCommandsFolder() + _myCmdName)
+        if !MiscUtil.FileExists("" ;/FullCommandsFolder()/; + _myCmdName)
             _myCmdName = _theCmdName + "json"
-            if !JsonUtil.JsonExists(CommandsFolder() + _myCmdName)
+            if !JsonUtil.JsonExists("" ;/CommandsFolder()/; + _myCmdName)
                 return false
             else
                 return true
@@ -1042,9 +1048,9 @@ string Function _slt_ParseCommandFile()
     string[] cmdLine
     if _last != "json" && _last != ".ini"
         _myCmdName = cmdName + ".ini"
-        if !MiscUtil.FileExists(FullCommandsFolder() + _myCmdName)
+        if !MiscUtil.FileExists("" ;/FullCommandsFolder()/; + _myCmdName)
             _myCmdName = cmdName + "json"
-            if !JsonUtil.JsonExists(CommandsFolder() + _myCmdName)
+            if !JsonUtil.JsonExists("" ;/CommandsFolder()/; + _myCmdName)
                 SFE("attempted to parse an unknown file type(" + cmdName + ")")
                 return ""
             else
@@ -1057,18 +1063,18 @@ string Function _slt_ParseCommandFile()
 
     int lineno = 0
     if _last == "json"
-        _myCmdName = CommandsFolder() + _myCmdName
+        _myCmdName = "" ;/CommandsFolder()/; + _myCmdName
         cmdNum = JsonUtil.PathCount(_myCmdName, ".cmd")
         cmdIdx = 0
         while cmdIdx < cmdNum
             lineno += 1
-            Heap_IntSetX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdIdx + "]:line", lineno)
+            ;Heap_IntSetX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdIdx + "]:line", lineno)
             cmdLine = JsonUtil.PathStringElements(_myCmdName, ".cmd[" + cmdIdx + "]")
             if cmdLine.Length
-                Heap_IntAdjustX(CmdTargetActor, InstanceId, CallstackId, 1)
+             ;   Heap_IntAdjustX(CmdTargetActor, InstanceId, CallstackId, 1)
                 int idx = 0
                 while idx < cmdLine.Length
-                    Heap_StringListAddX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdIdx + "]", cmdLine[idx])
+              ;      Heap_StringListAddX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdIdx + "]", cmdLine[idx])
                     idx += 1
                 endwhile
             endif
@@ -1076,26 +1082,26 @@ string Function _slt_ParseCommandFile()
         endwhile
         return "json"
     elseif _last == ".ini"
-        string cmdpath = FullCommandsFolder() + _myCmdName
+        string cmdpath = "" ;/FullCommandsFolder()/; + _myCmdName
         string cmdstring = MiscUtil.ReadFromFile(cmdpath)
-        string[] cmdlines = sl_triggers_internal.SafeSplitLinesTrimmed(cmdstring)
+        string[] cmdlines = PapyrusUtil.StringArray(0); sl_triggers_internal.SafeSplitLinesTrimmed(cmdstring)
 
         cmdNum = cmdlines.Length
         cmdIdx = 0
         while cmdIdx < cmdNum
             lineno += 1
-            Heap_IntSetX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdIdx + "]:line", lineno)
-            cmdLine = sl_triggers_internal.SafeTokenize(cmdlines[cmdIdx])
+            ;Heap_IntSetX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdIdx + "]:line", lineno)
+            cmdLine = PapyrusUtil.StringArray(0);sl_triggers_internal.SafeTokenize(cmdlines[cmdIdx])
             if cmdLine.Length
                 int idx = 0
                 while idx < cmdLine.Length
-                    Heap_StringListAddX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdIdx + "]", cmdLine[idx])
+                    ;Heap_StringListAddX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdIdx + "]", cmdLine[idx])
                     idx += 1
                 endwhile
             endif
             cmdIdx += 1
         endwhile
-        Heap_IntSetX(CmdTargetActor, InstanceId, CallstackId, cmdNum)
+        ;Heap_IntSetX(CmdTargetActor, InstanceId, CallstackId, cmdNum)
         return "ini"
     endif
 EndFunction
@@ -1137,7 +1143,7 @@ string Function _slt_ActualResolve(string _code)
             endif
         endif
         
-        _resolved = slext.CustomResolve(self, _code)
+        _resolved = false ;slext.CustomResolve(self, _code)
         if _resolved
             return CustomResolveResult
         endif
@@ -1189,7 +1195,7 @@ Form Function _slt_ActualResolveForm(string _code)
             endif
         endif
         
-        _resolved = slext.CustomResolveForm(self, _code)
+        _resolved = false ;slext.CustomResolveForm(self, _code)
         if _resolved
             return CustomResolveFormResult
         endif
@@ -1202,9 +1208,9 @@ EndFunction
 bool Function _slt_SLTResolveCond(string _p1, string _p2, string _oper)
     bool outcome = false
     if _oper == "=" || _oper == "==" || _oper == "&="
-        outcome = sl_triggers_internal.SafeSmartEquals(_p1, _p2)
+        outcome = false ;sl_triggers_internal.SafeSmartEquals(_p1, _p2)
     elseIf _oper == "!=" || _oper == "&!="
-        outcome = !sl_triggers_internal.SafeSmartEquals(_p1, _p2)
+        outcome = false ;!sl_triggers_internal.SafeSmartEquals(_p1, _p2)
     elseIf _oper == ">"
         if (_p1 as float) > (_p2 as float)
             outcome = true
@@ -1245,7 +1251,7 @@ bool Function _slt_ActualResolveCond(string _p1, string _p2, string _oper)
             endif
         endif
         
-        _resolved = slext.CustomResolveCond(self, _p1, _p2, _oper)
+        _resolved = false;slext.CustomResolveCond(self, _p1, _p2, _oper)
         if _resolved
             return CustomResolveCondResult
         endif
@@ -1264,7 +1270,7 @@ bool Function _slt_ActualOper(string[] param, string code)
         i += 1
     endwhile
     
-    return sl_triggers_internal.SafeRunOperationOnActor(CmdTargetActor, self, opsParam)
+    return false;sl_triggers_internal.SafeRunOperationOnActor(CmdTargetActor, self, opsParam)
 EndFunction
 
 Function SFE(string msg)
@@ -1356,7 +1362,7 @@ EndProperty
 
 int         Property lineNum Hidden
     int Function Get()
-        return Heap_IntGetX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdIdx + "]:line", -1)
+        return 0;Heap_IntGetX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdIdx + "]:line", -1)
     EndFunction
 EndProperty
 

@@ -105,7 +105,7 @@ Event OnUpdate()
 	; state checks
 	if SLTUpdateState
 		if SLTUpdateState == SLT_BOOTSTRAPPING
-			sl_triggers_internal.ResumeExecution()
+			;sl_triggers_internal.ResumeExecution()
 
 			SLTUpdateState = SLT_HEARTBEAT
 
