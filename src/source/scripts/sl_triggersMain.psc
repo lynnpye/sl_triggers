@@ -1,6 +1,7 @@
 Scriptname sl_TriggersMain extends Quest
 
 import sl_triggersStatics
+import sl_triggersContext
 
 ; CONSTANTS
 int		SLT_HEARTBEAT					= 0
@@ -60,6 +61,8 @@ Function BootstrapSLTInit()
 	if !self
 		return
 	endif
+
+	SetSLTHost(self)
 
 	SafeRegisterForModEvent_Quest(self, "OnSLTRegisterExtension", "OnSLTRegisterExtension")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_COMMAND(), "OnSLTRequestCommand")
@@ -196,12 +199,12 @@ Function DoRegistrationBeacon()
 	SendSLTInternalReady()
 EndFunction
 
-string Function GetNextInstanceId()
+int Function GetNextInstanceId()
 	if nextInstanceId < 0
 		nextInstanceId = 0
 	endif
 	nextInstanceId += 1
-	return "cmdi" + nextInstanceId
+	return nextInstanceId
 EndFunction
 
 ; Unfortunately this might get called repeatedly for new extensions, but
@@ -356,7 +359,15 @@ string Function StartCommand(Actor _theActor, string _scriptName)
 		return ""
 	endif
 
-	string instanceid = GetNextInstanceId()
+	int threadid = GetNextInstanceId()
+	Thread_SetInitialScriptName(threadid, _scriptName)
+	Thread_SetTarget(threadid, _theActor)
+	Target_AddThread(_theActor, threadid)
+
+
+	;; then call sl_triggers_internal.StartScript or whatever
+
+
 	;sl_triggersContext.InitializeContext(_theActor, instanceid, _scriptName)
 
 	;/

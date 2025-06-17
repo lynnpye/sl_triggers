@@ -388,10 +388,10 @@ function item_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
                 endif
                 _targetActor.AddItem(thing, count, isSilent)
             else
-                DebMsg("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
+                DebMsg("SLT: [" + CmdPrimary.currentScriptName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
             endif
         else
-            DebMsg("SLT: [" + CmdPrimary.cmdName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
+            DebMsg("SLT: [" + CmdPrimary.currentScriptName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
         endif
     endif
 endFunction

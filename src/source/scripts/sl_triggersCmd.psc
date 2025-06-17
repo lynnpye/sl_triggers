@@ -1,12 +1,7 @@
 Scriptname sl_TriggersCmd extends ActiveMagicEffect
 
 import sl_triggersStatics
-;import sl_triggersCallstack
-
-; Generate base key for an instance
-string Function MakeInstanceKey(string instanceId, string suffix) global
-    return "slt:inst:" + instanceId + ":" + suffix
-EndFunction
+import sl_triggersContext
 
 ; SLT
 ; sl_triggersMain
@@ -22,57 +17,101 @@ Keyword			Property ActorTypeUndead Auto
 
 Actor			Property CmdTargetActor Auto Hidden
 
-string          Property CustomResolveResult Auto Hidden
-;Actor           Property CustomResolveActorResult Auto Hidden
-Form            Property CustomResolveFormResult Auto Hidden
-bool            Property CustomResolveCondResult Auto Hidden
+bool        Property isExecuting = false Auto Hidden
+int         Property threadid = 0 Auto Hidden
+int         Property frameid = 0 Auto Hidden
+int         Property previousFrameId = 0 Auto Hidden
 
-; Properties
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;
-;;
-;; The following section represents functions you either are
-;; REQUIRED to call at some point during lifecycle or that
-;; you are likely to call while implementing your commands.
-;;
-;; Function names are "normal" here (no underscore prefixes or anything).
-;;
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+int			Property lastKey = 0 auto  Hidden
+bool        Property cleanedup = false auto  hidden
 
+string	    Property MostRecentResult = "" auto Hidden
+Actor       Property iterActor = none auto Hidden
+string      Property currentScriptName = "" auto hidden
+int         Property currentLine = 0 auto hidden
+int         Property totalLines = 0 auto hidden
+int         Property lineNum = 1 auto hidden
+int[]       Property returnstack  auto hidden
+string[]    Property callargs auto hidden
+string      Property command = "" auto hidden
 
-
-; Resolve
-; string _code - a variable to retrieve the value of e.g. $$, $9, $g3
-; returns: the value as a string; none if unable to resolve
-string Function Resolve(string _code)
-    return _slt_ActualResolve(_code)
+Function SFE(string msg)
+	SquawkFunctionError(self, msg)
 EndFunction
 
-; ResolveActor
-; string _code - a variable indicating an Actor e.g. $self, $player
-; returns: an Actor representing the specified Actor; none if unable to resolve
-Actor Function ResolveActor(string _code)
-    Actor _resolvedActor = CmdTargetActor
-    if _code
-        _resolvedActor = ResolveForm(_code) as Actor
+Event OnEffectStart(Actor akTarget, Actor akCaster)
+	CmdTargetActor = akCaster
+    ; do one time things here, maybe setting up an instanceid if necessary
+    DoStartup()
+EndEvent
+
+Event OnPlayerLoadGame()
+    DoStartup()
+EndEvent
+
+Function DoStartup()
+	SafeRegisterForModEvent_AME(self, EVENT_SLT_RESET(), "OnSLTReset")
+    
+    if !threadid
+        ; need to determine our threadid
+        threadid = Target_ClaimNextThread(SLT)
+        returnstack = PapyrusUtil.IntArray(0)
+        callargs = PapyrusUtil.StringArray(0)
+        if threadid
+            Frame_Push(self, Thread_GetInitialScriptName(threadid))
+        endif
     endif
-    return _resolvedActor
+
+    if threadid && frameid
+        isExecuting = true
+        QueueUpdateLoop(0.1)
+    else
+        CleanupAndRemove()
+    endif
 EndFunction
 
-; ResolveCond
-; string _code - a condition to check, e.g. a comparator i.e. '=', '+'
-; returns: true if the condition was resolved; false otherwise
-bool Function ResolveCond(string _p1, string _p2, string _oper)
-    return _slt_ActualResolveCond(_p1, _p2, _oper)
-endFunction
+Event OnUpdate()
+    if !self
+        return
+    endif
+    
+    CleanupAndRemove()
+EndEvent
 
-Form Function ResolveForm(string _code)
-    return _slt_ActualResolveForm(_code)
+Event OnEffectFinish(Actor akTarget, Actor akCaster)
+    CleanupAndRemove()
+EndEvent
+
+Event OnSLTReset(string eventName, string strArg, float numArg, Form sender)
+    CleanupAndRemove()
+EndEvent
+
+Function CleanupAndRemove()
+    if cleanedup
+        return
+    endif
+    cleanedup = true
+    UnregisterForAllModEvents()
+    isExecuting = false
+
+    if frameid
+        Frame_Cleanup(frameid)
+    endif
+
+    if threadid
+        ; clean up StorageUtil?
+        Thread_Cleanup(threadid)
+    endif
+
+    Self.Dispel()
+EndFunction
+
+Event OnKeyDown(Int keyCode)
+    lastKey = keyCode
+EndEvent
+
+Function QueueUpdateLoop(float afDelay = 1.0)
+	RegisterForSingleUpdate(afDelay)
 EndFunction
 
 String Function ActorName(Actor _person)
@@ -113,228 +152,46 @@ Bool Function InSameCell(Actor _actor)
 	return True
 EndFunction
 
-string function IsVarString(string _code)
-    if _code && StringUtil.GetLength(_code) > 1 && StringUtil.GetNthChar(_code, 0) == "$"
-        string varstr = StringUtil.Substring(_code, 1)
-        if StringUtil.Find(varstr, " ") < 0
-            return varstr
-        endif
+Form Function GetFormById(string _data)
+    Form retVal = sl_triggers.GetForm(_data)
+
+    if !retVal
+        SFE("Form not found (" + _data + ")")
     endif
-	return ""
-endfunction
-
-string function IsVarStringG(string _code)
-    if _code && StringUtil.GetLength(_code) > 1 && StringUtil.GetNthChar(_code, 0) == "!" && _code != "!=" ; I can't believe I did this to myself *facepalm*
-        string varstr = StringUtil.Substring(_code, 1)
-        if StringUtil.Find(varstr, " ") < 0
-            return varstr
-        endif
-    endif
-	return ""
-endfunction
-
-;/
-String Function GetInstanceId()
-	return InstanceId
-EndFunction
-/;
-
-Function QueueUpdateLoop(float afDelay = 1.0)
-	RegisterForSingleUpdate(afDelay)
-EndFunction
-
-
-string Function vars_get(string varsindex)
-	return "";Heap_StringGetFK(CmdTargetActor, VARS_KEY_PREFIX + varsindex)
-EndFunction
-
-string Function vars_set(string varsindex, string value)
-	return "";Heap_StringSetFK(CmdTargetActor, VARS_KEY_PREFIX + varsindex, value)
-EndFunction
-
-; simple get handler for infini-globals
-string Function globalvars_get(string varsindex)
-	return "";SLT.globalvars_get(varsindex)
-EndFunction
-
-; simple set handler for infini-globals
-string Function globalvars_set(string varsindex, string value)
-	return "";SLT.globalvars_set(varsindex, value)
-EndFunction
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;
-;;
-;;
-;; Pay no attention to the main behind the curtain...
-;; Function names below are prefixed with _slt_ to avoid naming collisions
-;;
-;;
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;
-;
-;
-;
-;
-;
-;
-;
-;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-;
-;
-;
-;
-;
-;
-;
-;
-;
-
-
-
-; internal variables
-
-bool executionNotBegun
-
-string[] currentCmdLine
-
-string _xn_execute_line
-string _xn_actual_oper
-
-string  kk_callstack_pointer
-string  kk_callstack_list_pointer
-
-string  kk_cs_callstackid
-string  kk_cs_callstackid_nextup
-
-string  kk_cs_callargs
-
-string  kk_cs_vars_key_prefix
-
-string  kk_cs_cmdidx
-string  kk_cs_cmdnum
-string  kk_cs_cmdtype
-string  kk_cs_cmdname
-string  kk_cs_gotoidx
-string  kk_cs_gotolabels
-string  kk_cs_gotocnt
-string  kk_cs_gosubidx
-string  kk_cs_gosublabels
-string  kk_cs_gosubcnt
-string  kk_cs_gosubreturnstack
-string  kk_cs_gosubreturnidx
-string  kk_cs_mostrecentresult
-
-string  kk_cs_lastkey
-string  kk_cs_iteractor
-
-Function _slt_Setup_InstanceKeys()
-    _xn_actual_oper     = "_xn_actual_oper:" + InstanceId
-    _xn_execute_line    = "_xn_execute_line:" + InstanceId
-
-    kk_callstack_pointer = MakeInstanceKey(InstanceId, "_cs_callstack_pointer")
-    kk_callstack_list_pointer = MakeInstanceKey(InstanceId, "_cs_callstack_list_pointer")
-
-    kk_cs_callstackid = MakeInstanceKey(InstanceId, "_cs_callstackid")
-    kk_cs_callstackid_nextup = MakeInstanceKey(InstanceId, "_cs_callstackid_nextup")
-
-    kk_cs_callargs = MakeInstanceKey(InstanceId, "_cs_callargs")
-
-    kk_cs_vars_key_prefix = MakeInstanceKey(InstanceId, "_cs_vars_key_prefix")
-
-    kk_cs_cmdidx = MakeInstanceKey(InstanceId, "_cs_cmdidx")
-    kk_cs_cmdnum = MakeInstanceKey(InstanceId, "_cs_cmdnum")
-    kk_cs_cmdtype = MakeInstanceKey(InstanceId, "_cs_cmdtype")
-    kk_cs_cmdname = MakeInstanceKey(InstanceId, "_cs_cmdname")
-    kk_cs_gotoidx = MakeInstanceKey(InstanceId, "_cs_gotoidx")
-    kk_cs_gotolabels = MakeInstanceKey(InstanceId, "_cs_gotolabels")
-    kk_cs_gotocnt = MakeInstanceKey(InstanceId, "_cs_gotocnt")
-    kk_cs_gosubidx = MakeInstanceKey(InstanceId, "_cs_gosubidx")
-    kk_cs_gosublabels = MakeInstanceKey(InstanceId, "_cs_gosublabels")
-    kk_cs_gosubcnt = MakeInstanceKey(InstanceId, "_cs_gosubcnt")
-    kk_cs_gosubreturnstack = MakeInstanceKey(InstanceId, "_cs_gosubreturnstack")
-    kk_cs_gosubreturnidx = MakeInstanceKey(InstanceId, "_cs_gosubreturnidx")
-    kk_cs_mostrecentresult = MakeInstanceKey(InstanceId, "_cs_mostrecentresult")
-
-    kk_cs_lastkey = MakeInstanceKey(InstanceId, "_cs_lastkey")
-    kk_cs_iteractor = MakeInstanceKey(InstanceId, "_cs_iteractor")
-EndFunction
-
-
-Event OnPlayerLoadGame()
-	;instanceId = Heap_DequeueInstanceIdF(CmdTargetActor)
-
-    ;currentCmdLine = Heap_StringListToArrayX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdidx + "]")
-
-    DoWhatYouShouldHaveDoneInTheFirstPlace()
-EndEvent
-
-Function DoWhatYouShouldHaveDoneInTheFirstPlace()
-	;SafeRegisterForModEvent_AME(self, EVENT_SLT_HEARTBEAT(), "OnSLTHeartbeat")
-	SafeRegisterForModEvent_AME(self, EVENT_SLT_RESET(), "OnSLTReset")
-
-    _slt_Setup_InstanceKeys()
-    RegisterForScriptEvents()
-
-	executionNotBegun = true
-	QueueUpdateLoop(0.1)
-EndFunction
-
-
-Event OnEffectStart(Actor akTarget, Actor akCaster)
-	CmdTargetActor = akCaster
-	
-	;instanceId = Heap_DequeueInstanceIdF(CmdTargetActor)
-
-    if !instanceId
-        return
-    endif
-
-    DoWhatYouShouldHaveDoneInTheFirstPlace()
-EndEvent
-
-Event OnUpdate()
-	If !Self
-		Return
-	EndIf
     
-    if executionNotBegun
-        executionNotBegun = false
+    return retVal
+EndFunction
 
-        Send_X_ExecuteLine()
+; Resolve
+; string _code - a variable to retrieve the value of e.g. $$, $9, $g3
+; returns: the value as a string; none if unable to resolve
+string Function Resolve(string _code)
+    return sl_triggers_internal.ResolveValueVariable(threadid, _code)
+EndFunction
+
+; ResolveActor
+; string _code - a variable indicating an Actor e.g. $self, $player
+; returns: an Actor representing the specified Actor; none if unable to resolve
+Actor Function ResolveActor(string _code)
+    Actor _resolvedActor = CmdTargetActor
+    if _code
+        _resolvedActor = ResolveForm(_code) as Actor
     endif
+    return _resolvedActor
+EndFunction
 
-    QueueUpdateLoop()
-EndEvent
 
-Event OnKeyDown(Int keyCode)
-    lastKey = keyCode
-EndEvent
+Form Function ResolveForm(string _code)
+    return sl_triggers_internal.ResolveFormVariable(threadid, _code)
+EndFunction
 
-Event OnSLTHeartbeat(string eventName, string strArg, float numArg, Form sender)
-EndEvent
 
-Event OnSLTReset(string eventName, string strArg, float numArg, Form sender)
-    PerformDigitalHygiene()
-EndEvent
 
-string Property command auto hidden
+
+
+
+
+
 
 Function RunScript()
     ;string   command
@@ -343,33 +200,17 @@ Function RunScript()
     string   po
     string[] cmdLine
 
-    if !cmdtype && !cmdNum && !cmdidx
-        cmdType = _slt_ParseCommandFile()
-        if !cmdType
-            PerformDigitalHygiene()
-            return
-        endif
-        ;cmdNum = Heap_IntGetX(CmdTargetActor, InstanceId, CallstackId)
-        cmdidx = 0
-    endif
-
-    while cmdidx < cmdNum || callstackPointer
-
-        if callstackPointer && cmdidx >= cmdNum
-            sl_triggersCmd._slt_RemoveCallstack(CmdTargetActor, InstanceId)
-            cmdidx += 1
-        endif
-
-        while cmdidx < cmdNum
-            ;currentCmdLine = Heap_StringListToArrayX(CmdTargetActor, InstanceId, CallstackId + "[" + cmdidx + "]")
-            cmdLine = currentCmdLine
+    while frameid
+        while currentLine < totalLines
+            lineNum = Frame_GetLineNum(frameid, currentLine)
+            cmdLine = Frame_GetTokens(frameid, currentLine)
 
             if cmdLine.Length
                 command = resolve(cmdLine[0])
                 cmdLine[0] = command
 
                 If !command
-                    cmdidx += 1
+                    currentLine += 1
                 elseIf command == "set"
                     if ParamLengthGT(self, cmdLine.Length, 2)
                         string varindex = IsVarString(cmdLine[1])
@@ -432,7 +273,7 @@ Function RunScript()
                     else
                         SFE("unexpected number of arguments for 'set' got " + cmdLine.length + " expected 3 or 5")
                     endif
-                    cmdidx += 1
+                    currentLine += 1
                 elseIf command == "if"
                     if ParamLengthEQ(self, cmdLine.Length, 5)
                         ; ["if", "$$", "=", "0", "end"],
@@ -443,13 +284,13 @@ Function RunScript()
                         if po
                             bool ifTrue = resolveCond(p1, p2, po)
                             if ifTrue
-                                cmdidx = _slt_FindGoto(Resolve(cmdLine[4]), cmdidx, cmdtype)
+                                currentLine = _slt_FindGoto(Resolve(cmdLine[4]), cmdidx, cmdtype)
                             endIf
                         else
                             SFE("unable to resolve operator (" + cmdLine[2] + ") po(" + po + ")")
                         endif
                     endif
-                    cmdidx += 1
+                    currentLine += 1
                 elseIf command == "inc"
                     if ParamLengthGT(self, cmdLine.Length, 1)
                         string varstr = cmdLine[1]
@@ -486,12 +327,12 @@ Function RunScript()
                             endif
                         endif
                     endif
-                    cmdidx += 1
+                    currentLine += 1
                 elseIf command == "goto"
                     if ParamLengthEQ(self, cmdLine.Length, 2)
-                        cmdidx = _slt_FindGoto(Resolve(cmdLine[1]), cmdidx, cmdtype)
+                        currentLine = _slt_FindGoto(Resolve(cmdLine[1]), cmdidx, cmdtype)
                     endif
-                    cmdidx += 1
+                    currentLine += 1
                 elseIf command == "cat"
                     if ParamLengthGT(self, cmdLine.Length, 2)
                         string varstr = cmdLine[1]
@@ -509,12 +350,12 @@ Function RunScript()
                             endif
                         endif
                     endif
-                    cmdidx += 1
+                    currentLine += 1
                 elseIf command == "gosub"
                     if ParamLengthEQ(self, cmdLine.Length, 2)
-                        cmdidx = _slt_FindGosub(Resolve(cmdLine[1]), cmdidx)
+                        currentLine = _slt_FindGosub(Resolve(cmdLine[1]), cmdidx)
                     endif
-                    cmdidx += 1
+                    currentLine += 1
                 elseIf command == "call"
                     if ParamLengthGT(self, cmdLine.Length, 1)
                         string callTarget = Resolve(cmdLine[1])
@@ -536,27 +377,27 @@ Function RunScript()
                                 sl_triggersCmd._slt_RemoveCallstack(CmdTargetActor, InstanceId)
                             else
                                 ;cmdNum = Heap_IntGetX(CmdTargetActor, InstanceId, CallstackId)
-                                cmdidx = 0
+                                currentLine = 0
                             endif
                         else
                             SFE("call target file not parseable(" + callTarget + ") resolved from (" + cmdLine[1] + ")")
-                            cmdidx += 1
+                            currentLine += 1
                         endif
                     else
-                        cmdidx += 1
+                        currentLine += 1
                     endif
                 elseIf command == "endsub"
                     if ParamLengthEQ(self, cmdLine.Length, 1)
-                        cmdidx = _slt_PopSubIdx()
+                        currentLine = _slt_PopSubIdx()
                     endif
-                    cmdidx += 1
+                    currentLine += 1
                 elseIf command == "beginsub"
                     if ParamLengthEQ(self, cmdLine.Length, 2)
                         _slt_AddGosub(cmdidx, Resolve(cmdLine[1]))
                     endif
                     ; still try to go through with finding the end
-                    cmdidx = _slt_FindEndsub(cmdidx)
-                    cmdidx += 1
+                    currentLine = _slt_FindEndsub(cmdidx)
+                    currentLine += 1
                 elseIf command == "callarg"
                     if ParamLengthEQ(self, cmdLine.Length, 3)
                         int argidx = cmdLine[1] as int
@@ -581,7 +422,7 @@ Function RunScript()
                             endif
                         endif
                     endif
-                    cmdidx += 1
+                    currentLine += 1
                 elseIf command == "return"
                     if !callstackPointer
                         PerformDigitalHygiene()
@@ -590,7 +431,7 @@ Function RunScript()
                     endif
                     
                     sl_triggersCmd._slt_RemoveCallstack(CmdTargetActor, InstanceId)
-                    cmdidx += 1
+                    currentLine += 1
                 else
                     string _slt_mightBeLabel = _slt_IsLabel(cmdType, cmdLine)
                     if _slt_mightBeLabel
@@ -600,277 +441,18 @@ Function RunScript()
                         return
                     endif
 
-                    cmdidx += 1
+                    currentLine += 1
                 endif
             else
-                cmdidx += 1
+                currentLine += 1
             endif
         endwhile
+
+        Frame_Pop(self)
+
     endwhile
-
-    if !callstackPointer
-        PerformDigitalHygiene()
-
-        return
-    endif
     
-    return retVal
-EndFunction
-
-; Resolve
-; string _code - a variable to retrieve the value of e.g. $$, $9, $g3
-; returns: the value as a string; none if unable to resolve
-string Function Resolve(string _code)
-    return sl_triggers_internal.ResolveValueVariable(threadContextHandle, _code)
-EndFunction
-
-; ResolveActor
-; string _code - a variable indicating an Actor e.g. $self, $player
-; returns: an Actor representing the specified Actor; none if unable to resolve
-Actor Function ResolveActor(string _code)
-    Actor _resolvedActor = CmdTargetActor
-    if _code
-        _resolvedActor = ResolveForm(_code) as Actor
-    endif
-EndFunction
-
-Function PerformDigitalHygiene()
-    ;Heap_ClearPrefixF(CmdTargetActor, MakeInstanceKeyPrefix(instanceId))
-    ;Heap_CompleteScript(CmdTargetActor, InstanceId)
-    
-    UnregisterForAllModEvents()
-    Self.Dispel()
-EndFunction
-
-Function RegisterForScriptEvents()
-    SafeRegisterForModEvent_AME(self, _xn_actual_oper,      "On_X_ActualOper")
-    SafeRegisterForModEvent_AME(self, _xn_execute_line,     "On_X_ExecuteLine")
-EndFunction
-
-Function _slt_AddCallstack(Form _theForm, string _instanceId, string newscriptnm, int _forceCallstackPointer = 1) global
-    int newcallstackpointer = StorageUtil.AdjustIntValue(_theForm, MakeInstanceKey(_instanceId, "_cs_callstack_pointer"), _forceCallstackPointer)
-    
-    StorageUtil.SetIntValue(_theForm, MakeInstanceKey(_instanceId, "_cs_callstack_list_pointer"), newcallstackpointer * 127)
-
-    int nextup = StorageUtil.AdjustIntValue(_theForm, MakeInstanceKey(_instanceId, "_cs_callstackid_nextup"), 1)
-    string _callstackId = "Callstack" + nextup
-    StorageUtil.StringListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_callstackid"), _callstackId)
-
-    StorageUtil.StringListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_vars_key_prefix"), "sl_triggers:" + _instanceId + ":" + _callstackId + ":vars")
-
-    StorageUtil.IntListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdidx"), 0)
-    StorageUtil.IntListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdnum"), 0)
-    StorageUtil.StringListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdtype"), "")
-    StorageUtil.StringListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdname"), newscriptnm)
-
-    int newlen = (newcallstackpointer + 1) * 127
-
-    StorageUtil.StringListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_callargs"), newlen)
-
-    StorageUtil.IntListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_gotoidx"), newlen)
-    StorageUtil.StringListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_gotolabels"), newlen)
-    StorageUtil.IntListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_gotocnt"), 0)
-
-    StorageUtil.IntListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_gosubidx"), newlen)
-    StorageUtil.StringListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_gosublabels"), newlen)
-    StorageUtil.IntListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_gosubcnt"), 0)
-
-    StorageUtil.IntListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_gosubreturnstack"), newlen)
-    StorageUtil.IntListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_gosubreturnidx"), -1)
-
-    StorageUtil.StringListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_mostrecentresult"), "")
-
-    StorageUtil.IntListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_lastkey"), 0)
-
-    StorageUtil.FormListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_iteractor"), none)
-EndFunction
-
-Function _slt_RemoveCallstack(Form _theForm, string _instanceId) global
-    int newcallstackpointer = StorageUtil.AdjustIntValue(_theForm, MakeInstanceKey(_instanceId, "_cs_callstack_pointer"), -1)
-    
-    StorageUtil.SetIntValue(_theForm, MakeInstanceKey(_instanceId, "_cs_callstack_list_pointer"), newcallstackpointer * 127)
-
-    StorageUtil.StringListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_callstackid"))
-
-    StorageUtil.StringListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_vars_key_prefix"))
-
-    StorageUtil.IntListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdidx"))
-    StorageUtil.IntListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdnum"))
-    StorageUtil.StringListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdtype"))
-    StorageUtil.StringListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_cmdname"))
-
-    int newlen = (newcallstackpointer + 1) * 127
-
-    StorageUtil.StringListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_callargs"), newlen)
-
-    StorageUtil.IntListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_gotoidx"), newlen)
-    StorageUtil.StringListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_gotolabels"), newlen)
-    StorageUtil.IntListAdd(_theForm, MakeInstanceKey(_instanceId, "_cs_gotocnt"), 0)
-
-    StorageUtil.IntListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_gosubidx"), newlen)
-    StorageUtil.StringListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_gosublabels"), newlen)
-    StorageUtil.IntListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_gosubcnt"))
-
-    StorageUtil.IntListResize(_theForm, MakeInstanceKey(_instanceId, "_cs_gosubreturnstack"), newlen)
-    StorageUtil.IntListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_gosubreturnidx"))
-
-    StorageUtil.StringListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_mostrecentresult"))
-
-    StorageUtil.IntListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_lastkey"))
-
-    StorageUtil.FormListPop(_theForm, MakeInstanceKey(_instanceId, "_cs_iteractor"))
-EndFunction
-
-bool Function _slt_PushSubIdx(int index)
-    int newidx = gosubReturnIdx + 1
-
-    if newidx >= 127
-        return false
-    endif
-    gosubReturnStack_set(newidx, index)
-    gosubReturnIdx = newidx
-EndFunction
-
-int Function _slt_PopSubIdx()
-    if gosubReturnIdx < 0
-        return -1
-    endif
-    int value = gosubReturnStack_get(gosubReturnIdx)
-    gosubReturnIdx -= 1
-    return value
-EndFunction
-
-; _slt_IsLabel
-; _cmdtype:string: "ini" | "json"
-; _tokens:string[]: the current token list being considered
-;     assumptions:
-;       currently only called as part of processing goto labels
-;       assumes that the first token in the list (_tokens[0]) has already been resolved
-;       assumes this is a probe, so no errors are squawked even if it is a "bad" label
-;          unless you give me a stupid cmdtype, seriously
-;       returns the resolve of the result, so in a json, second item could be a variable... we resolve that
-;          yes, in an ini, you can have [$32]  and I will happily go find the value of $32 and use it as a label
-;              yes, dynamic labels... so... I think you would have to:
-;/
-bloody hell, so much easier, so I think you would have to:
-
-script.ini
-----
-
-; I am going to be fancy here
-; what I ultimately want is a block of code that I can repeatedly call
-; to let me configure that label... problem is, how can you do that
-; easily? conventionally, you can set up some labels but
-; I added subroutines and I want to show what you can do
-
-; this is the start of a subroutine definition...at the top of the script
-; initially the executor is going to ignore this block, noting the label
-; for later use, 'config32'
-[beginsub config32]
-
-
-; here is our weird little label
-[$32]
-
-
-
-; when the executor hits the matching 'beginsub', meaning it's not trying to run it, it will scan for endsub and drop out
-; we can take advantage of that... because it means there is nothing magical about subroutines
-; they are just convenient markers in the scripts you can take advantage of
-[endsub]
-
-
-; now let's do something funny
-; behind the scenes, if you put a regular label in the script, like so:
-[a regular label]
-; I just make a note of the line number so I can know where to pick up execution
-; that is it... it is a label and a line number... nothing suspicious about that
-; except since I resolve the $32 we can do this:
-
-set $32 "first label"
-gosub config32
-set $32 "second label"
-gosub config32
-
-
-It means you can dynamically define different points that your script might jump to.
-Yes, you would have to know the points to allow injection, but it does afford a little more flexibility.
-I'll keep it. It doesn't hurt me, but use it at your own risk. I mean.. it's not dangerous, just saying
-don't be surprised if you hurt yourself in your own confusion. :)
-
-
-/;
-string Function _slt_IsLabel(string _cmdtype, string[] _tokens = none)
-    string isLabel
-    
-    if "ini" == _cmdtype
-        if _tokens.Length == 1
-            int _labelLen = StringUtil.GetLength(_tokens[0])
-
-            if _labelLen > 2 && StringUtil.GetNthChar(_tokens[0], 0) == "[" && StringUtil.GetNthChar(_tokens[0], _labelLen - 1) == "]"
-                isLabel = Resolve(StringUtil.Substring(_tokens[0], 1, _labelLen - 2))
-            endif
-        endif
-    elseif "json" == _cmdtype
-        if ":" == _tokens[0] && _tokens.Length >= 2 && _tokens[1]
-            isLabel = Resolve(_tokens[1])
-        endif
-    else
-        SFE("label: unimplemented cmdtype provided (" + _cmdtype + ")")
-    endif
-
-    return isLabel
-EndFunction
-
-Function _slt_AddGoto(int _idx, string _label)
-    int idx = 0
-    while idx < gotoCnt
-        if gotoLabels_get(idx) == _label
-            return 
-        endIf    
-        idx += 1
-    endWhile
-    
-    gotoIdx_set(gotoCnt, _idx)
-    gotoLabels_set(gotoCnt, _label)
-    gotoCnt += 1
-EndFunction
-
-Int Function _slt_FindGoto(string _label, int _cmdIdx, string _cmdtype)
-    int idx = 0
-    string[] cmdLine1
-    string callstackIdxKey
-    
-    while !idx
-        idx = gotoLabels_find(_label)
-        if idx >= 0
-            return gotoIdx_get(idx)
-        elseif callstackIdxKey ; had to have been set once in the loop below
-            return cmdNum
-        else
-            idx = _cmdIdx + 1
-
-            callstackIdxKey = "[]" ; just to keep my promise above in case idx == cmdNum
-            
-            while idx < cmdNum
-                callstackIdxKey = CallstackId + "[" + idx + "]"
-                if false ;Heap_StringListCountX(CmdTargetActor, InstanceId, callstackIdxKey) > 0
-                    cmdLine1 = PapyrusUtil.StringArray(0); Heap_StringListToArrayX(CmdTargetActor, InstanceId, callstackIdxKey)
-                    string _builtLabel = _slt_IsLabel(_cmdtype, cmdLine1)
-                    if _builtLabel
-                        _slt_AddGoto(idx, _builtLabel)
-                    endIf
-                endIf
-                idx += 1
-            endWhile
-
-            idx = 0
-        endIf
-    endwhile
-
-    SFE("Presumed unreachable state, attempting to find goto target, ran out of lines to examine but default case somehow not handled, returning EOF for script")
-
-    return cmdNum
+    CleanupAndRemove()
 EndFunction
 
 Function _slt_AddGosub(int _idx, string _label)

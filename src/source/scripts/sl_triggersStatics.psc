@@ -156,8 +156,12 @@ EndFunction
 ; Global general values
 ; SLT Global/General
 
-string Function MakeInstanceKey(string instanceId, string suffix) global
-    return "slt:inst:" + instanceId + ":" + suffix
+string Function CommandsFolder() global
+	return "../sl_triggers/commands/"
+EndFunction
+
+string Function FullCommandsFolder() global
+	return "data/SKSE/Plugins/sl_triggers/commands/"
 EndFunction
 
 string Function ExtensionTriggersFolder(string _extensionKey) global
@@ -224,7 +228,7 @@ int Function GlobalHexToInt(string _value) global
 EndFunction
 
 Function SquawkFunctionError(sl_triggersCmd _cmdPrimary, string msg) global
-	DebMsg("SLT: " + msg)
+	DebMsg("SLT:(" + _cmdPrimary.currentScriptName + ")[" + _cmdPrimary.lineNum + "]: " + msg)
 EndFunction
 
 bool Function ParamLengthLT(sl_triggersCmd _cmdPrimary, int actualLength, int neededLength) global
