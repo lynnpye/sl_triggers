@@ -46,6 +46,7 @@ string[]	triggerKeys_keyDown
 string[]	triggerKeys_newSession
 
 Event OnInit()
+	DebMsg("Core.OnInit")
 	if !self
 		return
 	endif
@@ -59,12 +60,14 @@ Event OnUpdate()
 EndEvent
 
 Function SLTReady()
+	DebMsg("Core.SLTReady")
 	_keystates = PapyrusUtil.BoolArray(256, false)
 	UpdateDAKStatus()
 	RefreshData()
 EndFunction
 
 Function RefreshData()
+	DebMsg("Core.RefreshData")
 	RefreshTriggerCache()
 	RegisterEvents()
 EndFunction

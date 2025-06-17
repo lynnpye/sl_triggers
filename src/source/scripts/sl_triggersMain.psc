@@ -67,7 +67,7 @@ Function BootstrapSLTInit()
 
 	SetSLTHost(self)
 
-	SafeRegisterForModEvent_Quest(self, "OnSLTRegisterExtension", "OnSLTRegisterExtension")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REGISTER_EXTENSION(), "OnSLTRegisterExtension")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_COMMAND(), "OnSLTRequestCommand")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_LIST(), "OnSLTRequestList")
 
@@ -84,6 +84,7 @@ Function BootstrapSLTInit()
 	SLTUpdateState = SLT_BOOTSTRAPPING
 	_registrationBeaconCount = REGISTRATION_BEACON_COUNT
 	
+	DebMsg("Extensions.Length (" + Extensions.Length + ")")
 	int i = 0
 	while i < Extensions.Length
 		sl_triggersExtension sltx = Extensions[i] as sl_triggersExtension
@@ -139,11 +140,13 @@ Event OnUpdate()
 EndEvent
 
 Event OnSLTRegisterExtension(Quest extensionToRegister)
+	DebMsg("Main.OnSLTRegisterExtension ext(" + extensionToRegister + ")")
 	if !self || !extensionToRegister
 		return
 	endif
 	sl_triggersExtension sltExtension = extensionToRegister as sl_triggersExtension
 	if !sltExtension
+		DebMsg("Non-sl_triggersExtension attempted registration")
 		return
 	endif
 	DoRegistrationActivity(sltExtension)
@@ -196,6 +199,7 @@ EndEvent
 ;; Functions
 
 Function DoRegistrationBeacon()
+	DebMsg("Main.DoRegistrationBeacon")
 	if !self
 		return
 	endif
@@ -214,6 +218,7 @@ EndFunction
 ; Unfortunately this might get called repeatedly for new extensions, but
 ; still has to deal with the possibility of existing extensions
 Function DoRegistrationActivity(sl_triggersExtension _extensionToRegister)
+	DebMsg("]]]]]]]]]]]]]  Main.DoRegistrationActivity")
 	if !self
 		return
 	endif

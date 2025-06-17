@@ -5,11 +5,13 @@ import sl_triggersStatics
 sl_triggersMain			Property SLT Auto
 
 Event OnPlayerLoadGame()
+	DebMsg("PlayerRefAlias.OnPlayerLoadGame, calling SLT.DoPlayerLoadGame()")
 	SLT.DoPlayerLoadGame()
 	InitiateConsoleHook()
 EndEvent
 
 Event OnInit()
+	DebMsg("PlayerRefAlias.OnOnit")
 	InitiateConsoleHook()
 EndEvent
 
