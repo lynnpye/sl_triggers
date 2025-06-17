@@ -99,6 +99,10 @@ string FUNCTION DELETED_ATTRIBUTE() global
 	return "trigger_deleted_by_user_via_mcm"
 EndFunction
 
+sl_TriggersMain Function GetSLTMain() global
+	return Game.GetFormFromFile(0xD62, "sl_triggers.esp") as sl_TriggersMain
+EndFunction
+
 Form Function GetForm_SLT_Main() global
 	return Game.GetFormFromFile(0xD62, "sl_triggers.esp")
 EndFunction
@@ -151,6 +155,10 @@ EndFunction
 ;;;;;;;;
 ; Global general values
 ; SLT Global/General
+
+string Function MakeInstanceKey(string instanceId, string suffix) global
+    return "slt:inst:" + instanceId + ":" + suffix
+EndFunction
 
 string Function ExtensionTriggersFolder(string _extensionKey) global
 	return "../sl_triggers/extensions/" + _extensionKey + "/"

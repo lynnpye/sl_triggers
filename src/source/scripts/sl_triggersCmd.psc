@@ -20,12 +20,6 @@ Actor			Property PlayerRef Auto
 Keyword			Property ActorTypeNPC Auto
 Keyword			Property ActorTypeUndead Auto
 
-; InstanceId
-; string
-; DO NOT MODIFY
-; This uniquely identifies this specific CmdBase.
-string			Property InstanceId Auto Hidden
-
 Actor			Property CmdTargetActor Auto Hidden
 
 string          Property CustomResolveResult Auto Hidden
@@ -110,50 +104,6 @@ EndFunction
 
 int Function HexToInt(string _value)
 	return GlobalHexToInt(_value)
-EndFunction
-
-Form Function GetFormById(string _data)
-    Form retVal
-    string[] params
-    
-    if _data
-        params = StringUtil.Split(_data, ":")
-        if params.Length == 2 ; e.g. "Skyrim.esm:0f"
-            string modfile = params[0]
-            if modfile
-                string sid = params[1]
-                if sid
-                    int id
-                    if StringUtil.GetNthChar(sid, 0) == "0"
-                        id = HexToInt(sid)
-                    else
-                        id = sid as int
-                    endif
-
-                    retVal = Game.GetFormFromFile(id, modfile)
-                endif
-            endif
-        elseif params.Length == 1  ; e.g. "0f" OR "theEditorId"
-            int id
-            if StringUtil.GetNthChar(_data, 0) == "0"
-                id = HexToInt(_data)
-            else
-                id = _data as int
-            endif
-
-            if id
-                retVal = Game.GetForm(id)
-            else
-                retVal = sl_triggers.GetForm(_data)
-            endif
-        endif
-    endif
-
-    if !retVal
-        SFE("Form not found (" + _data + ")")
-    endif
-    
-    return retVal
 EndFunction
 
 Bool Function InSameCell(Actor _actor)
@@ -664,56 +614,23 @@ Function RunScript()
         return
     endif
     
-    SFE("Presumed unreachable state: callstackPointer still present, but no more operations remaining, attempting to remove a callstack and resume")
-    sl_triggersCmd._slt_RemoveCallstack(CmdTargetActor, InstanceId)
-    cmdidx += 1
-    
-    Send_X_ExecuteLine()
+    return retVal
 EndFunction
 
-bool srf_pending
-string srf_varindex
-string srf_varindex_g
-Event OnSetOperationCompleted()
-    if srf_pending
-        srf_pending = false
-        if srf_varindex_g
-            globalvars_set(srf_varindex, MostRecentResult)
-        else
-            vars_set(srf_varindex, MostRecentResult)
-        endif
-        srf_varindex = ""
-        srf_varindex_g = ""
-    endif
-    cmdidx += 1
-    RunScript()
-EndEvent
-
-Event On_X_ExecuteLine()
-    RunScript()
-EndEvent
-
-Event On_X_ActualOper(string _code)
-    string[] operCmdLine = currentCmdLine
-    if srf_pending
-        operCmdLine = PapyrusUtil.SliceStringArray(operCmdLine, 3)
-    endif
-    _slt_ActualOper(operCmdLine, _code)
-EndEvent
-
-
-Function Send_X_ExecuteLine()
-    int handle = ModEvent.Create(_xn_execute_line)
-    if handle
-        ModEvent.Send(handle)
-    endif
+; Resolve
+; string _code - a variable to retrieve the value of e.g. $$, $9, $g3
+; returns: the value as a string; none if unable to resolve
+string Function Resolve(string _code)
+    return sl_triggers_internal.ResolveValueVariable(threadContextHandle, _code)
 EndFunction
 
-Function Send_X_ActualOper(string _code)
-    int handle = ModEvent.Create(_xn_actual_oper)
-    if handle
-        ModEvent.PushString(handle, _code)
-        ModEvent.Send(handle)
+; ResolveActor
+; string _code - a variable indicating an Actor e.g. $self, $player
+; returns: an Actor representing the specified Actor; none if unable to resolve
+Actor Function ResolveActor(string _code)
+    Actor _resolvedActor = CmdTargetActor
+    if _code
+        _resolvedActor = ResolveForm(_code) as Actor
     endif
 EndFunction
 
@@ -1489,23 +1406,3 @@ EndFunction
 int Function gosubReturnStack_size()
     return StorageUtil.IntListCount(CmdTargetActor, kk_cs_gosubreturnstack)
 EndFunction
-
-int         Property gosubReturnIdx Hidden
-    int Function Get()
-        return StorageUtil.IntListGet(CmdTargetActor, kk_cs_gosubreturnidx, callstackPointer)
-    EndFunction
-
-    Function Set(int value)
-        StorageUtil.IntListSet(CmdTargetActor, kk_cs_gosubreturnidx, callstackPointer, value)
-    EndFunction
-EndProperty
-
-string	    Property MostRecentResult Hidden
-    string Function Get()
-        return StorageUtil.StringListGet(CmdTargetActor, kk_cs_mostrecentresult, callstackPointer)
-    EndFunction
-
-    Function Set(string value)
-        StorageUtil.StringListSet(CmdTargetActor, kk_cs_mostrecentresult, callstackPointer, value)
-    EndFunction
-EndProperty

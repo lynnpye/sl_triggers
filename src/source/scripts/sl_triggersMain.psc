@@ -14,6 +14,7 @@ sl_triggersSetup	Property SLTMCM					Auto
 bool				Property bEnabled		= true	Auto Hidden
 bool				Property bDebugMsg		= false	Auto Hidden
 Form[]				Property Extensions				Auto Hidden
+int					Property nextInstanceId			Auto Hidden
 
 ; Variables
 int			SLTUpdateState
@@ -105,8 +106,6 @@ Event OnUpdate()
 	; state checks
 	if SLTUpdateState
 		if SLTUpdateState == SLT_BOOTSTRAPPING
-			;sl_triggers_internal.ResumeExecution()
-
 			SLTUpdateState = SLT_HEARTBEAT
 
 			QueueUpdateLoop(0.1)
@@ -195,6 +194,14 @@ Function DoRegistrationBeacon()
 		return
 	endif
 	SendSLTInternalReady()
+EndFunction
+
+string Function GetNextInstanceId()
+	if nextInstanceId < 0
+		nextInstanceId = 0
+	endif
+	nextInstanceId += 1
+	return "cmdi" + nextInstanceId
 EndFunction
 
 ; Unfortunately this might get called repeatedly for new extensions, but
@@ -343,15 +350,20 @@ EndFunction
 
 ; StartCommand
 ; Actor _theActor: the Actor to attach this command to
-; string _cmdName: the file to run; is also the triggerKey or triggerId
-string Function StartCommand(Actor _theActor, string _cmdName)
+; string _scriptName: the file to run
+string Function StartCommand(Actor _theActor, string _scriptName)
 	if !self
 		return ""
 	endif
 
+	string instanceid = GetNextInstanceId()
+	;sl_triggersContext.InitializeContext(_theActor, instanceid, _scriptName)
+
+	;/
 	if !sl_triggers_internal.PrepareContextForTargetedScript(_theActor, _cmdName)
 		DebMsg("Failed to start script " + _cmdName)
 	endif
+	/;
 	
 	return true
 EndFunction
