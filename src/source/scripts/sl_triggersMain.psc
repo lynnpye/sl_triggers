@@ -207,6 +207,7 @@ int Function GetNextInstanceId()
 		nextInstanceId = 0
 	endif
 	nextInstanceId += 1
+	DebMsg("Main.GetNextInstanceId: returning " + nextInstanceId)
 	return nextInstanceId
 EndFunction
 
@@ -358,11 +359,14 @@ EndFunction
 ; Actor _theActor: the Actor to attach this command to
 ; string _scriptName: the file to run
 string Function StartCommand(Actor target, string initialScriptName)
+	DebMsg("Main.StartCommand target(" + target + ") initialScriptName(" + initialScriptName + ")")
 	if !self
 		return ""
 	endif
 
 	int threadid = GetNextInstanceId()
+	DebMsg("Main: new threadid >>>> (" + threadid + ")")
+
 	Thread_SetInitialScriptName(threadid, initialScriptName)
 	Thread_SetTarget(threadid, target)
 	Target_AddThread(target, threadid)

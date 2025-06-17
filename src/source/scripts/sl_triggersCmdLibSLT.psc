@@ -5413,7 +5413,7 @@ function Math(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] para
         elseIf ss1 == "toint"
             ss2 = CmdPrimary.resolve(param[2])
             if ss2 && (StringUtil.GetNthChar(ss2, 0) == "0")
-                ii1 = CmdPrimary.hextoint(ss2)
+                ii1 = GlobalHexToInt(ss2)
             elseIf ss2
                 ii1 = ss2 as int
             else 

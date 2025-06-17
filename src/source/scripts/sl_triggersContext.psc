@@ -6,7 +6,11 @@ import sl_triggersStatics
 ;;;;
 ;; Support
 sl_triggersMain function SLTHost() global
-    return StorageUtil.GetFormValue(none, "sl_triggersMain") as sl_triggersMain
+    sl_triggersMain slm = StorageUtil.GetFormValue(none, "sl_triggersMain") as sl_triggersMain
+    if !slm
+        DebMsg("\n\n      UNABLE TO RETRIEVE SLTHOST\n\n\n")
+    endif
+    return slm
 endfunction
 
 function SetSLTHost(sl_triggersMain main) global
@@ -327,11 +331,15 @@ function Target_FreeThread(Form target, int threadid) global
     if !target || threadid < 1
         return
     endif
+    int i = 0
     int targetformid = target.GetFormID()
     string kkey = "target:" + targetformid + ":threads:idlist"
     int foundindex = IntListFind(SLTHost(), kkey, threadid)
+
     if foundindex > -1
         IntListPluck(SLTHost(), kkey, foundindex, 0)
+    else
+        DebMsg("threadid (" + threadid + ") not found on cleanup")
     endif
 endfunction
 
@@ -439,8 +447,13 @@ function Thread_Cleanup(int threadid) global
     if threadid < 1
         return
     endif
+    Form target = Thread_GetTarget(threadid)
+    if !target
+        DebMsg("can't get target for target free thread")
+    endif
+    Target_FreeThread(target, threadid)
+
     ClearAllObjPrefix(SLTHost(), "thread:" + threadid + ":")
-    Target_FreeThread(Thread_GetTarget(threadid), threadid)
 endfunction
 
 ;;;;

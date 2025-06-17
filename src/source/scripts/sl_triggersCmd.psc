@@ -58,18 +58,21 @@ Function DoStartup()
     
     if !threadid
         ; need to determine our threadid
-        DebMsg("Obtaining threadid")
-        threadid = Target_ClaimNextThread(SLT)
+        DebMsg("Obtaining threadid currently threadid(" + threadid + ")")
+        threadid = Target_ClaimNextThread(CmdTargetActor)
+        DebMsg("claimed threadid(" + threadid + ")")
         callargs = PapyrusUtil.StringArray(0)
-        if threadid
+        if threadid > 0
+            DebMsg("Thread.InitialScriptName (" + Thread_GetInitialScriptName(threadid) + ")")
             if !Frame_Push(self, Thread_GetInitialScriptName(threadid))
                 DebMsg("Unable to push frame, cleaning up and going home")
                 CleanupAndRemove()
                 return
             endif
             DebMsg("got thread and frame")
+        else
+            DebMsg("failed to claim thread")
         endif
-        DebMsg("failed to claim thread")
     endif
 
     if threadid && frameid
@@ -102,17 +105,21 @@ Function CleanupAndRemove()
     if cleanedup
         return
     endif
+
     cleanedup = true
     UnregisterForAllModEvents()
     isExecuting = false
 
-    if frameid
+    if frameid > 0
         Frame_Cleanup(frameid)
+    else
+        DebMsg("frameid not set for cleanup")
     endif
 
-    if threadid
-        ; clean up StorageUtil?
+    if threadid > 0
         Thread_Cleanup(threadid)
+    else
+        DebMsg("threadid not set for cleanup")
     endif
 
     Self.Dispel()
@@ -153,10 +160,6 @@ Int Function ActorGender(Actor _actor)
 	return rank
 EndFunction
 
-int Function HexToInt(string _value)
-	return GlobalHexToInt(_value)
-EndFunction
-
 Bool Function InSameCell(Actor _actor)
 	if _actor.getParentCell() != playerRef.getParentCell()
 		return False
@@ -165,7 +168,37 @@ Bool Function InSameCell(Actor _actor)
 EndFunction
 
 Form Function GetFormById(string _data)
-    Form retVal = sl_triggers.GetForm(_data)
+    Form retVal
+    string[] params
+    
+    if _data
+        params = StringUtil.Split(_data, ":")
+        if params.Length == 2 ; e.g. "Skyrim.esm:0f"
+            string modfile = params[0]
+            if modfile
+                string sid = params[1]
+                if sid
+                    int id
+                    if StringUtil.GetNthChar(sid, 0) == "0"
+                        id = GlobalHexToInt(sid)
+                    else
+                        id = sid as int
+                    endif
+
+                    retVal = Game.GetFormFromFile(id, modfile)
+                endif
+            endif
+        elseif params.Length == 1  ; e.g. "0f"
+            int id
+            if StringUtil.GetNthChar(_data, 0) == "0"
+                id = GlobalHexToInt(_data)
+            else
+                id = _data as int
+            endif
+
+            retVal = Game.GetForm(id)
+        endif
+    endif
 
     if !retVal
         SFE("Form not found (" + _data + ")")
@@ -220,6 +253,51 @@ Form Function ResolveForm(string _code)
     return GetFormById(_code)
 EndFunction
 
+string[] Function ResolveTokens(string[] tokens)
+    int i = 0
+    int j = 0
+    int tokenlength
+    string tokscope
+    string vtok
+
+    while i < tokens.Length
+        ; bare
+        ; ""
+        ; $""
+        
+        tokenlength = StringUtil.GetLength(tokens[i])
+        if StringUtil.GetNthChar(tokens[i], tokenlength - 1) == "\""
+            if StringUtil.GetNthChar(tokens[i], 0) == "\""
+                tokens[i] = StringUtil.Substring(tokens[i], 1, tokenlength - 2)
+            elseif StringUtil.Substring(tokens[i], 0, 2) == "$\""
+                string trimmed = StringUtil.Substring(tokens[i], 2, tokenlength - 3)
+                string[] vartoks = sl_triggers.TokenizeForVariableSubstitution(trimmed)
+                j = 0
+                while j < vartoks.Length
+                    tokscope = GetVarScope(vartoks[j])
+                    if tokscope
+                        vartoks[j] = GetVarString(self, tokscope, vartoks[j])
+                    else
+                        ; leave it
+                    endif
+
+                    j += 1
+                endwhile
+                tokens[i] = PapyrusUtil.StringJoin(vartoks, "")
+            else
+                ; assume bare, had a trailing " but did not have a leading quote
+            endif
+        else
+            ; assume bare, could technically have a leading " or $", but still just part of the string
+
+        endif
+
+        i += 1
+    endwhile
+
+    return tokens
+EndFunction
+
 Function RunScript()
     ;string   command
     string   p1
@@ -231,6 +309,8 @@ Function RunScript()
         while currentLine < totalLines
             lineNum = Frame_GetLineNum(frameid, currentLine)
             cmdLine = Frame_GetTokens(frameid, currentLine)
+
+            cmdLine = ResolveTokens(cmdLine)
 
             if cmdLine.Length
                 command = resolve(cmdLine[0])
@@ -507,12 +587,10 @@ string Function _slt_IsLabel(string[] _tokens = none)
 EndFunction
 
 Event OnRunOperationOnActorCompleted()
-    DebMsg("Cmd.OnRunOperationOnActorCompleted")
     runOpPending = false
 EndEvent
 
 Function RunOperationOnActor(string[] opCmdLine)
-    DebMsg("Cmd.RunOperationOnActor")
     if !opCmdLine.Length
         return
     endif
