@@ -5,7 +5,7 @@ int Function GetVersion() global
 EndFunction
 
 string[] Function GetScriptsList() global
-    return sl_triggersMain.GetInstance().GetScriptsList()
+    return sl_triggers.GetScriptsList()
 EndFunction
 
 Function RunScript(string _scriptname, Actor _theActor = none) global

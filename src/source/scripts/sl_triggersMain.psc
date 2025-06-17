@@ -43,6 +43,7 @@ EndFunction
 ;; Events
 
 Event OnInit()
+	DebMsg("Main.OnInit")
 	if !self
 		return
 	endif
@@ -51,6 +52,7 @@ Event OnInit()
 EndEvent
 
 Function DoPlayerLoadGame()
+	DebMsg("Main.DoPlayerLoadGame")
 	if !self
 		return
 	endif
@@ -58,6 +60,7 @@ Function DoPlayerLoadGame()
 EndFunction
 
 Function BootstrapSLTInit()
+	DebMsg("Main.BootstrapSLTInit")
 	if !self
 		return
 	endif
@@ -354,27 +357,18 @@ EndFunction
 ; StartCommand
 ; Actor _theActor: the Actor to attach this command to
 ; string _scriptName: the file to run
-string Function StartCommand(Actor _theActor, string _scriptName)
+string Function StartCommand(Actor target, string initialScriptName)
 	if !self
 		return ""
 	endif
 
 	int threadid = GetNextInstanceId()
-	Thread_SetInitialScriptName(threadid, _scriptName)
-	Thread_SetTarget(threadid, _theActor)
-	Target_AddThread(_theActor, threadid)
+	Thread_SetInitialScriptName(threadid, initialScriptName)
+	Thread_SetTarget(threadid, target)
+	Target_AddThread(target, threadid)
 
+	return sl_triggers_internal.StartScript(target, initialScriptName)
+EndFunction
 
-	;; then call sl_triggers_internal.StartScript or whatever
-
-
-	;sl_triggersContext.InitializeContext(_theActor, instanceid, _scriptName)
-
-	;/
-	if !sl_triggers_internal.PrepareContextForTargetedScript(_theActor, _cmdName)
-		DebMsg("Failed to start script " + _cmdName)
-	endif
-	/;
-	
-	return true
+Function Nop()
 EndFunction

@@ -13,6 +13,55 @@ function SetSLTHost(sl_triggersMain main) global
     StorageUtil.SetFormValue(none, "sl_triggersMain", main)
 endfunction
 
+string function GetVarScope(string varname) global
+    if "$" != StringUtil.GetNthChar(varname, 0) || StringUtil.GetLength(varname) < 2
+        return ""
+    endif
+    int hasdot = StringUtil.Find(varname, ".", 1)
+    if hasdot < 0
+        return "default"
+    endif
+    string[] varparts = StringUtil.Split(varname, ".")
+    if varparts[0] == "$local"
+        return "frame"
+    elseif varparts[0] == "$thread"
+        return "thread"
+    elseif varparts[0] == "$target"
+        return "target"
+    elseif varparts[0] == "$global"
+        return "global"
+    endif
+    return ""
+endfunction
+
+string function GetVarString(sl_triggersCmd cmdPrimary, string scope, string varname, string missing = "") global
+    if scope == "default"
+        return Frame_GetStringValue(cmdPrimary.frameid, StringUtil.Substring(varname, 1), missing)
+    elseif scope == "frame"
+        return Frame_GetStringValue(cmdPrimary.frameid, StringUtil.Substring(varname, 6), missing)
+    elseif scope == "thread"
+        return Thread_GetStringValue(cmdPrimary.threadid, StringUtil.Substring(varname, 7), missing)
+    elseif scope == "target"
+        return Target_GetStringValue(cmdPrimary.CmdTargetActor, StringUtil.Substring(varname, 7), missing)
+    elseif scope == "global"
+        return Global_GetStringValue(StringUtil.Substring(varname, 7), missing)
+    endif
+endfunction
+
+string function SetVarString(sl_triggersCmd cmdPrimary, string scope, string varname, string value) global
+    if scope == "default"
+        return Frame_SetStringValue(cmdPrimary.frameid, StringUtil.Substring(varname, 1), value)
+    elseif scope == "frame"
+        return Frame_SetStringValue(cmdPrimary.frameid, StringUtil.Substring(varname, 6), value)
+    elseif scope == "thread"
+        return Thread_SetStringValue(cmdPrimary.threadid, StringUtil.Substring(varname, 7), value)
+    elseif scope == "target"
+        return Target_SetStringValue(cmdPrimary.CmdTargetActor, StringUtil.Substring(varname, 7), value)
+    elseif scope == "global"
+        return Global_SetStringValue(StringUtil.Substring(varname, 7), value)
+    endif
+endfunction
+
 ;;;;
 ;; Map_StringToInt
 
@@ -80,7 +129,7 @@ endfunction
 
 int function Map_IntToStringList_GetNthKey(string mapname, int nthindex) global
     string kkey = mapname + ":keys"
-    if IntListCount(SLTHost(), kkey) >= nthindex
+    if IntListCount(SLTHost(), kkey) <= nthindex
         return -1
     endif
     return IntListGet(SLTHost(), kkey, nthindex)
@@ -88,18 +137,144 @@ endfunction
 
 string[] function Map_IntToStringList_GetValFromNthKey(string mapname, int nthindex) global
     string kkey = mapname + ":keys"
-    if IntListCount(SLTHost(), kkey) >= nthindex
+    if IntListCount(SLTHost(), kkey) <= nthindex
         return none
     endif
     return StringListToArray(SLTHost(), mapname + ":vals:" + nthindex)
 endfunction
 
+bool function Map_IntToStringList_StringListFirstTokenMatchesString(string mapname, int nthindex, string targetString) global
+    string kkey = mapname + ":keys"
+    if IntListCount(SLTHost(), kkey) <= nthindex
+        return false
+    endif
+    return targetString == StringListGet(SLTHost(), mapname + ":vals:" + nthindex, 0)
+endfunction
+
 ;;;;
 ;; Global
+string function Global_GetStringValue(string varname, string missing = "") global
+    if !varname
+        return missing
+    endif
+    return GetStringValue(SLTHost(), "global:vars:" + varname, missing)
+endfunction
 
+string function Global_SetStringValue(string varname, string value) global
+    if !varname
+        return ""
+    endif
+    return SetStringValue(SLTHost(), "global:vars:" + varname, value)
+endfunction
+
+int function Global_GetIntValue(string varname, int missing = 0) global
+    if !varname
+        return missing
+    endif
+    return GetIntValue(SLTHost(), "global:vars:" + varname, missing)
+endfunction
+
+int function Global_SetIntValue(string varname, int value) global
+    if !varname
+        return 0
+    endif
+    return SetIntValue(SLTHost(), "global:vars:" + varname, value)
+endfunction
+
+float function Global_GetFloatValue(string varname, float missing = 0.0) global
+    if !varname
+        return missing
+    endif
+    return GetFloatValue(SLTHost(), "global:vars:" + varname, missing)
+endfunction
+
+float function Global_SetFloatValue(string varname, float value) global
+    if !varname
+        return 0.0
+    endif
+    return SetFloatValue(SLTHost(), "global:vars:" + varname, value)
+endfunction
+
+Form function Global_GetFormValue(string varname, Form missing = none) global
+    if !varname
+        return missing
+    endif
+    return GetFormValue(SLTHost(), "global:vars:" + varname, missing)
+endfunction
+
+Form function Global_SetFormValue(string varname, Form value) global
+    if !varname
+        return none
+    endif
+    return SetFormValue(SLTHost(), "global:vars:" + varname, value)
+endfunction
 
 ;;;;
 ;; Target
+string function Target_GetStringValue(Form target, string varname, string missing = "") global
+    if !varname || !target
+        return missing
+    endif
+    int targetformid = target.GetFormID()
+    return GetStringValue(SLTHost(), "target:" + targetformid + ":vars:" + varname, missing)
+endfunction
+
+string function Target_SetStringValue(Form target, string varname, string value) global
+    if !varname || !target
+        return ""
+    endif
+    int targetformid = target.GetFormID()
+    return SetStringValue(SLTHost(), "target:" + targetformid + ":vars:" + varname, value)
+endfunction
+
+int function Target_GetIntValue(Form target, string varname, int missing = 0) global
+    if !varname || !target
+        return missing
+    endif
+    int targetformid = target.GetFormID()
+    return GetIntValue(SLTHost(), "target:" + targetformid + ":vars:" + varname, missing)
+endfunction
+
+int function Target_SetIntValue(Form target, string varname, int value) global
+    if !varname || !target
+        return 0
+    endif
+    int targetformid = target.GetFormID()
+    return SetIntValue(SLTHost(), "target:" + targetformid + ":vars:" + varname, value)
+endfunction
+
+float function Target_GetFloatValue(Form target, string varname, float missing = 0.0) global
+    if !varname || !target
+        return missing
+    endif
+    int targetformid = target.GetFormID()
+    return GetFloatValue(SLTHost(), "target:" + targetformid + ":vars:" + varname, missing)
+endfunction
+
+float function Target_SetFloatValue(Form target, string varname, float value) global
+    if !varname || !target
+        return 0.0
+    endif
+    int targetformid = target.GetFormID()
+    return SetFloatValue(SLTHost(), "target:" + targetformid + ":vars:" + varname, value)
+endfunction
+
+Form function Target_GetFormValue(Form target, string varname, Form missing = none) global
+    if !varname || !target
+        return missing
+    endif
+    int targetformid = target.GetFormID()
+    return GetFormValue(SLTHost(), "target:" + targetformid + ":vars:" + varname, missing)
+endfunction
+
+Form function Target_SetFormValue(Form target, string varname, Form value) global
+    if !varname || !target
+        return none
+    endif
+    int targetformid = target.GetFormID()
+    return SetFormValue(SLTHost(), "target:" + targetformid + ":vars:" + varname, value)
+endfunction
+
 function Target_AddThread(Form target, int threadid) global
     if !target || threadid < 1
         return
@@ -162,6 +337,62 @@ endfunction
 
 ;;;;
 ;; Thread
+string function Thread_GetStringValue(int threadid, string varname, string missing = "") global
+    if !varname || threadid < 1
+        return missing
+    endif
+    return GetStringValue(SLTHost(), "thread:" + threadid + ":vars:" + varname, missing)
+endfunction
+
+string function Thread_SetStringValue(int threadid, string varname, string value) global
+    if !varname || threadid < 1
+        return ""
+    endif
+    return SetStringValue(SLTHost(), "thread:" + threadid + ":vars:" + varname, value)
+endfunction
+
+int function Thread_GetIntValue(int threadid, string varname, int missing = 0) global
+    if !varname || threadid < 1
+        return missing
+    endif
+    return GetIntValue(SLTHost(), "thread:" + threadid + ":vars:" + varname, missing)
+endfunction
+
+int function Thread_SetIntValue(int threadid, string varname, int value) global
+    if !varname || threadid < 1
+        return 0
+    endif
+    return SetIntValue(SLTHost(), "thread:" + threadid + ":vars:" + varname, value)
+endfunction
+
+float function Thread_GetFloatValue(int threadid, string varname, float missing = 0.0) global
+    if !varname || threadid < 1
+        return missing
+    endif
+    return GetFloatValue(SLTHost(), "thread:" + threadid + ":vars:" + varname, missing)
+endfunction
+
+float function Thread_SetFloatValue(int threadid, string varname, float value) global
+    if !varname || threadid < 1
+        return 0.0
+    endif
+    return SetFloatValue(SLTHost(), "thread:" + threadid + ":vars:" + varname, value)
+endfunction
+
+Form function Thread_GetFormValue(int threadid, string varname, Form missing = none) global
+    if !varname || threadid < 1
+        return missing
+    endif
+    return GetFormValue(SLTHost(), "thread:" + threadid + ":vars:" + varname, missing)
+endfunction
+
+Form function Thread_SetFormValue(int threadid, string varname, Form value) global
+    if !varname || threadid < 1
+        return none
+    endif
+    return SetFormValue(SLTHost(), "thread:" + threadid + ":vars:" + varname, value)
+endfunction
+
 Form function Thread_GetTarget(int threadid) global
     if threadid < 1
         return none
@@ -214,22 +445,76 @@ endfunction
 
 ;;;;
 ;; Frame
-;; returns frameid
-function Frame_Push(sl_triggersCmd cmdPrimary, string scriptfilename) global
-    sl_triggersMain sltmain = SLTHost()
-    int oldframeid = cmdPrimary.frameid
-    if oldframeid
-        ; store for pop
-        SetIntValue(SLTHost(), "frame:" + oldframeid + ":pushed:previousFrameId", cmdPrimary.previousFrameId)
-        cmdPrimary.previousFrameId = oldframeid
+string function Frame_GetStringValue(int frameid, string varname, string missing = "") global
+    if !varname || frameid < 1
+        return missing
+    endif
+    return GetStringValue(SLTHost(), "frame:" + frameid + ":vars:" + varname, missing)
+endfunction
 
-        IntListCopy(SLTHost(), "frame:" + oldframeid + ":pushed:returnstack", cmdPrimary.returnstack)
+string function Frame_SetStringValue(int frameid, string varname, string value) global
+    if !varname || frameid < 1
+        return ""
+    endif
+    return SetStringValue(SLTHost(), "frame:" + frameid + ":vars:" + varname, value)
+endfunction
+
+int function Frame_GetIntValue(int frameid, string varname, int missing = 0) global
+    if !varname || frameid < 1
+        return missing
+    endif
+    return GetIntValue(SLTHost(), "frame:" + frameid + ":vars:" + varname, missing)
+endfunction
+
+int function Frame_SetIntValue(int frameid, string varname, int value) global
+    if !varname || frameid < 1
+        return 0
+    endif
+    return SetIntValue(SLTHost(), "frame:" + frameid + ":vars:" + varname, value)
+endfunction
+
+float function Frame_GetFloatValue(int frameid, string varname, float missing = 0.0) global
+    if !varname || frameid < 1
+        return missing
+    endif
+    return GetFloatValue(SLTHost(), "frame:" + frameid + ":vars:" + varname, missing)
+endfunction
+
+float function Frame_SetFloatValue(int frameid, string varname, float value) global
+    if !varname || frameid < 1
+        return 0.0
+    endif
+    return SetFloatValue(SLTHost(), "frame:" + frameid + ":vars:" + varname, value)
+endfunction
+
+Form function Frame_GetFormValue(int frameid, string varname, Form missing = None) global
+    if !varname || frameid < 1
+        return missing
+    endif
+    return GetFormValue(SLTHost(), "frame:" + frameid + ":vars:" + varname, missing)
+endfunction
+
+Form function Frame_SetFormValue(int frameid, string varname, Form value) global
+    if !varname || frameid < 1
+        return None
+    endif
+    return SetFormValue(SLTHost(), "frame:" + frameid + ":vars:" + varname, value)
+endfunction
+
+;; returns frameid
+int function Frame_Push(sl_triggersCmd cmdPrimary, string scriptfilename, string[] callargs = none) global
+    sl_triggersMain sltmain = SLTHost()
+    if cmdPrimary.frameid
+        ; store for pop
+        int oldframeid = cmdPrimary.frameid
+        SetIntValue(SLTHost(), "frame:" + oldframeid + ":pushed:previousFrameId", cmdPrimary.previousFrameId)
         SetIntValue(SLTHost(), "frame:" + oldframeid + ":pushed:currentLine", cmdPrimary.currentLine)
         SetIntValue(SLTHost(), "frame:" + oldframeid + ":pushed:totalLines", cmdPrimary.totalLines)
         SetStringValue(SLTHost(), "frame:" + oldframeid + ":pushed:command", cmdPrimary.command)
         SetStringValue(SLTHost(), "frame:" + oldframeid + ":pushed:mostrecentresult", cmdPrimary.MostRecentResult)
         SetFormValue(SLTHost(), "frame:" + oldframeid + ":pushed:iteractor", cmdPrimary.iterActor)
         SetIntValue(SLTHost(), "frame:" + oldframeid + ":pushed:lastkey", cmdPrimary.lastKey)
+
         StringListCopy(SLTHost(), "frame:" + oldframeid + ":pushed:callargs", cmdPrimary.callargs)
     endif
 
@@ -237,13 +522,13 @@ function Frame_Push(sl_triggersCmd cmdPrimary, string scriptfilename) global
 
     if !Frame_ParseScriptFile(frameid, scriptfilename)
         Frame_Cleanup(frameid)
-        return
+        return 0
     endif
 
+    cmdPrimary.previousFrameId = cmdPrimary.frameid
     cmdPrimary.currentScriptName = scriptfilename
     cmdPrimary.frameid = frameid
 
-    cmdPrimary.returnstack = PapyrusUtil.IntArray(0)
     cmdPrimary.currentLine = 0
     cmdPrimary.lineNum = Frame_GetLineNum(frameid, 0)
     cmdPrimary.totalLines = Frame_GetScriptLineCount(frameid)
@@ -251,7 +536,14 @@ function Frame_Push(sl_triggersCmd cmdPrimary, string scriptfilename) global
     cmdPrimary.MostRecentResult = ""
     cmdPrimary.iterActor = none
     cmdPrimary.lastKey = 0
-    cmdPrimary.callargs = PapyrusUtil.StringArray(0)
+
+    if callargs.length
+        cmdPrimary.callargs = callargs
+    else
+        cmdPrimary.callargs = PapyrusUtil.StringArray(0)
+    endif
+
+    return frameid
 endfunction
 
 bool function Frame_Pop(sl_triggersCmd cmdPrimary) global
@@ -265,7 +557,6 @@ bool function Frame_Pop(sl_triggersCmd cmdPrimary) global
 
     cmdPrimary.frameid = 0
     cmdPrimary.previousFrameId = 0
-    cmdPrimary.returnstack = PapyrusUtil.IntArray(0)
     cmdPrimary.currentLine = 0
     cmdPrimary.lineNum = 0
     cmdPrimary.totalLines = 0
@@ -281,8 +572,6 @@ bool function Frame_Pop(sl_triggersCmd cmdPrimary) global
         cmdPrimary.frameid = frameid
 
         cmdPrimary.previousFrameId = PluckIntValue(SLTHost(), "frame:" + frameid + ":pushed:previousFrameId")
-        cmdPrimary.returnstack = IntListToArray(SLTHost(), "frame:" + frameid + ":pushed:returnstack")
-        IntListClear(SLTHost(), "frame:" + frameid + ":pushed:returnstack")
         cmdPrimary.currentLine = PluckIntValue(SLTHost(), "frame:" + frameid + ":pushed:currentLine")
         cmdPrimary.lineNum = Frame_GetLineNum(frameid, cmdPrimary.currentLine)
         cmdPrimary.totalLines = PluckIntValue(SLTHost(), "frame:" + frameid + ":pushed:totalLines")
@@ -305,6 +594,10 @@ endfunction
 
 string function Frame_GetScriptName(int frameid) global
     return GetStringValue(SLTHost(), "frame:" + frameid + ":detail:scriptname")
+endfunction
+
+bool Function Frame_CompareLineForCommand(int frameid, int targetLine, string targetCommand) global
+    return Map_IntToStringList_StringListFirstTokenMatchesString("frame:" + frameid + ":detail:lines", targetLine, targetCommand)
 endfunction
 
 bool Function Frame_ParseScriptFile(int frameid, string scriptfilename) global
@@ -341,6 +634,11 @@ bool Function Frame_ParseScriptFile(int frameid, string scriptfilename) global
             ; this does NOT account for comments
             cmdLine = JsonUtil.PathStringElements(_myCmdName, ".cmd[" + cmdIdx + "]")
             if cmdLine.Length
+                if ":" == cmdLine[0] && cmdLine.Length >= 2 && cmdLine[1]
+                    string[] newCmdLine = new string[1]
+                    newCmdLine[0] = "[" + cmdLine[1] + "]"
+                    cmdLine = newCmdLine
+                endif
                 Frame_AddScriptLine(frameid, lineno, cmdLine)
             endif
             cmdIdx += 1
@@ -357,7 +655,7 @@ bool Function Frame_ParseScriptFile(int frameid, string scriptfilename) global
         while cmdIdx < cmdNum
             lineno += 1
             ; this accounts for comments
-            cmdLine = sl_triggers.Tokenize(cmdlines[cmdIdx])
+            cmdLine = sl_triggers.Tokenizev2(cmdlines[cmdIdx])
             if cmdLine.Length
                 Frame_AddScriptLine(frameid, lineno, cmdLine)
             endif
@@ -392,6 +690,34 @@ endfunction
 
 string function Frame_GetScriptType(int frameid) global
     return GetStringValue(SLTHost(), "frame:" + frameid + ":detail:scripttype")
+endfunction
+
+function Frame_AddGoto(int frameid, string label, int targetLine) global
+    Map_StringToInt("frame:" + frameid + ":maps:gotolabels", label, targetLine)
+endfunction
+
+int function Frame_FindGoto(int frameid, string label) global
+    return Map_StringToInt_GetVal("frame:" + frameid + ":maps:gotolabels", label)
+endfunction
+
+function Frame_AddGosub(int frameid, string label, int targetLine) global
+    Map_StringToInt("frame:" + frameid + ":maps:gosublabels", label, targetLine)
+endfunction
+
+int function Frame_FindGosub(int frameid, string label) global
+    return Map_StringToInt_GetVal("frame:" + frameid + ":maps:gosublabels", label)
+endfunction
+
+function Frame_PushGosubReturn(int frameid, int targetLine) global
+    IntListAdd(SLTHost(), "frame:" + frameid + ":detail:gosubreturns", targetLine)
+endfunction
+
+int function Frame_PopGosubReturn(int frameid) global
+    string kkey = "frame:" + frameid + ":detail:gosubreturns"
+    if IntListCount(SLTHost(), kkey) < 1
+        return -1
+    endif
+    return IntListPop(SLTHost(), kkey)
 endfunction
 
 bool function Frame_IsDone(sl_triggersCmd cmdPrimary) global

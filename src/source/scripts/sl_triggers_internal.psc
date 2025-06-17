@@ -9,3 +9,4 @@ Form Function       ResolveFormVariable(int threadContextHandle, string variable
 string Function     ResolveValueVariable(int threadContextHandle, string variableName) global native ; colder
 bool Function       RunOperationOnActor(Actor CmdTargetActor, ActiveMagicEffect CmdPrimary, string[] _param) global native ; giddyup cowboy
 Function            SetExtensionEnabled(string extensionKey, bool enabledState) global native ; heh... heheh... hehahahahahhahahahh
+bool Function       StartScript(Actor CmdTargetActor, string initialScriptName) global native ; meh... I wouldn't bother if I were you
