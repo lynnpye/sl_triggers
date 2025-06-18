@@ -57,8 +57,8 @@ function msg_notify(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
             i += 1
         endwhile
         string msg = PapyrusUtil.StringJoin(darr, "")
-        ;Debug.Notification(msg)
-        DebMsg(msg)
+        Debug.Notification(msg)
+        ;DebMsg(msg)
     endif
 endFunction
 

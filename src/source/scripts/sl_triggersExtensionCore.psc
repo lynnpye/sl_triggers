@@ -124,10 +124,6 @@ Event OnKeyUp(int KeyCode, float holdTime)
 		Debug.Notification("Triggers: Critical error")
 		Return
 	endif
-	
-	If !IsEnabled
-		Return
-	Endif
 
 	_keystates[KeyCode] = false
 EndEvent
@@ -137,31 +133,14 @@ Event OnKeyDown(Int KeyCode)
 		Debug.Notification("Triggers: Critical error")
 		Return
 	endif
-	
-	If !IsEnabled
-		Return
-	Endif
 
 	_keystates[KeyCode] = true
 	
-	; update our statii
-	; please don't say it
-	;/
-	for the record, because I feel this is the kind of choice that could easily be picked apart and second guessed
-	I'm doing this for convenience, obviously
-	my assumption is that there won't be a ton of these, so grabbing state and updating each time we get a keystroke
-	we have registered for seems like a very small burden, particularly since we already went through the effort
-	of caching the keycodes we care about and popping out a little bool[] for it too
-	/;
-	;/
-	int i = 0
-	while i < _keycodes_of_interest.Length
-		int kcode = _keycodes_of_interest[i]
-		_keycode_status[i] = Input.IsKeyPressed(kcode)
-		i += 1
-	endwhile
-	/;
-	HandleOnKeyDown()
+	If !IsEnabled
+		DebMsg("Not enabled yet, exiting OnKeyDown early")
+	else
+		HandleOnKeyDown()
+	Endif
 EndEvent
 
 Function RefreshTriggerCache()
@@ -400,7 +379,6 @@ Function HandleOnKeyDown()
 		if doRun
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
 			if command
-				int KeyCode = JsonUtil.GetIntValue(_triggerFile, ATTR_KEYMAPPING)
 				RequestCommand(PlayerRef, command)
 			endIf
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)

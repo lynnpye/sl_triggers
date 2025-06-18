@@ -171,7 +171,7 @@ EndFunction
 ; This queues up a command to an Actor.
 ; returns: the instanceId created
 bool Function RequestCommand(Actor _theActor, string _theScript)
-	return sl_triggersAPI.RunScript(_theScript, _theActor)
+	return SLT.StartCommand(_theActor, _theScript)
 EndFunction
 
 Event _slt_OnSLTInternalReady(string eventName, string strArg, float numArg, Form sender)
