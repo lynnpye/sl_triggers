@@ -40,9 +40,9 @@ endfunction
 
 string function GetVarString(sl_triggersCmd cmdPrimary, string scope, string varname, string missing = "") global
     if scope == "default"
-        return Frame_GetStringValue(cmdPrimary.frameid, StringUtil.Substring(varname, 1), missing)
+        return Frame_GetStringValue(cmdPrimary.kframe_v_prefix, StringUtil.Substring(varname, 1), missing)
     elseif scope == "frame"
-        return Frame_GetStringValue(cmdPrimary.frameid, StringUtil.Substring(varname, 6), missing)
+        return Frame_GetStringValue(cmdPrimary.kframe_v_prefix, StringUtil.Substring(varname, 6), missing)
     elseif scope == "thread"
         return Thread_GetStringValue(cmdPrimary.threadid, StringUtil.Substring(varname, 7), missing)
     elseif scope == "target"
@@ -54,9 +54,9 @@ endfunction
 
 string function SetVarString(sl_triggersCmd cmdPrimary, string scope, string varname, string value) global
     if scope == "default"
-        return Frame_SetStringValue(cmdPrimary.frameid, StringUtil.Substring(varname, 1), value)
+        return Frame_SetStringValue(cmdPrimary.kframe_v_prefix, StringUtil.Substring(varname, 1), value)
     elseif scope == "frame"
-        return Frame_SetStringValue(cmdPrimary.frameid, StringUtil.Substring(varname, 6), value)
+        return Frame_SetStringValue(cmdPrimary.kframe_v_prefix, StringUtil.Substring(varname, 6), value)
     elseif scope == "thread"
         return Thread_SetStringValue(cmdPrimary.threadid, StringUtil.Substring(varname, 7), value)
     elseif scope == "target"
@@ -73,13 +73,14 @@ function Map_StringToInt(string mapname, string stringkey, int val) global
     string kkeys = mapname + ":keys"
     string kvals = mapname + ":vals"
 
-    int foundindex = StringListFind(SLTHost(), kkeys, stringkey)
+    sl_triggersMain _slthost = SLTHost()
+    int foundindex = StringListFind(_slthost, kkeys, stringkey)
 
     if foundindex > -1
-        IntListSet(SLTHost(), kvals, foundindex, val)
+        IntListSet(_slthost, kvals, foundindex, val)
     else
-        foundindex = StringListAdd(SLTHost(), kkeys, stringkey)
-        int valindex = IntListAdd(SLTHost(), kvals, val)
+        foundindex = StringListAdd(_slthost, kkeys, stringkey)
+        int valindex = IntListAdd(_slthost, kvals, val)
         if valindex != foundindex
             DebMsg("Imbalanced map add")
         endif
@@ -92,11 +93,12 @@ bool function Map_StringToInt_HasKey(string mapname, string stringkey) global
 endfunction
 
 int function Map_StringToInt_GetVal(string mapname, string stringkey) global
-    int foundindex = StringListFind(SLTHost(), mapname + ":keys", stringkey)
+    sl_triggersMain _slthost = SLTHost()
+    int foundindex = StringListFind(_slthost, mapname + ":keys", stringkey)
     if foundindex < 0
         return -1
     endif
-    return IntListGet(SLTHost(), mapname + ":vals", foundindex)
+    return IntListGet(_slthost, mapname + ":vals", foundindex)
 endfunction
 
 ;;;;
@@ -105,17 +107,18 @@ int function Map_IntToStringList(string mapname, int intkey, string[] stringlist
     string kkeys = mapname + ":keys"
     string kvals = mapname + ":vals"
 
-    int foundindex = IntListFind(SLTHost(), kkeys, intkey)
+    sl_triggersMain _slthost = SLTHost()
+    int foundindex = IntListFind(_slthost, kkeys, intkey)
 
     if foundindex < 0
-        foundindex = IntListAdd(SLTHost(), kkeys, intkey)
+        foundindex = IntListAdd(_slthost, kkeys, intkey)
     endif
 
     if foundindex < 0
         return -1
     endif
 
-    StringListCopy(SLTHost(), mapname + ":vals:" + foundindex, stringlist)
+    StringListCopy(_slthost, mapname + ":vals:" + foundindex, stringlist)
 
     return foundindex
 endfunction
@@ -126,35 +129,39 @@ bool function Map_IntToStringList_HasKey(string mapname, int intkey) global
 endfunction
 
 string[] function Map_IntToStringList_GetVal(string mapname, int intkey) global
-    int foundindex = IntListFind(SLTHost(), mapname + ":keys", intkey)
+    sl_triggersMain _slthost = SLTHost()
+    int foundindex = IntListFind(_slthost, mapname + ":keys", intkey)
     if foundindex < 0
         return none
     endif
-    return StringListToArray(SLTHost(), mapname + ":vals:" + foundindex)
+    return StringListToArray(_slthost, mapname + ":vals:" + foundindex)
 endfunction
 
 int function Map_IntToStringList_GetNthKey(string mapname, int nthindex) global
     string kkey = mapname + ":keys"
-    if IntListCount(SLTHost(), kkey) <= nthindex
+    sl_triggersMain _slthost = SLTHost()
+    if IntListCount(_slthost, kkey) <= nthindex
         return -1
     endif
-    return IntListGet(SLTHost(), kkey, nthindex)
+    return IntListGet(_slthost, kkey, nthindex)
 endfunction
 
 string[] function Map_IntToStringList_GetValFromNthKey(string mapname, int nthindex) global
     string kkey = mapname + ":keys"
-    if IntListCount(SLTHost(), kkey) <= nthindex
+    sl_triggersMain _slthost = SLTHost()
+    if IntListCount(_slthost, kkey) <= nthindex
         return none
     endif
-    return StringListToArray(SLTHost(), mapname + ":vals:" + nthindex)
+    return StringListToArray(_slthost, mapname + ":vals:" + nthindex)
 endfunction
 
 bool function Map_IntToStringList_StringListFirstTokenMatchesString(string mapname, int nthindex, string targetString) global
     string kkey = mapname + ":keys"
-    if IntListCount(SLTHost(), kkey) <= nthindex
+    sl_triggersMain _slthost = SLTHost()
+    if IntListCount(_slthost, kkey) <= nthindex
         return false
     endif
-    return targetString == StringListGet(SLTHost(), mapname + ":vals:" + nthindex, 0)
+    return targetString == StringListGet(_slthost, mapname + ":vals:" + nthindex, 0)
 endfunction
 
 ;;;;
@@ -173,6 +180,7 @@ string function Global_SetStringValue(string varname, string value) global
     return SetStringValue(SLTHost(), "global:vars:" + varname, value)
 endfunction
 
+;/
 int function Global_GetIntValue(string varname, int missing = 0) global
     if !varname
         return missing
@@ -214,6 +222,7 @@ Form function Global_SetFormValue(string varname, Form value) global
     endif
     return SetFormValue(SLTHost(), "global:vars:" + varname, value)
 endfunction
+/;
 
 ;;;;
 ;; Target
@@ -233,6 +242,7 @@ string function Target_SetStringValue(Form target, string varname, string value)
     return SetStringValue(SLTHost(), "target:" + targetformid + ":vars:" + varname, value)
 endfunction
 
+;/
 int function Target_GetIntValue(Form target, string varname, int missing = 0) global
     if !varname || !target
         return missing
@@ -280,6 +290,7 @@ Form function Target_SetFormValue(Form target, string varname, Form value) globa
     int targetformid = target.GetFormID()
     return SetFormValue(SLTHost(), "target:" + targetformid + ":vars:" + varname, value)
 endfunction
+/;
 
 function Target_AddThread(Form target, int threadid) global
     if !target || threadid < 1
@@ -296,7 +307,8 @@ int function Target_ClaimNextThread(Form target) global
     int currentSessionId = sl_triggers.GetSessionId()
     int targetformid = target.GetFormID()
     string kkey = "target:" + targetformid + ":threads:idlist"
-    int threadcount = IntListCount(SLTHost(), kkey)
+    sl_triggersMain _slthost = SLTHost()
+    int threadcount = IntListCount(_slthost, kkey)
     if threadcount < 1
         return 0
     endif
@@ -305,7 +317,7 @@ int function Target_ClaimNextThread(Form target) global
     int[] threadSessionIds = PapyrusUtil.IntArray(threadcount)
     ; first check for !wasClaimed, !isClaimed
     while i < threadcount
-        threadid = IntListGet(SLTHost(), kkey, i)
+        threadid = IntListGet(_slthost, kkey, i)
         threadSessionIds[i] = Thread_GetLastSessionId(threadid)
         if threadSessionIds[i] == 0
             ; claim it
@@ -317,7 +329,7 @@ int function Target_ClaimNextThread(Form target) global
     
     ; no? okay, now check for wasClaimed, !isClaimed
     while i < threadcount
-        threadid = IntListGet(SLTHost(), kkey, i)
+        threadid = IntListGet(_slthost, kkey, i)
         if threadSessionIds[i] != currentSessionId
             ; claim it
             Thread_SetLastSessionId(threadid, currentSessionId)
@@ -336,10 +348,11 @@ function Target_FreeThread(Form target, int threadid) global
     int i = 0
     int targetformid = target.GetFormID()
     string kkey = "target:" + targetformid + ":threads:idlist"
-    int foundindex = IntListFind(SLTHost(), kkey, threadid)
+    sl_triggersMain _slthost = SLTHost()
+    int foundindex = IntListFind(_slthost, kkey, threadid)
 
     if foundindex > -1
-        IntListPluck(SLTHost(), kkey, foundindex, 0)
+        IntListPluck(_slthost, kkey, foundindex, 0)
     else
         DebMsg("threadid (" + threadid + ") not found on cleanup")
     endif
@@ -347,6 +360,26 @@ endfunction
 
 ;;;;
 ;; Thread
+string function Thread_Create_kt_id(int threadid) global
+    return "thread:" + threadid + ":"
+endfunction
+
+string function Thread_Create_kt_d_target(int threadid) global
+    return Thread_Create_kt_id(threadid) + "detail:target"
+endfunction
+
+string function Thread_Create_kt_d_lastsessiond(int threadid) global
+    return Thread_Create_kt_id(threadid) + "detail:lastsessionid"
+endfunction
+
+string function Thread_Create_kt_d_initialScriptName(int threadid) global
+    return Thread_Create_kt_id(threadid) + "detail:initialScriptName"
+endfunction
+
+string function Thread_Create_kt_v_prefix(int threadid) global
+    return Thread_Create_kt_id(threadid) + "vars:"
+endfunction
+
 string function Thread_GetStringValue(int threadid, string varname, string missing = "") global
     if !varname || threadid < 1
         return missing
@@ -361,6 +394,7 @@ string function Thread_SetStringValue(int threadid, string varname, string value
     return SetStringValue(SLTHost(), "thread:" + threadid + ":vars:" + varname, value)
 endfunction
 
+;/
 int function Thread_GetIntValue(int threadid, string varname, int missing = 0) global
     if !varname || threadid < 1
         return missing
@@ -402,6 +436,7 @@ Form function Thread_SetFormValue(int threadid, string varname, Form value) glob
     endif
     return SetFormValue(SLTHost(), "thread:" + threadid + ":vars:" + varname, value)
 endfunction
+/;
 
 Form function Thread_GetTarget(int threadid) global
     if threadid < 1
@@ -460,20 +495,53 @@ endfunction
 
 ;;;;
 ;; Frame
-string function Frame_GetStringValue(int frameid, string varname, string missing = "") global
-    if !varname || frameid < 1
+string function Frame_Create_kf_id(int frameid) global
+    return "frame:" + frameid + ":"
+endfunction
+
+string function Frame_Create_kf_d_scriptname(int frameid) global
+    return Frame_Create_kf_id(frameid) + "detail:scriptname"
+endfunction
+
+string function Frame_Create_kf_d_lines(int frameid) global
+    return Frame_Create_kf_id(frameid) + "detail:lines"
+endfunction
+
+string function Frame_Create_kf_d_lines_keys(int frameid) global
+    return Frame_Create_kf_id(frameid) + "detail:lines:keys"
+endfunction
+
+string function Frame_Create_kf_d_gosubreturns(int frameid) global
+    return Frame_Create_kf_id(frameid) + "detail:gosubreturns"
+endfunction
+
+string function Frame_Create_kf_m_gotolabels(int frameid) global
+    return Frame_Create_kf_id(frameid) + "maps:gotolabels"
+endfunction
+
+string function Frame_Create_kf_m_gosublabels(int frameid) global
+    return Frame_Create_kf_id(frameid) + "maps:gosublabels"
+endfunction
+
+string function Frame_Create_kf_v_prefix(int frameid) global
+    return Frame_Create_kf_id(frameid) + "vars:"
+endfunction
+
+string function Frame_GetStringValue(string kframe_v_prefix, string varname, string missing = "") global
+    if !varname || !kframe_v_prefix
         return missing
     endif
-    return GetStringValue(SLTHost(), "frame:" + frameid + ":vars:" + varname, missing)
+    return GetStringValue(SLTHost(), kframe_v_prefix + varname, missing)
 endfunction
 
-string function Frame_SetStringValue(int frameid, string varname, string value) global
-    if !varname || frameid < 1
+string function Frame_SetStringValue(string kframe_v_prefix, string varname, string value) global
+    if !varname || !kframe_v_prefix
         return ""
     endif
-    return SetStringValue(SLTHost(), "frame:" + frameid + ":vars:" + varname, value)
+    return SetStringValue(SLTHost(), kframe_v_prefix + varname, value)
 endfunction
 
+;/
 int function Frame_GetIntValue(int frameid, string varname, int missing = 0) global
     if !varname || frameid < 1
         return missing
@@ -515,25 +583,26 @@ Form function Frame_SetFormValue(int frameid, string varname, Form value) global
     endif
     return SetFormValue(SLTHost(), "frame:" + frameid + ":vars:" + varname, value)
 endfunction
+/;
 
 ;; returns frameid
 int function Frame_Push(sl_triggersCmd cmdPrimary, string scriptfilename, string[] callargs = none) global
-    sl_triggersMain sltmain = SLTHost()
+    sl_triggersMain _slthost = SLTHost()
     if cmdPrimary.frameid
         ; store for pop
         int oldframeid = cmdPrimary.frameid
-        SetIntValue(SLTHost(), "frame:" + oldframeid + ":pushed:previousFrameId", cmdPrimary.previousFrameId)
-        SetIntValue(SLTHost(), "frame:" + oldframeid + ":pushed:currentLine", cmdPrimary.currentLine)
-        SetIntValue(SLTHost(), "frame:" + oldframeid + ":pushed:totalLines", cmdPrimary.totalLines)
-        SetStringValue(SLTHost(), "frame:" + oldframeid + ":pushed:command", cmdPrimary.command)
-        SetStringValue(SLTHost(), "frame:" + oldframeid + ":pushed:mostrecentresult", cmdPrimary.MostRecentResult)
-        SetFormValue(SLTHost(), "frame:" + oldframeid + ":pushed:iteractor", cmdPrimary.iterActor)
-        SetIntValue(SLTHost(), "frame:" + oldframeid + ":pushed:lastkey", cmdPrimary.lastKey)
+        SetIntValue(_slthost, "frame:" + oldframeid + ":pushed:previousFrameId", cmdPrimary.previousFrameId)
+        SetIntValue(_slthost, "frame:" + oldframeid + ":pushed:currentLine", cmdPrimary.currentLine)
+        SetIntValue(_slthost, "frame:" + oldframeid + ":pushed:totalLines", cmdPrimary.totalLines)
+        SetStringValue(_slthost, "frame:" + oldframeid + ":pushed:command", cmdPrimary.command)
+        SetStringValue(_slthost, "frame:" + oldframeid + ":pushed:mostrecentresult", cmdPrimary.MostRecentResult)
+        SetFormValue(_slthost, "frame:" + oldframeid + ":pushed:iteractor", cmdPrimary.iterActor)
+        SetIntValue(_slthost, "frame:" + oldframeid + ":pushed:lastkey", cmdPrimary.lastKey)
 
-        StringListCopy(SLTHost(), "frame:" + oldframeid + ":pushed:callargs", cmdPrimary.callargs)
+        StringListCopy(_slthost, "frame:" + oldframeid + ":pushed:callargs", cmdPrimary.callargs)
     endif
 
-    int frameid = sltmain.GetNextInstanceId()
+    int frameid = _slthost.GetNextInstanceId()
 
     if !Frame_ParseScriptFile(frameid, scriptfilename)
         Frame_Cleanup(frameid)
@@ -562,9 +631,9 @@ int function Frame_Push(sl_triggersCmd cmdPrimary, string scriptfilename, string
 endfunction
 
 bool function Frame_Pop(sl_triggersCmd cmdPrimary) global
-    sl_triggersMain sltmain = SLTHost()
+    sl_triggersMain _slthost = SLTHost()
 
-    if !cmdPrimary || !sltmain || cmdPrimary.frameid < 1
+    if !cmdPrimary || !_slthost || cmdPrimary.frameid < 1
         return false
     endif
 
@@ -588,29 +657,21 @@ bool function Frame_Pop(sl_triggersCmd cmdPrimary) global
 
         cmdPrimary.frameid = frameid
 
-        cmdPrimary.previousFrameId = PluckIntValue(SLTHost(), "frame:" + frameid + ":pushed:previousFrameId")
-        cmdPrimary.currentLine = PluckIntValue(SLTHost(), "frame:" + frameid + ":pushed:currentLine")
+        cmdPrimary.previousFrameId = PluckIntValue(_slthost, "frame:" + frameid + ":pushed:previousFrameId")
+        cmdPrimary.currentLine = PluckIntValue(_slthost, "frame:" + frameid + ":pushed:currentLine")
         cmdPrimary.lineNum = Frame_GetLineNum(frameid, cmdPrimary.currentLine)
-        cmdPrimary.totalLines = PluckIntValue(SLTHost(), "frame:" + frameid + ":pushed:totalLines")
-        cmdPrimary.command = PluckStringValue(SLTHost(), "frame:" + frameid + ":pushed:command")
-        cmdPrimary.MostRecentResult = PluckStringValue(SLTHost(), "frame:" + frameid + ":pushed:mostrecentresult")
-        cmdPrimary.iterActor = PluckFormValue(SLTHost(), "frame:" + frameid + ":pushed:iteractor") as Actor
-        cmdPrimary.lastKey = PluckIntValue(SLTHost(), "frame:" + frameid + ":pushed:lastkey")
-        cmdPrimary.callargs = StringListToArray(SLTHost(), "frame:" + frameid + ":pushed:callargs")
-        StringListClear(SLTHost(), "frame:" + frameid + ":pushed:callargs")
+        cmdPrimary.totalLines = PluckIntValue(_slthost, "frame:" + frameid + ":pushed:totalLines")
+        cmdPrimary.command = PluckStringValue(_slthost, "frame:" + frameid + ":pushed:command")
+        cmdPrimary.MostRecentResult = PluckStringValue(_slthost, "frame:" + frameid + ":pushed:mostrecentresult")
+        cmdPrimary.iterActor = PluckFormValue(_slthost, "frame:" + frameid + ":pushed:iteractor") as Actor
+        cmdPrimary.lastKey = PluckIntValue(_slthost, "frame:" + frameid + ":pushed:lastkey")
+        cmdPrimary.callargs = StringListToArray(_slthost, "frame:" + frameid + ":pushed:callargs")
+        StringListClear(_slthost, "frame:" + frameid + ":pushed:callargs")
 
         return true
     endif
 
     return false
-endfunction
-
-function Frame_SetScriptName(int frameid, string scriptfilename) global
-    SetStringValue(SLTHost(), "frame:" + frameid + ":detail:scriptname", scriptfilename)
-endfunction
-
-string function Frame_GetScriptName(int frameid) global
-    return GetStringValue(SLTHost(), "frame:" + frameid + ":detail:scriptname")
 endfunction
 
 bool Function Frame_CompareLineForCommand(int frameid, int targetLine, string targetCommand) global
@@ -660,7 +721,6 @@ bool Function Frame_ParseScriptFile(int frameid, string scriptfilename) global
             endif
             cmdIdx += 1
         endwhile
-        Frame_SetScriptType(frameid, "json")
         return true
     elseif _last == ".ini"
         string cmdpath = FullCommandsFolder() + _myCmdName
@@ -678,7 +738,6 @@ bool Function Frame_ParseScriptFile(int frameid, string scriptfilename) global
             endif
             cmdIdx += 1
         endwhile
-        Frame_SetScriptType(frameid, "ini")
         return true
     endif
 
@@ -705,6 +764,14 @@ function Frame_AddScriptLine(int frameid, int linenum, string[] tokens) global
     endif
 endfunction
 
+function Frame_SetScriptName(int frameid, string scriptfilename) global
+    SetStringValue(SLTHost(), "frame:" + frameid + ":detail:scriptname", scriptfilename)
+endfunction
+
+string function Frame_GetScriptName(int frameid) global
+    return GetStringValue(SLTHost(), "frame:" + frameid + ":detail:scriptname")
+endfunction
+
 int function Frame_GetScriptLineCount(int frameid) global
     return IntListCount(SLTHost(), "frame:" + frameid + ":detail:lines:keys")
 endfunction
@@ -715,14 +782,6 @@ endfunction
 
 string[] function Frame_GetTokens(int frameid, int currentLine) global
     return Map_IntToStringList_GetValFromNthKey("frame:" + frameid + ":detail:lines", currentLine)
-endfunction
-
-function Frame_SetScriptType(int frameid, string scripttype) global
-    SetStringValue(SLTHost(), "frame:" + frameid + ":detail:scripttype", scripttype)
-endfunction
-
-string function Frame_GetScriptType(int frameid) global
-    return GetStringValue(SLTHost(), "frame:" + frameid + ":detail:scripttype")
 endfunction
 
 function Frame_AddGoto(int frameid, string label, int targetLine) global
@@ -747,10 +806,11 @@ endfunction
 
 int function Frame_PopGosubReturn(int frameid) global
     string kkey = "frame:" + frameid + ":detail:gosubreturns"
-    if IntListCount(SLTHost(), kkey) < 1
+    sl_triggersMain _slthost = SLTHost()
+    if IntListCount(_slthost, kkey) < 1
         return -1
     endif
-    return IntListPop(SLTHost(), kkey)
+    return IntListPop(_slthost, kkey)
 endfunction
 
 bool function Frame_IsDone(sl_triggersCmd cmdPrimary) global

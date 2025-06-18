@@ -51,7 +51,7 @@ Event OnInit()
 	endif
 	; REQUIRED CALL
 	UnregisterForUpdate()
-	RegisterForSingleUpdate(0.1)
+	RegisterForSingleUpdate(0.01)
 EndEvent
 
 Event OnUpdate()

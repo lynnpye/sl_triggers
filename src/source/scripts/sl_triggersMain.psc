@@ -99,7 +99,7 @@ Function BootstrapSLTInit()
 	endwhile
 
 	UnregisterForUpdate()
-	QueueUpdateLoop(0.1)
+	QueueUpdateLoop(0.01)
 EndFunction
 
 Event OnUpdate()

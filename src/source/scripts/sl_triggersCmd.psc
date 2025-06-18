@@ -17,10 +17,39 @@ Keyword			Property ActorTypeUndead Auto
 
 Actor			Property CmdTargetActor Auto Hidden
 
+
+; pre-generated keys for thread context
+int _threadid = 0
+string Property kthread_v_prefix auto hidden
+int         Property threadid Hidden
+    int Function Get()
+        return _threadid
+    EndFunction
+    Function Set(int value)
+        _threadid = value
+
+        kthread_v_prefix = Thread_Create_kt_v_prefix(_threadid)
+    EndFunction
+EndProperty
+
+; pre-generated keys for frame context
+int _frameid = 0
+string Property kframe_v_prefix auto hidden
+int         Property frameid Hidden
+    int Function Get()
+        return _frameid
+    EndFunction
+    Function Set(int value)
+        _frameid = value
+
+        kframe_v_prefix = Frame_Create_kf_v_prefix(_frameid)
+    EndFunction
+EndProperty
+
+
+
 bool        Property runOpPending = false auto hidden
 bool        Property isExecuting = false Auto Hidden
-int         Property threadid = 0 Auto Hidden
-int         Property frameid = 0 Auto Hidden
 int         Property previousFrameId = 0 Auto Hidden
 
 int			Property lastKey = 0 auto  Hidden
@@ -67,7 +96,7 @@ Function DoStartup()
 
     if threadid && frameid
         isExecuting = true
-        QueueUpdateLoop(0.1)
+        QueueUpdateLoop(0.01)
     else
         CleanupAndRemove()
     endif
