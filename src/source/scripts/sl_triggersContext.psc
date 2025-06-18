@@ -101,7 +101,7 @@ endfunction
 
 ;;;;
 ;; Map_IntToStringList
-function Map_IntToStringList(string mapname, int intkey, string[] stringlist) global
+int function Map_IntToStringList(string mapname, int intkey, string[] stringlist) global
     string kkeys = mapname + ":keys"
     string kvals = mapname + ":vals"
 
@@ -112,10 +112,12 @@ function Map_IntToStringList(string mapname, int intkey, string[] stringlist) gl
     endif
 
     if foundindex < 0
-        return
+        return -1
     endif
 
     StringListCopy(SLTHost(), mapname + ":vals:" + foundindex, stringlist)
+
+    return foundindex
 endfunction
 
 bool function Map_IntToStringList_HasKey(string mapname, int intkey) global
@@ -568,6 +570,8 @@ bool function Frame_Pop(sl_triggersCmd cmdPrimary) global
 
     Frame_Cleanup(cmdPrimary.frameid)
 
+    int previousFrameId = cmdPrimary.previousFrameId
+
     cmdPrimary.frameid = 0
     cmdPrimary.previousFrameId = 0
     cmdPrimary.currentLine = 0
@@ -579,8 +583,8 @@ bool function Frame_Pop(sl_triggersCmd cmdPrimary) global
     cmdPrimary.lastKey = 0
     cmdPrimary.callargs = PapyrusUtil.StringArray(0)
 
-    if cmdPrimary.previousFrameId > 0
-        int frameid = cmdPrimary.previousFrameId
+    if previousFrameId > 0
+        int frameid = previousFrameId
 
         cmdPrimary.frameid = frameid
 
@@ -682,7 +686,23 @@ bool Function Frame_ParseScriptFile(int frameid, string scriptfilename) global
 EndFunction
 
 function Frame_AddScriptLine(int frameid, int linenum, string[] tokens) global
-    Map_IntToStringList("frame:" + frameid + ":detail:lines", linenum, tokens)
+    int foundindex = Map_IntToStringList("frame:" + frameid + ":detail:lines", linenum, tokens)
+    if foundindex < 0
+        return
+    endif
+    if tokens[0] == "beginsub" && tokens.Length == 2
+        Frame_AddGosub(frameid, tokens[1], foundindex)
+    elseif tokens.Length == 1
+        int tlen = StringUtil.GetLength(tokens[0])
+        int tlenm1 = tlen - 1
+        int tlenm2 = tlenm1 - 1
+        if tlen > 2 && StringUtil.GetNthChar(tokens[0], 0) == "[" && StringUtil.GetNthChar(tokens[0], tlenm1) == "]"
+            string lbl = sl_triggers.Trim(StringUtil.Substring(tokens[0], 1, tlenm2))
+            if lbl
+                Frame_AddGoto(frameid, lbl, foundindex)
+            endif
+        endif
+    endif
 endfunction
 
 int function Frame_GetScriptLineCount(int frameid) global

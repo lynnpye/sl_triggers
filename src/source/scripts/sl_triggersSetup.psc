@@ -91,12 +91,11 @@ EndFunction
 
 Event OnConfigInit()
 	headerPages = new string[1]
-	headerPages[0] = "SL Triggers"
+	headerPages[0] = "SLTriggers Redux"
 EndEvent
 
 Event OnConfigOpen()
 	ScriptsList = sl_triggers.GetScriptsList()
-	DebMsg("ScriptsList.Length (" + ScriptsList.Length + ")")
 	if extensionPages.Length > 0
 		Pages = PapyrusUtil.MergeStringArray(headerPages, extensionPages)
 	else
@@ -1211,7 +1210,6 @@ EndFunction
 
 
 Function SetExtensionPages(string[] _extensionFriendlyNames, string[] _extensionKeys)
-	DebMsg("Settings.SetExtensionPages l1(" + _extensionFriendlyNames.Length + ") l2(" + _extensionKeys.Length + ")")
 	extensionPages = _extensionFriendlyNames
 	extensionKeys = _extensionKeys
 EndFunction

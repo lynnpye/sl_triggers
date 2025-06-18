@@ -68,7 +68,7 @@ EndFunction
 
 ; SLT receives these from extensions for registration
 string Function EVENT_SLT_REGISTER_EXTENSION() global
-	return "_slt_event_slt_register_extension_"
+	return "OnSLTRegisterExtension"
 EndFunction
 
 string Function EVENT_SLT_ON_NEW_SESSION() global

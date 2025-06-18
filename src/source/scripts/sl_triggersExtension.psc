@@ -139,7 +139,6 @@ EndEvent
 ; to be first or last at the time of this writing, take that into consideration if you
 ; run into problems.
 Function SLTInit()
-	DebMsg("Extension.SLTInit key(" + SLTExtensionKey + ")")
 	FN_S = FN_X_Settings(SLTExtensionKey)
 
 	if !SLT

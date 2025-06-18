@@ -43,7 +43,6 @@ EndFunction
 ;; Events
 
 Event OnInit()
-	DebMsg("Main.OnInit")
 	if !self
 		return
 	endif
@@ -52,7 +51,6 @@ Event OnInit()
 EndEvent
 
 Function DoPlayerLoadGame()
-	DebMsg("Main.DoPlayerLoadGame")
 	if !self
 		return
 	endif
@@ -84,7 +82,6 @@ Function BootstrapSLTInit()
 	SLTUpdateState = SLT_BOOTSTRAPPING
 	_registrationBeaconCount = REGISTRATION_BEACON_COUNT
 	
-	DebMsg("Extensions.Length (" + Extensions.Length + ")")
 	int i = 0
 	while i < Extensions.Length
 		sl_triggersExtension sltx = Extensions[i] as sl_triggersExtension
@@ -139,8 +136,8 @@ Event OnUpdate()
 	QueueUpdateLoop(afDelay)
 EndEvent
 
-Event OnSLTRegisterExtension(Quest extensionToRegister)
-	DebMsg("Main.OnSLTRegisterExtension ext(" + extensionToRegister + ")")
+Event OnSLTRegisterExtension(string _eventName, string extensionKey, float fltval, Form extensionToRegister_asForm)
+	Quest extensionToRegister = extensionToRegister_asForm as Quest
 	if !self || !extensionToRegister
 		return
 	endif
@@ -179,7 +176,6 @@ Event OnSLTRequestList(string _eventName, string _storageUtilStringListKey, floa
 EndEvent
 
 Event OnSLTRequestCommand(string _eventName, string _commandName, float __ignored, Form _theActor)
-	DebMsg("OnSLTRequestCommand (" + _eventName + ") (" + _commandName + ") (" + __ignored + ") (" + _theActor + ")")
 	if !self
 		return
 	endif
@@ -199,7 +195,6 @@ EndEvent
 ;; Functions
 
 Function DoRegistrationBeacon()
-	DebMsg("Main.DoRegistrationBeacon")
 	if !self
 		return
 	endif
@@ -211,14 +206,12 @@ int Function GetNextInstanceId()
 		nextInstanceId = 0
 	endif
 	nextInstanceId += 1
-	DebMsg("Main.GetNextInstanceId: returning " + nextInstanceId)
 	return nextInstanceId
 EndFunction
 
 ; Unfortunately this might get called repeatedly for new extensions, but
 ; still has to deal with the possibility of existing extensions
 Function DoRegistrationActivity(sl_triggersExtension _extensionToRegister)
-	DebMsg("]]]]]]]]]]]]]  Main.DoRegistrationActivity")
 	if !self
 		return
 	endif
@@ -364,13 +357,11 @@ EndFunction
 ; Actor _theActor: the Actor to attach this command to
 ; string _scriptName: the file to run
 string Function StartCommand(Actor target, string initialScriptName)
-	DebMsg("Main.StartCommand target(" + target + ") initialScriptName(" + initialScriptName + ")")
 	if !self
 		return ""
 	endif
 
 	int threadid = GetNextInstanceId()
-	DebMsg("Main: new threadid >>>> (" + threadid + ")")
 
 	Thread_SetInitialScriptName(threadid, initialScriptName)
 	Thread_SetTarget(threadid, target)

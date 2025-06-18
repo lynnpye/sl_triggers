@@ -39,6 +39,29 @@ Function deb_msg(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
     endif
 endFunction
 
+; sltname msg_notify
+; sltgrup Utility
+; sltdesc Display the message in the standard notification area (top left of your screen by default)
+; sltargs message: <msg> [<msg> <msg> ...]
+; sltsamp msg_notify "Hello" "world!"
+; sltsamp msg_notify "Hello world!"
+; sltrslt Both are the same
+function msg_notify(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthGT(CmdPrimary, param.Length, 1)
+        string[] darr = PapyrusUtil.StringArray(param.Length)
+        int i = 1
+        while i < darr.Length
+            darr[i] = CmdPrimary.Resolve(param[i])
+            i += 1
+        endwhile
+        string msg = PapyrusUtil.StringJoin(darr, "")
+        ;Debug.Notification(msg)
+        DebMsg(msg)
+    endif
+endFunction
+
 ; sltname form_getbyid
 ; sltgrup Form
 ; sltdesc Performs a lookup for a Form and returns it if found; returns none otherwise
@@ -665,28 +688,6 @@ function item_getcount(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
     CmdPrimary.MostRecentResult = nextResult
 endFunction
 
-; sltname msg_notify
-; sltgrup Utility
-; sltdesc Display the message in the standard notification area (top left of your screen by default)
-; sltargs message: <msg> [<msg> <msg> ...]
-; sltsamp msg_notify "Hello" "world!"
-; sltsamp msg_notify "Hello world!"
-; sltrslt Both are the same
-function msg_notify(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
-	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-
-    if ParamLengthGT(CmdPrimary, param.Length, 1)
-        string[] darr = PapyrusUtil.StringArray(param.Length)
-        int i = 1
-        while i < darr.Length
-            darr[i] = CmdPrimary.Resolve(param[i])
-            i += 1
-        endwhile
-        string msg = PapyrusUtil.StringJoin(darr, "")
-        Debug.Notification(msg)
-    endif
-endFunction
-
 ; sltname msg_console
 ; sltgrup Utility
 ; sltdesc Display the message in the console
@@ -771,7 +772,7 @@ function util_getrandomactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary
     Actor nextIterActor
 
     if ParamLengthEQ(CmdPrimary, param.Length, 2)
-        Actor[] inCell = MiscUtil.ScanCellNPCs(CmdPrimary.PlayerRef, CmdPrimary.resolve(param[1]) as float)
+        Actor[] inCell = MiscUtil.ScanCellNPCs(CmdPrimary.CmdTargetActor, CmdPrimary.resolve(param[1]) as float)
         if inCell.Length
             Keyword ActorTypeNPC = GetForm_Skyrim_ActorTypeNPC() as Keyword
             Cell    cc = CmdPrimary.PlayerRef.getParentCell()

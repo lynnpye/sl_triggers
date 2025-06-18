@@ -109,36 +109,23 @@ endFunction
 function actor_say(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
     
-    DebMsg("SexLab.actor_say: starting")
-
     sl_triggersExtensionSexLab slExtension = GetExtension()
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        DebMsg("param count good")
         string thingFormId = CmdPrimary.resolve(param[2])
         Topic thing = CmdPrimary.GetFormId(thingFormId) as Topic
         if thing
-            DebMsg("topic good")
             Actor _targetActor = CmdPrimary.ResolveActor(param[1])
             if _targetActor
-                DebMsg("actor good")
                 if _targetActor == CmdPrimary.PlayerRef && (slExtension.IsEnabled && slExtension.SexLab && slExtension.SexLab.Config.ToggleFreeCamera)
                     ; nop
-                    DebMsg("SexLab.actor_say: target is actor and currently in SexLab freecam mode; per original implementation, do not run Actor.Say()")
                 else
-                    DebMsg("pre-say")
                     _targetActor.Say(thing)
-                    DebMsg("post-say")
                 endif
-            else
-                DebMsg("_targetActor did not resolve(" + param[1] + ")")
             endif
-        else
-            DebMsg("thing did not resolve(" + thingFormId + ") resolved from(" + param[2] +")")
         endIf
     endif
     
-    DebMsg("SexLab.actor_say: done")
 endFunction
 /;
 

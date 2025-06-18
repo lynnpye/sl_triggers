@@ -42,36 +42,26 @@ EndFunction
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
 	CmdTargetActor = akCaster
-    DebMsg("Cmd.OnEffectStart")
     ; do one time things here, maybe setting up an instanceid if necessary
     DoStartup()
 EndEvent
 
 Event OnPlayerLoadGame()
-    DebMsg("Cmd.OnPlayerLoadGame")
     DoStartup()
 EndEvent
 
 Function DoStartup()
-    DebMsg("Cmd.DoStartup")
 	SafeRegisterForModEvent_AME(self, EVENT_SLT_RESET(), "OnSLTReset")
     
     if !threadid
         ; need to determine our threadid
-        DebMsg("Obtaining threadid currently threadid(" + threadid + ")")
         threadid = Target_ClaimNextThread(CmdTargetActor)
-        DebMsg("claimed threadid(" + threadid + ")")
         callargs = PapyrusUtil.StringArray(0)
         if threadid > 0
-            DebMsg("Thread.InitialScriptName (" + Thread_GetInitialScriptName(threadid) + ")")
             if !Frame_Push(self, Thread_GetInitialScriptName(threadid))
-                DebMsg("Unable to push frame, cleaning up and going home")
                 CleanupAndRemove()
                 return
             endif
-            DebMsg("got thread and frame")
-        else
-            DebMsg("failed to claim thread")
         endif
     endif
 
@@ -93,9 +83,11 @@ Event OnUpdate()
     CleanupAndRemove()
 EndEvent
 
+;/
 Event OnEffectFinish(Actor akTarget, Actor akCaster)
     CleanupAndRemove()
 EndEvent
+/;
 
 Event OnSLTReset(string eventName, string strArg, float numArg, Form sender)
     CleanupAndRemove()
@@ -168,37 +160,7 @@ Bool Function InSameCell(Actor _actor)
 EndFunction
 
 Form Function GetFormById(string _data)
-    Form retVal
-    string[] params
-    
-    if _data
-        params = StringUtil.Split(_data, ":")
-        if params.Length == 2 ; e.g. "Skyrim.esm:0f"
-            string modfile = params[0]
-            if modfile
-                string sid = params[1]
-                if sid
-                    int id
-                    if StringUtil.GetNthChar(sid, 0) == "0"
-                        id = GlobalHexToInt(sid)
-                    else
-                        id = sid as int
-                    endif
-
-                    retVal = Game.GetFormFromFile(id, modfile)
-                endif
-            endif
-        elseif params.Length == 1  ; e.g. "0f"
-            int id
-            if StringUtil.GetNthChar(_data, 0) == "0"
-                id = GlobalHexToInt(_data)
-            else
-                id = _data as int
-            endif
-
-            retVal = Game.GetForm(id)
-        endif
-    endif
+    Form retVal = sl_triggers.GetForm(_data)
 
     if !retVal
         SFE("Form not found (" + _data + ")")
@@ -474,6 +436,7 @@ Function RunScript()
                         string resolvedCmdLine = Resolve(cmdLine[1])
                         int gosubTargetLine = Frame_FindGosub(frameid, resolvedCmdLine)
                         if gosubTargetLine > -1
+                            Frame_PushGosubReturn(frameid, currentLine)
                             currentLine = gosubTargetLine
                         else
                             SFE("Unable to resolve gosub label (" + cmdLine[1] + ") resolved to (" + resolvedCmdLine + ")")
@@ -545,7 +508,7 @@ Function RunScript()
                     currentLine += 1
                 elseIf command == "return"
                     if !Frame_Pop(self)
-                        CleanupAndRemove()
+                        ;CleanupAndRemove()
                         return
                     endif
                     
@@ -565,11 +528,13 @@ Function RunScript()
             endif
         endwhile
 
-        Frame_Pop(self)
+        if Frame_Pop(self)
+            currentLine += 1
+        endif
 
     endwhile
     
-    CleanupAndRemove()
+    ;CleanupAndRemove()
 EndFunction
 
 string Function _slt_IsLabel(string[] _tokens = none)
