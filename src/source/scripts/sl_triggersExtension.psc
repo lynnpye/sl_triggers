@@ -66,6 +66,13 @@ be registered at bootstrap.
 Function SLTSettingsUpdated()
 EndFunction
 
+bool Function CustomResolve(sl_triggersCmd CmdPrimary, string token)
+	return false
+EndFunction
+
+bool Function CustomResolveForm(sl_triggersCmd CmdPrimary, string token)
+	return false
+EndFunction
 
 ; bool IsDebugMsg
 ; debug logging status for this extension

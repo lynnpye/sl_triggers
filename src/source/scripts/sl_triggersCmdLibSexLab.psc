@@ -92,7 +92,7 @@ function sl_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
         endif
     endif
 
-    CmdPrimary.SetIterActor(nextIterActor)
+    CmdPrimary.iterActor = nextIterActor
 
     CmdPrimary.CompleteOperationOnActor()
 endfunction
@@ -165,7 +165,7 @@ function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         endif
     endif
 
-    CmdPrimary.SetMostRecentResult(nextResult)
+    CmdPrimary.MostRecentResult = nextResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -233,7 +233,7 @@ function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
         endif
     endif
 
-    CmdPrimary.SetMostRecentResult(nextResult)
+    CmdPrimary.MostRecentResult = nextResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -285,7 +285,7 @@ function sl_isin(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
         endIf
     endif
 
-    CmdPrimary.SetMostRecentResult(nextResult)
+    CmdPrimary.MostRecentResult = nextResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -318,7 +318,7 @@ function sl_hastag(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
         endIf
     endif
     
-    CmdPrimary.SetMostRecentResult(nextResult)
+    CmdPrimary.MostRecentResult = nextResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -346,7 +346,7 @@ function sl_animname(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
         endIf
     endif
 
-    CmdPrimary.SetMostRecentResult(nextResult)
+    CmdPrimary.MostRecentResult = nextResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -381,7 +381,7 @@ function sl_getprop(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         endIf
     endif
 
-    CmdPrimary.SetMostRecentResult(nextResult)
+    CmdPrimary.MostRecentResult = nextResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -446,7 +446,7 @@ function sl_isinslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
         endif
 	endif
 	
-	CmdPrimary.SetMostRecentResult(nextResult)
+	CmdPrimary.MostRecentResult = nextResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -652,7 +652,7 @@ function osla_get_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         endif
     endif
 
-    CmdPrimary.SetMostRecentResult(newResult)
+    CmdPrimary.MostRecentResult = newResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -675,7 +675,7 @@ function osla_get_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _Cm
         endif
     endif
 
-    CmdPrimary.SetMostRecentResult(newResult)
+    CmdPrimary.MostRecentResult = newResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -698,7 +698,7 @@ function osla_get_exposure(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, 
         endif
     endif
 
-    CmdPrimary.SetMostRecentResult(newResult)
+    CmdPrimary.MostRecentResult = newResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -721,7 +721,7 @@ function osla_get_actor_days_since_last_orgasm(Actor CmdTargetActor, ActiveMagic
         endif
     endif
 
-    CmdPrimary.SetMostRecentResult(newResult)
+    CmdPrimary.MostRecentResult = newResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -750,7 +750,7 @@ function osla_modify_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary
         endif
     endif
 
-    CmdPrimary.SetMostRecentResult(newResult)
+    CmdPrimary.MostRecentResult = newResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -779,7 +779,7 @@ function osla_set_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         endif
     endif
 
-    CmdPrimary.SetMostRecentResult(newResult)
+    CmdPrimary.MostRecentResult = newResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -808,7 +808,7 @@ function osla_modify_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect 
         endif
     endif
 
-    CmdPrimary.SetMostRecentResult(newResult)
+    CmdPrimary.MostRecentResult = newResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -837,7 +837,7 @@ function osla_set_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _Cm
         endif
     endif
 
-    CmdPrimary.SetMostRecentResult(newResult)
+    CmdPrimary.MostRecentResult = newResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction

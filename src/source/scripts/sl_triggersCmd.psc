@@ -63,6 +63,7 @@ int			Property lastKey = 0 auto  Hidden
 bool        Property cleanedup = false auto  hidden
 
 string	    Property MostRecentResult = "" auto Hidden
+string      Property CustomResolveResult = "" auto Hidden
 Form        Property CustomResolveFormResult = none auto Hidden
 Actor       Property iterActor = none auto Hidden
 string      Property currentScriptName = "" auto hidden
@@ -179,14 +180,6 @@ Function RunOperationOnActor(string[] opCmdLine)
     endwhile
 EndFunction
 
-Function SetIterActor(Actor value)
-    iterActor = value
-EndFunction
-
-Function SetMostRecentResult(string value)
-    MostRecentResult = value
-EndFunction
-
 Function CompleteOperationOnActor()
     runOpPending = false
 EndFunction
@@ -195,39 +188,40 @@ EndFunction
 ; string token - a variable to retrieve the value of e.g. $$, $global.foo, $g3
 ; returns: the value as a string; token if unable to resolve
 string Function Resolve(string token)
+    if token == "$$"
+        return MostRecentResult
+    endif
+
     int tokenlength
     string varscope
     string vtok
     int j
+    int i = 0
+    bool resolved = false
+    bool sltChecked = false
 
-    tokenlength = StringUtil.GetLength(token)
-    if StringUtil.GetNthChar(token, tokenlength - 1) == "\""
-        if StringUtil.GetNthChar(token, 0) == "\""
-            token = StringUtil.Substring(token, 1, tokenlength - 2)
-            return token
-            
-        elseif StringUtil.Substring(token, 0, 2) == "$\""
-            string trimmed = StringUtil.Substring(token, 2, tokenlength - 3)
-            string[] vartoks = sl_triggers.TokenizeForVariableSubstitution(trimmed)
-            j = 0
-            while j < vartoks.Length
-                if vartoks[j] == "$$"
-                    vartoks[j] = MostRecentResult
+    while i < SLT.Extensions.Length
+        sl_triggersExtension slext = SLT.Extensions[i] as sl_triggersExtension
+
+        if !sltChecked && slext.GetPriority() >= 0
+            sltChecked = true
+                
+            tokenlength = StringUtil.GetLength(token)
+            if StringUtil.GetNthChar(token, tokenlength - 1) == "\""
+                if StringUtil.GetNthChar(token, 0) == "\""
+                    resolved = false
+                    
+                elseif StringUtil.Substring(token, 0, 2) == "$\""
+                    string trimmed = StringUtil.Substring(token, 2, tokenlength - 3)
+                    string[] vartoks = sl_triggers.TokenizeForVariableSubstitution(trimmed)
+                    j = 0
+                    while j < vartoks.Length
+                        vartoks[j] = Resolve(vartoks[j])
+
+                        j += 1
+                    endwhile
+                    return PapyrusUtil.StringJoin(vartoks, "")
                 endif
-
-                varscope = GetVarScope(vartoks[j])
-                if varscope
-                    vartoks[j] = GetVarString(self, varscope, vartoks[j])
-                endif
-
-                j += 1
-            endwhile
-            return PapyrusUtil.StringJoin(vartoks, "")
-
-        else
-            ; assume bare, had a trailing " but did not have a leading quote
-            if token == "$$"
-                return MostRecentResult
             endif
 
             varscope = GetVarScope(token)
@@ -235,17 +229,14 @@ string Function Resolve(string token)
                 return GetVarString(self, varscope, token)
             endif
         endif
-    else
-        ; assume bare, could technically have a leading " or $", but still just part of the string
-        if token == "$$"
-            return MostRecentResult
+        
+        resolved = slext.CustomResolve(self, token)
+        if resolved
+            return CustomResolveResult
         endif
 
-        varscope = GetVarScope(token)
-        if varscope
-            return GetVarString(self, varscope, token)
-        endif
-    endif
+        i += 1
+    endwhile
 
     return token
 EndFunction
@@ -253,31 +244,45 @@ EndFunction
 ; ResolveActor
 ; string _code - a variable indicating an Actor e.g. $self, $player
 ; returns: an Actor representing the specified Actor; none if unable to resolve
-Actor Function ResolveActor(string _code)
+Actor Function ResolveActor(string token)
     Actor _resolvedActor = CmdTargetActor
-    if _code
-        _resolvedActor = ResolveForm(_code) as Actor
+    if token
+        _resolvedActor = ResolveForm(token) as Actor
     endif
     return _resolvedActor
 EndFunction
 
-Form Function ResolveForm(string _code)
-    if _code == "#self" || _code == "$self"
-        return CmdTargetActor
-    elseif _code == "#player" || _code == "$player"
-        return PlayerRef
-    elseif _code == "#actor" || _code == "$actor"
-        return iterActor
-    elseif _code == "#none" || _code == "none" || _code == ""
-        return none
-    endif
+Form Function ResolveForm(string token)
+    int i = 0
+    bool resolved = false
+    bool sltChecked = false
 
-    ; pass to extensions
-    ;; if nothing, then...
+    while i < SLT.Extensions.Length
+        sl_triggersExtension slext = SLT.Extensions[i] as sl_triggersExtension
 
-    _code = Resolve(_code)
+        if !sltChecked && slext.GetPriority() >= 0
+            sltChecked = true
+                    
+            if token == "#self" || token == "$self"
+                return CmdTargetActor
+            elseif token == "#player" || token == "$player"
+                return PlayerRef
+            elseif token == "#actor" || token == "$actor"
+                return iterActor
+            elseif token == "#none" || token == "none" || token == ""
+                return none
+            endif
+        endif
+        
+        resolved = slext.CustomResolveForm(self, token)
+        if resolved
+            return CustomResolveFormResult
+        endif
 
-    return GetFormById(_code)
+        i += 1
+    endwhile
+
+    return none
 EndFunction
 
 Function RunScript()

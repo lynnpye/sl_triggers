@@ -71,8 +71,7 @@ sslThreadController Function GetThreadForActor(Actor theActor)
     return (SexLabForm as SexLabFramework).GetActorController(theActor)
 EndFunction
 
-;/
-bool Function CustomResolveForm(string token, Actor targetActor, int threadContextHandle)
+bool Function CustomResolveForm(sl_triggersCmd CmdPrimary, string token)
     if !self || !IsEnabled || !SexLabForm
         return false
     endif
@@ -90,7 +89,7 @@ bool Function CustomResolveForm(string token, Actor targetActor, int threadConte
         return false
     endif
 
-    sslThreadController thread = (SexLabForm as SexLabFramework).GetActorController(targetActor)
+    sslThreadController thread = (SexLabForm as SexLabFramework).GetActorController(CmdPrimary.CmdTargetActor)
     if !thread
         return false
     endif
@@ -99,10 +98,10 @@ bool Function CustomResolveForm(string token, Actor targetActor, int threadConte
     while i < thread.Positions.Length
         Actor other = thread.Positions[i]
 
-        if other != targetActor
+        if other != CmdPrimary.CmdTargetActor
             if skip == 0
-				sl_triggers_internal.SetCustomResolveFormResult(threadContextHandle, other)
-                return true  ; Direct return of the form!
+				CmdPrimary.CustomResolveFormResult = other
+                return true
             else
                 skip -= 1
             endif
@@ -111,10 +110,9 @@ bool Function CustomResolveForm(string token, Actor targetActor, int threadConte
         i += 1
     endwhile
 
-	sl_triggers_internal.SetCustomResolveFormResult(threadContextHandle, none)
+	CmdPrimary.CustomResolveFormResult = none
     return true
 EndFunction
-/;
 
 ; EXTERNAL EVENT HANDLERS
 Event OnSexLabStart(String _eventName, String _args, Float _argc, Form _sender)
