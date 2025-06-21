@@ -63,8 +63,6 @@ Function BootstrapSLTInit()
 		return
 	endif
 
-	SetSLTHost(self)
-
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_DELAY_START_COMMAND(), "OnSLTDelayStartCommand")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REGISTER_EXTENSION(), "OnSLTRegisterExtension")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_COMMAND(), "OnSLTRequestCommand")
@@ -387,9 +385,9 @@ Function StartCommand(Form targetForm, string initialScriptName)
 
 	int threadid = GetNextInstanceId()
 
-	Thread_SetInitialScriptName(Thread_Create_kt_d_initialScriptName(threadid), initialScriptName)
-	Thread_SetTarget(Thread_Create_kt_d_target(threadid), target)
-	Target_AddThread(Target_Create_ktgt_threads_idlist(target.GetFormID()), threadid)
+	Thread_SetInitialScriptName(self, Thread_Create_kt_d_initialScriptName(threadid), initialScriptName)
+	Thread_SetTarget(self, Thread_Create_kt_d_target(threadid), target)
+	Target_AddThread(self, Target_Create_ktgt_threads_idlist(target.GetFormID()), threadid)
 
 	bool scriptStarted = sl_triggers_internal.StartScript(target, initialScriptName)
 	if !scriptStarted
