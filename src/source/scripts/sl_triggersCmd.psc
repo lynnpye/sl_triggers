@@ -30,9 +30,6 @@ int         Property threadid Hidden
         return _threadid
     EndFunction
     Function Set(int value)
-        if _threadid || !value
-            DebMsg("\n\n>>>>>>>>>> Cmd: Changing threadid from " + _threadid + " to " + value)
-        endif
         _threadid = value
 
         kthread_v_prefix = Thread_Create_kt_v_prefix(_threadid)
@@ -41,6 +38,13 @@ EndProperty
 
 ; pre-generated keys for frame context
 int _frameid = 0
+string Property kframe_id auto hidden
+string Property kframe_d_scriptname auto hidden
+string Property kframe_d_lines auto hidden
+string Property kframe_d_lines_keys auto hidden
+string Property kframe_d_gosubreturns auto hidden
+string Property kframe_m_gotolabels auto hidden
+string Property kframe_m_gosublabels auto hidden
 string Property kframe_v_prefix auto hidden
 int         Property frameid Hidden
     int Function Get()
@@ -49,7 +53,14 @@ int         Property frameid Hidden
     Function Set(int value)
         _frameid = value
 
-        kframe_v_prefix = Frame_Create_kf_v_prefix(_frameid)
+        kframe_id               = Frame_Create_kf_id(_frameid)
+        kframe_d_scriptname     = Frame_Create_kf_d_scriptname(_frameid)
+        kframe_d_lines          = Frame_Create_kf_d_lines(_frameid)
+        kframe_d_lines_keys     = Frame_Create_kf_d_lines_keys(_frameid)
+        kframe_d_gosubreturns   = Frame_Create_kf_d_gosubreturns(_frameid)
+        kframe_m_gotolabels     = Frame_Create_kf_m_gotolabels(_frameid)
+        kframe_m_gosublabels    = Frame_Create_kf_m_gosublabels(_frameid)
+        kframe_v_prefix         = Frame_Create_kf_v_prefix(_frameid)
     EndFunction
 EndProperty
 
@@ -151,7 +162,7 @@ Function CleanupAndRemove()
     isExecuting = false
 
     if frameid > 0
-        Frame_Cleanup(frameid)
+        Frame_Cleanup(kframe_id)
     endif
 
     if threadid > 0
@@ -297,8 +308,8 @@ Function RunScript()
 
     while isExecuting && frameid
         while currentLine < totalLines
-            lineNum = Frame_GetLineNum(frameid, currentLine)
-            cmdLine = Frame_GetTokens(frameid, currentLine)
+            lineNum = Frame_GetLineNum(kframe_d_lines, currentLine)
+            cmdLine = Frame_GetTokens(kframe_d_lines, currentLine)
 
             if cmdLine.Length
                 command = Resolve(cmdLine[0])
@@ -394,7 +405,7 @@ Function RunScript()
 
                             if ifTrue
                                 string resolvedCmdLine = Resolve(cmdLine[4])
-                                int gotoTargetLine = Frame_FindGoto(frameid, resolvedCmdLine)
+                                int gotoTargetLine = Frame_FindGoto(kframe_m_gotolabels, resolvedCmdLine)
                                 if gotoTargetLine > -1
                                     currentLine = gotoTargetLine
                                 else
@@ -436,7 +447,7 @@ Function RunScript()
                 elseIf command == "goto"
                     if ParamLengthEQ(self, cmdLine.Length, 2)
                         string resolvedCmdLine = Resolve(cmdLine[1])
-                        int gotoTargetLine = Frame_FindGoto(frameid, resolvedCmdLine)
+                        int gotoTargetLine = Frame_FindGoto(kframe_m_gotolabels, resolvedCmdLine)
                         if gotoTargetLine > -1
                             currentLine = gotoTargetLine
                         else
@@ -460,9 +471,9 @@ Function RunScript()
                 elseIf command == "gosub"
                     if ParamLengthEQ(self, cmdLine.Length, 2)
                         string resolvedCmdLine = Resolve(cmdLine[1])
-                        int gosubTargetLine = Frame_FindGosub(frameid, resolvedCmdLine)
+                        int gosubTargetLine = Frame_FindGosub(kframe_m_gosublabels, resolvedCmdLine)
                         if gosubTargetLine > -1
-                            Frame_PushGosubReturn(frameid, currentLine)
+                            Frame_PushGosubReturn(kframe_d_gosubreturns, currentLine)
                             currentLine = gosubTargetLine
                         else
                             SFE("Unable to resolve gosub label (" + cmdLine[1] + ") resolved to (" + resolvedCmdLine + ")")
@@ -492,7 +503,7 @@ Function RunScript()
                     endif
                 elseIf command == "endsub"
                     if ParamLengthEQ(self, cmdLine.Length, 1)
-                        int endsubTargetLine = Frame_PopGosubReturn(frameid)
+                        int endsubTargetLine = Frame_PopGosubReturn(kframe_d_gosubreturns)
                         if endsubTargetLine > -1
                             currentLine = endsubTargetLine
                         endif
@@ -500,12 +511,12 @@ Function RunScript()
                     currentLine += 1
                 elseIf command == "beginsub"
                     if ParamLengthEQ(self, cmdLine.Length, 2)
-                        Frame_AddGosub(frameid, Resolve(cmdLine[1]), currentLine)
+                        Frame_AddGosub(kframe_m_gosublabels, Resolve(cmdLine[1]), currentLine)
                     endif
                     ; still try to go through with finding the end
                     int i = currentLine
                     while i < totalLines
-                        if Frame_CompareLineForCommand(frameid, i, "endsub")
+                        if Frame_CompareLineForCommand(kframe_d_lines, i, "endsub")
                             currentLine = i
                             i = totalLines
                         endif
@@ -542,7 +553,7 @@ Function RunScript()
                 else
                     string _slt_mightBeLabel = _slt_IsLabel(cmdLine)
                     if _slt_mightBeLabel
-                        Frame_AddGoto(frameid, _slt_mightBeLabel, currentLine)
+                        Frame_AddGoto(kframe_m_gotolabels, _slt_mightBeLabel, currentLine)
                     else
                         RunOperationOnActor(cmdLine)
                     endif

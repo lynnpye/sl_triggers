@@ -6,7 +6,7 @@ import sl_triggersStatics
 ;;;;
 ;; Support
 sl_triggersMain function SLTHost() global
-    sl_triggersMain slm = StorageUtil.GetFormValue(none, "sl_triggersMain") as sl_triggersMain
+    sl_triggersMain slm = StorageUtil.GetFormValue(none, "SLTR:sl_triggersMain") as sl_triggersMain
     if !slm
         DebMsg("\n\n      UNABLE TO RETRIEVE SLTHOST\n\n\n")
     endif
@@ -14,7 +14,7 @@ sl_triggersMain function SLTHost() global
 endfunction
 
 function SetSLTHost(sl_triggersMain main) global
-    StorageUtil.SetFormValue(none, "sl_triggersMain", main)
+    StorageUtil.SetFormValue(none, "SLTR:sl_triggersMain", main)
 endfunction
 
 string function GetVarScope(string varname) global
@@ -42,10 +42,13 @@ string function GetVarScope(string varname) global
         return "target"
     elseif scope == "$global"
         return "global"
+    elseif scope == "$system"
+        return ""
     endif
     
     return ""
 endfunction
+
 
 string function GetVarString(sl_triggersCmd cmdPrimary, string scope, string varname, string missing = "") global
     if scope == "default"
@@ -59,6 +62,7 @@ string function GetVarString(sl_triggersCmd cmdPrimary, string scope, string var
     elseif scope == "global"
         return Global_GetStringValue(StringUtil.Substring(varname, 7), missing)
     endif
+    return ""
 endfunction
 
 string function SetVarString(sl_triggersCmd cmdPrimary, string scope, string varname, string value) global
@@ -73,6 +77,7 @@ string function SetVarString(sl_triggersCmd cmdPrimary, string scope, string var
     elseif scope == "global"
         return Global_SetStringValue(StringUtil.Substring(varname, 7), value)
     endif
+    return ""
 endfunction
 
 ;;;;
@@ -216,12 +221,10 @@ function Target_AddThread(Form target, int threadid) global
 endfunction
 
 int function Target_ClaimNextThread(Form target) global
-    DebMsg("Target_ClaimNextThread target(" + target + ")")
     if !target
         return 0
     endif
     int currentSessionId = sl_triggers.GetSessionId()
-    DebMsg("     currentSessionId(" + currentSessionId + ")")
     int targetformid = target.GetFormID()
     string kkey = "target:" + targetformid + ":threads:idlist"
     sl_triggersMain _slthost = SLTHost()
@@ -242,7 +245,6 @@ int function Target_ClaimNextThread(Form target) global
 
         if lastsessionid == 0
             Thread_SetLastSessionId(threadid, currentSessionId)
-            DebMsg("Found pristine and returning threadid(" + threadid + ")")
             return threadid
         endif
 
@@ -257,7 +259,6 @@ int function Target_ClaimNextThread(Form target) global
 endfunction
 
 function Target_FreeThread(Form target, int threadid) global
-    DebMsg("Target_FreeThread target(" + target + ") threadid(" + threadid + ")")
     if !target || threadid < 1
         return
     endif
@@ -382,7 +383,7 @@ endfunction
 ;;;;
 ;; Frame
 string function Frame_Create_kf_id(int frameid) global
-    return "frame:" + frameid + ":"
+    return "SLTR:frame:" + frameid + ":"
 endfunction
 
 string function Frame_Create_kf_d_scriptname(int frameid) global
@@ -413,6 +414,10 @@ string function Frame_Create_kf_v_prefix(int frameid) global
     return Frame_Create_kf_id(frameid) + "vars:"
 endfunction
 
+string function Frame_Create_kf_push_prefix(int frameid) global
+    return Frame_Create_kf_id(frameid) + "pushed:"
+endfunction
+
 string function Frame_GetStringValue(string kframe_v_prefix, string varname, string missing = "") global
     if !varname || !kframe_v_prefix
         return missing
@@ -433,31 +438,40 @@ int function Frame_Push(sl_triggersCmd cmdPrimary, string scriptfilename, string
     if cmdPrimary.frameid
         ; store for pop
         int oldframeid = cmdPrimary.frameid
-        SetIntValue(_slthost, "frame:" + oldframeid + ":pushed:previousFrameId", cmdPrimary.previousFrameId)
-        SetIntValue(_slthost, "frame:" + oldframeid + ":pushed:currentLine", cmdPrimary.currentLine)
-        SetIntValue(_slthost, "frame:" + oldframeid + ":pushed:totalLines", cmdPrimary.totalLines)
-        SetStringValue(_slthost, "frame:" + oldframeid + ":pushed:command", cmdPrimary.command)
-        SetStringValue(_slthost, "frame:" + oldframeid + ":pushed:mostrecentresult", cmdPrimary.MostRecentResult)
-        SetFormValue(_slthost, "frame:" + oldframeid + ":pushed:iteractor", cmdPrimary.iterActor)
-        SetIntValue(_slthost, "frame:" + oldframeid + ":pushed:lastkey", cmdPrimary.lastKey)
+        string push_prefix = Frame_Create_kf_push_prefix(oldframeid)
 
-        StringListCopy(_slthost, "frame:" + oldframeid + ":pushed:callargs", cmdPrimary.callargs)
+        SetIntValue(_slthost,       push_prefix + "previousFrameId", cmdPrimary.previousFrameId)
+        SetIntValue(_slthost,       push_prefix + "currentLine", cmdPrimary.currentLine)
+        SetIntValue(_slthost,       push_prefix + "totalLines", cmdPrimary.totalLines)
+        SetIntValue(_slthost,       push_prefix + "lastkey", cmdPrimary.lastKey)
+        SetStringValue(_slthost,    push_prefix + "command", cmdPrimary.command)
+        SetStringValue(_slthost,    push_prefix + "mostrecentresult", cmdPrimary.MostRecentResult)
+        SetFormValue(_slthost,      push_prefix + "iteractor", cmdPrimary.iterActor)
+
+        StringListCopy(_slthost,    push_prefix + "callargs", cmdPrimary.callargs)
     endif
 
     int frameid = _slthost.GetNextInstanceId()
 
-    if !Frame_ParseScriptFile(frameid, scriptfilename)
-        Frame_Cleanup(frameid)
+    string tmp_kf_id            = Frame_Create_kf_id(frameid)
+    string tmp_kf_d_lines       = Frame_Create_kf_d_lines(frameid)
+    string tmp_kf_m_gosublabels = Frame_Create_kf_m_gosublabels(frameid)
+    string tmp_kf_m_gotolabels  = Frame_Create_kf_m_gotolabels(frameid)
+
+    if !Frame_ParseScriptFile(tmp_kf_d_lines, tmp_kf_m_gosublabels, tmp_kf_m_gotolabels, scriptfilename)
+        Frame_Cleanup(tmp_kf_id)
         return 0
     endif
 
     cmdPrimary.previousFrameId = cmdPrimary.frameid
-    cmdPrimary.currentScriptName = scriptfilename
+    ; this should set cmdPrimary.kframe_d_lines...
     cmdPrimary.frameid = frameid
+    cmdPrimary.currentScriptName = scriptfilename
 
     cmdPrimary.currentLine = 0
-    cmdPrimary.lineNum = Frame_GetLineNum(frameid, 0)
-    cmdPrimary.totalLines = Frame_GetScriptLineCount(frameid)
+    ; ... which we need here
+    cmdPrimary.lineNum = Frame_GetLineNum(cmdPrimary.kframe_d_lines, 0)
+    cmdPrimary.totalLines = Frame_GetScriptLineCount(cmdPrimary.kframe_d_lines_keys)
     cmdPrimary.command = ""
     cmdPrimary.MostRecentResult = ""
     cmdPrimary.iterActor = none
@@ -481,7 +495,7 @@ bool function Frame_Pop(sl_triggersCmd cmdPrimary) global
         return false
     endif
 
-    Frame_Cleanup(cmdPrimary.frameid)
+    Frame_Cleanup(cmdPrimary.kframe_id)
 
     int previousFrameId = cmdPrimary.previousFrameId
 
@@ -499,18 +513,24 @@ bool function Frame_Pop(sl_triggersCmd cmdPrimary) global
     if previousFrameId > 0
         int frameid = previousFrameId
 
+        ; this should set cmdPrimary.kframe_d_lines...
         cmdPrimary.frameid = frameid
 
-        cmdPrimary.previousFrameId = PluckIntValue(_slthost, "frame:" + frameid + ":pushed:previousFrameId")
-        cmdPrimary.currentLine = PluckIntValue(_slthost, "frame:" + frameid + ":pushed:currentLine")
-        cmdPrimary.lineNum = Frame_GetLineNum(frameid, cmdPrimary.currentLine)
-        cmdPrimary.totalLines = PluckIntValue(_slthost, "frame:" + frameid + ":pushed:totalLines")
-        cmdPrimary.command = PluckStringValue(_slthost, "frame:" + frameid + ":pushed:command")
-        cmdPrimary.MostRecentResult = PluckStringValue(_slthost, "frame:" + frameid + ":pushed:mostrecentresult")
-        cmdPrimary.iterActor = PluckFormValue(_slthost, "frame:" + frameid + ":pushed:iteractor") as Actor
-        cmdPrimary.lastKey = PluckIntValue(_slthost, "frame:" + frameid + ":pushed:lastkey")
-        cmdPrimary.callargs = StringListToArray(_slthost, "frame:" + frameid + ":pushed:callargs")
-        StringListClear(_slthost, "frame:" + frameid + ":pushed:callargs")
+        string push_prefix = Frame_Create_kf_push_prefix(frameid)
+
+        cmdPrimary.previousFrameId      = PluckIntValue(_slthost,       push_prefix + "previousFrameId")
+        cmdPrimary.currentLine          = PluckIntValue(_slthost,       push_prefix + "currentLine")
+        cmdPrimary.totalLines           = PluckIntValue(_slthost,       push_prefix + "totalLines")
+        cmdPrimary.lastKey              = PluckIntValue(_slthost,       push_prefix + "lastkey")
+        cmdPrimary.command              = PluckStringValue(_slthost,    push_prefix + "command")
+        cmdPrimary.MostRecentResult     = PluckStringValue(_slthost,    push_prefix + "mostrecentresult")
+        cmdPrimary.iterActor            = PluckFormValue(_slthost,      push_prefix + "iteractor") as Actor
+
+        cmdPrimary.callargs             = StringListToArray(_slthost,   push_prefix + "callargs")
+                                          StringListClear(_slthost,     push_prefix + "callargs")
+        
+        ; ... which we need here
+        cmdPrimary.lineNum              = Frame_GetLineNum(cmdPrimary.kframe_d_lines, cmdPrimary.currentLine)
 
         Thread_SetCurrentFrameId(cmdPrimary.threadid, frameid)
 
@@ -520,11 +540,11 @@ bool function Frame_Pop(sl_triggersCmd cmdPrimary) global
     return false
 endfunction
 
-bool Function Frame_CompareLineForCommand(int frameid, int targetLine, string targetCommand) global
-    return Map_IntToStringList_StringListFirstTokenMatchesString("frame:" + frameid + ":detail:lines", targetLine, targetCommand)
+bool Function Frame_CompareLineForCommand(string kframe_d_lines, int targetLine, string targetCommand) global
+    return Map_IntToStringList_StringListFirstTokenMatchesString(kframe_d_lines, targetLine, targetCommand)
 endfunction
 
-bool Function Frame_ParseScriptFile(int frameid, string scriptfilename) global
+bool Function Frame_ParseScriptFile(string kframe_d_lines, string kframe_d_gosublabels, string kframe_d_gotolabels, string scriptfilename) global
     string _myCmdName = scriptfilename
     int nmlen = StringUtil.GetLength(_myCmdName)
     ; 1 - json
@@ -603,20 +623,20 @@ bool Function Frame_ParseScriptFile(int frameid, string scriptfilename) global
             cmdLine = sl_triggers.Tokenizev2(cmdlines[cmdIdx])
         endif
         if cmdLine.Length && cmdLine[0]
-            Frame_AddScriptLine(frameid, lineno, cmdLine)
+            Frame_AddScriptLine(kframe_d_lines, kframe_d_gosublabels, kframe_d_gotolabels, lineno, cmdLine)
         endif
         cmdIdx += 1
     endwhile
     return true
 EndFunction
 
-function Frame_AddScriptLine(int frameid, int linenum, string[] tokens) global
-    int foundindex = Map_IntToStringList("frame:" + frameid + ":detail:lines", linenum, tokens)
+function Frame_AddScriptLine(string kframe_d_lines, string kframe_d_gosublabels, string kframe_d_gotolabels, int linenum, string[] tokens) global
+    int foundindex = Map_IntToStringList(kframe_d_lines, linenum, tokens)
     if foundindex < 0
         return
     endif
     if tokens[0] == "beginsub" && tokens.Length == 2
-        Frame_AddGosub(frameid, tokens[1], foundindex)
+        Frame_AddGosub(kframe_d_gosublabels, tokens[1], foundindex)
     elseif tokens.Length == 1
         int tlen = StringUtil.GetLength(tokens[0])
         int tlenm1 = tlen - 1
@@ -624,51 +644,50 @@ function Frame_AddScriptLine(int frameid, int linenum, string[] tokens) global
         if tlen > 2 && StringUtil.GetNthChar(tokens[0], 0) == "[" && StringUtil.GetNthChar(tokens[0], tlenm1) == "]"
             string lbl = sl_triggers.Trim(StringUtil.Substring(tokens[0], 1, tlenm2))
             if lbl
-                Frame_AddGoto(frameid, lbl, foundindex)
+                Frame_AddGoto(kframe_d_gotolabels, lbl, foundindex)
             endif
         endif
     endif
 endfunction
 
-int function Frame_GetScriptLineCount(int frameid) global
-    return IntListCount(SLTHost(), "frame:" + frameid + ":detail:lines:keys")
+int function Frame_GetScriptLineCount(string kframe_d_lines_keys) global
+    return IntListCount(SLTHost(), kframe_d_lines_keys)
 endfunction
 
-int function Frame_GetLineNum(int frameid, int currentLine) global
-    return Map_IntToStringList_GetNthKey("frame:" + frameid + ":detail:lines", currentLine)
+int function Frame_GetLineNum(string kframe_d_lines, int currentLine) global
+    return Map_IntToStringList_GetNthKey(kframe_d_lines, currentLine)
 endfunction
 
-string[] function Frame_GetTokens(int frameid, int currentLine) global
-    return Map_IntToStringList_GetValFromNthKey("frame:" + frameid + ":detail:lines", currentLine)
+string[] function Frame_GetTokens(string kframe_d_lines, int currentLine) global
+    return Map_IntToStringList_GetValFromNthKey(kframe_d_lines, currentLine)
 endfunction
 
-function Frame_AddGoto(int frameid, string label, int targetLine) global
-    Map_StringToInt("frame:" + frameid + ":maps:gotolabels", label, targetLine)
+function Frame_AddGoto(string kframe_d_gotolabels, string label, int targetLine) global
+    Map_StringToInt(kframe_d_gotolabels, label, targetLine)
 endfunction
 
-int function Frame_FindGoto(int frameid, string label) global
-    return Map_StringToInt_GetVal("frame:" + frameid + ":maps:gotolabels", label)
+int function Frame_FindGoto(string kframe_d_gotolabels, string label) global
+    return Map_StringToInt_GetVal(kframe_d_gotolabels, label)
 endfunction
 
-function Frame_AddGosub(int frameid, string label, int targetLine) global
-    Map_StringToInt("frame:" + frameid + ":maps:gosublabels", label, targetLine)
+function Frame_AddGosub(string kframe_d_gosublabels, string label, int targetLine) global
+    Map_StringToInt(kframe_d_gosublabels, label, targetLine)
 endfunction
 
-int function Frame_FindGosub(int frameid, string label) global
-    return Map_StringToInt_GetVal("frame:" + frameid + ":maps:gosublabels", label)
+int function Frame_FindGosub(string kframe_d_gosublabels, string label) global
+    return Map_StringToInt_GetVal(kframe_d_gosublabels, label)
 endfunction
 
-function Frame_PushGosubReturn(int frameid, int targetLine) global
-    IntListAdd(SLTHost(), "frame:" + frameid + ":detail:gosubreturns", targetLine)
+function Frame_PushGosubReturn(string kframe_d_gosubreturns, int targetLine) global
+    IntListAdd(SLTHost(), kframe_d_gosubreturns, targetLine)
 endfunction
 
-int function Frame_PopGosubReturn(int frameid) global
-    string kkey = "frame:" + frameid + ":detail:gosubreturns"
+int function Frame_PopGosubReturn(string kframe_d_gosubreturns) global
     sl_triggersMain _slthost = SLTHost()
-    if IntListCount(_slthost, kkey) < 1
+    if IntListCount(_slthost, kframe_d_gosubreturns) < 1
         return -1
     endif
-    return IntListPop(_slthost, kkey)
+    return IntListPop(_slthost, kframe_d_gosubreturns)
 endfunction
 
 bool function Frame_IsDone(sl_triggersCmd cmdPrimary) global
@@ -679,9 +698,9 @@ bool function Frame_IsDone(sl_triggersCmd cmdPrimary) global
     return false
 endfunction
 
-function Frame_Cleanup(int frameid) global
-    if frameid < 1
+function Frame_Cleanup(string kf_id) global
+    if kf_id
         return
     endif
-    ClearAllObjPrefix(SLTHost(), "frame:" + frameid + ":")
+    ClearAllObjPrefix(SLTHost(), kf_id)
 endfunction
