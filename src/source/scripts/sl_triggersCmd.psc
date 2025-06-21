@@ -209,7 +209,8 @@ string Function Resolve(string token)
             tokenlength = StringUtil.GetLength(token)
             if StringUtil.GetNthChar(token, tokenlength - 1) == "\""
                 if StringUtil.GetNthChar(token, 0) == "\""
-                    resolved = false
+                    token = StringUtil.Substring(token, 1, tokenlength - 2)
+                    return token
                     
                 elseif StringUtil.Substring(token, 0, 2) == "$\""
                     string trimmed = StringUtil.Substring(token, 2, tokenlength - 3)
@@ -257,19 +258,21 @@ Form Function ResolveForm(string token)
     bool resolved = false
     bool sltChecked = false
 
+    token = Resolve(token)
+
     while i < SLT.Extensions.Length
         sl_triggersExtension slext = SLT.Extensions[i] as sl_triggersExtension
 
         if !sltChecked && slext.GetPriority() >= 0
             sltChecked = true
                     
-            if token == "#self" ;|| token == "$self"
+            if token == "$system.self" ;|| token == "$self"
                 return CmdTargetActor
-            elseif token == "#player" ;|| token == "$player"
+            elseif token == "$system.player" ;|| token == "$player"
                 return PlayerRef
-            elseif token == "#actor" ;|| token == "$actor"
+            elseif token == "$system.actor" ;|| token == "$actor"
                 return iterActor
-            elseif token == "#none" || token == "" ;|| token == "none"
+            elseif token == "$system.none" || token == "" ;|| token == "none"
                 return none
             endif
         endif
@@ -282,7 +285,7 @@ Form Function ResolveForm(string token)
         i += 1
     endwhile
 
-    return none
+    return GetFormById(token)
 EndFunction
 
 Function RunScript()

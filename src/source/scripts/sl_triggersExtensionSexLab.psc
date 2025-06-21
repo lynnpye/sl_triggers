@@ -77,13 +77,13 @@ bool Function CustomResolveForm(sl_triggersCmd CmdPrimary, string token)
     endif
 
     int skip = -1
-    if "#partner" == token || "#partner1" == token ;|| "$partner" == token
+    if "$system.partner" == token || "$system.partner1" == token ;|| "$partner" == token
         skip = 0
-    elseif "#partner2" == token ;|| "$partner2" == token
+    elseif "$system.partner2" == token ;|| "$partner2" == token
         skip = 1
-    elseif "#partner3" == token ;|| "$partner3" == token
+    elseif "$system.partner3" == token ;|| "$partner3" == token
         skip = 2
-    elseif "#partner4" == token ;|| "$partner4" == token
+    elseif "$system.partner4" == token ;|| "$partner4" == token
         skip = 3
     else
         return false
