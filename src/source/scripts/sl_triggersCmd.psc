@@ -72,6 +72,7 @@ string Property kframe_id auto hidden
 string Property kframe_d_scriptname auto hidden
 string Property kframe_d_lines auto hidden
 string Property kframe_d_lines_keys auto hidden
+string Property kframe_d_lines_vals auto hidden
 string Property kframe_d_gosubreturns auto hidden
 string Property kframe_m_gotolabels auto hidden
 string Property kframe_m_gosublabels auto hidden
@@ -87,6 +88,7 @@ int         Property frameid Hidden
         kframe_d_scriptname     = Frame_Create_kf_d_scriptname(_frameid)
         kframe_d_lines          = Frame_Create_kf_d_lines(_frameid)
         kframe_d_lines_keys     = Frame_Create_kf_d_lines_keys(_frameid)
+        kframe_d_lines_vals     = Frame_Create_kf_d_lines_vals(_frameid)
         kframe_d_gosubreturns   = Frame_Create_kf_d_gosubreturns(_frameid)
         kframe_m_gotolabels     = Frame_Create_kf_m_gotolabels(_frameid)
         kframe_m_gosublabels    = Frame_Create_kf_m_gosublabels(_frameid)
@@ -333,8 +335,8 @@ Function RunScript()
 
     while isExecuting && frameid
         while currentLine < totalLines
-            lineNum = Frame_GetLineNum(SLT, kframe_d_lines, currentLine)
-            cmdLine = Frame_GetTokens(SLT, kframe_d_lines, currentLine)
+            lineNum = Frame_GetLineNum(SLT, kframe_d_lines_keys, kframe_d_lines, currentLine)
+            cmdLine = Frame_GetTokens(SLT, kframe_d_lines_keys, kframe_d_lines_vals, kframe_d_lines, currentLine)
 
             if cmdLine.Length
                 command = Resolve(cmdLine[0])
@@ -541,7 +543,7 @@ Function RunScript()
                     ; still try to go through with finding the end
                     int i = currentLine
                     while i < totalLines
-                        if Frame_CompareLineForCommand(SLT, kframe_d_lines, i, "endsub")
+                        if Frame_CompareLineForCommand(SLT, kframe_d_lines_keys, kframe_d_lines_vals, kframe_d_lines, i, "endsub")
                             currentLine = i
                             i = totalLines
                         endif

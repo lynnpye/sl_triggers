@@ -103,60 +103,54 @@ endfunction
 
 ;;;;
 ;; Map_IntToStringList
-int function Map_IntToStringList(sl_triggersMain _slthost, string mapname, int intkey, string[] stringlist) global
-    string kkeys = mapname + ":keys"
-    string kvals = mapname + ":vals"
-
-    int foundindex = IntListFind(_slthost, kkeys, intkey)
+int function Map_IntToStringList(sl_triggersMain _slthost, string kk_map_keys, string kk_map_vals, int intkey, string[] stringlist) global
+    int foundindex = IntListFind(_slthost, kk_map_keys, intkey)
 
     if foundindex < 0
-        foundindex = IntListAdd(_slthost, kkeys, intkey)
+        foundindex = IntListAdd(_slthost, kk_map_keys, intkey)
     endif
 
     if foundindex < 0
         return -1
     endif
 
-    StringListCopy(_slthost, mapname + ":vals:" + foundindex, stringlist)
+    StringListCopy(_slthost, kk_map_vals + foundindex, stringlist)
 
     return foundindex
 endfunction
 
-bool function Map_IntToStringList_HasKey(sl_triggersMain _slthost, string mapname, int intkey) global
-    int foundindex = IntListFind(_slthost, mapname + ":keys", intkey)
+bool function Map_IntToStringList_HasKey(sl_triggersMain _slthost, string kk_map_keys, int intkey) global
+    int foundindex = IntListFind(_slthost, kk_map_keys, intkey)
     return foundindex > -1
 endfunction
 
-string[] function Map_IntToStringList_GetVal(sl_triggersMain _slthost, string mapname, int intkey) global
-    int foundindex = IntListFind(_slthost, mapname + ":keys", intkey)
+string[] function Map_IntToStringList_GetVal(sl_triggersMain _slthost, string kk_map_keys, string kk_map_vals, int intkey) global
+    int foundindex = IntListFind(_slthost, kk_map_keys, intkey)
     if foundindex < 0
         return none
     endif
-    return StringListToArray(_slthost, mapname + ":vals:" + foundindex)
+    return StringListToArray(_slthost, kk_map_vals + foundindex)
 endfunction
 
-int function Map_IntToStringList_GetNthKey(sl_triggersMain _slthost, string mapname, int nthindex) global
-    string kkey = mapname + ":keys"
-    if IntListCount(_slthost, kkey) <= nthindex
+int function Map_IntToStringList_GetNthKey(sl_triggersMain _slthost, string kk_map_keys, int nthindex) global
+    if IntListCount(_slthost, kk_map_keys) <= nthindex
         return -1
     endif
-    return IntListGet(_slthost, kkey, nthindex)
+    return IntListGet(_slthost, kk_map_keys, nthindex)
 endfunction
 
-string[] function Map_IntToStringList_GetValFromNthKey(sl_triggersMain _slthost, string mapname, int nthindex) global
-    string kkey = mapname + ":keys"
-    if IntListCount(_slthost, kkey) <= nthindex
+string[] function Map_IntToStringList_GetValFromNthKey(sl_triggersMain _slthost, string kk_map_keys, string kk_map_vals, int nthindex) global
+    if IntListCount(_slthost, kk_map_keys) <= nthindex
         return none
     endif
-    return StringListToArray(_slthost, mapname + ":vals:" + nthindex)
+    return StringListToArray(_slthost, kk_map_vals + nthindex)
 endfunction
 
-bool function Map_IntToStringList_StringListFirstTokenMatchesString(sl_triggersMain _slthost, string mapname, int nthindex, string targetString) global
-    string kkey = mapname + ":keys"
-    if IntListCount(_slthost, kkey) <= nthindex
+bool function Map_IntToStringList_StringListFirstTokenMatchesString(sl_triggersMain _slthost, string kk_map_keys, string kk_map_vals, int nthindex, string targetString) global
+    if IntListCount(_slthost, kk_map_keys) <= nthindex
         return false
     endif
-    return targetString == StringListGet(_slthost, mapname + ":vals:" + nthindex, 0)
+    return targetString == StringListGet(_slthost, kk_map_vals + nthindex, 0)
 endfunction
 
 ;;;;
@@ -383,6 +377,10 @@ string function Frame_Create_kf_d_lines_keys(int frameid) global
     return Frame_Create_kf_id(frameid) + "detail:lines:keys"
 endfunction
 
+string function Frame_Create_kf_d_lines_vals(int frameid) global
+    return Frame_Create_kf_id(frameid) + "detail:lines:vals:"
+endfunction
+
 string function Frame_Create_kf_d_gosubreturns(int frameid) global
     return Frame_Create_kf_id(frameid) + "detail:gosubreturns"
 endfunction
@@ -442,8 +440,10 @@ int function Frame_Push(sl_triggersCmd cmdPrimary, string scriptfilename, string
     string tmp_kf_d_lines       = Frame_Create_kf_d_lines(frameid)
     string tmp_kf_m_gosublabels = Frame_Create_kf_m_gosublabels(frameid)
     string tmp_kf_m_gotolabels  = Frame_Create_kf_m_gotolabels(frameid)
+    string tmp_kk_map_keys      = Frame_Create_kf_d_lines_keys(frameid)
+    string tmp_kk_map_vals      = Frame_Create_kf_d_lines_vals(frameid)
 
-    if !Frame_ParseScriptFile(_slthost, tmp_kf_d_lines, tmp_kf_m_gosublabels, tmp_kf_m_gotolabels, scriptfilename)
+    if !Frame_ParseScriptFile(_slthost, tmp_kk_map_keys, tmp_kk_map_vals, tmp_kf_d_lines, tmp_kf_m_gosublabels, tmp_kf_m_gotolabels, scriptfilename)
         DebMsg("Parsing failed: scriptfilename(" + scriptfilename + ")")
         Frame_Cleanup(_slthost, tmp_kf_id)
         return 0
@@ -456,7 +456,7 @@ int function Frame_Push(sl_triggersCmd cmdPrimary, string scriptfilename, string
 
     cmdPrimary.currentLine = 0
     ; ... which we need here
-    cmdPrimary.lineNum = Frame_GetLineNum(_slthost, cmdPrimary.kframe_d_lines, 0)
+    cmdPrimary.lineNum = Frame_GetLineNum(_slthost, cmdPrimary.kframe_d_lines_keys, cmdPrimary.kframe_d_lines, 0)
     cmdPrimary.totalLines = Frame_GetScriptLineCount(_slthost, cmdPrimary.kframe_d_lines_keys)
     cmdPrimary.command = ""
     cmdPrimary.MostRecentResult = ""
@@ -516,7 +516,7 @@ bool function Frame_Pop(sl_triggersCmd cmdPrimary) global
                                           StringListClear(_slthost,     push_prefix + "callargs")
         
         ; ... which we need here
-        cmdPrimary.lineNum              = Frame_GetLineNum(_slthost, cmdPrimary.kframe_d_lines, cmdPrimary.currentLine)
+        cmdPrimary.lineNum              = Frame_GetLineNum(_slthost, cmdPrimary.kframe_d_lines_keys, cmdPrimary.kframe_d_lines, cmdPrimary.currentLine)
 
         Thread_SetCurrentFrameId(_slthost, cmdPrimary.kthread_d_currentframeid, frameid)
 
@@ -526,49 +526,14 @@ bool function Frame_Pop(sl_triggersCmd cmdPrimary) global
     return false
 endfunction
 
-bool Function Frame_CompareLineForCommand(sl_triggersMain _slthost, string kframe_d_lines, int targetLine, string targetCommand) global
-    return Map_IntToStringList_StringListFirstTokenMatchesString(_slthost, kframe_d_lines, targetLine, targetCommand)
+bool Function Frame_CompareLineForCommand(sl_triggersMain _slthost, string kk_map_keys, string kk_map_vals, string kframe_d_lines, int targetLine, string targetCommand) global
+    return Map_IntToStringList_StringListFirstTokenMatchesString(_slthost, kk_map_keys, kk_map_vals, targetLine, targetCommand)
 endfunction
 
-bool Function Frame_ParseScriptFile(sl_triggersMain _slthost, string kframe_d_lines, string kframe_d_gosublabels, string kframe_d_gotolabels, string scriptfilename) global
-    string _myCmdName = scriptfilename
-    int nmlen = StringUtil.GetLength(_myCmdName)
-    ; 1 - json
-    ; 2 - ini
-    int scrtype = 0
-    if nmlen < 5
-        ; not even capable of
-        ; a.ini - requires 5 characters
-        DebMsg("SLT: attempted to parse an unknown file type(" + _myCmdName + "):1")
+bool Function Frame_ParseScriptFile(sl_triggersMain _slthost, string kk_map_keys, string kk_map_vals, string kframe_d_lines, string kframe_d_gosublabels, string kframe_d_gotolabels, string scriptfilename) global
+    if !scriptfilename
+        DebMsg("Cannot parse empty filename")
         return false
-    endif
-    string scriptextension = StringUtil.Substring(_myCmdName, nmlen - 4)
-    if scriptextension != ".ini"
-        if nmlen < 6
-            ; not even capable of
-            ; a.json - requires 6 characters
-            DebMsg("SLT: attempted to parse an unknown file type(" + _myCmdName + "):2")
-            return false
-        endif
-        scriptextension = StringUtil.SubString(_myCmdName, nmlen - 5)
-        if scriptextension != ".json"
-            _myCmdName = scriptfilename + ".ini"
-            if !MiscUtil.FileExists(FullCommandsFolder() + _myCmdName)
-                _myCmdName = scriptfilename + ".json"
-                if !JsonUtil.JsonExists(CommandsFolder() + _myCmdName)
-                    DebMsg("SLT: attempted to parse an unknown file type(" + _myCmdName + "):3")
-                    return false
-                else
-                    scrtype = 1
-                endif
-            else
-                scrtype = 2
-            endif
-        else
-            scrtype = 1
-        endif
-    else
-        scrtype = 2
     endif
     
     string[] cmdLine
@@ -580,10 +545,27 @@ bool Function Frame_ParseScriptFile(sl_triggersMain _slthost, string kframe_d_li
     int commentFoundIndex = 0
     string[] cmdlines
 
+    ; 0 - unknown
+    ; 1 - json explicit
+    ; 2 - ini explicit
+    ; 10 - json implicit
+    ; 20 - ini implicit
+    int scrtype = sl_triggers.NormalizeScriptfilename(scriptfilename)
+    string _myCmdName
     if scrtype == 1
-        _myCmdName = CommandsFolder() + _myCmdName
+        _myCmdName = CommandsFolder() + scriptfilename
         cmdNum = JsonUtil.PathCount(_myCmdName, ".cmd")
     elseif scrtype == 2
+        _myCmdName = scriptfilename
+        cmdlines = sl_triggers.SplitScriptContents(_myCmdName)
+        cmdNum = cmdlines.Length
+    elseif scrtype == 10
+        scrtype = 1
+        _myCmdName = CommandsFolder() + scriptfilename + ".json"
+        cmdNum = JsonUtil.PathCount(_myCmdName, ".cmd")
+    elseif scrtype == 20
+        scrtype = 2
+        _myCmdName = scriptfilename + ".ini"
         cmdlines = sl_triggers.SplitScriptContents(_myCmdName)
         cmdNum = cmdlines.Length
     else
@@ -598,7 +580,7 @@ bool Function Frame_ParseScriptFile(sl_triggersMain _slthost, string kframe_d_li
         if scrtype == 1
             cmdLine = JsonUtil.PathStringElements(_myCmdName, ".cmd[" + cmdIdx + "]")
             if cmdLine.Length && cmdLine[0]
-                if cmdLine.Length >= 2 && ":" == cmdLine[0] && cmdLine[1]
+                if cmdLine.Length >= 2 && cmdLine[1] && ":" == cmdLine[0]
                     int newclen = cmdLine.Length - 1
                     string[] newCmdLine = new string[1]
                     newCmdLine[0] = "[" + PapyrusUtil.StringJoin(PapyrusUtil.SliceStringArray(cmdLine, 1), " ") + "]"
@@ -611,21 +593,19 @@ bool Function Frame_ParseScriptFile(sl_triggersMain _slthost, string kframe_d_li
             cmdLine = sl_triggers.Tokenizev2(cmdlines[cmdIdx])
         endif
         if cmdLine.Length && cmdLine[0]
-            Frame_AddScriptLine(_slthost, kframe_d_lines, kframe_d_gosublabels, kframe_d_gotolabels, lineno, cmdLine)
+            Frame_AddScriptLine(_slthost, kk_map_keys, kk_map_vals, kframe_d_lines, kframe_d_gosublabels, kframe_d_gotolabels, lineno, cmdLine)
         endif
         cmdIdx += 1
     endwhile
     return true
 EndFunction
 
-function Frame_AddScriptLine(sl_triggersMain _slthost, string kframe_d_lines, string kframe_d_gosublabels, string kframe_d_gotolabels, int linenum, string[] tokens) global
-    int foundindex = Map_IntToStringList(_slthost, kframe_d_lines, linenum, tokens)
+function Frame_AddScriptLine(sl_triggersMain _slthost, string kk_map_keys, string kk_map_vals, string kframe_d_lines, string kframe_d_gosublabels, string kframe_d_gotolabels, int linenum, string[] tokens) global
+    int foundindex = Map_IntToStringList(_slthost, kk_map_keys, kk_map_vals, linenum, tokens)
     if foundindex < 0
         return
     endif
-    if tokens[0] == "beginsub" && tokens.Length == 2
-        Frame_AddGosub(_slthost, kframe_d_gosublabels, tokens[1], foundindex)
-    elseif tokens.Length == 1
+    if tokens.Length == 1
         int tlen = StringUtil.GetLength(tokens[0])
         int tlenm1 = tlen - 1
         int tlenm2 = tlenm1 - 1
@@ -635,6 +615,8 @@ function Frame_AddScriptLine(sl_triggersMain _slthost, string kframe_d_lines, st
                 Frame_AddGoto(_slthost, kframe_d_gotolabels, lbl, foundindex)
             endif
         endif
+    elseif tokens.Length == 2 && tokens[0] == "beginsub"
+        Frame_AddGosub(_slthost, kframe_d_gosublabels, tokens[1], foundindex)
     endif
 endfunction
 
@@ -642,12 +624,12 @@ int function Frame_GetScriptLineCount(sl_triggersMain _slthost, string kframe_d_
     return IntListCount(_slthost, kframe_d_lines_keys)
 endfunction
 
-int function Frame_GetLineNum(sl_triggersMain _slthost, string kframe_d_lines, int currentLine) global
-    return Map_IntToStringList_GetNthKey(_slthost, kframe_d_lines, currentLine)
+int function Frame_GetLineNum(sl_triggersMain _slthost, string kk_map_keys, string kframe_d_lines, int currentLine) global
+    return Map_IntToStringList_GetNthKey(_slthost, kk_map_keys, currentLine)
 endfunction
 
-string[] function Frame_GetTokens(sl_triggersMain _slthost, string kframe_d_lines, int currentLine) global
-    return Map_IntToStringList_GetValFromNthKey(_slthost, kframe_d_lines, currentLine)
+string[] function Frame_GetTokens(sl_triggersMain _slthost, string kk_map_keys, string kk_map_vals, string kframe_d_lines, int currentLine) global
+    return Map_IntToStringList_GetValFromNthKey(_slthost, kk_map_keys, kk_map_vals, currentLine)
 endfunction
 
 function Frame_AddGoto(sl_triggersMain _slthost, string kframe_d_gotolabels, string label, int targetLine) global

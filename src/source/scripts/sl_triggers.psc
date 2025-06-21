@@ -1,17 +1,18 @@
 scriptname sl_triggers Hidden
 
-sl_triggersMain Function Main() global ; YES - YOU CAN USE THIS ONE
+sl_triggersMain Function Main() global
     return sl_triggersStatics.GetForm_SLT_Main() as sl_triggersMain
 endFunction
 
-Form Function       GetForm(string someFormOfFormIdentification) global native ; YES - YOU CAN USE THIS ONE
-string[] Function   GetScriptsList() global native ; YES - YOU CAN USE THIS ONE
-int Function        GetSessionId() global native ; YES - YOU CAN USE THIS ONE
-string Function     GetTranslatedString(string _translationKey) global native ; YES - YOU CAN USE THIS ONE
-bool Function       SmartEquals(string a, string b) global native ; YES - YOU CAN USE THIS ONE
-string[] Function   SplitFileContents(string _filecontents) global native; YES - YOU CAN USE THIS ONE (THOUGH PROBABLY, WHY WOULD YOU?)
+Form Function       GetForm(string someFormOfFormIdentification) global native
+string[] Function   GetScriptsList() global native
+int Function        GetSessionId() global native
+string Function     GetTranslatedString(string _translationKey) global native
+int Function        NormalizeScriptfilename(string scriptfilename) global native
+bool Function       SmartEquals(string a, string b) global native
+string[] Function   SplitFileContents(string _filecontents) global native
 string[] Function   SplitScriptContents(string _scriptfilename) global native
-string[] Function   Tokenize(string _tokenString) global native ; YES - YOU CAN USE THIS ONE
-string[] Function   Tokenizev2(string _tokenString) global native ; YES - YOU CAN USE THIS ONE
-string[] Function   TokenizeForVariableSubstitution(string _tokenString) global native ; YES - YOU CAN USE THIS ONE
+string[] Function   Tokenize(string _tokenString) global native
+string[] Function   Tokenizev2(string _tokenString) global native
+string[] Function   TokenizeForVariableSubstitution(string _tokenString) global native
 string Function     Trim(string str) global native
