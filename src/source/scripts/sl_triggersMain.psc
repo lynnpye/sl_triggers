@@ -65,6 +65,7 @@ Function BootstrapSLTInit()
 
 	SetSLTHost(self)
 
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_DELAY_START_COMMAND(), "OnSLTDelayStartCommand")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REGISTER_EXTENSION(), "OnSLTRegisterExtension")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_COMMAND(), "OnSLTRequestCommand")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_LIST(), "OnSLTRequestList")
@@ -353,12 +354,34 @@ sl_triggersExtension Function GetExtensionByKey(string _extensionKey)
 	return none
 EndFunction
 
+Event OnSLTDelayStartCommand(string eventName, string initialScriptName, float reAttemptCount, Form sender)
+	Utility.Wait(1.0)
+	if !sender
+		return
+	endif
+	Actor target = sender as Actor
+	if !target
+		return ; not ready yet
+	endif
+
+	reAttemptCount += 1.0
+	
+	bool scriptStarted = sl_triggers_internal.StartScript(target, initialScriptName)
+	if !scriptStarted
+		if reAttemptCount > 5
+			MiscUtil.PrintConsole("Reattempted script(" + initialScriptName + ") for Actor(" + target + ") attempts(" + reAttemptCount + ") - giving up")
+			return
+		endif
+		target.SendModEvent(EVENT_SLT_DELAY_START_COMMAND(), initialScriptName, reAttemptCount)
+	endif
+EndEvent
+
 ; StartCommand
 ; Actor _theActor: the Actor to attach this command to
 ; string _scriptName: the file to run
-string Function StartCommand(Actor target, string initialScriptName)
+Function StartCommand(Actor target, string initialScriptName)
 	if !self
-		return ""
+		return
 	endif
 
 	int threadid = GetNextInstanceId()
@@ -367,8 +390,9 @@ string Function StartCommand(Actor target, string initialScriptName)
 	Thread_SetTarget(threadid, target)
 	Target_AddThread(target, threadid)
 
-	return sl_triggers_internal.StartScript(target, initialScriptName)
-EndFunction
-
-Function Nop()
+	bool scriptStarted = sl_triggers_internal.StartScript(target, initialScriptName)
+	if !scriptStarted
+		MiscUtil.PrintConsole("Too many SLTR effects on target(" + target + "); attempting to delay script execution")
+		target.SendModEvent(EVENT_SLT_DELAY_START_COMMAND(), initialScriptName, 0.0)
+	endif
 EndFunction

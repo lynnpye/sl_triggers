@@ -18,23 +18,32 @@ function SetSLTHost(sl_triggersMain main) global
 endfunction
 
 string function GetVarScope(string varname) global
-    if "$" != StringUtil.GetNthChar(varname, 0) || StringUtil.GetLength(varname) < 2
+    if "$" != StringUtil.GetNthChar(varname, 0)
         return ""
     endif
-    int hasdot = StringUtil.Find(varname, ".", 1)
-    if hasdot < 0
+
+    int dotindex = StringUtil.Find(varname, ".", 1)
+    if dotindex < 0
         return "default"
     endif
-    string[] varparts = StringUtil.Split(varname, ".")
-    if varparts[0] == "$local"
+
+    int varnamelen = StringUtil.GetLength(varname)
+    
+    if dotindex >= varnamelen - 1
+        return ""
+    endif
+
+    string scope = StringUtil.Substring(varname, 0, dotindex)
+    if scope == "$local"
         return "frame"
-    elseif varparts[0] == "$thread"
+    elseif scope == "$thread"
         return "thread"
-    elseif varparts[0] == "$target"
+    elseif scope == "$target"
         return "target"
-    elseif varparts[0] == "$global"
+    elseif scope == "$global"
         return "global"
     endif
+    
     return ""
 endfunction
 
@@ -180,50 +189,6 @@ string function Global_SetStringValue(string varname, string value) global
     return SetStringValue(SLTHost(), "global:vars:" + varname, value)
 endfunction
 
-;/
-int function Global_GetIntValue(string varname, int missing = 0) global
-    if !varname
-        return missing
-    endif
-    return GetIntValue(SLTHost(), "global:vars:" + varname, missing)
-endfunction
-
-int function Global_SetIntValue(string varname, int value) global
-    if !varname
-        return 0
-    endif
-    return SetIntValue(SLTHost(), "global:vars:" + varname, value)
-endfunction
-
-float function Global_GetFloatValue(string varname, float missing = 0.0) global
-    if !varname
-        return missing
-    endif
-    return GetFloatValue(SLTHost(), "global:vars:" + varname, missing)
-endfunction
-
-float function Global_SetFloatValue(string varname, float value) global
-    if !varname
-        return 0.0
-    endif
-    return SetFloatValue(SLTHost(), "global:vars:" + varname, value)
-endfunction
-
-Form function Global_GetFormValue(string varname, Form missing = none) global
-    if !varname
-        return missing
-    endif
-    return GetFormValue(SLTHost(), "global:vars:" + varname, missing)
-endfunction
-
-Form function Global_SetFormValue(string varname, Form value) global
-    if !varname
-        return none
-    endif
-    return SetFormValue(SLTHost(), "global:vars:" + varname, value)
-endfunction
-/;
-
 ;;;;
 ;; Target
 string function Target_GetStringValue(Form target, string varname, string missing = "") global
@@ -242,56 +207,6 @@ string function Target_SetStringValue(Form target, string varname, string value)
     return SetStringValue(SLTHost(), "target:" + targetformid + ":vars:" + varname, value)
 endfunction
 
-;/
-int function Target_GetIntValue(Form target, string varname, int missing = 0) global
-    if !varname || !target
-        return missing
-    endif
-    int targetformid = target.GetFormID()
-    return GetIntValue(SLTHost(), "target:" + targetformid + ":vars:" + varname, missing)
-endfunction
-
-int function Target_SetIntValue(Form target, string varname, int value) global
-    if !varname || !target
-        return 0
-    endif
-    int targetformid = target.GetFormID()
-    return SetIntValue(SLTHost(), "target:" + targetformid + ":vars:" + varname, value)
-endfunction
-
-float function Target_GetFloatValue(Form target, string varname, float missing = 0.0) global
-    if !varname || !target
-        return missing
-    endif
-    int targetformid = target.GetFormID()
-    return GetFloatValue(SLTHost(), "target:" + targetformid + ":vars:" + varname, missing)
-endfunction
-
-float function Target_SetFloatValue(Form target, string varname, float value) global
-    if !varname || !target
-        return 0.0
-    endif
-    int targetformid = target.GetFormID()
-    return SetFloatValue(SLTHost(), "target:" + targetformid + ":vars:" + varname, value)
-endfunction
-
-Form function Target_GetFormValue(Form target, string varname, Form missing = none) global
-    if !varname || !target
-        return missing
-    endif
-    int targetformid = target.GetFormID()
-    return GetFormValue(SLTHost(), "target:" + targetformid + ":vars:" + varname, missing)
-endfunction
-
-Form function Target_SetFormValue(Form target, string varname, Form value) global
-    if !varname || !target
-        return none
-    endif
-    int targetformid = target.GetFormID()
-    return SetFormValue(SLTHost(), "target:" + targetformid + ":vars:" + varname, value)
-endfunction
-/;
-
 function Target_AddThread(Form target, int threadid) global
     if !target || threadid < 1
         return
@@ -301,47 +216,48 @@ function Target_AddThread(Form target, int threadid) global
 endfunction
 
 int function Target_ClaimNextThread(Form target) global
+    DebMsg("Target_ClaimNextThread target(" + target + ")")
     if !target
         return 0
     endif
     int currentSessionId = sl_triggers.GetSessionId()
+    DebMsg("     currentSessionId(" + currentSessionId + ")")
     int targetformid = target.GetFormID()
     string kkey = "target:" + targetformid + ":threads:idlist"
     sl_triggersMain _slthost = SLTHost()
     int threadcount = IntListCount(_slthost, kkey)
     if threadcount < 1
+        DebMsg("No threads on target")
         return 0
     endif
     int i = 0
-    int threadid = 0
-    int[] threadSessionIds = PapyrusUtil.IntArray(threadcount)
+    int threadid
+    int lastsessionid
+    int found_threadid_stale = 0
+    
     ; first check for !wasClaimed, !isClaimed
     while i < threadcount
         threadid = IntListGet(_slthost, kkey, i)
-        threadSessionIds[i] = Thread_GetLastSessionId(threadid)
-        if threadSessionIds[i] == 0
-            ; claim it
+        lastsessionid = Thread_GetLastSessionId(threadid)
+
+        if lastsessionid == 0
             Thread_SetLastSessionId(threadid, currentSessionId)
+            DebMsg("Found pristine and returning threadid(" + threadid + ")")
             return threadid
         endif
-        i += 1
-    endwhile
-    
-    ; no? okay, now check for wasClaimed, !isClaimed
-    while i < threadcount
-        threadid = IntListGet(_slthost, kkey, i)
-        if threadSessionIds[i] != currentSessionId
-            ; claim it
-            Thread_SetLastSessionId(threadid, currentSessionId)
-            return threadid
+
+        if lastsessionid != currentSessionId && !found_threadid_stale
+            found_threadid_stale = threadid
         endif
+        
         i += 1
     endwhile
 
-    return 0
+    return found_threadid_stale
 endfunction
 
 function Target_FreeThread(Form target, int threadid) global
+    DebMsg("Target_FreeThread target(" + target + ") threadid(" + threadid + ")")
     if !target || threadid < 1
         return
     endif
@@ -394,50 +310,6 @@ string function Thread_SetStringValue(int threadid, string varname, string value
     return SetStringValue(SLTHost(), "thread:" + threadid + ":vars:" + varname, value)
 endfunction
 
-;/
-int function Thread_GetIntValue(int threadid, string varname, int missing = 0) global
-    if !varname || threadid < 1
-        return missing
-    endif
-    return GetIntValue(SLTHost(), "thread:" + threadid + ":vars:" + varname, missing)
-endfunction
-
-int function Thread_SetIntValue(int threadid, string varname, int value) global
-    if !varname || threadid < 1
-        return 0
-    endif
-    return SetIntValue(SLTHost(), "thread:" + threadid + ":vars:" + varname, value)
-endfunction
-
-float function Thread_GetFloatValue(int threadid, string varname, float missing = 0.0) global
-    if !varname || threadid < 1
-        return missing
-    endif
-    return GetFloatValue(SLTHost(), "thread:" + threadid + ":vars:" + varname, missing)
-endfunction
-
-float function Thread_SetFloatValue(int threadid, string varname, float value) global
-    if !varname || threadid < 1
-        return 0.0
-    endif
-    return SetFloatValue(SLTHost(), "thread:" + threadid + ":vars:" + varname, value)
-endfunction
-
-Form function Thread_GetFormValue(int threadid, string varname, Form missing = none) global
-    if !varname || threadid < 1
-        return missing
-    endif
-    return GetFormValue(SLTHost(), "thread:" + threadid + ":vars:" + varname, missing)
-endfunction
-
-Form function Thread_SetFormValue(int threadid, string varname, Form value) global
-    if !varname || threadid < 1
-        return none
-    endif
-    return SetFormValue(SLTHost(), "thread:" + threadid + ":vars:" + varname, value)
-endfunction
-/;
-
 Form function Thread_GetTarget(int threadid) global
     if threadid < 1
         return none
@@ -478,6 +350,20 @@ function Thread_SetInitialScriptName(int threadid, string initialScriptName) glo
         return
     endif
     SetStringValue(SLTHost(), "thread:" + threadid + ":detail:initialScriptName", initialScriptName)
+endfunction
+
+int function Thread_GetCurrentFrameId(int threadid) global
+    if threadid < 1
+        return 0
+    endif
+    return GetIntValue(SLTHost(), "thread:" + threadid + ":detail:currentframeid")
+endfunction
+
+function Thread_SetCurrentFrameId(int threadid, int frameid) global
+    if threadid < 1
+        return
+    endif
+    SetIntValue(SLTHost(), "thread:" + threadid + ":detail:currentframeid", frameid)
 endfunction
 
 function Thread_Cleanup(int threadid) global
@@ -541,50 +427,6 @@ string function Frame_SetStringValue(string kframe_v_prefix, string varname, str
     return SetStringValue(SLTHost(), kframe_v_prefix + varname, value)
 endfunction
 
-;/
-int function Frame_GetIntValue(int frameid, string varname, int missing = 0) global
-    if !varname || frameid < 1
-        return missing
-    endif
-    return GetIntValue(SLTHost(), "frame:" + frameid + ":vars:" + varname, missing)
-endfunction
-
-int function Frame_SetIntValue(int frameid, string varname, int value) global
-    if !varname || frameid < 1
-        return 0
-    endif
-    return SetIntValue(SLTHost(), "frame:" + frameid + ":vars:" + varname, value)
-endfunction
-
-float function Frame_GetFloatValue(int frameid, string varname, float missing = 0.0) global
-    if !varname || frameid < 1
-        return missing
-    endif
-    return GetFloatValue(SLTHost(), "frame:" + frameid + ":vars:" + varname, missing)
-endfunction
-
-float function Frame_SetFloatValue(int frameid, string varname, float value) global
-    if !varname || frameid < 1
-        return 0.0
-    endif
-    return SetFloatValue(SLTHost(), "frame:" + frameid + ":vars:" + varname, value)
-endfunction
-
-Form function Frame_GetFormValue(int frameid, string varname, Form missing = None) global
-    if !varname || frameid < 1
-        return missing
-    endif
-    return GetFormValue(SLTHost(), "frame:" + frameid + ":vars:" + varname, missing)
-endfunction
-
-Form function Frame_SetFormValue(int frameid, string varname, Form value) global
-    if !varname || frameid < 1
-        return None
-    endif
-    return SetFormValue(SLTHost(), "frame:" + frameid + ":vars:" + varname, value)
-endfunction
-/;
-
 ;; returns frameid
 int function Frame_Push(sl_triggersCmd cmdPrimary, string scriptfilename, string[] callargs = none) global
     sl_triggersMain _slthost = SLTHost()
@@ -627,6 +469,8 @@ int function Frame_Push(sl_triggersCmd cmdPrimary, string scriptfilename, string
         cmdPrimary.callargs = PapyrusUtil.StringArray(0)
     endif
 
+    Thread_SetCurrentFrameId(cmdPrimary.threadid, frameid)
+
     return frameid
 endfunction
 
@@ -668,6 +512,8 @@ bool function Frame_Pop(sl_triggersCmd cmdPrimary) global
         cmdPrimary.callargs = StringListToArray(_slthost, "frame:" + frameid + ":pushed:callargs")
         StringListClear(_slthost, "frame:" + frameid + ":pushed:callargs")
 
+        Thread_SetCurrentFrameId(cmdPrimary.threadid, frameid)
+
         return true
     endif
 
@@ -679,69 +525,89 @@ bool Function Frame_CompareLineForCommand(int frameid, int targetLine, string ta
 endfunction
 
 bool Function Frame_ParseScriptFile(int frameid, string scriptfilename) global
-    Frame_SetScriptName(frameid, scriptfilename)
-
     string _myCmdName = scriptfilename
-    string _last = StringUtil.Substring(_myCmdName, StringUtil.GetLength(_myCmdName) - 4)
-    
-    string[] cmdLine
-    if _last != "json" && _last != ".ini"
-        _myCmdName = scriptfilename + ".ini"
-        if !MiscUtil.FileExists(FullCommandsFolder() + _myCmdName)
-            _myCmdName = scriptfilename + "json"
-            if !JsonUtil.JsonExists(CommandsFolder() + _myCmdName)
-                DebMsg("SLT: attempted to parse an unknown file type(" + _myCmdName + ")")
-                return false
+    int nmlen = StringUtil.GetLength(_myCmdName)
+    ; 1 - json
+    ; 2 - ini
+    int scrtype = 0
+    if nmlen < 5
+        ; not even capable of
+        ; a.ini - requires 5 characters
+        return false
+    endif
+    string scriptextension = StringUtil.Substring(_myCmdName, nmlen - 4)
+    if scriptextension != ".ini"
+        if nmlen < 6
+            ; not event capable of
+            ; a.json - requires 6 characters
+            return false
+        endif
+        scriptextension = StringUtil.SubString(_myCmdName, nmlen - 5)
+        if scriptextension != ".json"
+            _myCmdName = scriptfilename + ".ini"
+            if !MiscUtil.FileExists(FullCommandsFolder() + _myCmdName)
+                _myCmdName = scriptfilename + ".json"
+                if !JsonUtil.JsonExists(CommandsFolder() + _myCmdName)
+                    DebMsg("SLT: attempted to parse an unknown file type(" + _myCmdName + ")")
+                    return false
+                else
+                    scrtype = 1
+                endif
             else
-                _last = "json"
+                scrtype = 2
             endif
         else
-            _last = ".ini"
+            scrtype = 1
         endif
+    else
+        scrtype = 2
     endif
-
+    
+    string[] cmdLine
+    string cmdLineJoined
     int lineno = 0
     int cmdNum = 0
     int cmdIdx = 0
-    if _last == "json"
+    int cmdLineIterIdx = 0
+    int commentFoundIndex = 0
+    string[] cmdlines
+
+    if scrtype == 1
         _myCmdName = CommandsFolder() + _myCmdName
         cmdNum = JsonUtil.PathCount(_myCmdName, ".cmd")
-        cmdIdx = 0
-        while cmdIdx < cmdNum
-            lineno += 1
-            ; this does NOT account for comments
-            cmdLine = JsonUtil.PathStringElements(_myCmdName, ".cmd[" + cmdIdx + "]")
-            if cmdLine.Length
-                if ":" == cmdLine[0] && cmdLine.Length >= 2 && cmdLine[1]
-                    string[] newCmdLine = new string[1]
-                    newCmdLine[0] = "[" + cmdLine[1] + "]"
-                    cmdLine = newCmdLine
-                endif
-                Frame_AddScriptLine(frameid, lineno, cmdLine)
-            endif
-            cmdIdx += 1
-        endwhile
-        return true
-    elseif _last == ".ini"
-        string cmdpath = FullCommandsFolder() + _myCmdName
-        string cmdstring = MiscUtil.ReadFromFile(cmdpath)
-        string[] cmdlines = sl_triggers.SplitFileContents(cmdstring)
-
+    elseif scrtype == 2
+        cmdlines = sl_triggers.SplitScriptContents(_myCmdName)
         cmdNum = cmdlines.Length
-        cmdIdx = 0
-        while cmdIdx < cmdNum
-            lineno += 1
-            ; this accounts for comments
-            cmdLine = sl_triggers.Tokenizev2(cmdlines[cmdIdx])
-            if cmdLine.Length
-                Frame_AddScriptLine(frameid, lineno, cmdLine)
-            endif
-            cmdIdx += 1
-        endwhile
-        return true
+    else
+        DebMsg("SLT: (unusual here) attempted to parse an unknown file type(" + _myCmdName + ") for scrtype (" + scrtype + ")")
+        return false
     endif
 
-    return false
+    cmdIdx = 0
+    while cmdIdx < cmdNum
+        lineno += 1
+        ; this accounts for comments
+        if scrtype == 1
+            cmdLine = JsonUtil.PathStringElements(_myCmdName, ".cmd[" + cmdIdx + "]")
+            if cmdLine.Length && cmdLine[0]
+                if cmdLine.Length >= 2 && ":" == cmdLine[0] && cmdLine[1]
+                    int newclen = cmdLine.Length - 1
+                    string[] newCmdLine = new string[1]
+                    newCmdLine[0] = "[" + PapyrusUtil.StringJoin(PapyrusUtil.SliceStringArray(cmdLine, 1), " ") + "]"
+                    cmdLine = newCmdLine
+                endif
+                cmdLineJoined = PapyrusUtil.StringJoin(cmdLine, " ")
+                cmdLine = sl_triggers.Tokenizev2(cmdLineJoined)
+            endif
+        elseif scrtype == 2
+            cmdLine = sl_triggers.Tokenizev2(cmdlines[cmdIdx])
+        endif
+        if cmdLine.Length && cmdLine[0]
+            Frame_AddScriptLine(frameid, lineno, cmdLine)
+        endif
+        cmdIdx += 1
+    endwhile
+    return true
 EndFunction
 
 function Frame_AddScriptLine(int frameid, int linenum, string[] tokens) global
@@ -762,14 +628,6 @@ function Frame_AddScriptLine(int frameid, int linenum, string[] tokens) global
             endif
         endif
     endif
-endfunction
-
-function Frame_SetScriptName(int frameid, string scriptfilename) global
-    SetStringValue(SLTHost(), "frame:" + frameid + ":detail:scriptname", scriptfilename)
-endfunction
-
-string function Frame_GetScriptName(int frameid) global
-    return GetStringValue(SLTHost(), "frame:" + frameid + ":detail:scriptname")
 endfunction
 
 int function Frame_GetScriptLineCount(int frameid) global

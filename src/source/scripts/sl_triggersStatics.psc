@@ -89,6 +89,10 @@ string Function EVENT_SLT_SETTINGS_UPDATED() global
 	return "_slt_event_slt_settings_updated_"
 EndFunction
 
+string Function EVENT_SLT_DELAY_START_COMMAND() global
+	return "OnSLTDelayStartCommand"
+EndFunction
+
 float Function SLT_LIST_REQUEST_SU_KEY_IS_GLOBAL() global
 	return 1.7
 EndFunction

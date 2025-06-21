@@ -8,11 +8,15 @@ import sl_triggersStatics
 ; HAVE TO FIX THE STRING PARAM TO STRING[] PARAM BEFORE YOU CAN USE THIS
 function hextun_test(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; HAVE TO FIX THE STRING PARAM TO STRING[] PARAM BEFORE YOU CAN USE THIS
 function hextun_test2(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname deb_msg
@@ -37,6 +41,8 @@ Function deb_msg(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
         string dmsg = PapyrusUtil.StringJoin(darr, "")
         DebMsg(dmsg)
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname msg_notify
@@ -60,6 +66,8 @@ function msg_notify(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         Debug.Notification(msg)
         ;DebMsg(msg)
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname form_getbyid
@@ -84,7 +92,9 @@ Function form_getbyid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
         endif
     endif
 
-    CmdPrimary.MostRecentResult = _outcome
+    CmdPrimary.SetMostRecentResult(_outcome)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
  
 ; sltname av_restore
@@ -102,9 +112,11 @@ function av_restore(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
     if ParamLengthEQ(CmdPrimary, param.Length, 4)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if _targetActor
-            _targetActor.RestoreActorValue(CmdPrimary.resolve(param[2]), CmdPrimary.resolve(param[3]) as float)
+            _targetActor.RestoreActorValue(CmdPrimary.Resolve(param[2]), CmdPrimary.Resolve(param[3]) as float)
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname av_damage
@@ -122,9 +134,11 @@ function av_damage(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
     if ParamLengthEQ(CmdPrimary, param.Length, 4)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if _targetActor
-            _targetActor.DamageActorValue(CmdPrimary.resolve(param[2]), CmdPrimary.resolve(param[3]) as float)
+            _targetActor.DamageActorValue(CmdPrimary.Resolve(param[2]), CmdPrimary.Resolve(param[3]) as float)
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname av_mod
@@ -142,9 +156,11 @@ function av_mod(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] pa
     if ParamLengthEQ(CmdPrimary, param.Length, 4)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if _targetActor
-            _targetActor.ModActorValue(CmdPrimary.resolve(param[2]), CmdPrimary.resolve(param[3]) as float)
+            _targetActor.ModActorValue(CmdPrimary.Resolve(param[2]), CmdPrimary.Resolve(param[3]) as float)
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname av_set
@@ -162,9 +178,11 @@ function av_set(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] pa
     if ParamLengthEQ(CmdPrimary, param.Length, 4)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if _targetActor
-            _targetActor.SetActorValue(CmdPrimary.resolve(param[2]), CmdPrimary.resolve(param[3]) as float)
+            _targetActor.SetActorValue(CmdPrimary.Resolve(param[2]), CmdPrimary.Resolve(param[3]) as float)
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname av_getbase
@@ -183,11 +201,13 @@ function av_getbase(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
 
         if _targetActor
-            nextResult = _targetActor.GetBaseActorValue(CmdPrimary.resolve(param[2])) as string
+            nextResult = _targetActor.GetBaseActorValue(CmdPrimary.Resolve(param[2])) as string
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname av_get
@@ -206,11 +226,13 @@ function av_get(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] pa
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
 
         if _targetActor
-            nextResult = _targetActor.GetActorValue(CmdPrimary.resolve(param[2])) as string
+            nextResult = _targetActor.GetActorValue(CmdPrimary.Resolve(param[2])) as string
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname av_getmax
@@ -229,11 +251,13 @@ function av_getmax(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
 
         if _targetActor
-            nextResult = _targetActor.GetActorValueMax(CmdPrimary.resolve(param[2])) as string
+            nextResult = _targetActor.GetActorValueMax(CmdPrimary.Resolve(param[2])) as string
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname av_getpercentage
@@ -251,11 +275,13 @@ function av_getpercent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if _targetActor
-            nextResult = (_targetActor.GetActorValuePercentage(CmdPrimary.resolve(param[2])) * 100.0) as string
+            nextResult = (_targetActor.GetActorValuePercentage(CmdPrimary.Resolve(param[2])) * 100.0) as string
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname spell_cast
@@ -269,7 +295,7 @@ function spell_cast(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Spell thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[1])) as Spell
+        Spell thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[1])) as Spell
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[2])
             if _targetActor
@@ -281,6 +307,8 @@ function spell_cast(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
             CmdPrimary.SFE("unable to resolve SPEL with FormId (" + param[1] + ")")
         endIf
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname spell_dcsa
@@ -294,7 +322,7 @@ function spell_dcsa(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Spell thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[1])) as Spell
+        Spell thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[1])) as Spell
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[2])
             if _targetActor
@@ -306,6 +334,8 @@ function spell_dcsa(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
             CmdPrimary.SFE("unable to resolve SPEL with FormId (" + param[1] + ")")
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname spell_dispel
@@ -319,7 +349,7 @@ function spell_dispel(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Spell thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[1])) as Spell
+        Spell thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[1])) as Spell
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[2])
             if _targetActor
@@ -331,6 +361,8 @@ function spell_dispel(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
             CmdPrimary.SFE("unable to resolve SPEL with FormId (" + param[1] + ")")
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname spell_add
@@ -344,7 +376,7 @@ function spell_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Spell thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[1])) as Spell
+        Spell thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[1])) as Spell
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[2])
             if _targetActor
@@ -356,6 +388,8 @@ function spell_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
             CmdPrimary.SFE("unable to resolve SPEL with FormId (" + param[1] + ")")
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname spell_remove
@@ -369,7 +403,7 @@ function spell_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Spell thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[1])) as Spell
+        Spell thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[1])) as Spell
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[2])
             if _targetActor
@@ -381,6 +415,8 @@ function spell_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
             CmdPrimary.SFE("unable to resolve SPEL with FormId (" + param[1] + ")")
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname item_add
@@ -396,18 +432,18 @@ function item_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthLT(CmdPrimary, param.Length, 6)
-        Form thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2]))
+        Form thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[2]))
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[1])
     
             if _targetActor
                 int count = 1
                 if param.Length > 3
-                    count = CmdPrimary.resolve(param[3]) as int
+                    count = CmdPrimary.Resolve(param[3]) as int
                 endif
                 bool isSilent = false
                 if param.Length > 4
-                    isSilent = CmdPrimary.resolve(param[4]) as int
+                    isSilent = CmdPrimary.Resolve(param[4]) as int
                 endif
                 _targetActor.AddItem(thing, count, isSilent)
             else
@@ -417,6 +453,8 @@ function item_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
             DebMsg("SLT: [" + CmdPrimary.currentScriptName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname item_addex
@@ -432,15 +470,15 @@ function item_addex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 
     if ParamLengthLT(CmdPrimary, param.Length, 6)
     
-        Form thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2]))
+        Form thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[2]))
         if thing
             int count = 1
             if param.Length > 3
-                count = CmdPrimary.resolve(param[3]) as int
+                count = CmdPrimary.Resolve(param[3]) as int
             endif
             bool isSilent = false
             if param.Length > 4
-                isSilent = CmdPrimary.resolve(param[4]) as int
+                isSilent = CmdPrimary.Resolve(param[4]) as int
             endif
             Actor _targetActor = CmdPrimary.resolveActor(param[1])
             
@@ -500,6 +538,8 @@ function item_addex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
             CmdPrimary.SFE("unable to resolve ITEM with FormId (" + param[2] + ")")
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname item_remove
@@ -515,15 +555,15 @@ function item_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthLT(CmdPrimary, param.Length, 6)
-        Form thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2]))
+        Form thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[2]))
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[1])
 
             if _targetActor
-                int count = CmdPrimary.resolve(param[3]) as int
+                int count = CmdPrimary.Resolve(param[3]) as int
                 bool isSilent = false
                 if param.Length > 4
-                    isSilent = CmdPrimary.resolve(param[4]) as int
+                    isSilent = CmdPrimary.Resolve(param[4]) as int
                 endif
                 _targetActor.RemoveItem(thing, count, isSilent)
             else
@@ -533,6 +573,8 @@ function item_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
             CmdPrimary.SFE("unable to resolve ITEM with FormId (" + param[2] + ")")
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname item_adduse
@@ -548,17 +590,17 @@ function item_adduse(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthLT(CmdPrimary, param.Length, 6)
-        Form thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2]))    
+        Form thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[2]))    
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[1])
             if _targetActor
                 int count = 1
                 if param.Length > 3
-                    count = CmdPrimary.resolve(param[3]) as int
+                    count = CmdPrimary.Resolve(param[3]) as int
                 endif
                 bool isSilent = false
                 if param.Length > 4
-                    isSilent = CmdPrimary.resolve(param[4]) as int
+                    isSilent = CmdPrimary.Resolve(param[4]) as int
                 endif
                 _targetActor.AddItem(thing, count, isSilent)
                 _targetActor.EquipItem(thing, false, isSilent)
@@ -569,6 +611,8 @@ function item_adduse(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
             CmdPrimary.SFE("unable to resolve ITEM with FormId (" + param[2] + ")")
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname item_equipex
@@ -586,12 +630,12 @@ function item_equipex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 6)
-        Form thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2]))    
+        Form thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[2]))    
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[1])
             if _targetActor
-                int slotId = CmdPrimary.resolve(param[3]) as int
-                bool isSilent = CmdPrimary.resolve(param[4]) as int
+                int slotId = CmdPrimary.Resolve(param[3]) as int
+                bool isSilent = CmdPrimary.Resolve(param[4]) as int
                 bool isRemovalPrevented = CmdPrimary.Resolve(param[5]) as int
                 _targetActor.EquipItemEx(thing, slotId, isRemovalPrevented, isSilent)
             else
@@ -601,6 +645,8 @@ function item_equipex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
             CmdPrimary.SFE("unable to resolve ITEM with FormId (" + param[2] + ")")
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname item_equip
@@ -617,12 +663,12 @@ function item_equip(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 5)
-        Form thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2]))
+        Form thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[2]))
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[1])
             if _targetActor
-                int slotId = CmdPrimary.resolve(param[3]) as int
-                bool isSilent = CmdPrimary.resolve(param[4]) as int
+                int slotId = CmdPrimary.Resolve(param[3]) as int
+                bool isSilent = CmdPrimary.Resolve(param[4]) as int
                 _targetActor.EquipItem(thing, slotId, isSilent)
             else
                 CmdPrimary.SFE("unable to resolve actor variable (" + param[1] + ")")
@@ -631,6 +677,8 @@ function item_equip(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
             CmdPrimary.SFE("unable to resolve ITEM with FormId (" + param[2] + ")")
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname item_unequipex
@@ -645,11 +693,11 @@ function item_unequipex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Form thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2]))
+        Form thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[2]))
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[1])
             if _targetActor
-                int slotId = CmdPrimary.resolve(param[3]) as int
+                int slotId = CmdPrimary.Resolve(param[3]) as int
                 _targetActor.UnEquipItemEx(thing, slotId)
             else
                 CmdPrimary.SFE("unable to resolve actor variable (" + param[1] + ")")
@@ -658,6 +706,8 @@ function item_unequipex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
             CmdPrimary.SFE("unable to resolve ITEM with FormId (" + param[2] + ")")
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname item_getcount
@@ -672,7 +722,7 @@ function item_getcount(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
     int nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Form thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2]))    
+        Form thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[2]))    
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[1])
             if _targetActor
@@ -685,7 +735,9 @@ function item_getcount(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname msg_console
@@ -708,6 +760,8 @@ function msg_console(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
         string msg = PapyrusUtil.StringJoin(darr, "")
         MiscUtil.PrintConsole(msg)
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname rnd_list
@@ -726,7 +780,9 @@ function rnd_list(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
         nextResult = CmdPrimary.Resolve(param[idx])
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname rnd_int
@@ -741,10 +797,12 @@ function rnd_int(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
     string nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        nextResult = Utility.RandomInt(CmdPrimary.resolve(param[1]) as int, CmdPrimary.resolve(param[2]) as int) as string
+        nextResult = Utility.RandomInt(CmdPrimary.Resolve(param[1]) as int, CmdPrimary.Resolve(param[2]) as int) as string
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname util_wait
@@ -757,8 +815,10 @@ function util_wait(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 2)
-        Utility.Wait(CmdPrimary.resolve(param[1]) as float)
+        Utility.Wait(CmdPrimary.Resolve(param[1]) as float)
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname util_getrandomactor
@@ -772,7 +832,7 @@ function util_getrandomactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary
     Actor nextIterActor
 
     if ParamLengthEQ(CmdPrimary, param.Length, 2)
-        Actor[] inCell = MiscUtil.ScanCellNPCs(CmdPrimary.CmdTargetActor, CmdPrimary.resolve(param[1]) as float)
+        Actor[] inCell = MiscUtil.ScanCellNPCs(CmdPrimary.CmdTargetActor, CmdPrimary.Resolve(param[1]) as float)
         if inCell.Length
             Keyword ActorTypeNPC = GetForm_Skyrim_ActorTypeNPC() as Keyword
             Cell    cc = CmdPrimary.PlayerRef.getParentCell()
@@ -810,7 +870,9 @@ function util_getrandomactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary
         endif
     endif
 
-    CmdPrimary.iterActor = nextIterActor
+    CmdPrimary.SetIterActor(nextIterActor)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname perk_addpoints
@@ -822,8 +884,10 @@ function perk_addpoints(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 2)
-        Game.AddPerkPoints(CmdPrimary.resolve(param[1]) as int)
+        Game.AddPerkPoints(CmdPrimary.Resolve(param[1]) as int)
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname perk_add
@@ -836,7 +900,7 @@ function perk_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Perk thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[1])) as Perk    
+        Perk thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[1])) as Perk    
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[2])
             if _targetActor
@@ -848,6 +912,8 @@ function perk_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
             CmdPrimary.SFE("unable to resolve ITEM with FormId (" + param[1] + ")")
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname perk_remove
@@ -860,7 +926,7 @@ function perk_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Perk thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[1])) as Perk    
+        Perk thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[1])) as Perk    
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[2])
             if _targetActor
@@ -872,6 +938,8 @@ function perk_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
             CmdPrimary.SFE("unable to resolve ITEM with FormId (" + param[1] + ")")
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_advskill
@@ -889,9 +957,9 @@ function actor_advskill(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
     if ParamLengthEQ(CmdPrimary, param.Length, 4)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if _targetActor
-            string skillName = CmdPrimary.resolve(param[2])
+            string skillName = CmdPrimary.Resolve(param[2])
             if skillName
-                Game.AdvanceSkill(skillName, CmdPrimary.resolve(param[3]) as int)
+                Game.AdvanceSkill(skillName, CmdPrimary.Resolve(param[3]) as int)
             else
                 CmdPrimary.SFE("unable to resolve skill name (" + param[2] + ")")
             endif
@@ -899,6 +967,8 @@ function actor_advskill(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
             CmdPrimary.SFE("unable to resolve actor variable (" + param[1] + ")")
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_incskill
@@ -915,12 +985,12 @@ function actor_incskill(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
     if ParamLengthEQ(CmdPrimary, param.Length, 4)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if _targetActor
-            string skillName = CmdPrimary.resolve(param[2])
+            string skillName = CmdPrimary.Resolve(param[2])
             if skillName
                 if _targetActor == CmdPrimary.PlayerRef
-                    Game.IncrementSkillBy(skillName, CmdPrimary.resolve(param[3]) as int)
+                    Game.IncrementSkillBy(skillName, CmdPrimary.Resolve(param[3]) as int)
                 else
-                    _targetActor.ModActorValue(skillName, CmdPrimary.resolve(param[3]) as int)
+                    _targetActor.ModActorValue(skillName, CmdPrimary.Resolve(param[3]) as int)
                 endif
             else
                 CmdPrimary.SFE("unable to resolve skill name (" + param[2] + ")")
@@ -929,6 +999,8 @@ function actor_incskill(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
             CmdPrimary.SFE("unable to resolve actor variable (" + param[1] + ")")
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_isvalid
@@ -954,7 +1026,9 @@ function actor_isvalid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_haslos
@@ -978,7 +1052,9 @@ function actor_haslos(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_name
@@ -998,7 +1074,9 @@ function actor_name(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         endif
     endif
     
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_name
@@ -1018,7 +1096,9 @@ function actor_display_name(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary,
         endif
     endif
     
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_modcrimegold
@@ -1035,10 +1115,12 @@ function actor_modcrimegold(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary,
         if _targetActor
             Faction crimeFact = _targetActor.GetCrimeFaction()
             if crimeFact
-                crimeFact.ModCrimeGold(CmdPrimary.resolve(param[2]) as int, false)
+                crimeFact.ModCrimeGold(CmdPrimary.Resolve(param[2]) as int, false)
             endIf
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_qnnu
@@ -1056,6 +1138,8 @@ function actor_qnnu(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
             _targetActor.QueueNiNodeUpdate()
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_isguard
@@ -1075,11 +1159,15 @@ function actor_isguard(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 function actor_isquard(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	actor_isguard(CmdTargetActor, CmdPrimary, param)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_isplayer
@@ -1099,7 +1187,9 @@ function actor_isplayer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_getgender
@@ -1119,7 +1209,9 @@ function actor_getgender(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_say
@@ -1132,7 +1224,7 @@ function actor_say(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        string thingFormId = CmdPrimary.resolve(param[2])
+        string thingFormId = CmdPrimary.Resolve(param[2])
         Topic thing = CmdPrimary.GetFormById(thingFormId) as Topic
         if thing
             Actor _targetActor = CmdPrimary.resolveActor(param[1])
@@ -1141,6 +1233,8 @@ function actor_say(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
             endif
         endIf
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_haskeyword
@@ -1155,14 +1249,16 @@ function actor_haskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
     int nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Keyword keyw = Keyword.GetKeyword(CmdPrimary.resolve(param[2]))
+        Keyword keyw = Keyword.GetKeyword(CmdPrimary.Resolve(param[2]))
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if keyw && _targetActor && _targetActor.HasKeyword(keyw)
             nextResult = 1
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_iswearing
@@ -1177,14 +1273,16 @@ function actor_iswearing(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
     int nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Armor thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2])) as Armor
+        Armor thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[2])) as Armor
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if thing && _targetActor && _targetActor.IsEquipped(thing)
             nextResult = 1
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_getscale
@@ -1206,7 +1304,9 @@ function actor_getscale(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_setscale
@@ -1226,6 +1326,8 @@ function actor_setscale(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
             _targetActor.SetScale(newScale)
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_worninslot
@@ -1246,7 +1348,9 @@ function actor_worninslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_wornhaskeyword
@@ -1261,7 +1365,7 @@ function actor_wornhaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimar
     int nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Keyword keyw = Keyword.GetKeyword(CmdPrimary.resolve(param[2]))
+        Keyword keyw = Keyword.GetKeyword(CmdPrimary.Resolve(param[2]))
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         
         if keyw && _targetActor && _targetActor.WornHasKeyword(keyw)
@@ -1269,7 +1373,9 @@ function actor_wornhaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimar
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_lochaskeyword
@@ -1285,7 +1391,7 @@ function actor_lochaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary
     int nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Keyword keyw = Keyword.GetKeyword(CmdPrimary.resolve(param[2]))
+        Keyword keyw = Keyword.GetKeyword(CmdPrimary.Resolve(param[2]))
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         
         if keyw && _targetActor && _targetActor.GetCurrentLocation().HasKeyword(keyw)
@@ -1293,7 +1399,9 @@ function actor_lochaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_getrelation
@@ -1324,7 +1432,9 @@ function actor_getrelation(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, 
         endif
     endif
     
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_setrelation
@@ -1342,9 +1452,11 @@ function actor_setrelation(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, 
         Actor _actorOne = CmdPrimary.resolveActor(param[1])
         Actor _actorTwo = CmdPrimary.resolveActor(param[2])
         if _actorOne && _actorTwo
-            _actorOne.SetRelationshipRank(_actorTwo, CmdPrimary.resolve(param[3]) as int)
+            _actorOne.SetRelationshipRank(_actorTwo, CmdPrimary.Resolve(param[3]) as int)
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_infaction
@@ -1361,13 +1473,15 @@ function actor_infaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
-        Faction thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2])) as Faction
+        Faction thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[2])) as Faction
         if _targetActor && thing && _targetActor.IsInFaction(thing)
             nextResult = 1
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_getfactionrank
@@ -1384,7 +1498,7 @@ function actor_getfactionrank(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimar
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if _targetActor
-            Faction thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2])) as Faction
+            Faction thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[2])) as Faction
             
             if thing
                 nextResult = _targetActor.GetFactionRank(thing)
@@ -1392,7 +1506,9 @@ function actor_getfactionrank(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimar
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_setfactionrank
@@ -1408,12 +1524,14 @@ function actor_setfactionrank(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimar
     if ParamLengthEQ(CmdPrimary, param.Length, 4)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if _targetActor
-            Faction thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2])) as Faction
+            Faction thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[2])) as Faction
             if thing
-                _targetActor.SetFactionRank(thing, CmdPrimary.resolve(param[3]) as int)
+                _targetActor.SetFactionRank(thing, CmdPrimary.Resolve(param[3]) as int)
             endif
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_isaffectedby
@@ -1483,7 +1601,9 @@ function actor_isaffectedby(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary,
         nextResult = 0
     endif
 	
-	CmdPrimary.MostRecentResult = nextResult
+	CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_removefaction
@@ -1497,12 +1617,14 @@ function actor_removefaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
-        Faction thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[2])) as Faction
+        Faction thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[2])) as Faction
     
         if thing && _targetActor
             _targetActor.RemoveFromFaction(thing)
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_playanim
@@ -1515,8 +1637,10 @@ function actor_playanim(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Debug.SendAnimationEvent(CmdPrimary.resolveActor(param[1]), CmdPrimary.resolve(param[2]))
+        Debug.SendAnimationEvent(CmdPrimary.resolveActor(param[1]), CmdPrimary.Resolve(param[2]))
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_sendmodevent
@@ -1533,19 +1657,21 @@ function actor_sendmodevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary,
     if ParamLengthGT(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
-            string ss1 = CmdPrimary.resolve(param[2])
+            string ss1 = CmdPrimary.Resolve(param[2])
             string ss2
             if param.Length > 3
-                ss2 = CmdPrimary.resolve(param[3])
+                ss2 = CmdPrimary.Resolve(param[3])
             endif
             float  p3
             if param.Length > 4
-                p3 = CmdPrimary.resolve(param[4]) as float
+                p3 = CmdPrimary.Resolve(param[4]) as float
             endif
             
             _targetActor.SendModEvent(ss1, ss2, p3)
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_state
@@ -1568,7 +1694,7 @@ function actor_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 
     if ParamLengthGT(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
-        string ss1 = CmdPrimary.resolve(param[2])
+        string ss1 = CmdPrimary.Resolve(param[2])
         
         string nextResult
         if _targetActor 
@@ -1587,7 +1713,7 @@ function actor_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
             elseif ss1 == "SetPlayerTeammate"
                 int p3 = 0
                 if param.Length > 3
-                    p3 = CmdPrimary.resolve(param[3]) as int
+                    p3 = CmdPrimary.Resolve(param[3]) as int
                 endif
                 _targetActor.SetPlayerTeammate(p3 as bool)
             elseif ss1 == "SendAssaultAlarm"
@@ -1596,9 +1722,11 @@ function actor_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
         endIf
 
         if StringUtil.GetLength(nextResult) > 0
-            CmdPrimary.MostRecentResult = nextResult
+            CmdPrimary.SetMostRecentResult(nextResult)
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_body
@@ -1617,7 +1745,7 @@ function actor_body(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 
     if ParamLengthGT(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
-        string ss1 = CmdPrimary.resolve(param[2])
+        string ss1 = CmdPrimary.Resolve(param[2])
         
         if _targetActor 
             if ss1 == "ClearExtraArrows"
@@ -1625,12 +1753,12 @@ function actor_body(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
             elseif ss1 == "RegenerateHead"
                 _targetActor.RegenerateHead()
             elseif ss1 == "GetWeight"
-                CmdPrimary.MostRecentResult = _targetActor.GetActorBase().GetWeight() as string
+                CmdPrimary.SetMostRecentResult(_targetActor.GetActorBase().GetWeight() as string)
             elseif ss1 == "SetWeight"
                 float baseW = _targetActor.GetActorBase().GetWeight()
                 float p3
                 if param.Length > 3
-                    p3 = CmdPrimary.resolve(param[3]) as float
+                    p3 = CmdPrimary.Resolve(param[3]) as float
                 endif
                     
                 float newW  = p3
@@ -1648,6 +1776,8 @@ function actor_body(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
             endIf
         endIf
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_race
@@ -1666,14 +1796,16 @@ function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         
         if _targetActor
-            string ss1 = CmdPrimary.resolve(param[2])
+            string ss1 = CmdPrimary.Resolve(param[2])
             if !ss1
                 nextResult = _targetActor.GetRace().GetName()
             endIf
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_setalpha
@@ -1699,6 +1831,8 @@ function actor_setalpha(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
             _targetActor.SetAlpha(alpha, abFade)
         endIf
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 bool function _slt_form_doaction(sl_triggersCmd CmdPrimary, Form _target, string _theAction) global
@@ -1872,7 +2006,7 @@ function form_doaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Form _target = CmdPrimary.ResolveForm(param[1])
         if _target
-            string _theAction = CmdPrimary.resolve(param[2])
+            string _theAction = CmdPrimary.Resolve(param[2])
 
             if _theAction
                 if !_slt_form_doaction(CmdPrimary, _target, _theAction)
@@ -1910,7 +2044,7 @@ function objectreference_doaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPr
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         ObjectReference _target = CmdPrimary.ResolveForm(param[1]) as ObjectReference
         if _target
-            string _theAction = CmdPrimary.resolve(param[2])
+            string _theAction = CmdPrimary.Resolve(param[2])
 
             if _theAction
                 if !_slt_objectreference_doaction(CmdPrimary, _target, _theAction)
@@ -1961,7 +2095,7 @@ function actor_doaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _target = CmdPrimary.ResolveForm(param[1]) as Actor
         if _target
-            string _theAction = CmdPrimary.resolve(param[2])
+            string _theAction = CmdPrimary.Resolve(param[2])
 
             if _theAction
                 if !_slt_actor_doaction(CmdPrimary, _target, _theAction)
@@ -1970,6 +2104,8 @@ function actor_doaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
             endif
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 
@@ -2351,7 +2487,7 @@ function form_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         Form _target = CmdPrimary.ResolveForm(param[1])
         
         if _target
-            string _theAction = CmdPrimary.resolve(param[2])
+            string _theAction = CmdPrimary.Resolve(param[2])
 
             if _theAction
                 result = _slt_form_dogetter(CmdPrimary, _target, _theAction)
@@ -2362,7 +2498,9 @@ function form_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = result
+    CmdPrimary.SetMostRecentResult(result)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname objectreference_dogetter
@@ -2435,7 +2573,7 @@ function objectreference_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPr
         ObjectReference _target = CmdPrimary.ResolveForm(param[1]) as ObjectReference
         
         if _target
-            string _theAction = CmdPrimary.resolve(param[2])
+            string _theAction = CmdPrimary.Resolve(param[2])
 
             if _theAction
                 result = _slt_objectreference_dogetter(CmdPrimary, _target, _theAction)
@@ -2446,7 +2584,9 @@ function objectreference_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPr
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = result
+    CmdPrimary.SetMostRecentResult(result)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_dogetter
@@ -2531,7 +2671,7 @@ function actor_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
         Actor _target = CmdPrimary.ResolveForm(param[1]) as Actor
         
         if _target
-            string _theAction = CmdPrimary.resolve(param[2])
+            string _theAction = CmdPrimary.Resolve(param[2])
 
             if _theAction
                 result = _slt_actor_dogetter(CmdPrimary, _target, _theAction)
@@ -2542,7 +2682,9 @@ function actor_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = result
+    CmdPrimary.SetMostRecentResult(result)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 
@@ -3418,7 +3560,7 @@ function form_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
         Form _target = CmdPrimary.ResolveForm(param[1])
         
         if _target
-            string _theAction = CmdPrimary.resolve(param[2])
+            string _theAction = CmdPrimary.Resolve(param[2])
 
             if _theAction
                 result = _slt_form_doconsumer(CmdPrimary, _target, _theAction, param)
@@ -3429,7 +3571,9 @@ function form_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = result
+    CmdPrimary.SetMostRecentResult(result)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname objectreference_doconsumer
@@ -3509,7 +3653,7 @@ function objectreference_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _Cmd
         ObjectReference _target = CmdPrimary.resolveActor(param[1]) as ObjectReference
         
         if _target
-            string _theAction = CmdPrimary.resolve(param[2])
+            string _theAction = CmdPrimary.Resolve(param[2])
 
             if _theAction
                 result = _slt_objectreference_doconsumer(CmdPrimary, _target, _theAction, param)
@@ -3520,7 +3664,9 @@ function objectreference_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _Cmd
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = result
+    CmdPrimary.SetMostRecentResult(result)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_doconsumer
@@ -3616,7 +3762,7 @@ function actor_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         Actor _target = CmdPrimary.ResolveForm(param[1]) as Actor
         
         if _target
-            string _theAction = CmdPrimary.resolve(param[2])
+            string _theAction = CmdPrimary.Resolve(param[2])
 
             if _theAction
                 result = _slt_actor_doconsumer(CmdPrimary, _target, _theAction, param)
@@ -3627,7 +3773,9 @@ function actor_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = result
+    CmdPrimary.SetMostRecentResult(result)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 string Function _slt_form_dofunction(sl_triggersCmd CmdPrimary, Form _target, string _theAction, string[] param) global
@@ -4176,7 +4324,7 @@ function form_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
     if ParamLengthGT(CmdPrimary, param.Length, 3)
         Form _target = CmdPrimary.ResolveForm(param[1])
         if _target
-            string _theAction = CmdPrimary.resolve(param[2])
+            string _theAction = CmdPrimary.Resolve(param[2])
 
             if _theAction
                 result = _slt_form_dofunction(CmdPrimary, _target, _theAction, param)
@@ -4187,7 +4335,9 @@ function form_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
         endif
     endif
 
-    CmdPrimary.MostRecentResult = result
+    CmdPrimary.SetMostRecentResult(result)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname objectreference_dofunction
@@ -4235,7 +4385,7 @@ function objectreference_dofunction(Actor CmdTargetActor, ActiveMagicEffect _Cmd
     if ParamLengthGT(CmdPrimary, param.Length, 3)
         ObjectReference _target = CmdPrimary.ResolveForm(param[1]) as ObjectReference
         if _target
-            string _theAction = CmdPrimary.resolve(param[2])
+            string _theAction = CmdPrimary.Resolve(param[2])
 
             if _theAction
                 result = _slt_objectreference_dofunction(CmdPrimary, _target, _theAction, param)
@@ -4246,7 +4396,9 @@ function objectreference_dofunction(Actor CmdTargetActor, ActiveMagicEffect _Cmd
         endif
     endif
 
-    CmdPrimary.MostRecentResult = result
+    CmdPrimary.SetMostRecentResult(result)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname actor_dofunction
@@ -4306,7 +4458,7 @@ function actor_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
     if ParamLengthGT(CmdPrimary, param.Length, 3)
         Actor _target = CmdPrimary.ResolveForm(param[1]) as Actor
         if _target
-            string _theAction = CmdPrimary.resolve(param[2])
+            string _theAction = CmdPrimary.Resolve(param[2])
 
             if _theAction
                 result = _slt_actor_dofunction(CmdPrimary, _target, _theAction, param)
@@ -4317,7 +4469,9 @@ function actor_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         endif
     endif
 
-    CmdPrimary.MostRecentResult = result
+    CmdPrimary.SetMostRecentResult(result)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 
@@ -4331,12 +4485,14 @@ function ism_applyfade(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        ImageSpaceModifier thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[1])) as ImageSpaceModifier
+        ImageSpaceModifier thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[1])) as ImageSpaceModifier
     
         if thing
-            thing.ApplyCrossFade(CmdPrimary.resolve(param[2]) as float)
+            thing.ApplyCrossFade(CmdPrimary.Resolve(param[2]) as float)
         endIf
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname ism_removefade
@@ -4349,12 +4505,14 @@ function ism_removefade(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Form thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[1]))
+        Form thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[1]))
     
         if thing
-            ImageSpaceModifier.RemoveCrossFade(CmdPrimary.resolve(param[2]) as float)
+            ImageSpaceModifier.RemoveCrossFade(CmdPrimary.Resolve(param[2]) as float)
         endIf
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname util_sendmodevent
@@ -4368,18 +4526,20 @@ function util_sendmodevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, 
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthGT(CmdPrimary, param.Length, 1)
-        string ss1 = CmdPrimary.resolve(param[1])
+        string ss1 = CmdPrimary.Resolve(param[1])
         string ss2
         if param.Length > 2
-            ss2 = CmdPrimary.resolve(param[2])
+            ss2 = CmdPrimary.Resolve(param[2])
         endif
         float  p3
         if param.Length > 3
-            p3 = CmdPrimary.resolve(param[3]) as float
+            p3 = CmdPrimary.Resolve(param[3]) as float
         endif
         
         CmdTargetActor.SendModEvent(ss1, ss2, p3)
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname util_sendevent
@@ -4397,7 +4557,7 @@ function util_sendevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
     if ParamLengthGT(CmdPrimary, param.Length, 1)
-        string eventName = CmdPrimary.resolve(param[1])
+        string eventName = CmdPrimary.Resolve(param[1])
         if eventName
             int eid = ModEvent.Create(eventName)
             
@@ -4407,22 +4567,22 @@ function util_sendevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
                 
                 int idxArg = 2 
                 while idxArg + 1 < param.Length
-                    typeId = CmdPrimary.resolve(param[idxArg])
+                    typeId = CmdPrimary.Resolve(param[idxArg])
                     if typeId == "bool"
-                        ss = CmdPrimary.resolve(param[idxArg + 1])
+                        ss = CmdPrimary.Resolve(param[idxArg + 1])
                         if (ss as int)
                             ModEvent.PushBool(eid, true)
                         else
                             ModEvent.PushBool(eid, false)
                         endIf
                     elseif typeId == "int"
-                        ss = CmdPrimary.resolve(param[idxArg + 1])
+                        ss = CmdPrimary.Resolve(param[idxArg + 1])
                         ModEvent.PushInt(eid, ss as int)
                     elseif typeId == "float"
-                        ss = CmdPrimary.resolve(param[idxArg + 1])
+                        ss = CmdPrimary.Resolve(param[idxArg + 1])
                         ModEvent.PushFloat(eid, ss as float)
                     elseif typeId == "string"
-                        ss = CmdPrimary.resolve(param[idxArg + 1])
+                        ss = CmdPrimary.Resolve(param[idxArg + 1])
                         ModEvent.PushString(eid, ss)
                     elseif typeId == "form"
                         actor mate1 = CmdPrimary.resolveActor(param[idxArg + 1])
@@ -4442,6 +4602,8 @@ function util_sendevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
             endIf
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname util_getgametime
@@ -4455,10 +4617,12 @@ function util_getgametime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         float dayTime = Utility.GetCurrentGameTime()
         dayTime = Math.Floor(dayTime * 100.0) / 100.0
         
-        CmdPrimary.MostRecentResult = dayTime
+        CmdPrimary.SetMostRecentResult(dayTime)
     else
-        CmdPrimary.MostRecentResult = ""
+        CmdPrimary.SetMostRecentResult("")
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname util_getrealtime
@@ -4472,10 +4636,12 @@ function util_getrealtime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         float realTime = Utility.GetCurrentRealTime()
         realTime = Math.Floor(realTime * 100.0) / 100.0
 
-        CmdPrimary.MostRecentResult = realTime
+        CmdPrimary.SetMostRecentResult(realTime)
     else
-        CmdPrimary.MostRecentResult = ""
+        CmdPrimary.SetMostRecentResult("")
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname util_getgametime
@@ -4493,10 +4659,12 @@ function util_gethour(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
         
         int theHour = dayTime as int
         
-        CmdPrimary.MostRecentResult = theHour as string
+        CmdPrimary.SetMostRecentResult(theHour as string)
     else
-        CmdPrimary.MostRecentResult = ""
+        CmdPrimary.SetMostRecentResult("")
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname util_game
@@ -4511,20 +4679,22 @@ function util_game(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
     if ParamLengthGT(CmdPrimary, param.Length, 2)
-        string p1 = CmdPrimary.resolve(param[1])
+        string p1 = CmdPrimary.Resolve(param[1])
         
         if "IncrementStat" == p1
-            string p2 = CmdPrimary.resolve(param[2])
+            string p2 = CmdPrimary.Resolve(param[2])
             int iModAmount
             if param.Length > 3
-                iModAmount = CmdPrimary.resolve(param[3]) as Int
+                iModAmount = CmdPrimary.Resolve(param[3]) as Int
             endif
             Game.IncrementStat(p2, iModAmount)
         elseIf "QueryStat" == p1
-            string p2 = CmdPrimary.resolve(param[2])
-            CmdPrimary.MostRecentResult = Game.QueryStat(p2) as string
+            string p2 = CmdPrimary.Resolve(param[2])
+            CmdPrimary.SetMostRecentResult(Game.QueryStat(p2) as string)
         endIf
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname snd_play
@@ -4539,7 +4709,7 @@ function snd_play(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
     int nextResult = 0
 	
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Sound   thing = CmdPrimary.GetFormById(CmdPrimary.resolve(param[1])) as Sound
+        Sound   thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[1])) as Sound
         Actor   _targetActor = CmdPrimary.resolveActor(param[2])
         int     retVal
         if thing && _targetActor
@@ -4547,7 +4717,9 @@ function snd_play(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname snd_setvolume
@@ -4562,10 +4734,12 @@ function snd_setvolume(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        int    soundId = CmdPrimary.resolve(param[1]) as int
-        float  vol     = CmdPrimary.resolve(param[2]) as float
+        int    soundId = CmdPrimary.Resolve(param[1]) as int
+        float  vol     = CmdPrimary.Resolve(param[2]) as float
         Sound.SetInstanceVolume(soundId, vol)
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname snd_stop
@@ -4577,9 +4751,11 @@ function snd_stop(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
     if ParamLengthEQ(CmdPrimary, param.Length, 2)
-        int    soundId = CmdPrimary.resolve(param[1]) as int
+        int    soundId = CmdPrimary.Resolve(param[1]) as int
         Sound.StopInstance(soundId)
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname console
@@ -4604,7 +4780,7 @@ function console(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
             string ss
             string ssx
             while idx < cnt
-                ss = CmdPrimary.resolve(param[idx])
+                ss = CmdPrimary.Resolve(param[idx])
                 ssx += ss
                 idx += 1
             endWhile
@@ -4612,6 +4788,8 @@ function console(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
             sl_TriggersConsole.exec_console(_targetActor, ssx)
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname mfg_reset
@@ -4628,6 +4806,8 @@ function mfg_reset(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
             sl_TriggersMfg.mfg_reset(_targetActor)
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname mfg_setphonememodifier
@@ -4645,13 +4825,15 @@ function mfg_setphonememodifier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrim
     if ParamLengthEQ(CmdPrimary, param.Length, 5)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if !_targetActor
-            int p1 = CmdPrimary.resolve(param[2]) as Int
-            int p2 = CmdPrimary.resolve(param[3]) as Int
-            int p3 = CmdPrimary.resolve(param[4]) as Int
+            int p1 = CmdPrimary.Resolve(param[2]) as Int
+            int p2 = CmdPrimary.Resolve(param[3]) as Int
+            int p3 = CmdPrimary.Resolve(param[4]) as Int
             
             sl_TriggersMfg.mfg_SetPhonemeModifier(_targetActor, p1, p2, p3)
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname mfg_getphonememodifier
@@ -4669,14 +4851,16 @@ function mfg_getphonememodifier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrim
     if ParamLengthEQ(CmdPrimary, param.Length, 4)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if _targetActor
-            int p1 = CmdPrimary.resolve(param[2]) as Int
-            int p2 = CmdPrimary.resolve(param[3]) as Int
+            int p1 = CmdPrimary.Resolve(param[2]) as Int
+            int p2 = CmdPrimary.Resolve(param[3]) as Int
         
             nextResult = sl_TriggersMfg.mfg_GetPhonemeModifier(_targetActor, p1, p2)
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult as string
+    CmdPrimary.SetMostRecentResult(nextResult as string)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname util_waitforkbd
@@ -4700,7 +4884,7 @@ function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
     
         idx = 1
         while idx < cnt
-            ss = CmdPrimary.resolve(param[idx])
+            ss = CmdPrimary.Resolve(param[idx])
             scancode = ss as int
             if scancode > 0
                 CmdPrimary.RegisterForKey(scanCode)
@@ -4721,7 +4905,9 @@ function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult as string
+    CmdPrimary.SetMostRecentResult(nextResult as string)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname json_getvalue
@@ -4739,12 +4925,12 @@ function json_getvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
     string nextResult
 	
     if ParamLengthGT(CmdPrimary, param.Length, 3)
-        string pname = CmdPrimary.resolve(param[1])
-        string ptype = CmdPrimary.resolve(param[2])
-        string pkey  = CmdPrimary.resolve(param[3])
+        string pname = CmdPrimary.Resolve(param[1])
+        string ptype = CmdPrimary.Resolve(param[2])
+        string pkey  = CmdPrimary.Resolve(param[3])
         string pdef
         if param.Length > 4
-            pdef = CmdPrimary.resolve(param[4])
+            pdef = CmdPrimary.Resolve(param[4])
         endif
         
         if pname && ptype && pkey
@@ -4771,7 +4957,9 @@ function json_getvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname json_setvalue
@@ -4787,10 +4975,10 @@ function json_setvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
     if ParamLengthEQ(CmdPrimary, param.Length, 5)
-        string pname = CmdPrimary.resolve(param[1])
-        string ptype = CmdPrimary.resolve(param[2])
-        string pkey  = CmdPrimary.resolve(param[3])
-        string pdef  = CmdPrimary.resolve(param[4])
+        string pname = CmdPrimary.Resolve(param[1])
+        string ptype = CmdPrimary.Resolve(param[2])
+        string pkey  = CmdPrimary.Resolve(param[3])
+        string pdef  = CmdPrimary.Resolve(param[4])
     
         if pname && ptype && pkey
             if ptype == "int"
@@ -4814,6 +5002,8 @@ function json_setvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
             endif
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname json_save
@@ -4825,11 +5015,13 @@ function json_save(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
     if ParamLengthEQ(CmdPrimary, param.Length, 2)
-        string pname = CmdPrimary.resolve(param[1])
+        string pname = CmdPrimary.Resolve(param[1])
         if pname
             JsonUtil.Save(pname)
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 string function getValidJSONType(sl_triggersCmd CmdPrimary, string jtype) global
@@ -4884,13 +5076,13 @@ function jsonutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
             elseif "save" == func
                 JsonUtil.Save(jfile)
             elseif "ispendingsave" == func
-                CmdPrimary.MostRecentResult = JsonUtil.IsPendingSave(jfile) as int
+                CmdPrimary.SetMostRecentResult(JsonUtil.IsPendingSave(jfile) as int)
             elseif "isgood" == func
-                CmdPrimary.MostRecentResult = JsonUtil.IsGood(jfile) as int
+                CmdPrimary.SetMostRecentResult(JsonUtil.IsGood(jfile) as int)
             elseif "geterrors" == func
-                CmdPrimary.MostRecentResult = JsonUtil.GetErrors(jfile)
+                CmdPrimary.SetMostRecentResult(JsonUtil.GetErrors(jfile))
             elseif "exists" == func
-                CmdPrimary.MostRecentResult = 1
+                CmdPrimary.SetMostRecentResult(1)
             elseif "unload" == func
                 bool saveChanges = true
                 bool minify = false
@@ -4908,35 +5100,35 @@ function jsonutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
                 if jtype
                     if "unset" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.UnsetIntValue(jfile, jkey) as int
+                            CmdPrimary.SetMostRecentResult(JsonUtil.UnsetIntValue(jfile, jkey) as int)
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.UnsetFloatValue(jfile, jkey) as int
+                            CmdPrimary.SetMostRecentResult(JsonUtil.UnsetFloatValue(jfile, jkey) as int)
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.UnsetStringValue(jfile, jkey) as int
+                            CmdPrimary.SetMostRecentResult(JsonUtil.UnsetStringValue(jfile, jkey) as int)
                         endif
                     elseif "has" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.HasIntValue(jfile, jkey) as int
+                            CmdPrimary.SetMostRecentResult(JsonUtil.HasIntValue(jfile, jkey) as int)
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.HasFloatValue(jfile, jkey) as int
+                            CmdPrimary.SetMostRecentResult(JsonUtil.HasFloatValue(jfile, jkey) as int)
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.HasStringValue(jfile, jkey) as int
+                            CmdPrimary.SetMostRecentResult(JsonUtil.HasStringValue(jfile, jkey) as int)
                         endif
                     elseif "listclear" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.IntListClear(jfile, jkey)
+                            CmdPrimary.SetMostRecentResult(JsonUtil.IntListClear(jfile, jkey))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.FloatListClear(jfile, jkey)
+                            CmdPrimary.SetMostRecentResult(JsonUtil.FloatListClear(jfile, jkey))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.StringListClear(jfile, jkey)
+                            CmdPrimary.SetMostRecentResult(JsonUtil.StringListClear(jfile, jkey))
                         endif
                     elseif "listcount" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.IntListCount(jfile, jkey)
+                            CmdPrimary.SetMostRecentResult(JsonUtil.IntListCount(jfile, jkey))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.FloatListCount(jfile, jkey)
+                            CmdPrimary.SetMostRecentResult(JsonUtil.FloatListCount(jfile, jkey))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.StringListCount(jfile, jkey)
+                            CmdPrimary.SetMostRecentResult(JsonUtil.StringListCount(jfile, jkey))
                         endif
                     elseif "get" == func
                         string dval
@@ -4944,11 +5136,11 @@ function jsonutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
                             dval = CmdPrimary.Resolve(param[5])
                         endif
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.GetIntValue(jfile, jkey, dval as int)
+                            CmdPrimary.SetMostRecentResult(JsonUtil.GetIntValue(jfile, jkey, dval as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.GetFloatValue(jfile, jkey, dval as float)
+                            CmdPrimary.SetMostRecentResult(JsonUtil.GetFloatValue(jfile, jkey, dval as float))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.GetStringValue(jfile, jkey, dval)
+                            CmdPrimary.SetMostRecentResult(JsonUtil.GetStringValue(jfile, jkey, dval))
                         endif
 
                     elseif ParamLengthGT(CmdPrimary, param.Length, 5)
@@ -4960,100 +5152,100 @@ function jsonutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
 
                         if "set" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.SetIntValue(jfile, jkey, parm5 as int)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.SetIntValue(jfile, jkey, parm5 as int))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.SetFloatValue(jfile, jkey, parm5 as float)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.SetFloatValue(jfile, jkey, parm5 as float))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.SetStringValue(jfile, jkey, parm5)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.SetStringValue(jfile, jkey, parm5))
                             endif
                         elseif "adjust" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.AdjustIntValue(jfile, jkey, parm5 as int)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.AdjustIntValue(jfile, jkey, parm5 as int))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.AdjustFloatValue(jfile, jkey, parm5 as float)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.AdjustFloatValue(jfile, jkey, parm5 as float))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = ""
+                                CmdPrimary.SetMostRecentResult("")
                                 SquawkFunctionError(CmdPrimary, "jsonutil: 'string' is not a valid type for JsonUtil Adjust")
                             endif
                         elseif "listadd" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.IntListAdd(jfile, jkey, parm5 as int)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.IntListAdd(jfile, jkey, parm5 as int))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.FloatListAdd(jfile, jkey, parm5 as float)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.FloatListAdd(jfile, jkey, parm5 as float))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.StringListAdd(jfile, jkey, parm5)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.StringListAdd(jfile, jkey, parm5))
                             endif
                         elseif "listget" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.IntListGet(jfile, jkey, parm5 as int)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.IntListGet(jfile, jkey, parm5 as int))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.FloatListGet(jfile, jkey, parm5 as int)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.FloatListGet(jfile, jkey, parm5 as int))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.StringListGet(jfile, jkey, parm5 as int)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.StringListGet(jfile, jkey, parm5 as int))
                             endif
                         elseif "listset" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.IntListSet(jfile, jkey, parm5 as int, parm6 as int)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.IntListSet(jfile, jkey, parm5 as int, parm6 as int))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.FloatListSet(jfile, jkey, parm5 as int, parm6 as float)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.FloatListSet(jfile, jkey, parm5 as int, parm6 as float))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.StringListSet(jfile, jkey, parm5 as int, parm6 as string)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.StringListSet(jfile, jkey, parm5 as int, parm6 as string))
                             endif
                         elseif "listremoveat" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.IntListRemove(jfile, jkey, parm5 as int, parm6 as int)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.IntListRemove(jfile, jkey, parm5 as int, parm6 as int))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.FloatListRemove(jfile, jkey, parm5 as float, parm6 as int)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.FloatListRemove(jfile, jkey, parm5 as float, parm6 as int))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.StringListRemove(jfile, jkey, parm5, parm6 as int)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.StringListRemove(jfile, jkey, parm5, parm6 as int))
                             endif
                         elseif "listinsertat" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.IntListInsertAt(jfile, jkey, parm5 as int, parm6 as int) as int
+                                CmdPrimary.SetMostRecentResult(JsonUtil.IntListInsertAt(jfile, jkey, parm5 as int, parm6 as int) as int)
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.FloatListInsertAt(jfile, jkey, parm5 as int, parm6 as float) as int
+                                CmdPrimary.SetMostRecentResult(JsonUtil.FloatListInsertAt(jfile, jkey, parm5 as int, parm6 as float) as int)
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.StringListInsertAt(jfile, jkey, parm5 as int, parm6) as int
+                                CmdPrimary.SetMostRecentResult(JsonUtil.StringListInsertAt(jfile, jkey, parm5 as int, parm6) as int)
                             endif
                         elseif "listremoveat" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.IntListRemoveAt(jfile, jkey, parm5 as int) as int
+                                CmdPrimary.SetMostRecentResult(JsonUtil.IntListRemoveAt(jfile, jkey, parm5 as int) as int)
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.FloatListRemoveAt(jfile, jkey, parm5 as int) as int
+                                CmdPrimary.SetMostRecentResult(JsonUtil.FloatListRemoveAt(jfile, jkey, parm5 as int) as int)
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.StringListRemoveAt(jfile, jkey, parm5 as int) as int
+                                CmdPrimary.SetMostRecentResult(JsonUtil.StringListRemoveAt(jfile, jkey, parm5 as int) as int)
                             endif
                         elseif "listcountvalue" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.IntListCountValue(jfile, jkey, parm5 as int, parm6 as int)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.IntListCountValue(jfile, jkey, parm5 as int, parm6 as int))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.FloatListCountValue(jfile, jkey, parm5 as float, parm6 as int)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.FloatListCountValue(jfile, jkey, parm5 as float, parm6 as int))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.StringListCountValue(jfile, jkey, parm5, parm6 as int)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.StringListCountValue(jfile, jkey, parm5, parm6 as int))
                             endif
                         elseif "listfind" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.IntListFind(jfile, jkey, parm5 as int)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.IntListFind(jfile, jkey, parm5 as int))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.FloatListFind(jfile, jkey, parm5 as float)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.FloatListFind(jfile, jkey, parm5 as float))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.StringListFind(jfile, jkey, parm5)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.StringListFind(jfile, jkey, parm5))
                             endif
                         elseif "listhas" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.IntListHas(jfile, jkey, parm5 as int) as int
+                                CmdPrimary.SetMostRecentResult(JsonUtil.IntListHas(jfile, jkey, parm5 as int) as int)
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.FloatListHas(jfile, jkey, parm5 as float) as int
+                                CmdPrimary.SetMostRecentResult(JsonUtil.FloatListHas(jfile, jkey, parm5 as float) as int)
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.StringListHas(jfile, jkey, parm5) as int
+                                CmdPrimary.SetMostRecentResult(JsonUtil.StringListHas(jfile, jkey, parm5) as int)
                             endif
                         elseif "listresize" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.IntListResize(jfile, jkey, parm5 as int, parm6 as int)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.IntListResize(jfile, jkey, parm5 as int, parm6 as int))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.FloatListResize(jfile, jkey, parm5 as int, parm6 as float)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.FloatListResize(jfile, jkey, parm5 as int, parm6 as float))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentResult = JsonUtil.StringListResize(jfile, jkey, parm5 as int, parm6)
+                                CmdPrimary.SetMostRecentResult(JsonUtil.StringListResize(jfile, jkey, parm5 as int, parm6))
                             endif
 
 
@@ -5067,12 +5259,14 @@ function jsonutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
 
         else
             if "exists" == func
-                CmdPrimary.MostRecentResult = 0
+                CmdPrimary.SetMostRecentResult(0)
             else
                 SquawkFunctionError(CmdPrimary, "jsonutil: file (" + jfile + ") does not exist or cannot be opened")
             endif
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname storageutil
@@ -5132,43 +5326,43 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
             if jtype
                 if "unset" == func
                     if "int" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.UnsetIntValue(suform, jkey) as int
+                        CmdPrimary.SetMostRecentResult(StorageUtil.UnsetIntValue(suform, jkey) as int)
                     elseif "float" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.UnsetFloatValue(suform, jkey) as int
+                        CmdPrimary.SetMostRecentResult(StorageUtil.UnsetFloatValue(suform, jkey) as int)
                     elseif "string" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.UnsetStringValue(suform, jkey) as int
+                        CmdPrimary.SetMostRecentResult(StorageUtil.UnsetStringValue(suform, jkey) as int)
                     endif
                 elseif "has" == func
                     if "int" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.HasIntValue(suform, jkey) as int
+                        CmdPrimary.SetMostRecentResult(StorageUtil.HasIntValue(suform, jkey) as int)
                     elseif "float" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.HasFloatValue(suform, jkey) as int
+                        CmdPrimary.SetMostRecentResult(StorageUtil.HasFloatValue(suform, jkey) as int)
                     elseif "string" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.HasStringValue(suform, jkey) as int
+                        CmdPrimary.SetMostRecentResult(StorageUtil.HasStringValue(suform, jkey) as int)
                     endif
                 elseif "listclear" == func
                     if "int" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.IntListClear(suform, jkey)
+                        CmdPrimary.SetMostRecentResult(StorageUtil.IntListClear(suform, jkey))
                     elseif "float" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.FloatListClear(suform, jkey)
+                        CmdPrimary.SetMostRecentResult(StorageUtil.FloatListClear(suform, jkey))
                     elseif "string" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.StringListClear(suform, jkey)
+                        CmdPrimary.SetMostRecentResult(StorageUtil.StringListClear(suform, jkey))
                     endif
                 elseif "listpop" == func
                     if "int" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.IntListPop(suform, jkey)
+                        CmdPrimary.SetMostRecentResult(StorageUtil.IntListPop(suform, jkey))
                     elseif "float" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.FloatListPop(suform, jkey)
+                        CmdPrimary.SetMostRecentResult(StorageUtil.FloatListPop(suform, jkey))
                     elseif "string" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.StringListPop(suform, jkey)
+                        CmdPrimary.SetMostRecentResult(StorageUtil.StringListPop(suform, jkey))
                     endif
                 elseif "listshift" == func
                     if "int" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.IntListShift(suform, jkey)
+                        CmdPrimary.SetMostRecentResult(StorageUtil.IntListShift(suform, jkey))
                     elseif "float" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.FloatListShift(suform, jkey)
+                        CmdPrimary.SetMostRecentResult(StorageUtil.FloatListShift(suform, jkey))
                     elseif "string" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.StringListShift(suform, jkey)
+                        CmdPrimary.SetMostRecentResult(StorageUtil.StringListShift(suform, jkey))
                     endif
                 elseif "listsort" == func
                     if "int" == jtype
@@ -5180,11 +5374,11 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
                     endif
                 elseif "listcount" == func
                     if "int" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.IntListCount(suform, jkey)
+                        CmdPrimary.SetMostRecentResult(StorageUtil.IntListCount(suform, jkey))
                     elseif "float" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.FloatListCount(suform, jkey)
+                        CmdPrimary.SetMostRecentResult(StorageUtil.FloatListCount(suform, jkey))
                     elseif "string" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.StringListCount(suform, jkey)
+                        CmdPrimary.SetMostRecentResult(StorageUtil.StringListCount(suform, jkey))
                     endif
                 elseif "get" == func
                     string dval
@@ -5192,11 +5386,11 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
                         dval = CmdPrimary.Resolve(param[5])
                     endif
                     if "int" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.GetIntValue(suform, jkey, dval as int)
+                        CmdPrimary.SetMostRecentResult(StorageUtil.GetIntValue(suform, jkey, dval as int))
                     elseif "float" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.GetFloatValue(suform, jkey, dval as float)
+                        CmdPrimary.SetMostRecentResult(StorageUtil.GetFloatValue(suform, jkey, dval as float))
                     elseif "string" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.GetStringValue(suform, jkey, dval)
+                        CmdPrimary.SetMostRecentResult(StorageUtil.GetStringValue(suform, jkey, dval))
                     endif
                 elseif "pluck" == func
                     string dval
@@ -5204,11 +5398,11 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
                         dval = CmdPrimary.Resolve(param[5])
                     endif
                     if "int" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.GetIntValue(suform, jkey, dval as int)
+                        CmdPrimary.SetMostRecentResult(StorageUtil.GetIntValue(suform, jkey, dval as int))
                     elseif "float" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.GetFloatValue(suform, jkey, dval as float)
+                        CmdPrimary.SetMostRecentResult(StorageUtil.GetFloatValue(suform, jkey, dval as float))
                     elseif "string" == jtype
-                        CmdPrimary.MostRecentResult = StorageUtil.GetStringValue(suform, jkey, dval)
+                        CmdPrimary.SetMostRecentResult(StorageUtil.GetStringValue(suform, jkey, dval))
                     endif
 
                 elseif ParamLengthGT(CmdPrimary, param.Length, 5)
@@ -5220,117 +5414,117 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 
                     if "set" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.SetIntValue(suform, jkey, parm5 as int)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.SetIntValue(suform, jkey, parm5 as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.SetFloatValue(suform, jkey, parm5 as float)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.SetFloatValue(suform, jkey, parm5 as float))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.SetStringValue(suform, jkey, parm5)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.SetStringValue(suform, jkey, parm5))
                         endif
                     elseif "adjust" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.AdjustIntValue(suform, jkey, parm5 as int)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.AdjustIntValue(suform, jkey, parm5 as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.AdjustFloatValue(suform, jkey, parm5 as float)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.AdjustFloatValue(suform, jkey, parm5 as float))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = ""
+                            CmdPrimary.SetMostRecentResult("")
                             SquawkFunctionError(CmdPrimary, "jsonutil: 'string' is not a valid type for StorageUtil Adjust")
                         endif
                     elseif "listadd" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListAdd(suform, jkey, parm5 as int)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.IntListAdd(suform, jkey, parm5 as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListAdd(suform, jkey, parm5 as float)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.FloatListAdd(suform, jkey, parm5 as float))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListAdd(suform, jkey, parm5)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.StringListAdd(suform, jkey, parm5))
                         endif
                     elseif "listget" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListGet(suform, jkey, parm5 as int)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.IntListGet(suform, jkey, parm5 as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListGet(suform, jkey, parm5 as int)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.FloatListGet(suform, jkey, parm5 as int))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListGet(suform, jkey, parm5 as int)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.StringListGet(suform, jkey, parm5 as int))
                         endif
                     elseif "listpluck" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListPluck(suform, jkey, parm5 as int, parm6 as int)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.IntListPluck(suform, jkey, parm5 as int, parm6 as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListPluck(suform, jkey, parm5 as int, parm6 as float)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.FloatListPluck(suform, jkey, parm5 as int, parm6 as float))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListPluck(suform, jkey, parm5 as int, parm6 as string)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.StringListPluck(suform, jkey, parm5 as int, parm6 as string))
                         endif
                     elseif "listset" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListSet(suform, jkey, parm5 as int, parm6 as int)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.IntListSet(suform, jkey, parm5 as int, parm6 as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListSet(suform, jkey, parm5 as int, parm6 as float)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.FloatListSet(suform, jkey, parm5 as int, parm6 as float))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListSet(suform, jkey, parm5 as int, parm6 as string)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.StringListSet(suform, jkey, parm5 as int, parm6 as string))
                         endif
                     elseif "listremoveat" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListRemove(suform, jkey, parm5 as int, parm6 as int)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.IntListRemove(suform, jkey, parm5 as int, parm6 as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListRemove(suform, jkey, parm5 as float, parm6 as int)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.FloatListRemove(suform, jkey, parm5 as float, parm6 as int))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListRemove(suform, jkey, parm5, parm6 as int)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.StringListRemove(suform, jkey, parm5, parm6 as int))
                         endif
                     elseif "listinsertat" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListInsert(suform, jkey, parm5 as int, parm6 as int) as int
+                            CmdPrimary.SetMostRecentResult(StorageUtil.IntListInsert(suform, jkey, parm5 as int, parm6 as int) as int)
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListInsert(suform, jkey, parm5 as int, parm6 as float) as int
+                            CmdPrimary.SetMostRecentResult(StorageUtil.FloatListInsert(suform, jkey, parm5 as int, parm6 as float) as int)
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListInsert(suform, jkey, parm5 as int, parm6) as int
+                            CmdPrimary.SetMostRecentResult(StorageUtil.StringListInsert(suform, jkey, parm5 as int, parm6) as int)
                         endif
                     elseif "listadjust" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListAdjust(suform, jkey, parm5 as int, parm6 as int) as int
+                            CmdPrimary.SetMostRecentResult(StorageUtil.IntListAdjust(suform, jkey, parm5 as int, parm6 as int) as int)
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListAdjust(suform, jkey, parm5 as int, parm6 as float) as int
+                            CmdPrimary.SetMostRecentResult(StorageUtil.FloatListAdjust(suform, jkey, parm5 as int, parm6 as float) as int)
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = ""
+                            CmdPrimary.SetMostRecentResult("")
                             SquawkFunctionError(CmdPrimary, "jsonutil: 'string' is not a valid type for StorageUtil List Adjust")
                         endif
                     elseif "listremoveat" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListRemoveAt(suform, jkey, parm5 as int) as int
+                            CmdPrimary.SetMostRecentResult(StorageUtil.IntListRemoveAt(suform, jkey, parm5 as int) as int)
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListRemoveAt(suform, jkey, parm5 as int) as int
+                            CmdPrimary.SetMostRecentResult(StorageUtil.FloatListRemoveAt(suform, jkey, parm5 as int) as int)
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListRemoveAt(suform, jkey, parm5 as int) as int
+                            CmdPrimary.SetMostRecentResult(StorageUtil.StringListRemoveAt(suform, jkey, parm5 as int) as int)
                         endif
                     elseif "listcountvalue" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListCountValue(suform, jkey, parm5 as int, parm6 as int)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.IntListCountValue(suform, jkey, parm5 as int, parm6 as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListCountValue(suform, jkey, parm5 as float, parm6 as int)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.FloatListCountValue(suform, jkey, parm5 as float, parm6 as int))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListCountValue(suform, jkey, parm5, parm6 as int)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.StringListCountValue(suform, jkey, parm5, parm6 as int))
                         endif
                     elseif "listfind" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListFind(suform, jkey, parm5 as int)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.IntListFind(suform, jkey, parm5 as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListFind(suform, jkey, parm5 as float)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.FloatListFind(suform, jkey, parm5 as float))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListFind(suform, jkey, parm5)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.StringListFind(suform, jkey, parm5))
                         endif
                     elseif "listhas" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListHas(suform, jkey, parm5 as int) as int
+                            CmdPrimary.SetMostRecentResult(StorageUtil.IntListHas(suform, jkey, parm5 as int) as int)
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListHas(suform, jkey, parm5 as float) as int
+                            CmdPrimary.SetMostRecentResult(StorageUtil.FloatListHas(suform, jkey, parm5 as float) as int)
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListHas(suform, jkey, parm5) as int
+                            CmdPrimary.SetMostRecentResult(StorageUtil.StringListHas(suform, jkey, parm5) as int)
                         endif
                     elseif "listresize" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.IntListResize(suform, jkey, parm5 as int, parm6 as int)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.IntListResize(suform, jkey, parm5 as int, parm6 as int))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.FloatListResize(suform, jkey, parm5 as int, parm6 as float)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.FloatListResize(suform, jkey, parm5 as int, parm6 as float))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = StorageUtil.StringListResize(suform, jkey, parm5 as int, parm6)
+                            CmdPrimary.SetMostRecentResult(StorageUtil.StringListResize(suform, jkey, parm5 as int, parm6))
                         endif
 
 
@@ -5342,6 +5536,8 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
             endif
         endif
     endif
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 
@@ -5356,7 +5552,7 @@ function weather_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
     string nextResult = ""
 	
     if ParamLengthEQ(CmdPrimary, param.Length, 2)
-        string ss1 = CmdPrimary.resolve(param[1])
+        string ss1 = CmdPrimary.Resolve(param[1])
         
         if ss1 == "GetClassification"
             Weather curr = Weather.GetCurrentWeather()
@@ -5366,7 +5562,9 @@ function weather_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname math
@@ -5386,13 +5584,13 @@ function Math(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] para
     string nextResult = ""
 	
     if ParamLengthGT(CmdPrimary, param.Length, 2)
-        string ss1 = CmdPrimary.resolve(param[1])
+        string ss1 = CmdPrimary.Resolve(param[1])
         string ss2
         int    ii1
         float  ff1
         
         if ss1 == "asint"
-            ss2 = CmdPrimary.resolve(param[2])
+            ss2 = CmdPrimary.Resolve(param[2])
             if ss2 
                 ii1 = ss2 as int
             else
@@ -5400,19 +5598,19 @@ function Math(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] para
             endIf
             nextResult = ii1 as string
         elseIf ss1 == "floor"
-            ss1 = CmdPrimary.resolve(param[2])
+            ss1 = CmdPrimary.Resolve(param[2])
             ii1 = Math.floor(ss1 as float)
             nextResult = ii1 as string
         elseIf ss1 == "ceiling"
-            ss1 = CmdPrimary.resolve(param[2])
+            ss1 = CmdPrimary.Resolve(param[2])
             ii1 = Math.Ceiling(ss1 as float)
             nextResult = ii1 as string
         elseIf ss1 == "abs"
-            ss1 = CmdPrimary.resolve(param[2])
+            ss1 = CmdPrimary.Resolve(param[2])
             ff1 = Math.abs(ss1 as float)
             nextResult = ff1 as string
         elseIf ss1 == "toint"
-            ss2 = CmdPrimary.resolve(param[2])
+            ss2 = CmdPrimary.Resolve(param[2])
             if ss2 && (StringUtil.GetNthChar(ss2, 0) == "0")
                 ii1 = GlobalHexToInt(ss2)
             elseIf ss2
@@ -5424,6 +5622,8 @@ function Math(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] para
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
  

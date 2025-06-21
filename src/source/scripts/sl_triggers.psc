@@ -10,6 +10,7 @@ int Function        GetSessionId() global native ; YES - YOU CAN USE THIS ONE
 string Function     GetTranslatedString(string _translationKey) global native ; YES - YOU CAN USE THIS ONE
 bool Function       SmartEquals(string a, string b) global native ; YES - YOU CAN USE THIS ONE
 string[] Function   SplitFileContents(string _filecontents) global native; YES - YOU CAN USE THIS ONE (THOUGH PROBABLY, WHY WOULD YOU?)
+string[] Function   SplitScriptContents(string _scriptfilename) global native
 string[] Function   Tokenize(string _tokenString) global native ; YES - YOU CAN USE THIS ONE
 string[] Function   Tokenizev2(string _tokenString) global native ; YES - YOU CAN USE THIS ONE
 string[] Function   TokenizeForVariableSubstitution(string _tokenString) global native ; YES - YOU CAN USE THIS ONE

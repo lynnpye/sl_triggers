@@ -25,6 +25,8 @@ function util_waitforend(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
             Utility.wait(4)
         endWhile
     endif
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname sl_getrndactor
@@ -45,11 +47,11 @@ function sl_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
     Actor nextIterActor
 
     if ParamLengthLT(CmdPrimary, param.Length, 4)
-        Actor[] inCell = MiscUtil.ScanCellNPCs(CmdPrimary.PlayerRef, CmdPrimary.resolve(param[1]) as float)
+        Actor[] inCell = MiscUtil.ScanCellNPCs(CmdPrimary.PlayerRef, CmdPrimary.Resolve(param[1]) as float)
         if inCell.Length
             int mode
             if param.Length > 2
-                mode = CmdPrimary.resolve(param[2]) as int
+                mode = CmdPrimary.Resolve(param[2]) as int
             endif
         
             Keyword ActorTypeNPC = GetForm_Skyrim_ActorTypeNPC() as Keyword
@@ -90,7 +92,9 @@ function sl_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
         endif
     endif
 
-    CmdPrimary.iterActor = nextIterActor
+    CmdPrimary.SetIterActor(nextIterActor)
+
+    CmdPrimary.CompleteOperationOnActor()
 endfunction
 function util_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
     sl_getrndactor(CmdTargetActor, _CmdPrimary, param)
@@ -112,7 +116,7 @@ function actor_say(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
     sl_triggersExtensionSexLab slExtension = GetExtension()
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        string thingFormId = CmdPrimary.resolve(param[2])
+        string thingFormId = CmdPrimary.Resolve(param[2])
         Topic thing = CmdPrimary.GetFormId(thingFormId) as Topic
         if thing
             Actor _targetActor = CmdPrimary.ResolveActor(param[1])
@@ -125,7 +129,8 @@ function actor_say(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
             endif
         endIf
     endif
-    
+
+    CmdPrimary.CompleteOperationOnActor()    
 endFunction
 /;
 
@@ -150,7 +155,7 @@ function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         if _targetActor
             string ss1
             if param.Length > 2
-                ss1 = CmdPrimary.resolve(param[2])
+                ss1 = CmdPrimary.Resolve(param[2])
             endif
             if !ss1 || !slExtension.IsEnabled
                 nextResult = _targetActor.GetRace().GetName()
@@ -160,7 +165,9 @@ function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname util_waitforkbd
@@ -196,7 +203,7 @@ function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
             
                 idx = startidx
                 while idx < cnt
-                    ss = CmdPrimary.resolve(param[idx])
+                    ss = CmdPrimary.Resolve(param[idx])
                     scancode = ss as int
                     if scancode > 0
                         CmdPrimary.RegisterForKey(scanCode)
@@ -226,7 +233,9 @@ function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; stlname sl_adjustenjoyment
@@ -253,6 +262,8 @@ function sl_adjustenjoyment(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary,
             endif
         endIf
     endif
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname sl_isin
@@ -274,7 +285,9 @@ function sl_isin(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname sl_hastag
@@ -298,16 +311,16 @@ function sl_hastag(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
         endif
         sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
         if thread
-            string ss = CmdPrimary.resolve(param[1])
+            string ss = CmdPrimary.Resolve(param[1])
             if thread.Animation.HasTag(ss)
                 nextResult = 1
             endIf
         endIf
     endif
     
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
 
-	return
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname sl_animname
@@ -333,9 +346,9 @@ function sl_animname(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
 
-	return
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname sl_getprop
@@ -359,7 +372,7 @@ function sl_getprop(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         endif
         sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
         if thread
-            string ss = CmdPrimary.resolve(param[1])
+            string ss = CmdPrimary.Resolve(param[1])
             if ss == "Stage"
                 nextResult = thread.Stage as string
             elseif ss == "ActorCount"
@@ -368,7 +381,9 @@ function sl_getprop(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.SetMostRecentResult(nextResult)
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname sl_advance
@@ -389,9 +404,11 @@ function sl_advance(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
             _targetActor = CmdPrimary.ResolveActor(param[2])
         endif
         sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
-        int ss = CmdPrimary.resolve(param[1]) as int
+        int ss = CmdPrimary.Resolve(param[1]) as int
         thread.AdvanceStage(ss < 0)
     endif
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname sl_isinslot
@@ -412,7 +429,7 @@ function sl_isinslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
         if _targetActor
             sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
             if thread
-                int slPosition = CmdPrimary.resolve(param[2]) as int
+                int slPosition = CmdPrimary.Resolve(param[2]) as int
                 if slPosition > 0 && slPosition < 5
                     int actorIdx = 0
                     while actorIdx < thread.Positions.Length
@@ -429,7 +446,9 @@ function sl_isinslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
         endif
 	endif
 	
-	CmdPrimary.MostRecentResult = nextResult
+	CmdPrimary.SetMostRecentResult(nextResult)
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname sl_orgasm
@@ -451,6 +470,8 @@ function sl_orgasm(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
             thread.ActorAlias(_targetActor).OrgasmEffect()
         endif
     endif
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname slso_bonus_enjoyment
@@ -478,6 +499,8 @@ function slso_bonus_enjoyment(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimar
             endif
         endif
     endif
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname df_resetall
@@ -499,6 +522,8 @@ function df_resetall(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
             dfMCM.ResetQuests(true)
         endif
     endif
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname df_setdebt
@@ -523,6 +548,8 @@ function df_setdebt(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
             endif
         endif
     endif
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname dd_unlockslot
@@ -560,6 +587,8 @@ function dd_unlockslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
             endif
         endif
     endif
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname dd_unlockall
@@ -601,6 +630,8 @@ function dd_unlockall(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
             endif
         endif
     endif
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname osla_get_arousal
@@ -621,7 +652,9 @@ function osla_get_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    CmdPrimary.SetMostRecentResult(newResult)
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname osla_get_arousal_multiplier
@@ -642,7 +675,9 @@ function osla_get_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _Cm
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    CmdPrimary.SetMostRecentResult(newResult)
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname osla_get_exposure
@@ -663,7 +698,9 @@ function osla_get_exposure(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, 
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    CmdPrimary.SetMostRecentResult(newResult)
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname osla_get_actor_days_since_last_orgasm
@@ -684,7 +721,9 @@ function osla_get_actor_days_since_last_orgasm(Actor CmdTargetActor, ActiveMagic
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    CmdPrimary.SetMostRecentResult(newResult)
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname osla_modify_arousal
@@ -711,7 +750,9 @@ function osla_modify_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    CmdPrimary.SetMostRecentResult(newResult)
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname osla_set_arousal
@@ -738,7 +779,9 @@ function osla_set_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    CmdPrimary.SetMostRecentResult(newResult)
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname osla_modify_arousal_multiplier
@@ -765,7 +808,9 @@ function osla_modify_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect 
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    CmdPrimary.SetMostRecentResult(newResult)
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname osla_set_arousal_multiplier
@@ -792,6 +837,8 @@ function osla_set_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _Cm
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    CmdPrimary.SetMostRecentResult(newResult)
+
+    CmdPrimary.CompleteOperationOnActor()
 endFunction
 

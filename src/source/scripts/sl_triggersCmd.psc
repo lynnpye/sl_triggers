@@ -17,6 +17,10 @@ Keyword			Property ActorTypeUndead Auto
 
 Actor			Property CmdTargetActor Auto Hidden
 
+int Property TOKEN_TYPE_BARE = 1 AutoReadOnly Hidden
+int Property TOKEN_TYPE_STRING_LITERAL = 2 AutoReadOnly Hidden
+int Property TOKEN_TYPE_STRING_INTERP = 3 AutoReadOnly Hidden
+
 
 ; pre-generated keys for thread context
 int _threadid = 0
@@ -26,6 +30,9 @@ int         Property threadid Hidden
         return _threadid
     EndFunction
     Function Set(int value)
+        if _threadid || !value
+            DebMsg("\n\n>>>>>>>>>> Cmd: Changing threadid from " + _threadid + " to " + value)
+        endif
         _threadid = value
 
         kthread_v_prefix = Thread_Create_kt_v_prefix(_threadid)
@@ -65,13 +72,19 @@ int         Property lineNum = 1 auto hidden
 string[]    Property callargs auto hidden
 string      Property command = "" auto hidden
 
-Function SFE(string msg)
-	SquawkFunctionError(self, msg)
-EndFunction
+;/
+Event OnEffectFinish(Actor akTarget, Actor akCaster)
+    CleanupAndRemove()
+EndEvent
+/;
+
+Event OnSLTReset(string eventName, string strArg, float numArg, Form sender)
+    CleanupAndRemove()
+EndEvent
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
 	CmdTargetActor = akCaster
-    ; do one time things here, maybe setting up an instanceid if necessary
+    
     DoStartup()
 EndEvent
 
@@ -87,38 +100,43 @@ Function DoStartup()
         threadid = Target_ClaimNextThread(CmdTargetActor)
         callargs = PapyrusUtil.StringArray(0)
         if threadid > 0
-            if !Frame_Push(self, Thread_GetInitialScriptName(threadid))
-                CleanupAndRemove()
-                return
+            int thread_current_frameid = Thread_GetCurrentFrameId(threadid)
+            if thread_current_frameid > 0
+                frameid = thread_current_frameid
+            else
+                if !Frame_Push(self, Thread_GetInitialScriptName(threadid))
+                    CleanupAndRemove()
+                    return
+                else
+                    ;("frameid(" + frameid + ")")
+                endif
             endif
+        else
+            ;("missing valid threadid")
         endif
+    else
+        Thread_SetLastSessionId(threadid, sl_triggers.GetSessionId())
+        ;("resuming threadid(" + threadid + ") frameid(" + frameid + ") thread.initialscript(" + Thread_GetInitialScriptName(threadid) + ")")
     endif
 
     if threadid && frameid
-        isExecuting = true
-        QueueUpdateLoop(0.01)
+        if !isExecuting
+            QueueUpdateLoop(0.01)
+        endif
     else
         CleanupAndRemove()
     endif
 EndFunction
 
 Event OnUpdate()
-    if !self
+    if !self || isExecuting
         return
     endif
 
+    isExecuting = true
+
     RunScript()
     
-    CleanupAndRemove()
-EndEvent
-
-;/
-Event OnEffectFinish(Actor akTarget, Actor akCaster)
-    CleanupAndRemove()
-EndEvent
-/;
-
-Event OnSLTReset(string eventName, string strArg, float numArg, Form sender)
     CleanupAndRemove()
 EndEvent
 
@@ -133,85 +151,103 @@ Function CleanupAndRemove()
 
     if frameid > 0
         Frame_Cleanup(frameid)
-    else
-        DebMsg("frameid not set for cleanup")
     endif
 
     if threadid > 0
         Thread_Cleanup(threadid)
-    else
-        DebMsg("threadid not set for cleanup")
     endif
 
     Self.Dispel()
 EndFunction
 
-Event OnKeyDown(Int keyCode)
-    lastKey = keyCode
-EndEvent
-
-Function QueueUpdateLoop(float afDelay = 1.0)
-	RegisterForSingleUpdate(afDelay)
-EndFunction
-
-String Function ActorName(Actor _person)
-	if _person
-		return _person.GetLeveledActorBase().GetName()
-	EndIf
-	return "[Null actor]"
-EndFunction
-
-String Function ActorDisplayName(Actor _person)
-    if _person
-        return _person.GetDisplayName()
-    Endif
-    return "[Null actor]"
-EndFunction
-
-Int Function ActorGender(Actor _actor)
-	int rank
-    
-	ActorBase _actorBase = _actor.GetActorBase()
-	if _actorBase
-		rank = _actorBase.GetSex()
-	else
-		rank = -1
-	endif
-    
-	return rank
-EndFunction
-
-Bool Function InSameCell(Actor _actor)
-	if _actor.getParentCell() != playerRef.getParentCell()
-		return False
-	EndIf
-	return True
-EndFunction
-
-Form Function GetFormById(string _data)
-    Form retVal = sl_triggers.GetForm(_data)
-
-    if !retVal
-        SFE("Form not found (" + _data + ")")
+Function RunOperationOnActor(string[] opCmdLine)
+    if !opCmdLine.Length
+        return
     endif
-    
-    return retVal
+    runOpPending = true
+    bool success = sl_triggers_internal.RunOperationOnActor(CmdTargetActor, self, opCmdLine)
+    if !success
+        runOpPending = false
+        return
+    endif
+    float afDelay = 0.0
+    while runOpPending && isExecuting
+        if afDelay < 1.0
+            afDelay += 0.01
+        endif
+        Utility.Wait(afDelay)
+    endwhile
+EndFunction
+
+Function SetIterActor(Actor value)
+    iterActor = value
+EndFunction
+
+Function SetMostRecentResult(string value)
+    MostRecentResult = value
+EndFunction
+
+Function CompleteOperationOnActor()
+    runOpPending = false
 EndFunction
 
 ; Resolve
-; string _code - a variable to retrieve the value of e.g. $$, $9, $g3
-; returns: the value as a string; none if unable to resolve
-string Function Resolve(string _code)
-    if _code == "$$"
-        return MostRecentResult
+; string token - a variable to retrieve the value of e.g. $$, $global.foo, $g3
+; returns: the value as a string; token if unable to resolve
+string Function Resolve(string token)
+    int tokenlength
+    string varscope
+    string vtok
+    int j
+
+    tokenlength = StringUtil.GetLength(token)
+    if StringUtil.GetNthChar(token, tokenlength - 1) == "\""
+        if StringUtil.GetNthChar(token, 0) == "\""
+            token = StringUtil.Substring(token, 1, tokenlength - 2)
+            return token
+            
+        elseif StringUtil.Substring(token, 0, 2) == "$\""
+            string trimmed = StringUtil.Substring(token, 2, tokenlength - 3)
+            string[] vartoks = sl_triggers.TokenizeForVariableSubstitution(trimmed)
+            j = 0
+            while j < vartoks.Length
+                if vartoks[j] == "$$"
+                    vartoks[j] = MostRecentResult
+                endif
+
+                varscope = GetVarScope(vartoks[j])
+                if varscope
+                    vartoks[j] = GetVarString(self, varscope, vartoks[j])
+                endif
+
+                j += 1
+            endwhile
+            return PapyrusUtil.StringJoin(vartoks, "")
+
+        else
+            ; assume bare, had a trailing " but did not have a leading quote
+            if token == "$$"
+                return MostRecentResult
+            endif
+
+            varscope = GetVarScope(token)
+            if varscope
+                return GetVarString(self, varscope, token)
+            endif
+        endif
+    else
+        ; assume bare, could technically have a leading " or $", but still just part of the string
+        if token == "$$"
+            return MostRecentResult
+        endif
+
+        varscope = GetVarScope(token)
+        if varscope
+            return GetVarString(self, varscope, token)
+        endif
     endif
 
-    string varscope = GetVarScope(_code)
-    if varscope
-        return GetVarString(self, varscope, _code)
-    endif
-
-    return _code
+    return token
 EndFunction
 
 ; ResolveActor
@@ -244,67 +280,20 @@ Form Function ResolveForm(string _code)
     return GetFormById(_code)
 EndFunction
 
-string[] Function ResolveTokens(string[] tokens)
-    int i = 0
-    int j = 0
-    int tokenlength
-    string tokscope
-    string vtok
-
-    while i < tokens.Length
-        ; bare
-        ; ""
-        ; $""
-        
-        tokenlength = StringUtil.GetLength(tokens[i])
-        if StringUtil.GetNthChar(tokens[i], tokenlength - 1) == "\""
-            if StringUtil.GetNthChar(tokens[i], 0) == "\""
-                tokens[i] = StringUtil.Substring(tokens[i], 1, tokenlength - 2)
-            elseif StringUtil.Substring(tokens[i], 0, 2) == "$\""
-                string trimmed = StringUtil.Substring(tokens[i], 2, tokenlength - 3)
-                string[] vartoks = sl_triggers.TokenizeForVariableSubstitution(trimmed)
-                j = 0
-                while j < vartoks.Length
-                    tokscope = GetVarScope(vartoks[j])
-                    if tokscope
-                        vartoks[j] = GetVarString(self, tokscope, vartoks[j])
-                    else
-                        ; leave it
-                    endif
-
-                    j += 1
-                endwhile
-                tokens[i] = PapyrusUtil.StringJoin(vartoks, "")
-            else
-                ; assume bare, had a trailing " but did not have a leading quote
-            endif
-        else
-            ; assume bare, could technically have a leading " or $", but still just part of the string
-
-        endif
-
-        i += 1
-    endwhile
-
-    return tokens
-EndFunction
-
 Function RunScript()
-    ;string   command
     string   p1
     string   p2
     string   po
     string[] cmdLine
+    int[] tokentypes = new int[128]
 
-    while frameid
+    while isExecuting && frameid
         while currentLine < totalLines
             lineNum = Frame_GetLineNum(frameid, currentLine)
             cmdLine = Frame_GetTokens(frameid, currentLine)
 
-            cmdLine = ResolveTokens(cmdLine)
-
             if cmdLine.Length
-                command = resolve(cmdLine[0])
+                command = Resolve(cmdLine[0])
                 cmdLine[0] = command
 
                 If !command
@@ -315,7 +304,7 @@ Function RunScript()
                     
                         if varscope
                         
-                            string strparm2 = resolve(cmdLine[2])
+                            string strparm2 = Resolve(cmdLine[2])
                         
                             if cmdLine.Length > 3 && strparm2 == "resultfrom"
                                 string subcode = Resolve(cmdLine[3])
@@ -416,8 +405,8 @@ Function RunScript()
                         float incrFloat = 1.0
                         bool isIncrInt = true
                         if cmdLine.Length > 2
-                            incrInt = resolve(cmdLine[2]) as int
-                            incrFloat = resolve(cmdLine[2]) as float
+                            incrInt = Resolve(cmdLine[2]) as int
+                            incrFloat = Resolve(cmdLine[2]) as float
                             isIncrInt = (incrInt == incrFloat)
                         endif
 
@@ -450,11 +439,11 @@ Function RunScript()
                 elseIf command == "cat"
                     if ParamLengthGT(self, cmdLine.Length, 2)
                         string varstr = cmdLine[1]
-                        float incrAmount = resolve(cmdLine[2]) as float
+                        float incrAmount = Resolve(cmdLine[2]) as float
 
                         string varscope = GetVarScope(varstr)
                         if varscope
-                            SetVarString(self, varscope, varstr, (GetVarString(self, varscope, varstr) + resolve(cmdLine[2])) as string)
+                            SetVarString(self, varscope, varstr, (GetVarString(self, varscope, varstr) + Resolve(cmdLine[2])) as string)
                         else
                             SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
                         endif
@@ -524,7 +513,7 @@ Function RunScript()
                         if argidx < callargs.Length
                             newval = callargs[argidx]
                         else
-                            SFE("maximum index for callarg is 127")
+                            SFE("maximum index for callarg is " + callargs.Length)
                         endif
 
                         string varscope = GetVarScope(arg)
@@ -562,8 +551,6 @@ Function RunScript()
         endif
 
     endwhile
-    
-    ;CleanupAndRemove()
 EndFunction
 
 string Function _slt_IsLabel(string[] _tokens = none)
@@ -580,19 +567,58 @@ string Function _slt_IsLabel(string[] _tokens = none)
     return isLabel
 EndFunction
 
-Event OnRunOperationOnActorCompleted()
-    runOpPending = false
+Function SFE(string msg)
+	SquawkFunctionError(self, msg)
+EndFunction
+
+Event OnKeyDown(Int keyCode)
+    lastKey = keyCode
 EndEvent
 
-Function RunOperationOnActor(string[] opCmdLine)
-    if !opCmdLine.Length
-        return
+Function QueueUpdateLoop(float afDelay = 1.0)
+	RegisterForSingleUpdate(afDelay)
+EndFunction
+
+String Function ActorName(Actor _person)
+	if _person
+		return _person.GetLeveledActorBase().GetName()
+	EndIf
+	return "[Null actor]"
+EndFunction
+
+String Function ActorDisplayName(Actor _person)
+    if _person
+        return _person.GetDisplayName()
+    Endif
+    return "[Null actor]"
+EndFunction
+
+Int Function ActorGender(Actor _actor)
+	int rank
+    
+	ActorBase _actorBase = _actor.GetActorBase()
+	if _actorBase
+		rank = _actorBase.GetSex()
+	else
+		rank = -1
+	endif
+    
+	return rank
+EndFunction
+
+Bool Function InSameCell(Actor _actor)
+	if _actor.getParentCell() != playerRef.getParentCell()
+		return False
+	EndIf
+	return True
+EndFunction
+
+Form Function GetFormById(string _data)
+    Form retVal = sl_triggers.GetForm(_data)
+
+    if !retVal
+        SFE("Form not found (" + _data + ")")
     endif
-    runOpPending = true
-    if !sl_triggers_internal.RunOperationOnActor(CmdTargetActor, self, opCmdLine)
-        return
-    endif
-    while runOpPending && isExecuting
-        SLT.Nop()
-    endwhile
+    
+    return retVal
 EndFunction
