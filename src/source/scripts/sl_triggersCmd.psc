@@ -263,13 +263,13 @@ Form Function ResolveForm(string token)
         if !sltChecked && slext.GetPriority() >= 0
             sltChecked = true
                     
-            if token == "#self" || token == "$self"
+            if token == "#self" ;|| token == "$self"
                 return CmdTargetActor
-            elseif token == "#player" || token == "$player"
+            elseif token == "#player" ;|| token == "$player"
                 return PlayerRef
-            elseif token == "#actor" || token == "$actor"
+            elseif token == "#actor" ;|| token == "$actor"
                 return iterActor
-            elseif token == "#none" || token == "none" || token == ""
+            elseif token == "#none" || token == "" ;|| token == "none"
                 return none
             endif
         endif
