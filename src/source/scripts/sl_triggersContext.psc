@@ -56,9 +56,9 @@ string function GetVarString(sl_triggersCmd cmdPrimary, string scope, string var
     elseif scope == "frame"
         return Frame_GetStringValue(cmdPrimary.kframe_v_prefix, StringUtil.Substring(varname, 6), missing)
     elseif scope == "thread"
-        return Thread_GetStringValue(cmdPrimary.threadid, StringUtil.Substring(varname, 7), missing)
+        return Thread_GetStringValue(cmdPrimary.kthread_v_prefix, StringUtil.Substring(varname, 7), missing)
     elseif scope == "target"
-        return Target_GetStringValue(cmdPrimary.CmdTargetActor, StringUtil.Substring(varname, 7), missing)
+        return Target_GetStringValue(cmdPrimary.ktarget_v_prefix, StringUtil.Substring(varname, 7), missing)
     elseif scope == "global"
         return Global_GetStringValue(StringUtil.Substring(varname, 7), missing)
     endif
@@ -71,9 +71,9 @@ string function SetVarString(sl_triggersCmd cmdPrimary, string scope, string var
     elseif scope == "frame"
         return Frame_SetStringValue(cmdPrimary.kframe_v_prefix, StringUtil.Substring(varname, 6), value)
     elseif scope == "thread"
-        return Thread_SetStringValue(cmdPrimary.threadid, StringUtil.Substring(varname, 7), value)
+        return Thread_SetStringValue(cmdPrimary.kthread_v_prefix, StringUtil.Substring(varname, 7), value)
     elseif scope == "target"
-        return Target_SetStringValue(cmdPrimary.CmdTargetActor, StringUtil.Substring(varname, 7), value)
+        return Target_SetStringValue(cmdPrimary.ktarget_v_prefix, StringUtil.Substring(varname, 7), value)
     elseif scope == "global"
         return Global_SetStringValue(StringUtil.Substring(varname, 7), value)
     endif
@@ -184,40 +184,49 @@ string function Global_GetStringValue(string varname, string missing = "") globa
     if !varname
         return missing
     endif
-    return GetStringValue(SLTHost(), "global:vars:" + varname, missing)
+    return GetStringValue(SLTHost(), "SLTR:global:vars:" + varname, missing)
 endfunction
 
 string function Global_SetStringValue(string varname, string value) global
     if !varname
         return ""
     endif
-    return SetStringValue(SLTHost(), "global:vars:" + varname, value)
+    return SetStringValue(SLTHost(), "SLTR:global:vars:" + varname, value)
 endfunction
 
 ;;;;
 ;; Target
-string function Target_GetStringValue(Form target, string varname, string missing = "") global
-    if !varname || !target
+string function Target_Create_ktgt_id(int targetformid) global
+    return "SLTR:target:" + targetformid + ":"
+endfunction
+
+string function Target_Create_ktgt_v_prefix(int targetformid) global
+    return Target_Create_ktgt_id(targetformid) + "vars:"
+endfunction
+
+string function Target_Create_ktgt_threads_idlist(int targetformid) global
+    return Target_Create_ktgt_id(targetformid) + "threads:idlist"
+endfunction
+
+string function Target_GetStringValue(string ktarget_v_prefix, string varname, string missing = "") global
+    if !varname || !ktarget_v_prefix
         return missing
     endif
-    int targetformid = target.GetFormID()
-    return GetStringValue(SLTHost(), "target:" + targetformid + ":vars:" + varname, missing)
+    return GetStringValue(SLTHost(), ktarget_v_prefix + varname, missing)
 endfunction
 
-string function Target_SetStringValue(Form target, string varname, string value) global
-    if !varname || !target
+string function Target_SetStringValue(string ktarget_v_prefix, string varname, string value) global
+    if !varname || !ktarget_v_prefix
         return ""
     endif
-    int targetformid = target.GetFormID()
-    return SetStringValue(SLTHost(), "target:" + targetformid + ":vars:" + varname, value)
+    return SetStringValue(SLTHost(), ktarget_v_prefix + varname, value)
 endfunction
 
-function Target_AddThread(Form target, int threadid) global
-    if !target || threadid < 1
+function Target_AddThread(string ktarget_threads_idlist, int threadid) global
+    if !ktarget_threads_idlist || threadid < 1
         return
     endif
-    int targetformid = target.GetFormID()
-    IntListAdd(SLTHost(), "target:" + targetformid + ":threads:idlist", threadid, false)
+    IntListAdd(SLTHost(), ktarget_threads_idlist, threadid, false)
 endfunction
 
 int function Target_ClaimNextThread(Form target) global
@@ -226,7 +235,7 @@ int function Target_ClaimNextThread(Form target) global
     endif
     int currentSessionId = sl_triggers.GetSessionId()
     int targetformid = target.GetFormID()
-    string kkey = "target:" + targetformid + ":threads:idlist"
+    string kkey = Target_Create_ktgt_threads_idlist(targetformid)
     sl_triggersMain _slthost = SLTHost()
     int threadcount = IntListCount(_slthost, kkey)
     if threadcount < 1
@@ -237,14 +246,15 @@ int function Target_ClaimNextThread(Form target) global
     int threadid
     int lastsessionid
     int found_threadid_stale = 0
-    
+    string tmp_kt_d_lastsessionid
     ; first check for !wasClaimed, !isClaimed
     while i < threadcount
         threadid = IntListGet(_slthost, kkey, i)
-        lastsessionid = Thread_GetLastSessionId(threadid)
+        tmp_kt_d_lastsessionid = Thread_Create_kt_d_lastsessiond(threadid)
+        lastsessionid = Thread_GetLastSessionId(tmp_kt_d_lastsessionid)
 
         if lastsessionid == 0
-            Thread_SetLastSessionId(threadid, currentSessionId)
+            Thread_SetLastSessionId(tmp_kt_d_lastsessionid, currentSessionId)
             return threadid
         endif
 
@@ -258,18 +268,16 @@ int function Target_ClaimNextThread(Form target) global
     return found_threadid_stale
 endfunction
 
-function Target_FreeThread(Form target, int threadid) global
-    if !target || threadid < 1
+function Target_FreeThread(string ktarget_threads_idlist, int threadid) global
+    if !ktarget_threads_idlist || threadid < 1
         return
     endif
     int i = 0
-    int targetformid = target.GetFormID()
-    string kkey = "target:" + targetformid + ":threads:idlist"
     sl_triggersMain _slthost = SLTHost()
-    int foundindex = IntListFind(_slthost, kkey, threadid)
+    int foundindex = IntListFind(_slthost, ktarget_threads_idlist, threadid)
 
     if foundindex > -1
-        IntListPluck(_slthost, kkey, foundindex, 0)
+        IntListPluck(_slthost, ktarget_threads_idlist, foundindex, 0)
     else
         DebMsg("threadid (" + threadid + ") not found on cleanup")
     endif
@@ -278,7 +286,7 @@ endfunction
 ;;;;
 ;; Thread
 string function Thread_Create_kt_id(int threadid) global
-    return "thread:" + threadid + ":"
+    return "SLTR:thread:" + threadid + ":"
 endfunction
 
 string function Thread_Create_kt_d_target(int threadid) global
@@ -293,91 +301,89 @@ string function Thread_Create_kt_d_initialScriptName(int threadid) global
     return Thread_Create_kt_id(threadid) + "detail:initialScriptName"
 endfunction
 
+string function Thread_Create_kt_d_currentframeid(int threadid) global
+    return Thread_Create_kt_id(threadid) + "detail:currentframeid"
+endfunction
+
 string function Thread_Create_kt_v_prefix(int threadid) global
     return Thread_Create_kt_id(threadid) + "vars:"
 endfunction
 
-string function Thread_GetStringValue(int threadid, string varname, string missing = "") global
-    if !varname || threadid < 1
+string function Thread_GetStringValue(string kthread_v_prefix, string varname, string missing = "") global
+    if !varname
         return missing
     endif
-    return GetStringValue(SLTHost(), "thread:" + threadid + ":vars:" + varname, missing)
+    return GetStringValue(SLTHost(), kthread_v_prefix + varname, missing)
 endfunction
 
-string function Thread_SetStringValue(int threadid, string varname, string value) global
-    if !varname || threadid < 1
+string function Thread_SetStringValue(string kthread_v_prefix, string varname, string value) global
+    if !varname
         return ""
     endif
-    return SetStringValue(SLTHost(), "thread:" + threadid + ":vars:" + varname, value)
+    return SetStringValue(SLTHost(), kthread_v_prefix + varname, value)
 endfunction
 
-Form function Thread_GetTarget(int threadid) global
-    if threadid < 1
-        return none
+Form function Thread_GetTarget(string kthread_d_target) global
+    return GetFormValue(SLTHost(), kthread_d_target)
+endfunction
+
+function Thread_SetTarget(string kthread_d_target, Form target) global
+    if !kthread_d_target
+        return
     endif
-    return GetFormValue(SLTHost(), "thread:" + threadid + ":detail:target")
+    SetFormValue(SLTHost(), kthread_d_target, target)
 endfunction
 
-function Thread_SetTarget(int threadid, Form target) global
+int function Thread_GetLastSessionId(string kthread_d_lastsessionid) global
+    return GetIntValue(SLTHost(), kthread_d_lastsessionid)
+endfunction
+
+function Thread_SetLastSessionId(string kthread_d_lastsessionid, int sessionid) global
+    if !kthread_d_lastsessionid
+        return
+    endif
+    SetIntValue(SLTHost(), kthread_d_lastsessionid, sessionid)
+endfunction
+
+string function Thread_GetInitialScriptName(string kthread_d_initialScriptName) global
+    return GetStringValue(SLTHost(), kthread_d_initialScriptName)
+endfunction
+
+function Thread_SetInitialScriptName(string kthread_d_initialScriptName, string initialScriptName) global
+    if !kthread_d_initialScriptName || !initialScriptName
+        return
+    endif
+    SetStringValue(SLTHost(), kthread_d_initialScriptName, initialScriptName)
+endfunction
+
+int function Thread_GetCurrentFrameId(string kthread_d_currentframeid) global
+    return GetIntValue(SLTHost(), kthread_d_currentframeid)
+endfunction
+
+function Thread_SetCurrentFrameId(string kthread_d_currentframeid, int frameid) global
+    if !kthread_d_currentframeid
+        return
+    endif
+    SetIntValue(SLTHost(), kthread_d_currentframeid, frameid)
+endfunction
+
+function Thread_Cleanup(int threadid, string kthread_d_target, string ktarget_threads_idlist, string kthread_id) global
     if threadid < 1
         return
     endif
-    SetFormValue(SLTHost(), "thread:" + threadid + ":detail:target", target)
-endfunction
 
-int function Thread_GetLastSessionId(int threadid) global
-    if threadid < 1
-        return 0
+    if ktarget_threads_idlist && kthread_d_target
+        Form target = Thread_GetTarget(kthread_d_target)
+        if !target
+            DebMsg("can't get target for target free thread")
+        else
+            Target_FreeThread(ktarget_threads_idlist, threadid)
+        endif
     endif
-    return GetIntValue(SLTHost(), "thread:" + threadid + ":detail:lastsessionid")
-endfunction
 
-function Thread_SetLastSessionId(int threadid, int sessionid) global
-    if threadid < 1
-        return
+    if kthread_id
+        ClearAllObjPrefix(SLTHost(), kthread_id)
     endif
-    SetIntValue(SLTHost(), "thread:" + threadid + ":detail:lastsessionid", sessionid)
-endfunction
-
-string function Thread_GetInitialScriptName(int threadid) global
-    if threadid < 1
-        return ""
-    endif
-    return GetStringValue(SLTHost(), "thread:" + threadid + ":detail:initialScriptName")
-endfunction
-
-function Thread_SetInitialScriptName(int threadid, string initialScriptName) global
-    if threadid < 1 || !initialScriptName
-        return
-    endif
-    SetStringValue(SLTHost(), "thread:" + threadid + ":detail:initialScriptName", initialScriptName)
-endfunction
-
-int function Thread_GetCurrentFrameId(int threadid) global
-    if threadid < 1
-        return 0
-    endif
-    return GetIntValue(SLTHost(), "thread:" + threadid + ":detail:currentframeid")
-endfunction
-
-function Thread_SetCurrentFrameId(int threadid, int frameid) global
-    if threadid < 1
-        return
-    endif
-    SetIntValue(SLTHost(), "thread:" + threadid + ":detail:currentframeid", frameid)
-endfunction
-
-function Thread_Cleanup(int threadid) global
-    if threadid < 1
-        return
-    endif
-    Form target = Thread_GetTarget(threadid)
-    if !target
-        DebMsg("can't get target for target free thread")
-    endif
-    Target_FreeThread(target, threadid)
-
-    ClearAllObjPrefix(SLTHost(), "thread:" + threadid + ":")
 endfunction
 
 ;;;;
@@ -459,6 +465,7 @@ int function Frame_Push(sl_triggersCmd cmdPrimary, string scriptfilename, string
     string tmp_kf_m_gotolabels  = Frame_Create_kf_m_gotolabels(frameid)
 
     if !Frame_ParseScriptFile(tmp_kf_d_lines, tmp_kf_m_gosublabels, tmp_kf_m_gotolabels, scriptfilename)
+        DebMsg("Parsing failed: scriptfilename(" + scriptfilename + ")")
         Frame_Cleanup(tmp_kf_id)
         return 0
     endif
@@ -483,7 +490,7 @@ int function Frame_Push(sl_triggersCmd cmdPrimary, string scriptfilename, string
         cmdPrimary.callargs = PapyrusUtil.StringArray(0)
     endif
 
-    Thread_SetCurrentFrameId(cmdPrimary.threadid, frameid)
+    Thread_SetCurrentFrameId(cmdPrimary.kthread_d_currentframeid, frameid)
 
     return frameid
 endfunction
@@ -532,7 +539,7 @@ bool function Frame_Pop(sl_triggersCmd cmdPrimary) global
         ; ... which we need here
         cmdPrimary.lineNum              = Frame_GetLineNum(cmdPrimary.kframe_d_lines, cmdPrimary.currentLine)
 
-        Thread_SetCurrentFrameId(cmdPrimary.threadid, frameid)
+        Thread_SetCurrentFrameId(cmdPrimary.kthread_d_currentframeid, frameid)
 
         return true
     endif
@@ -553,13 +560,15 @@ bool Function Frame_ParseScriptFile(string kframe_d_lines, string kframe_d_gosub
     if nmlen < 5
         ; not even capable of
         ; a.ini - requires 5 characters
+        DebMsg("SLT: attempted to parse an unknown file type(" + _myCmdName + "):1")
         return false
     endif
     string scriptextension = StringUtil.Substring(_myCmdName, nmlen - 4)
     if scriptextension != ".ini"
         if nmlen < 6
-            ; not event capable of
+            ; not even capable of
             ; a.json - requires 6 characters
+            DebMsg("SLT: attempted to parse an unknown file type(" + _myCmdName + "):2")
             return false
         endif
         scriptextension = StringUtil.SubString(_myCmdName, nmlen - 5)
@@ -568,7 +577,7 @@ bool Function Frame_ParseScriptFile(string kframe_d_lines, string kframe_d_gosub
             if !MiscUtil.FileExists(FullCommandsFolder() + _myCmdName)
                 _myCmdName = scriptfilename + ".json"
                 if !JsonUtil.JsonExists(CommandsFolder() + _myCmdName)
-                    DebMsg("SLT: attempted to parse an unknown file type(" + _myCmdName + ")")
+                    DebMsg("SLT: attempted to parse an unknown file type(" + _myCmdName + "):3")
                     return false
                 else
                     scrtype = 1

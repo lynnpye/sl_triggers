@@ -15,15 +15,40 @@ Actor			Property PlayerRef Auto
 Keyword			Property ActorTypeNPC Auto
 Keyword			Property ActorTypeUndead Auto
 
-Actor			Property CmdTargetActor Auto Hidden
+Actor _cmdTA = none
+Actor			Property CmdTargetActor Hidden
+    Actor Function Get()
+        return _cmdTA
+    EndFunction
+    Function Set(Actor value)
+        _cmdTA = value
+
+        if _cmdTA
+            CmdTargetFormID             = _cmdTA.GetFormID()
+            ktarget_id                  = Target_Create_ktgt_id(CmdTargetFormID)
+            ktarget_v_prefix            = Target_Create_ktgt_v_prefix(CmdTargetFormID)
+            ktarget_threads_idlist      = Target_Create_ktgt_threads_idlist(CmdTargetFormID)
+        endif
+    EndFunction
+EndProperty
+int             Property CmdTargetFormID Auto Hidden
 
 int Property TOKEN_TYPE_BARE = 1 AutoReadOnly Hidden
 int Property TOKEN_TYPE_STRING_LITERAL = 2 AutoReadOnly Hidden
 int Property TOKEN_TYPE_STRING_INTERP = 3 AutoReadOnly Hidden
 
+; pre-generated keys for target context
+string Property ktarget_id auto hidden
+string Property ktarget_v_prefix auto hidden
+string Property ktarget_threads_idlist auto hidden
 
 ; pre-generated keys for thread context
 int _threadid = 0
+string Property kthread_id auto hidden
+string Property kthread_d_target auto hidden
+string Property kthread_d_lastsessionid auto hidden
+string Property kthread_d_initialScriptName auto hidden
+string Property kthread_d_currentframeid auto hidden
 string Property kthread_v_prefix auto hidden
 int         Property threadid Hidden
     int Function Get()
@@ -32,7 +57,12 @@ int         Property threadid Hidden
     Function Set(int value)
         _threadid = value
 
-        kthread_v_prefix = Thread_Create_kt_v_prefix(_threadid)
+        kthread_id                  = Thread_Create_kt_id(_threadid)
+        kthread_d_target            = Thread_Create_kt_d_target(_threadid)
+        kthread_d_lastsessionid     = Thread_Create_kt_d_lastsessiond(_threadid)
+        kthread_d_initialScriptName = Thread_Create_kt_d_initialScriptName(_threadid)
+        kthread_d_currentframeid    = Thread_Create_kt_d_currentframeid(_threadid)
+        kthread_v_prefix            = Thread_Create_kt_v_prefix(_threadid)
     EndFunction
 EndProperty
 
@@ -112,23 +142,18 @@ Function DoStartup()
         threadid = Target_ClaimNextThread(CmdTargetActor)
         callargs = PapyrusUtil.StringArray(0)
         if threadid > 0
-            int thread_current_frameid = Thread_GetCurrentFrameId(threadid)
+            int thread_current_frameid = Thread_GetCurrentFrameId(kthread_d_currentframeid)
             if thread_current_frameid > 0
                 frameid = thread_current_frameid
             else
-                if !Frame_Push(self, Thread_GetInitialScriptName(threadid))
+                if !Frame_Push(self, Thread_GetInitialScriptName(kthread_d_initialScriptName))
                     CleanupAndRemove()
                     return
-                else
-                    ;("frameid(" + frameid + ")")
                 endif
             endif
-        else
-            ;("missing valid threadid")
         endif
     else
-        Thread_SetLastSessionId(threadid, sl_triggers.GetSessionId())
-        ;("resuming threadid(" + threadid + ") frameid(" + frameid + ") thread.initialscript(" + Thread_GetInitialScriptName(threadid) + ")")
+        Thread_SetLastSessionId(kthread_d_lastsessionid, sl_triggers.GetSessionId())
     endif
 
     if threadid && frameid
@@ -166,7 +191,7 @@ Function CleanupAndRemove()
     endif
 
     if threadid > 0
-        Thread_Cleanup(threadid)
+        Thread_Cleanup(threadid, kthread_d_target, ktarget_threads_idlist, kthread_id)
     endif
 
     Self.Dispel()
@@ -545,7 +570,6 @@ Function RunScript()
                     currentLine += 1
                 elseIf command == "return"
                     if !Frame_Pop(self)
-                        ;CleanupAndRemove()
                         return
                     endif
                     

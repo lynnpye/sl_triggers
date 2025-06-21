@@ -176,7 +176,7 @@ Event OnSLTRequestList(string _eventName, string _storageUtilStringListKey, floa
 	endif
 EndEvent
 
-Event OnSLTRequestCommand(string _eventName, string _commandName, float __ignored, Form _theActor)
+Event OnSLTRequestCommand(string _eventName, string _commandName, float __ignored, Form _theTarget)
 	if !self
 		return
 	endif
@@ -184,11 +184,7 @@ Event OnSLTRequestCommand(string _eventName, string _commandName, float __ignore
 		return
 	endif
 
-	Actor _actualActor = _theActor as Actor
-	if !_actualActor
-		_actualActor = PlayerRef
-	endif
-	StartCommand(_actualActor, _commandName)
+	StartCommand(_theTarget, _commandName)
 EndEvent
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -377,18 +373,23 @@ Event OnSLTDelayStartCommand(string eventName, string initialScriptName, float r
 EndEvent
 
 ; StartCommand
-; Actor _theActor: the Actor to attach this command to
-; string _scriptName: the file to run
-Function StartCommand(Actor target, string initialScriptName)
+; Form targetForm: the Actor to attach this command to
+; string initialScriptName: the file to run
+Function StartCommand(Form targetForm, string initialScriptName)
 	if !self
 		return
 	endif
 
+	Actor target = targetForm as Actor ; for now, only Actors
+	if !target
+		target = PlayerRef
+	endif
+
 	int threadid = GetNextInstanceId()
 
-	Thread_SetInitialScriptName(threadid, initialScriptName)
-	Thread_SetTarget(threadid, target)
-	Target_AddThread(target, threadid)
+	Thread_SetInitialScriptName(Thread_Create_kt_d_initialScriptName(threadid), initialScriptName)
+	Thread_SetTarget(Thread_Create_kt_d_target(threadid), target)
+	Target_AddThread(Target_Create_ktgt_threads_idlist(target.GetFormID()), threadid)
 
 	bool scriptStarted = sl_triggers_internal.StartScript(target, initialScriptName)
 	if !scriptStarted
