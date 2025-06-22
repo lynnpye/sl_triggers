@@ -1,4 +1,8 @@
 {
+	"float" : 
+	{
+		"chance" : 100.0
+	},
 	"int" : 
 	{
 		"__slt_mod_version__" : 114,
@@ -6,6 +10,7 @@
 	},
 	"string" : 
 	{
-		"do_1" : "Greetings.ini"
+		"do_1" : "Greetings.ini",
+		"trigger_deleted_by_user_via_mcm" : "TRUE"
 	}
 }
