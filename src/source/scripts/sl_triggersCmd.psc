@@ -1,7 +1,7 @@
 Scriptname sl_TriggersCmd extends ActiveMagicEffect
 
 import sl_triggersStatics
-import sl_triggersContext
+import StorageUtil
 
 ; SLT
 ; sl_triggersMain
@@ -16,6 +16,7 @@ Keyword			Property ActorTypeNPC Auto
 Keyword			Property ActorTypeUndead Auto
 
 Actor _cmdTA = none
+string ktarget_v_prefix
 Actor			Property CmdTargetActor Hidden
     Actor Function Get()
         return _cmdTA
@@ -25,9 +26,8 @@ Actor			Property CmdTargetActor Hidden
 
         if _cmdTA
             CmdTargetFormID             = _cmdTA.GetFormID()
-            ktarget_id                  = Target_Create_ktgt_id(CmdTargetFormID)
-            ktarget_v_prefix            = Target_Create_ktgt_v_prefix(CmdTargetFormID)
-            ktarget_threads_idlist      = Target_Create_ktgt_threads_idlist(CmdTargetFormID)
+
+            ktarget_v_prefix = "SLTR:target" + CmdTargetFormID + ":vars:"
         endif
     EndFunction
 EndProperty
@@ -37,62 +37,14 @@ int Property TOKEN_TYPE_BARE = 1 AutoReadOnly Hidden
 int Property TOKEN_TYPE_STRING_LITERAL = 2 AutoReadOnly Hidden
 int Property TOKEN_TYPE_STRING_INTERP = 3 AutoReadOnly Hidden
 
-; pre-generated keys for target context
-string Property ktarget_id auto hidden
-string Property ktarget_v_prefix auto hidden
-string Property ktarget_threads_idlist auto hidden
-
 ; pre-generated keys for thread context
 int _threadid = 0
-string Property kthread_id auto hidden
-string Property kthread_d_target auto hidden
-string Property kthread_d_lastsessionid auto hidden
-string Property kthread_d_initialScriptName auto hidden
-string Property kthread_d_currentframeid auto hidden
-string Property kthread_v_prefix auto hidden
 int         Property threadid Hidden
     int Function Get()
         return _threadid
     EndFunction
     Function Set(int value)
         _threadid = value
-
-        kthread_id                  = Thread_Create_kt_id(_threadid)
-        kthread_d_target            = Thread_Create_kt_d_target(_threadid)
-        kthread_d_lastsessionid     = Thread_Create_kt_d_lastsessiond(_threadid)
-        kthread_d_initialScriptName = Thread_Create_kt_d_initialScriptName(_threadid)
-        kthread_d_currentframeid    = Thread_Create_kt_d_currentframeid(_threadid)
-        kthread_v_prefix            = Thread_Create_kt_v_prefix(_threadid)
-    EndFunction
-EndProperty
-
-; pre-generated keys for frame context
-int _frameid = 0
-string Property kframe_id auto hidden
-string Property kframe_d_scriptname auto hidden
-string Property kframe_d_lines auto hidden
-string Property kframe_d_lines_keys auto hidden
-string Property kframe_d_lines_vals auto hidden
-string Property kframe_d_gosubreturns auto hidden
-string Property kframe_m_gotolabels auto hidden
-string Property kframe_m_gosublabels auto hidden
-string Property kframe_v_prefix auto hidden
-int         Property frameid Hidden
-    int Function Get()
-        return _frameid
-    EndFunction
-    Function Set(int value)
-        _frameid = value
-
-        kframe_id               = Frame_Create_kf_id(_frameid)
-        kframe_d_scriptname     = Frame_Create_kf_d_scriptname(_frameid)
-        kframe_d_lines          = Frame_Create_kf_d_lines(_frameid)
-        kframe_d_lines_keys     = Frame_Create_kf_d_lines_keys(_frameid)
-        kframe_d_lines_vals     = Frame_Create_kf_d_lines_vals(_frameid)
-        kframe_d_gosubreturns   = Frame_Create_kf_d_gosubreturns(_frameid)
-        kframe_m_gotolabels     = Frame_Create_kf_m_gotolabels(_frameid)
-        kframe_m_gosublabels    = Frame_Create_kf_m_gosublabels(_frameid)
-        kframe_v_prefix         = Frame_Create_kf_v_prefix(_frameid)
     EndFunction
 EndProperty
 
@@ -116,6 +68,30 @@ int         Property lineNum = 1 auto hidden
 string[]    Property callargs auto hidden
 string      Property command = "" auto hidden
 
+
+
+string[] threadVarKeys
+string[] threadVarVals
+
+string[] localVarKeys
+string[] localVarVals
+
+string[]     gotoLabels = none 
+int[]        gotoLines = none
+string[]     gosubLabels = none
+int[]        gosubLines = none 
+int[]        gosubReturns = none 
+
+int[]       scriptlines
+int[]       tokencounts
+int[]       tokenoffsets
+string[]    tokens
+
+; thread values
+string      initialScriptName = ""
+
+bool hasValidFrame
+
 ;/
 Event OnEffectFinish(Actor akTarget, Actor akCaster)
     CleanupAndRemove()
@@ -129,6 +105,9 @@ EndEvent
 Event OnEffectStart(Actor akTarget, Actor akCaster)
 	CmdTargetActor = akCaster
     
+    threadVarKeys = PapyrusUtil.StringArray(0)
+    threadVarVals = PapyrusUtil.StringArray(0)
+
     DoStartup()
 EndEvent
 
@@ -141,24 +120,25 @@ Function DoStartup()
     
     if !threadid
         ; need to determine our threadid
-        threadid = Target_ClaimNextThread(SLT, CmdTargetActor)
-        callargs = PapyrusUtil.StringArray(0)
+        string[] nextThreadInfo = SLT.ClaimNextThread(CmdTargetFormID)
+        ;threadid = Target_ClaimNextThread(SLT, CmdTargetActor)
+        if nextThreadInfo.Length
+            threadid = nextThreadInfo[0] as int
+            initialScriptName = nextThreadInfo[1]
+        else
+            
+        endif
         if threadid > 0
-            int thread_current_frameid = Thread_GetCurrentFrameId(SLT, kthread_d_currentframeid)
-            if thread_current_frameid > 0
-                frameid = thread_current_frameid
-            else
-                if !Frame_Push(self, Thread_GetInitialScriptName(SLT, kthread_d_initialScriptName))
-                    CleanupAndRemove()
-                    return
-                endif
+            if !slt_Frame_Push(initialScriptName, none)
+                CleanupAndRemove()
+                return
             endif
         endif
     else
-        Thread_SetLastSessionId(SLT, kthread_d_lastsessionid, sl_triggers.GetSessionId())
+        ;Thread_SetLastSessionId(SLT, kthread_d_lastsessionid, sl_triggers.GetSessionId())
     endif
 
-    if threadid && frameid
+    if threadid && hasValidFrame
         if !isExecuting
             QueueUpdateLoop(0.01)
         endif
@@ -187,14 +167,6 @@ Function CleanupAndRemove()
     cleanedup = true
     UnregisterForAllModEvents()
     isExecuting = false
-
-    if frameid > 0
-        Frame_Cleanup(SLT, kframe_id)
-    endif
-
-    if threadid > 0
-        Thread_Cleanup(SLT, threadid, kthread_d_target, ktarget_threads_idlist, kthread_id)
-    endif
 
     Self.Dispel()
 EndFunction
@@ -265,7 +237,7 @@ string Function Resolve(string token)
             
             GetVarScope(token, varscopelist)
             if varscopelist[0]
-                return GetVarString(self, varscopelist, token, "")
+                return GetVarString(varscopelist, token, "")
             endif
         endif
         
@@ -334,11 +306,13 @@ Function RunScript()
     int[] tokentypes = new int[128]
     int[] varscopelist = new int[2]
 
-    while isExecuting && frameid
+    while isExecuting && hasValidFrame
         while currentLine < totalLines
-            lineNum = Frame_GetLineNum(SLT, kframe_d_lines_keys, kframe_d_lines, currentLine)
-            cmdLine = Frame_GetTokens(SLT, kframe_d_lines_keys, kframe_d_lines_vals, kframe_d_lines, currentLine)
-
+            lineNum = scriptlines[currentLine]
+            int startidx = tokenoffsets[currentLine]
+            int endidx = tokencounts[currentLine] + startidx - 1
+            cmdLine = PapyrusUtil.SliceStringArray(tokens, startidx, endidx)
+            
             if cmdLine.Length
                 command = Resolve(cmdLine[0])
                 cmdLine[0] = command
@@ -358,12 +332,12 @@ Function RunScript()
                                     string[] subCmdLine = PapyrusUtil.SliceStringArray(cmdLine, 3)
                                     subCmdLine[0] = subcode
                                     RunOperationOnActor(subCmdLine)
-                                    SetVarString(self, varscopelist, cmdLine[1], MostRecentResult)
+                                    SetVarString(varscopelist, cmdLine[1], MostRecentResult)
                                 else
                                     SFE("Unable to resolve function for 'set resultfrom' with (" + cmdLine[3] + ")")
                                 endif
                             elseif cmdLine.length == 3
-                                SetVarString(self, varscopelist, cmdLine[1], strparm2)
+                                SetVarString(varscopelist, cmdLine[1], strparm2)
                             elseif cmdLine.length == 5
                                 string strparm4 = Resolve(cmdLine[4])
                                 float op1 = strparm2 as float
@@ -385,7 +359,7 @@ Function RunScript()
                                 else
                                     SFE("unexpected operator for 'set' (" + operat + ")")
                                 endif
-                                SetVarString(self, varscopelist, cmdLine[1], strresult)
+                                SetVarString(varscopelist, cmdLine[1], strresult)
                             endif
                         else
                             SFE("invalid variable name, not resolvable (" + cmdLine[1] + ")")
@@ -431,7 +405,8 @@ Function RunScript()
 
                             if ifTrue
                                 string resolvedCmdLine = Resolve(cmdLine[4])
-                                int gotoTargetLine = Frame_FindGoto(SLT, kframe_m_gotolabels, resolvedCmdLine)
+                                ;int gotoTargetLine = Frame_FindGoto(SLT, kframe_m_gotolabels, resolvedCmdLine)
+                                int gotoTargetLine = slt_FindGoto(resolvedCmdLine)
                                 if gotoTargetLine > -1
                                     currentLine = gotoTargetLine
                                 else
@@ -457,14 +432,14 @@ Function RunScript()
                             
                         GetVarScope(varstr, varscopelist)
                         if varscopelist[0]
-                            string fetchedvar = GetVarString(self, varscopelist, varstr, "")
+                            string fetchedvar = GetVarString(varscopelist, varstr, "")
                             
                             int varint = fetchedvar as int
                             float varfloat = fetchedvar as float
                             if (varint == varfloat && isIncrInt)
-                                SetVarString(self, varscopelist, varstr, (varint + incrInt) as string)
+                                SetVarString(varscopelist, varstr, (varint + incrInt) as string)
                             else
-                                SetVarString(self, varscopelist, varstr, (varfloat + incrFloat) as string)
+                                SetVarString(varscopelist, varstr, (varfloat + incrFloat) as string)
                             endif
                         else
                             SFE("no resolve found for variable parameter (" + cmdLine[1] + ") varstr(" + varstr + ") varscope(" + varscopelist[1] + ")")
@@ -474,7 +449,8 @@ Function RunScript()
                 elseIf command == "goto"
                     if ParamLengthEQ(self, cmdLine.Length, 2)
                         string resolvedCmdLine = Resolve(cmdLine[1])
-                        int gotoTargetLine = Frame_FindGoto(SLT, kframe_m_gotolabels, resolvedCmdLine)
+                        ;int gotoTargetLine = Frame_FindGoto(SLT, kframe_m_gotolabels, resolvedCmdLine)
+                        int gotoTargetLine = slt_FindGoto(resolvedCmdLine)
                         if gotoTargetLine > -1
                             currentLine = gotoTargetLine
                         else
@@ -489,7 +465,7 @@ Function RunScript()
                             
                         GetVarScope(varstr, varscopelist)
                         if varscopelist[0]
-                            SetVarString(self, varscopelist, varstr, (GetVarString(self, varscopelist, varstr, "") + Resolve(cmdLine[2])) as string)
+                            SetVarString(varscopelist, varstr, (GetVarString(varscopelist, varstr, "") + Resolve(cmdLine[2])) as string)
                             
                         else
                             SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
@@ -499,9 +475,11 @@ Function RunScript()
                 elseIf command == "gosub"
                     if ParamLengthEQ(self, cmdLine.Length, 2)
                         string resolvedCmdLine = Resolve(cmdLine[1])
-                        int gosubTargetLine = Frame_FindGosub(SLT, kframe_m_gosublabels, resolvedCmdLine)
+                        ;int gosubTargetLine = Frame_FindGosub(SLT, kframe_m_gosublabels, resolvedCmdLine)
+                        int gosubTargetLine = slt_FindGosub(resolvedCmdLine)
                         if gosubTargetLine > -1
-                            Frame_PushGosubReturn(SLT, kframe_d_gosubreturns, currentLine)
+                            ;Frame_PushGosubReturn(SLT, kframe_d_gosubreturns, currentLine)
+                            slt_PushGosubReturn(currentLine)
                             currentLine = gosubTargetLine
                         else
                             SFE("Unable to resolve gosub label (" + cmdLine[1] + ") resolved to (" + resolvedCmdLine + ")")
@@ -510,7 +488,7 @@ Function RunScript()
                     currentLine += 1
                 elseIf command == "call"
                     if ParamLengthGT(self, cmdLine.Length, 1)
-                        string callTarget = Resolve(cmdLine[1])
+                        string calledScriptname = Resolve(cmdLine[1])
 
                         string[] targetCallArgs
                         if cmdLine.Length > 2
@@ -522,8 +500,8 @@ Function RunScript()
                             endwhile
                         endif
 
-                        if !Frame_Push(self, callTarget, targetCallArgs)
-                            SFE("call target file not parseable(" + callTarget + ") resolved from (" + cmdLine[1] + ")")
+                        if !slt_Frame_Push(calledScriptname, targetCallArgs)
+                            SFE("call target file not parseable(" + calledScriptname + ") resolved from (" + cmdLine[1] + ")")
                             currentLine += 1
                         endif
                     else
@@ -531,7 +509,8 @@ Function RunScript()
                     endif
                 elseIf command == "endsub"
                     if ParamLengthEQ(self, cmdLine.Length, 1)
-                        int endsubTargetLine = Frame_PopGosubReturn(SLT, kframe_d_gosubreturns)
+                        ;int endsubTargetLine = Frame_PopGosubReturn(SLT, kframe_d_gosubreturns)
+                        int endsubTargetLine = slt_PopGosubReturn()
                         if endsubTargetLine > -1
                             currentLine = endsubTargetLine
                         endif
@@ -539,12 +518,14 @@ Function RunScript()
                     currentLine += 1
                 elseIf command == "beginsub"
                     if ParamLengthEQ(self, cmdLine.Length, 2)
-                        Frame_AddGosub(SLT, kframe_m_gosublabels, Resolve(cmdLine[1]), currentLine)
+                        ;Frame_AddGosub(SLT, kframe_m_gosublabels, Resolve(cmdLine[1]), currentLine)
+                        slt_AddGosub(Resolve(cmdLine[1]), currentLine)
                     endif
                     ; still try to go through with finding the end
                     int i = currentLine
                     while i < totalLines
-                        if Frame_CompareLineForCommand(SLT, kframe_d_lines_keys, kframe_d_lines_vals, kframe_d_lines, i, "endsub")
+                        startidx = tokenoffsets[i]
+                        if tokens[startidx] == "endsub"
                             currentLine = i
                             i = totalLines
                         endif
@@ -565,7 +546,7 @@ Function RunScript()
                             
                         GetVarScope(arg, varscopelist)
                         if varscopelist[0]
-                            SetVarString(self, varscopelist, arg, newval)
+                            SetVarString(varscopelist, arg, newval)
                             
                         else
                             SFE("unable to resolve variable name (" + arg + ")")
@@ -573,7 +554,7 @@ Function RunScript()
                     endif
                     currentLine += 1
                 elseIf command == "return"
-                    if !Frame_Pop(self)
+                    if !slt_Frame_Pop()
                         return
                     endif
                     
@@ -581,7 +562,8 @@ Function RunScript()
                 else
                     string _slt_mightBeLabel = _slt_IsLabel(cmdLine)
                     if _slt_mightBeLabel
-                        Frame_AddGoto(SLT, kframe_m_gotolabels, _slt_mightBeLabel, currentLine)
+                        slt_AddGoto(_slt_mightBeLabel, currentLine)
+                        ;Frame_AddGoto(SLT, kframe_m_gotolabels, _slt_mightBeLabel, currentLine)
                     else
                         RunOperationOnActor(cmdLine)
                     endif
@@ -593,7 +575,7 @@ Function RunScript()
             endif
         endwhile
 
-        if Frame_Pop(self)
+        if slt_Frame_Pop()
             currentLine += 1
         endif
 
@@ -669,3 +651,734 @@ Form Function GetFormById(string _data)
     
     return retVal
 EndFunction
+
+
+; frame store
+int[]       frame_var_count
+string[]    frame_var_key_store
+string[]    frame_var_val_store
+
+int[]       frame_goto_label_count
+string[]    frame_goto_labels
+int[]       frame_goto_lines
+
+int[]       frame_gosub_label_count
+string[]    frame_gosub_labels
+int[]       frame_gosub_lines
+
+int[]       frame_gosub_return_count
+int[]       frame_gosub_returns
+
+int[]       frame_callargs_count
+string[]    frame_callargs
+
+int[]       frame_token_count
+string[]    frame_tokens
+
+int[]       frame_scriptline_count
+int[]       frame_scriptlines
+int[]       frame_tokencounts
+int[]       frame_tokenoffsets
+
+;
+int[]       pushed_currentLine
+int[]       pushed_totalLines
+int[]       pushed_lastKey
+string[]    pushed_command
+string[]    pushed_mostrecentresult
+Actor[]     pushed_iteractor
+string[]    pushed_customresolveresult
+Form[]      pushed_customresolveformresult
+string[]    pushed_currentscriptname
+
+bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
+    if !scriptfilename
+        return false
+    endif
+    
+    string[] cmdLine
+    string cmdLineJoined
+    int lineno = 0
+    int cmdNum = 0
+    int cmdIdx = 0
+    ;int cmdLineIterIdx = 0
+    ;int commentFoundIndex = 0
+    string[] cmdlines
+
+    ; 0 - unknown
+    ; 1 - json explicit
+    ; 2 - ini explicit
+    ; 10 - json implicit
+    ; 20 - ini implicit
+    int scrtype = sl_triggers.NormalizeScriptfilename(scriptfilename)
+    string _myCmdName
+    if scrtype == 1
+        _myCmdName = CommandsFolder() + scriptfilename
+        cmdNum = JsonUtil.PathCount(_myCmdName, ".cmd")
+    elseif scrtype == 2
+        _myCmdName = scriptfilename
+        cmdlines = sl_triggers.SplitScriptContents(_myCmdName)
+        cmdNum = cmdlines.Length
+    elseif scrtype == 10
+        scrtype = 1
+        _myCmdName = CommandsFolder() + scriptfilename + ".json"
+        cmdNum = JsonUtil.PathCount(_myCmdName, ".cmd")
+    elseif scrtype == 20
+        scrtype = 2
+        _myCmdName = scriptfilename + ".ini"
+        cmdlines = sl_triggers.SplitScriptContents(_myCmdName)
+        cmdNum = cmdlines.Length
+    else
+        DebMsg("SLT: (unusual here) attempted to parse an unknown file type(" + _myCmdName + ") for scrtype (" + scrtype + ")")
+        return false
+    endif
+
+    if hasValidFrame
+        if !pushed_currentLine
+            pushed_currentLine = PapyrusUtil.IntArray(0)
+            pushed_totalLines = PapyrusUtil.IntArray(0)
+            pushed_lastKey = PapyrusUtil.IntArray(0)
+            pushed_command = PapyrusUtil.StringArray(0)
+            pushed_mostrecentresult = PapyrusUtil.StringArray(0)
+            pushed_iteractor = new Actor[1]
+            pushed_iteractor = PapyrusUtil.ResizeActorArray(pushed_iteractor, 0)
+            pushed_customresolveresult = PapyrusUtil.StringArray(0)
+            pushed_customresolveformresult = PapyrusUtil.FormArray(0)
+            pushed_currentscriptname = PapyrusUtil.StringArray(0)
+        endif
+
+        pushed_currentLine = PapyrusUtil.PushInt(pushed_currentLine, currentLine)
+        pushed_totalLines = PapyrusUtil.PushInt(pushed_totalLines, totalLines)
+        pushed_lastKey = PapyrusUtil.PushInt(pushed_lastKey, lastKey)
+        pushed_command = PapyrusUtil.PushString(pushed_command, command)
+        pushed_mostrecentresult = PapyrusUtil.PushString(pushed_mostrecentresult, MostRecentResult)
+        pushed_iteractor = PapyrusUtil.PushActor(pushed_iteractor, iterActor)
+        pushed_customresolveresult = PapyrusUtil.PushString(pushed_customresolveresult, CustomResolveResult)
+        pushed_customresolveformresult = PapyrusUtil.PushForm(pushed_customresolveformresult, CustomResolveFormResult)
+        pushed_currentscriptname = PapyrusUtil.PushString(pushed_currentscriptname, currentScriptName)
+
+        int varcount
+        int varstoresize
+        int i
+        int j
+
+        ; vars
+        varcount = localVarKeys.Length
+        varstoresize = frame_var_key_store.Length
+        if !frame_var_count
+            frame_var_count = new int[1]
+            frame_var_count[0] = varcount
+            frame_var_key_store = PapyrusUtil.StringArray(varcount)
+            frame_var_val_store = PapyrusUtil.StringArray(varcount)
+        else
+            frame_var_count = PapyrusUtil.PushInt(frame_var_count, varcount)
+            frame_var_key_store = PapyrusUtil.ResizeStringArray(frame_var_key_store, varstoresize + varcount)
+            frame_var_val_store = PapyrusUtil.ResizeStringArray(frame_var_val_store, varstoresize + varcount)
+        endif
+
+        if varcount
+            i = 0
+            while i < varcount
+                j = i + varstoresize
+                frame_var_key_store[j] = localVarKeys[i]
+                frame_var_val_store[j] = localVarVals[i]
+
+                i += 1
+            endwhile
+        endif
+
+        localVarKeys = PapyrusUtil.StringArray(0)
+        localVarVals = PapyrusUtil.StringArray(0)
+
+        ; goto labels
+        varcount        = gotoLabels.Length
+        varstoresize    = frame_goto_labels.Length
+        if !frame_goto_label_count
+            frame_goto_label_count = new int[1]
+            frame_goto_label_count[0] = varcount
+            frame_goto_labels = PapyrusUtil.StringArray(varcount)
+            frame_goto_lines = PapyrusUtil.IntArray(varcount)
+        else
+            frame_goto_label_count = PapyrusUtil.PushInt(frame_goto_label_count, varcount)
+            frame_goto_labels = PapyrusUtil.ResizeStringArray(frame_goto_labels, varstoresize + varcount)
+            frame_goto_lines = PapyrusUtil.ResizeIntArray(frame_goto_lines, varstoresize + varcount)
+        endif
+
+        if varcount
+            i = 0
+            while i < varcount
+                j = i + varstoresize
+                frame_goto_labels[j] = gotoLabels[i]
+                frame_goto_lines[j] = gotoLines[i]
+
+                i += 1
+            endwhile
+        endif
+
+        gotoLabels = PapyrusUtil.StringArray(0)
+        gotoLines = PapyrusUtil.IntArray(0)
+
+        ; gosub labels
+        varcount        = gosubLabels.Length
+        varstoresize    = frame_gosub_labels.Length
+        if !frame_gosub_label_count
+            frame_gosub_label_count = new int[1]
+            frame_gosub_label_count[0] = varcount
+            frame_gosub_labels = PapyrusUtil.StringArray(varcount)
+            frame_gosub_lines = PapyrusUtil.IntArray(varcount)
+        else
+            frame_gosub_label_count = PapyrusUtil.PushInt(frame_gosub_label_count, varcount)
+            frame_gosub_labels = PapyrusUtil.ResizeStringArray(frame_gosub_labels, varstoresize + varcount)
+            frame_gosub_lines = PapyrusUtil.ResizeIntArray(frame_gosub_lines, varstoresize + varcount)
+        endif
+
+        if varcount
+            i = 0
+            while i < varcount
+                j = i + varstoresize
+                frame_gosub_labels[j] = gosubLabels[i]
+                frame_gosub_lines[j] = gosubLines[i]
+
+                i += 1
+            endwhile
+        endif
+
+        gosubLabels = PapyrusUtil.StringArray(0)
+        gosubLines = PapyrusUtil.IntArray(0)
+
+        ; gosub returns
+        varcount        = gosubReturns.Length
+        varstoresize    = frame_gosub_returns.Length
+        if !frame_gosub_return_count
+            frame_gosub_return_count = new int[1]
+            frame_gosub_return_count[0] = varcount
+            frame_gosub_returns = PapyrusUtil.IntArray(varcount)
+        else
+            frame_gosub_return_count = PapyrusUtil.PushInt(frame_gosub_return_count, varcount)
+            frame_gosub_returns = PapyrusUtil.ResizeIntArray(frame_gosub_returns, varstoresize + varcount)
+        endif
+
+        if varcount
+            i = 0
+            while i < varcount
+                j = i + varstoresize
+                frame_gosub_returns[j] = gosubReturns[i]
+
+                i += 1
+            endwhile
+        endif
+
+        gosubReturns = PapyrusUtil.IntArray(0)
+
+        ; callargs
+        varcount        = callargs.Length
+        varstoresize    = frame_callargs.Length
+        if !frame_callargs_count
+            frame_callargs_count = new int[1]
+            frame_callargs_count[0] = varcount
+            frame_callargs = PapyrusUtil.StringArray(varcount)
+        else
+            frame_callargs_count = PapyrusUtil.PushInt(frame_callargs_count, varcount)
+            frame_callargs = PapyrusUtil.ResizeStringArray(frame_callargs, varstoresize + varcount)
+        endif
+
+        if varcount
+            i = 0
+            while i < varcount
+                j = i + varstoresize
+                frame_callargs[j] = callargs[i]
+
+                i += 1
+            endwhile
+        endif
+
+        callargs = PapyrusUtil.StringArray(0)
+
+        ; tokens
+        varcount        = tokens.Length
+        varstoresize    = frame_tokens.Length
+        if !frame_token_count
+            frame_token_count = new int[1]
+            frame_token_count[0] = varcount
+            frame_tokens = PapyrusUtil.StringArray(varcount)
+        else
+            frame_token_count = PapyrusUtil.PushInt(frame_token_count, varcount)
+            frame_tokens = PapyrusUtil.ResizeStringArray(frame_tokens, varstoresize + varcount)
+        endif
+
+        if varcount
+            i = 0
+            while i < varcount
+                j = i + varstoresize
+                frame_tokens[j] = tokens[i]
+
+                i += 1
+            endwhile
+        endif
+
+        tokens = PapyrusUtil.StringArray(0)
+
+        ; token data
+        varcount        = scriptlines.Length
+        varstoresize    = frame_scriptlines.Length
+        if !frame_scriptline_count
+            frame_scriptline_count = new int[1]
+            frame_scriptline_count[0] = varcount
+            frame_scriptlines = PapyrusUtil.IntArray(varcount)
+            frame_tokencounts = PapyrusUtil.IntArray(varcount)
+            frame_tokenoffsets = PapyrusUtil.IntArray(varcount)
+        else
+            frame_scriptline_count = PapyrusUtil.PushInt(frame_scriptline_count, varcount)
+            frame_scriptlines = PapyrusUtil.ResizeIntArray(frame_scriptlines, varstoresize + varcount)
+            frame_tokencounts = PapyrusUtil.ResizeIntArray(frame_tokencounts, varstoresize + varcount)
+            frame_tokenoffsets = PapyrusUtil.ResizeIntArray(frame_tokenoffsets, varstoresize + varcount)
+        endif
+
+        if varcount
+            i = 0
+            while i < varcount
+                j = i + varstoresize
+                frame_scriptlines[j] = scriptlines[i]
+                frame_tokencounts[j] = tokencounts[i]
+                frame_tokenoffsets[j] = tokenoffsets[i]
+
+                i += 1
+            endwhile
+        endif
+
+        scriptlines = PapyrusUtil.IntArray(0)
+        tokencounts = PapyrusUtil.IntArray(0)
+        tokenoffsets = PapyrusUtil.IntArray(0)
+    else
+        ; no prior frames, just set up initializations
+        lastKey = 0
+        MostRecentResult = ""
+        CustomResolveResult = ""
+        CustomResolveFormResult = none
+        iterActor = none
+        currentScriptName = ""
+        currentLine = 0
+        totalLines = 0
+        lineNum = 1
+        command = ""
+
+        callargs = PapyrusUtil.StringArray(0)
+        localVarKeys = PapyrusUtil.StringArray(0)
+        localVarVals = PapyrusUtil.StringArray(0)
+        gotoLabels = PapyrusUtil.StringArray(0)
+        gotoLines = PapyrusUtil.IntArray(0)
+        gosubLabels = PapyrusUtil.StringArray(0)
+        gosubLines = PapyrusUtil.IntArray(0)
+        gosubReturns = PapyrusUtil.IntArray(0)
+
+        scriptlines = PapyrusUtil.IntArray(0)
+        tokencounts = PapyrusUtil.IntArray(0)
+        tokenoffsets = PapyrusUtil.IntArray(0)
+        tokens = PapyrusUtil.StringArray(0)
+    endif
+
+    cmdIdx = 0
+    while cmdIdx < cmdNum
+        lineno += 1
+        
+        ; this accounts for comments
+        if scrtype == 1
+            cmdLine = JsonUtil.PathStringElements(_myCmdName, ".cmd[" + cmdIdx + "]")
+            if cmdLine.Length && cmdLine[0]
+                if cmdLine.Length >= 2 && cmdLine[1] && ":" == cmdLine[0]
+                    int newclen = cmdLine.Length - 1
+                    string[] newCmdLine = new string[1]
+                    newCmdLine[0] = "[" + PapyrusUtil.StringJoin(PapyrusUtil.SliceStringArray(cmdLine, 1), " ") + "]"
+                    cmdLine = newCmdLine
+                endif
+                cmdLineJoined = PapyrusUtil.StringJoin(cmdLine, " ")
+                cmdLine = sl_triggers.Tokenizev2(cmdLineJoined)
+            endif
+        elseif scrtype == 2
+            cmdLine = sl_triggers.Tokenizev2(cmdlines[cmdIdx])
+        endif
+        if cmdLine.Length && cmdLine[0]
+            slt_AddLineData(lineno, cmdLine)
+        
+            if cmdLine.Length == 1
+                int tlen = StringUtil.GetLength(cmdLine[0])
+                int tlenm1 = tlen - 1
+                int tlenm2 = tlenm1 - 1
+                if tlen > 2 && StringUtil.GetNthChar(cmdLine[0], 0) == "[" && StringUtil.GetNthChar(cmdLine[0], tlenm1) == "]"
+                    string lbl = sl_triggers.Trim(StringUtil.Substring(cmdLine[0], 1, tlenm2))
+                    if lbl
+                        slt_AddGoto(lbl, scriptlines.Length - 1)
+                    endif
+                endif
+            elseif cmdLine.Length == 2 && cmdLine[0] == "beginsub"
+                slt_AddGosub(cmdLine[1], scriptlines.Length - 1)
+            endif
+            
+        endif
+        cmdIdx += 1
+    endwhile
+
+    totalLines = scriptlines.Length
+
+    hasValidFrame = true
+
+    return true
+EndFunction
+
+bool Function slt_Frame_Pop()
+    if !hasValidFrame
+        return false
+    endif
+
+    if !frame_var_count.Length
+        hasValidFrame = false
+        return false
+    endif
+
+    currentLine                 = pushed_currentLine[pushed_currentLine.Length - 1]
+    totalLines                  = pushed_totalLines[pushed_totalLines.Length - 1]
+    lastKey                     = pushed_lastKey[pushed_lastKey.Length - 1]
+    command                     = pushed_command[pushed_command.Length - 1]
+    MostRecentResult            = pushed_mostrecentresult[pushed_mostrecentresult.Length - 1]
+    CustomResolveResult         = pushed_customresolveresult[pushed_customresolveresult.Length - 1]
+    currentScriptName           = pushed_currentscriptname[pushed_currentscriptname.Length - 1]
+    CustomResolveFormResult     = pushed_customresolveformresult[pushed_customresolveformresult.Length - 1]
+    iterActor                   = pushed_iteractor[pushed_iteractor.Length - 1]
+
+    pushed_currentLine          = PapyrusUtil.ResizeIntArray(pushed_currentLine, pushed_currentLine.Length - 1)
+    pushed_totalLines           = PapyrusUtil.ResizeIntArray(pushed_totalLines, pushed_totalLines.Length - 1)
+    pushed_lastKey              = PapyrusUtil.ResizeIntArray(pushed_lastKey, pushed_lastKey.Length - 1)
+    pushed_command              = PapyrusUtil.ResizeStringArray(pushed_command, pushed_command.Length - 1)
+    pushed_mostrecentresult     = PapyrusUtil.ResizeStringArray(pushed_mostrecentresult, pushed_mostrecentresult.Length - 1)
+    pushed_customresolveresult  = PapyrusUtil.ResizeStringArray(pushed_customresolveresult, pushed_customresolveresult.Length - 1)
+    pushed_currentscriptname    = PapyrusUtil.ResizeStringArray(pushed_currentscriptname, pushed_currentscriptname.Length - 1)
+    pushed_iteractor            = PapyrusUtil.ResizeActorArray(pushed_iteractor, pushed_iteractor.Length - 1)
+    pushed_customresolveformresult = PapyrusUtil.ResizeFormArray(pushed_customresolveformresult, pushed_customresolveformresult.Length - 1)
+
+    int varcount
+    int newvarstoresize
+    int i
+    int j
+
+    ; vars
+    varcount = frame_var_count[frame_var_count.Length - 1]
+    newvarstoresize = frame_var_key_store.Length - varcount
+
+    localVarKeys = PapyrusUtil.StringArray(varcount)
+    localVarVals = PapyrusUtil.StringArray(varcount)
+
+    if varcount
+        i = 0
+        while i < varcount
+            j = newvarstoresize + i
+            localVarKeys[i] = frame_var_key_store[j]
+            localVarVals[i] = frame_var_val_store[j]
+
+            i += 1
+        endwhile
+    endif
+
+    frame_var_count = PapyrusUtil.ResizeIntArray(frame_var_count, frame_var_count.Length - 1)
+    frame_var_key_store = PapyrusUtil.ResizeStringArray(frame_var_key_store, newvarstoresize)
+    frame_var_val_store = PapyrusUtil.ResizeStringArray(frame_var_val_store, newvarstoresize)
+
+    ; goto labels
+    varcount        = frame_goto_label_count[frame_goto_label_count.Length - 1]
+    newvarstoresize = frame_goto_labels.Length - varcount
+
+    gotoLabels = PapyrusUtil.StringArray(varcount)
+    gotoLines = PapyrusUtil.IntArray(varcount)
+
+    if varcount
+        i = 0
+        while i < varcount
+            j = newvarstoresize + i
+            gotoLabels[i] = frame_goto_labels[j]
+            gotoLines[i] = frame_goto_lines[j]
+
+            i += 1
+        endwhile
+    endif
+
+    frame_goto_label_count = PapyrusUtil.ResizeIntArray(frame_goto_label_count, frame_goto_label_count.Length - 1)
+    frame_goto_labels = PapyrusUtil.ResizeStringArray(frame_goto_labels, newvarstoresize)
+    frame_goto_lines = PapyrusUtil.ResizeIntArray(frame_goto_lines, newvarstoresize)
+
+    ; gosub labels
+    varcount        = frame_gosub_label_count[frame_gosub_label_count.Length - 1]
+    newvarstoresize = frame_gosub_labels.Length - varcount
+
+    gosubLabels = PapyrusUtil.StringArray(varcount)
+    gosubLines = PapyrusUtil.IntArray(varcount)
+
+    if varcount
+        i = 0
+        while i < varcount
+            j = newvarstoresize + i
+            gosubLabels[i] = frame_gosub_labels[j]
+            gosubLines[i] = frame_gosub_lines[j]
+
+            i += 1
+        endwhile
+    endif
+
+    frame_gosub_label_count = PapyrusUtil.ResizeIntArray(frame_gosub_label_count, frame_gosub_label_count.Length - 1)
+    frame_gosub_labels = PapyrusUtil.ResizeStringArray(frame_gosub_labels, newvarstoresize)
+    frame_gosub_lines = PapyrusUtil.ResizeIntArray(frame_gosub_lines, newvarstoresize)
+
+    ; gosub returns
+    varcount        = frame_gosub_return_count[frame_gosub_return_count.Length - 1]
+    newvarstoresize = frame_gosub_returns.Length - varcount
+
+    gosubReturns = PapyrusUtil.IntArray(varcount)
+
+    if varcount
+        i = 0
+        while i < varcount
+            j = newvarstoresize + i
+            gosubReturns[i] = frame_gosub_returns[j]
+
+            i += 1
+        endwhile
+    endif
+
+    frame_gosub_return_count = PapyrusUtil.ResizeIntArray(frame_gosub_return_count, frame_gosub_return_count.Length - 1)
+    frame_gosub_returns = PapyrusUtil.ResizeIntArray(frame_gosub_returns, newvarstoresize)
+
+    ; callargs
+    varcount        = frame_callargs_count[frame_callargs_count.Length - 1]
+    newvarstoresize = frame_callargs.Length - varcount
+
+    callargs = PapyrusUtil.StringArray(varcount)
+
+    if varcount
+        i = 0
+        while i < varcount
+            j = newvarstoresize + i
+            callargs[i] = frame_callargs[j]
+
+            i += 1
+        endwhile
+    endif
+
+    frame_callargs_count = PapyrusUtil.ResizeIntArray(frame_callargs_count, frame_callargs_count.Length - 1)
+    frame_callargs = PapyrusUtil.ResizeStringArray(frame_callargs, newvarstoresize)
+
+    ; tokens
+    varcount        = frame_token_count[frame_token_count.Length - 1]
+    newvarstoresize = frame_tokens.Length - varcount
+
+    tokens = PapyrusUtil.StringArray(varcount)
+
+    if varcount
+        i = 0
+        while i < varcount
+            j = newvarstoresize + i
+            tokens[i] = frame_tokens[j]
+
+            i += 1
+        endwhile
+    endif
+
+    frame_token_count = PapyrusUtil.ResizeIntArray(frame_token_count, frame_token_count.Length - 1)
+    frame_tokens = PapyrusUtil.ResizeStringArray(frame_tokens, newvarstoresize)
+
+    ; token data
+    varcount        = frame_scriptline_count[frame_scriptline_count.Length - 1]
+    newvarstoresize = frame_scriptlines.Length - varcount
+
+    scriptlines = PapyrusUtil.IntArray(varcount)
+    tokencounts = PapyrusUtil.IntArray(varcount)
+    tokenoffsets = PapyrusUtil.IntArray(varcount)
+
+    if varcount
+        i = 0
+        while i < varcount
+            j = newvarstoresize + i
+            scriptlines[i] = frame_scriptlines[j]
+            tokencounts[i] = frame_tokencounts[j]
+            tokenoffsets[i] = frame_tokenoffsets[j]
+
+            i += 1
+        endwhile
+    endif
+
+    frame_scriptline_count = PapyrusUtil.ResizeIntArray(frame_scriptline_count, frame_scriptline_count.Length - 1)
+    frame_scriptlines = PapyrusUtil.ResizeIntArray(frame_scriptlines, newvarstoresize)
+    frame_tokencounts = PapyrusUtil.ResizeIntArray(frame_tokencounts, newvarstoresize)
+    frame_tokenoffsets = PapyrusUtil.ResizeIntArray(frame_tokenoffsets, newvarstoresize)
+
+    return true
+EndFunction
+
+Function slt_AddLineData(int scriptlineno, string[] cmdtokens)
+    scriptlines = PapyrusUtil.PushInt(scriptlines, scriptlineno)
+    int newoffset = 0
+    if tokenoffsets.Length
+        newoffset = tokenoffsets[tokenoffsets.Length - 1] + tokencounts[tokencounts.Length - 1]
+    endif
+    tokencounts = PapyrusUtil.PushInt(tokencounts, cmdtokens.Length)
+    tokenoffsets = PapyrusUtil.PushInt(tokenoffsets, newoffset)
+    tokens = PapyrusUtil.MergeStringArray(tokens, cmdtokens)
+EndFunction
+
+Function slt_AddGoto(string label, int targetline)
+    int i = gotoLabels.Find(label)
+    if i > -1
+        gotoLines[i] = targetline
+    else
+        gotoLabels = PapyrusUtil.PushString(gotoLabels, label)
+        gotoLines = PapyrusUtil.PushInt(gotoLines, targetline)
+        i = gotoLabels.Length - 1
+    endif
+EndFunction
+
+int Function slt_FindGoto(string label)
+    int i = gotoLabels.Find(label)
+    if i > -1
+        return gotoLines[i]
+    endif
+    return -1
+EndFunction
+
+Function slt_AddGosub(string label, int targetline)
+    int i = gosubLabels.Find(label)
+    if i > -1
+        gosubLines[i] = targetline
+    else
+        gosubLabels = PapyrusUtil.PushString(gosubLabels, label)
+        gosubLines = PapyrusUtil.PushInt(gosubLines, targetline)
+        i = gosubLabels.Length - 1
+    endif
+EndFunction
+
+int Function slt_FindGosub(string label)
+    int i = gosubLabels.Find(label)
+    if i > -1
+        return gosubLines[i]
+    endif
+    return -1
+EndFunction
+
+Function slt_PushGosubReturn(int targetline)
+    if !gosubReturns
+        gosubReturns = new int[1]
+        gosubReturns[0] = targetline
+    else
+        gosubReturns = PapyrusUtil.PushInt(gosubReturns, targetline)
+    endif
+EndFunction
+
+int Function slt_PopGosubReturn()
+    if !gosubReturns.Length
+        return -1
+    endif
+    int r = gosubReturns[gosubReturns.Length - 1]
+    gosubReturns = PapyrusUtil.ResizeIntArray(gosubReturns, gosubReturns.Length - 1)
+    return r
+EndFunction
+
+string Function GetFrameVar(string _key, string missing)
+	int i = localVarKeys.Find(_key, 0)
+	if i > -1
+		return localVarVals[i]
+	endif
+	return missing
+EndFunction
+
+string Function SetFrameVar(string _key, string value)
+	int i = localVarKeys.Find(_key, 0)
+	if i < 0
+		localVarKeys = PapyrusUtil.PushString(localVarKeys, _key)
+        localVarVals = PapyrusUtil.PushString(localVarVals, value)
+    else
+		localVarVals[i] = value
+	endif
+	return value
+EndFunction
+
+string Function GetThreadVar(string _key, string missing)
+	int i = threadVarKeys.Find(_key, 0)
+	if i > -1
+		return threadVarVals[i]
+	endif
+	return missing
+EndFunction
+
+string Function SetThreadVar(string _key, string value)
+	int i = threadVarKeys.Find(_key, 0)
+	if i < 0
+		threadVarKeys = PapyrusUtil.PushString(threadVarKeys, _key)
+        threadVarVals = PapyrusUtil.PushString(threadVarVals, value)
+    else
+		threadVarVals[i] = value
+	endif
+    return value
+EndFunction
+
+
+;;;;
+;; Support
+function GetVarScope(string varname, int[] varscope)
+    if "$" == StringUtil.GetNthChar(varname, 0)
+        int dotindex = StringUtil.Find(varname, ".", 1)
+        if dotindex < 0
+            varscope[0] = 1
+            varscope[1] = 1
+        else
+            int varnamelen = StringUtil.GetLength(varname)
+            
+            if dotindex >= varnamelen - 1
+                varscope[0] = 0
+                varscope[1] = 0
+            else
+                string scope = StringUtil.Substring(varname, 0, dotindex)
+                if scope == "$local"
+                    varscope[0] = 1
+                    varscope[1] = 6
+                elseif scope == "$thread"
+                    varscope[0] = 2
+                    varscope[1] = 7
+                elseif scope == "$target"
+                    varscope[0] = 3
+                    varscope[1] = 7
+                elseif scope == "$global"
+                    varscope[0] = 4
+                    varscope[1] = 7
+                elseif scope == "$system"
+                    varscope[0] = 0
+                    varscope[1] = 0
+                endif
+            endif
+        endif
+    else
+        varscope[0] = 0
+        varscope[1] = 0
+    endif
+endfunction
+
+string function GetVarString(int[] varscope, string token, string missing)
+    if varscope[0] == 1
+        return GetFrameVar(StringUtil.Substring(token, varscope[1]), missing)
+    elseif varscope[0] == 2
+        return GetThreadVar(StringUtil.Substring(token, varscope[1]), missing)
+    elseif varscope[0] == 3
+        return GetStringValue(SLT, ktarget_v_prefix + StringUtil.Substring(token, varscope[1]), missing)
+    elseif varscope[0] == 4
+        return SLT.GetGlobalVar(StringUtil.Substring(token, varscope[1]), missing)
+    endif
+    return ""
+endfunction
+
+string function SetVarString(int[] varscope, string token, string value)
+    if varscope[0] == 1
+        return SetFrameVar(StringUtil.Substring(token, varscope[1]), value)
+    elseif varscope[0] == 2
+        return SetThreadVar(StringUtil.Substring(token, varscope[1]), value)
+    elseif varscope[0] == 3
+        return SetStringValue(SLT, ktarget_v_prefix + StringUtil.Substring(token, varscope[1]), value)
+    elseif varscope[0] == 4
+        return SLT.SetGlobalVar(StringUtil.Substring(token, varscope[1]), value)
+    endif
+    return ""
+endfunction

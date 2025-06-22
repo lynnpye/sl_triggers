@@ -1,7 +1,6 @@
 Scriptname sl_TriggersMain extends Quest
 
 import sl_triggersStatics
-import sl_triggersContext
 
 ; CONSTANTS
 int		SLT_HEARTBEAT					= 0
@@ -20,6 +19,9 @@ int					Property nextInstanceId			Auto Hidden
 ; Variables
 int			SLTUpdateState
 int			_registrationBeaconCount
+
+string[] global_var_keys
+string[] global_var_vals
 
 Function SetEnabled(bool _newEnabledFlag)
 	if bEnabled != _newEnabledFlag
@@ -47,6 +49,8 @@ Event OnInit()
 		return
 	endif
 
+	global_var_keys = PapyrusUtil.StringArray(0)
+	global_var_vals = PapyrusUtil.StringArray(0)
 	BootstrapSLTInit()
 EndEvent
 
@@ -58,7 +62,6 @@ Function DoPlayerLoadGame()
 EndFunction
 
 Function BootstrapSLTInit()
-	DebMsg("Main.BootstrapSLTInit")
 	if !self
 		return
 	endif
@@ -370,6 +373,54 @@ Event OnSLTDelayStartCommand(string eventName, string initialScriptName, float r
 	endif
 EndEvent
 
+string Function GetGlobalVar(string _key, string missing)
+	int i = global_var_keys.Find(_key, 0)
+	if i > -1
+		return global_var_vals[i]
+	endif
+	return missing
+EndFunction
+
+string Function SetGlobalVar(string _key, string value)
+	int i = global_var_keys.Find(_key, 0)
+	if i < 0
+		global_var_keys = PapyrusUtil.PushString(global_var_keys, _key)
+		global_var_vals = PapyrusUtil.ResizeStringArray(global_var_vals, global_var_keys.Length)
+		i = global_var_keys.Find(_key, 0)
+	endif
+	if i > -1
+		global_var_vals[i] = value
+		return value
+	endif
+	return ""
+EndFunction
+
+; I blame the DayQuil
+string[]	thread_pending_info
+
+string[] Function ClaimNextThread(int targetformid)
+	int i = 0
+	int j
+	while i < thread_pending_info.Length
+		int fid = thread_pending_info[i + 2] as int
+		if fid == targetformid
+			thread_pending_info[i + 2] = 0
+			string[] result = new string[2]
+			result[0] = thread_pending_info[i]
+			result[1] = thread_pending_info[i + 1]
+			if (i + 3) < thread_pending_info.length
+				thread_pending_info = PapyrusUtil.MergeStringArray(PapyrusUtil.SliceStringArray(thread_pending_info, 0, i - 1), PapyrusUtil.SliceStringArray(thread_pending_info, i + 3))
+			else
+				thread_pending_info = PapyrusUtil.SliceStringArray(thread_pending_info, 0, i - 1)
+			endif
+			return result
+		endif
+
+		i += 3
+	endwhile
+	return none
+EndFunction
+
 ; StartCommand
 ; Form targetForm: the Actor to attach this command to
 ; string initialScriptName: the file to run
@@ -385,9 +436,23 @@ Function StartCommand(Form targetForm, string initialScriptName)
 
 	int threadid = GetNextInstanceId()
 
+	string[] new_thread_info = new string[3]
+
+	new_thread_info[0] = threadid as string
+	new_thread_info[1] = initialScriptName
+	new_thread_info[2] = target.GetFormID() as string
+
+	if !thread_pending_info
+		thread_pending_info = new_thread_info
+	else
+		thread_pending_info = PapyrusUtil.MergeStringArray(thread_pending_info, new_thread_info)
+	endif
+
+	;/
 	Thread_SetInitialScriptName(self, Thread_Create_kt_d_initialScriptName(threadid), initialScriptName)
 	Thread_SetTarget(self, Thread_Create_kt_d_target(threadid), target)
 	Target_AddThread(self, Target_Create_ktgt_threads_idlist(target.GetFormID()), threadid)
+	/;
 
 	bool scriptStarted = sl_triggers_internal.StartScript(target, initialScriptName)
 	if !scriptStarted
