@@ -1,3 +1,34 @@
+121
+    Savegame compatibility: NEW SAVE REQUIRED
+    enhancement: stability - this version has been worked over considerably to improve the stability of the callstack mechanism and properly support load-resume mechanics
+        this should make it easier to write long-running scripts, even those intended to run for the duration of the game
+    enhancement: variable scopes "system", "target" and "thread" added in addition to the existing "local" and "global" scopes
+        "system" scope - special scope that will now hold previous "special variables" (i.e. $player is now $system.player, $self is now $system.self)
+        "target" scope - per Actor/target (i.e. myvar on the Player is distinct from myvar on Hod)
+        "thread" scope - these variables are available per individual call chain
+    enhancement: string interpolation
+        Previously:
+            msg_notify "Part1 "  $somevar  " part 2 (did you remember your spaces?) " $global.someothervar
+        Now you can:
+            msg_notify $"Part1 {somevar} part 2 (did you remember your spaces?) {global.someothervar}"
+    enhancement: error messages related to scripts should be better tied to actual line numbers (and not opcode offsets)
+    BREAKING CHANGES:
+    change: variable naming syntax is now:
+            $[<optional-scope>.]<varname>
+        where <optional-scope> can be any of "local", "thread", "target", "global", or "system"
+        if not specified, defaults to "local"
+    change: variable names MUST be bare to be resolved
+        Previously:
+            set "$myvar" 5 ; this used to be valid
+            set $myvar 5   ; and both did the same thing
+        Now:
+            set $myvar 5   ; this is valid
+            set "$myvar" 5 ; this will FAIL
+    change: new string-literal syntax for variable interpolation
+        Prefixing a string literal with $ will attempt variable interpolation on any items enclosed in curly braces '{}', treating them like a variable name, including scope
+            $"local: {var}  the same local var, but explicit: {local.var}  completely different var due to scope: {thread.var}"
+        
+
 120
     Savegame compatibility: tested succesfully with an update from v119
     bugfix: callstack corruption could occur in some scenarios; fixed
