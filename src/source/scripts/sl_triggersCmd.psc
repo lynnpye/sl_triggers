@@ -121,7 +121,6 @@ Function DoStartup()
     if !threadid
         ; need to determine our threadid
         string[] nextThreadInfo = SLT.ClaimNextThread(CmdTargetFormID)
-        ;threadid = Target_ClaimNextThread(SLT, CmdTargetActor)
         if nextThreadInfo.Length
             threadid = nextThreadInfo[0] as int
             initialScriptName = nextThreadInfo[1]
@@ -134,8 +133,6 @@ Function DoStartup()
                 return
             endif
         endif
-    else
-        ;Thread_SetLastSessionId(SLT, kthread_d_lastsessionid, sl_triggers.GetSessionId())
     endif
 
     if threadid && hasValidFrame
@@ -951,17 +948,6 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
         tokenoffsets = PapyrusUtil.IntArray(0)
     else
         ; no prior frames, just set up initializations
-        lastKey = 0
-        MostRecentResult = ""
-        CustomResolveResult = ""
-        CustomResolveFormResult = none
-        iterActor = none
-        currentScriptName = ""
-        currentLine = 0
-        totalLines = 0
-        lineNum = 1
-        command = ""
-
         callargs = PapyrusUtil.StringArray(0)
         localVarKeys = PapyrusUtil.StringArray(0)
         localVarVals = PapyrusUtil.StringArray(0)
@@ -1017,6 +1003,16 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
         endif
         cmdIdx += 1
     endwhile
+
+    lastKey = 0
+    MostRecentResult = ""
+    CustomResolveResult = ""
+    CustomResolveFormResult = none
+    iterActor = none
+    currentScriptName = ""
+    currentLine = 0
+    lineNum = scriptlines[0]
+    command = ""
 
     totalLines = scriptlines.Length
 

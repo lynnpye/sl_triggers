@@ -22,7 +22,7 @@ endFunction
 ; sltname deb_msg
 ; sltgrup Utility
 ; sltdesc Joins all <msg> arguments together and adds the text to SKSE\Plugins\sl_triggers\debugmsg.log
-; sltdesc Text is always appended to the log, so if you use this, it will only grow in size until you truncate it.
+; sltdesc This file is truncated on game start.
 ; sltargs message: <msg> [<msg> <msg> ...]
 ; sltsamp deb_msg "Hello" "world!"
 ; sltsamp deb_msg "Hello world!"
