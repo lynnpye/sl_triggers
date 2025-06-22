@@ -1,21 +1,20 @@
 scriptname sl_triggersStatics
 
-function DebMsg(string msg) global
-	DebMsgForce(msg, true)
-endfunction
+Function SLTDebugMsg(string msg) global
+	sl_triggers_internal.LogDebug(msg)
+EndFunction
 
-function DebMsgForce(string msg, bool shouldIDoAnything) global
-	if !shouldIDoAnything
-		return
-	endif
-	
-	float tss = Utility.GetCurrentRealTime()
-	tss = Math.Floor(tss * 100.0) / 100.0
-	msg = (tss as string) + ": " + msg 
-	MiscUtil.WriteToFile("data/skse/plugins/sl_triggers/debugmsg.log", msg + "\n", true)
-	MiscUtil.PrintConsole(msg)
-	;Debug.Notification(msg)
-endfunction
+Function SLTErrMsg(string msg) global
+	sl_triggers_internal.LogError(msg)
+EndFunction
+
+Function SLTInfoMsg(string msg) global
+	sl_triggers_internal.LogInfo(msg)
+EndFunction
+
+Function SLTWarnMsg(string msg) global
+	sl_triggers_internal.LogWarn(msg)
+EndFunction
 
 int Function GetModVersion() global
 	return 121
@@ -232,7 +231,7 @@ int Function GlobalHexToInt(string _value) global
 EndFunction
 
 Function SquawkFunctionError(sl_triggersCmd _cmdPrimary, string msg) global
-	DebMsg("SLT:(" + _cmdPrimary.currentScriptName + ")[" + _cmdPrimary.lineNum + "]: " + msg)
+	sl_triggers_internal.LogError("SLT:(" + _cmdPrimary.currentScriptName + ")[" + _cmdPrimary.lineNum + "]: " + msg)
 EndFunction
 
 bool Function ParamLengthLT(sl_triggersCmd _cmdPrimary, int actualLength, int neededLength) global

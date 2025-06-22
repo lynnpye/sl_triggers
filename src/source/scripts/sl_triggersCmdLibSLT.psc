@@ -21,7 +21,7 @@ endFunction
 
 ; sltname deb_msg
 ; sltgrup Utility
-; sltdesc Joins all <msg> arguments together and adds the text to SKSE\Plugins\sl_triggers\debugmsg.log
+; sltdesc Joins all <msg> arguments together and logs to "<Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log"
 ; sltdesc This file is truncated on game start.
 ; sltargs message: <msg> [<msg> <msg> ...]
 ; sltsamp deb_msg "Hello" "world!"
@@ -39,7 +39,7 @@ Function deb_msg(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
             i += 1
         endwhile
         string dmsg = PapyrusUtil.StringJoin(darr, "")
-        DebMsg(dmsg)
+        SLTDebugMsg(dmsg)
     endif
 
 	CmdPrimary.CompleteOperationOnActor()
@@ -64,7 +64,7 @@ function msg_notify(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         endwhile
         string msg = PapyrusUtil.StringJoin(darr, "")
         Debug.Notification(msg)
-        ;DebMsg(msg)
+        ;SLTInfoMsg(msg)
     endif
 
 	CmdPrimary.CompleteOperationOnActor()
@@ -447,10 +447,10 @@ function item_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
                 endif
                 _targetActor.AddItem(thing, count, isSilent)
             else
-                DebMsg("SLT: [" + CmdPrimary.currentScriptName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
+                SLTErrMsg("SLT: [" + CmdPrimary.currentScriptName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve actor variable (" + param[1] + ")")
             endif
         else
-            DebMsg("SLT: [" + CmdPrimary.currentScriptName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
+            SLTErrMsg("SLT: [" + CmdPrimary.currentScriptName + "][lineNum:" + CmdPrimary.lineNum + "] unable to resolve ITEM with FormId (" + param[2] + ")")
         endif
     endif
 

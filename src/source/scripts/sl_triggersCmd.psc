@@ -8,8 +8,6 @@ import StorageUtil
 ; SLT API access
 sl_triggersMain		Property SLT Auto
 
-; CONSTANTS
-
 ; Properties
 Actor			Property PlayerRef Auto
 Keyword			Property ActorTypeNPC Auto
@@ -27,15 +25,11 @@ Actor			Property CmdTargetActor Hidden
         if _cmdTA
             CmdTargetFormID             = _cmdTA.GetFormID()
 
-            ktarget_v_prefix = "SLTR:target" + CmdTargetFormID + ":vars:"
+            ktarget_v_prefix = "SLTR:target:" + CmdTargetFormID + ":vars:"
         endif
     EndFunction
 EndProperty
 int             Property CmdTargetFormID Auto Hidden
-
-int Property TOKEN_TYPE_BARE = 1 AutoReadOnly Hidden
-int Property TOKEN_TYPE_STRING_LITERAL = 2 AutoReadOnly Hidden
-int Property TOKEN_TYPE_STRING_INTERP = 3 AutoReadOnly Hidden
 
 ; pre-generated keys for thread context
 int _threadid = 0
@@ -129,6 +123,7 @@ Function DoStartup()
         endif
         if threadid > 0
             if !slt_Frame_Push(initialScriptName, none)
+                SLTErrMsg("sl_triggersCmd: invalid push frame attempt for script(" + initialScriptName + ")")
                 CleanupAndRemove()
                 return
             endif
@@ -140,6 +135,7 @@ Function DoStartup()
             QueueUpdateLoop(0.01)
         endif
     else
+        SLTErrMsg("sl_triggersCmd unable to obtain threadid; bailing")
         CleanupAndRemove()
     endif
 EndFunction
@@ -162,8 +158,8 @@ Function CleanupAndRemove()
     endif
 
     cleanedup = true
-    UnregisterForAllModEvents()
     isExecuting = false
+    UnregisterForAllModEvents()
 
     Self.Dispel()
 EndFunction
@@ -726,7 +722,7 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
         cmdlines = sl_triggers.SplitScriptContents(_myCmdName)
         cmdNum = cmdlines.Length
     else
-        DebMsg("SLT: (unusual here) attempted to parse an unknown file type(" + _myCmdName + ") for scrtype (" + scrtype + ")")
+        SFE("SLT: (unusual here) attempted to parse an unknown file type(" + _myCmdName + ") for scrtype (" + scrtype + ")")
         return false
     endif
 
@@ -1009,7 +1005,7 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
     CustomResolveResult = ""
     CustomResolveFormResult = none
     iterActor = none
-    currentScriptName = ""
+    currentScriptName = _myCmdName
     currentLine = 0
     lineNum = scriptlines[0]
     command = ""

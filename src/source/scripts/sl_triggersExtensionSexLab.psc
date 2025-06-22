@@ -117,7 +117,6 @@ EndFunction
 ; EXTERNAL EVENT HANDLERS
 Event OnSexLabStart(String _eventName, String _args, Float _argc, Form _sender)
 	if !Self || !SexLabForm
-		Debug.Notification("Triggers: Critical error")
 		Return
 	EndIf
 	
@@ -132,7 +131,6 @@ EndEvent
 
 Event OnSexLabOrgasm(String _eventName, String _args, Float _argc, Form _sender)
 	if !Self || !SexLabForm
-		Debug.Notification("Triggers: Critical error")
 		Return
 	EndIf
 	
@@ -147,7 +145,6 @@ EndEvent
 
 Event OnSexLabEnd(String _eventName, String _args, Float _argc, Form _sender)
 	if !Self || !SexLabForm
-		Debug.Notification("Triggers: Critical error")
 		Return
 	EndIf
 	
@@ -162,7 +159,6 @@ EndEvent
 
 Event OnSexLabOrgasmS(Form ActorRef, Int Thread)
 	if !Self || !SexLabForm
-		Debug.Notification("Triggers: Critical error")
 		Return
 	EndIf
 	

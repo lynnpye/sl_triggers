@@ -94,7 +94,6 @@ EndEvent
 
 Event OnNewSession(int _newSessionId)
 	if !self
-		Debug.Notification("Triggers: Critical error")
 		Return
 	endif
 	
@@ -107,7 +106,6 @@ EndEvent
 
 Event OnTopOfTheHour(String eventName, string strArg, Float fltArg, Form sender)
 	if !self
-		Debug.Notification("Triggers: Critical error")
 		Return
 	endif
 	
@@ -121,7 +119,6 @@ EndEvent
 
 Event OnKeyUp(int KeyCode, float holdTime)
 	if !self
-		Debug.Notification("Triggers: Critical error")
 		Return
 	endif
 
@@ -130,14 +127,13 @@ EndEvent
 
 Event OnKeyDown(Int KeyCode)
 	if !self
-		Debug.Notification("Triggers: Critical error")
 		Return
 	endif
 
 	_keystates[KeyCode] = true
 	
 	If !IsEnabled
-		DebMsg("Not enabled yet, exiting OnKeyDown early")
+		SLTWarnMsg("Not enabled yet, exiting OnKeyDown early")
 	else
 		HandleOnKeyDown()
 	Endif

@@ -45,6 +45,10 @@ EndFunction
 ;; Events
 
 Event OnInit()
+	if bDebugMsg
+		SLTDebugMsg("Main.OnInit")
+	endif
+
 	if !self
 		return
 	endif
@@ -55,6 +59,9 @@ Event OnInit()
 EndEvent
 
 Function DoPlayerLoadGame()
+	if bDebugMsg
+		SLTDebugMsg("Main.DoPlayerLoadGame")
+	endif
 	if !self
 		return
 	endif
@@ -62,6 +69,9 @@ Function DoPlayerLoadGame()
 EndFunction
 
 Function BootstrapSLTInit()
+	if bDebugMsg
+		SLTDebugMsg("Main.BootstrapSLTInit")
+	endif
 	if !self
 		return
 	endif
@@ -127,11 +137,17 @@ Event OnUpdate()
 	endif
 	
 	if _registrationBeaconCount == REGISTRATION_BEACON_COUNT - 1
+		if bDebugMsg
+			SLTDebugMsg("Main: Sending new session event")
+		endif
 		SendEventSLTOnNewSession()
 	endif
 
 	if _registrationBeaconCount > 0
 		_registrationBeaconCount -= 1
+		if bDebugMsg
+			SLTDebugMsg("Main: Sending registration beacon")
+		endif
 		DoRegistrationBeacon()
 	endif
 
@@ -139,13 +155,16 @@ Event OnUpdate()
 EndEvent
 
 Event OnSLTRegisterExtension(string _eventName, string extensionKey, float fltval, Form extensionToRegister_asForm)
+	if bDebugMsg
+		SLTDebugMsg("Main.OnSLTRegisterExtension extensionKey(" + extensionKey + ")")
+	endif
 	Quest extensionToRegister = extensionToRegister_asForm as Quest
 	if !self || !extensionToRegister
 		return
 	endif
 	sl_triggersExtension sltExtension = extensionToRegister as sl_triggersExtension
 	if !sltExtension
-		DebMsg("Non-sl_triggersExtension attempted registration")
+		SLTWarnMsg("Non-sl_triggersExtension attempted registration")
 		return
 	endif
 	DoRegistrationActivity(sltExtension)
@@ -177,15 +196,18 @@ Event OnSLTRequestList(string _eventName, string _storageUtilStringListKey, floa
 	endif
 EndEvent
 
-Event OnSLTRequestCommand(string _eventName, string _commandName, float __ignored, Form _theTarget)
+Event OnSLTRequestCommand(string _eventName, string _scriptname, float __ignored, Form _theTarget)
+	if bDebugMsg
+		SLTDebugMsg("Main.OnSLTRequestCommand scriptname(" + _scriptname + ") target(" + _theTarget + ")")
+	endif
 	if !self
 		return
 	endif
-	if !_commandName
+	if !_scriptname
 		return
 	endif
 
-	StartCommand(_theTarget, _commandName)
+	StartCommand(_theTarget, _scriptname)
 EndEvent
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -276,14 +298,21 @@ Function DoRegistrationActivity(sl_triggersExtension _extensionToRegister)
 		endif
 		Extensions = newForms
 		
+		if bDebugMsg
+			SLTDebugMsg("Main: Setting extension pages for SLTMCM")
+		endif
 		SLTMCM.SetExtensionPages(extensionFriendlyNames, extensionKeys)
 	else
-		DebMsg("SLTMCM is empty")
+		SLTErrMsg("SLTMCM is empty")
 	endif
 EndFunction
 
 Function DoInMemoryReset()
+	if bDebugMsg
+		SLTDebugMsg("Main: Sending SLT Reset event and clearing StorageUtil for SLTR objects")
+	endif
 	SendModEvent(EVENT_SLT_RESET())
+	StorageUtil.ClearAllObjPrefix(self, "SLTR:")
 	BootstrapSLTInit()
 EndFunction
 
@@ -366,7 +395,7 @@ Event OnSLTDelayStartCommand(string eventName, string initialScriptName, float r
 	bool scriptStarted = sl_triggers_internal.StartScript(target, initialScriptName)
 	if !scriptStarted
 		if reAttemptCount > 5
-			MiscUtil.PrintConsole("Reattempted script(" + initialScriptName + ") for Actor(" + target + ") attempts(" + reAttemptCount + ") - giving up")
+			SLTWarnMsg("Reattempted script(" + initialScriptName + ") for Actor(" + target + ") attempts(" + reAttemptCount + ") - giving up")
 			return
 		endif
 		target.SendModEvent(EVENT_SLT_DELAY_START_COMMAND(), initialScriptName, reAttemptCount)
@@ -448,15 +477,9 @@ Function StartCommand(Form targetForm, string initialScriptName)
 		thread_pending_info = PapyrusUtil.MergeStringArray(thread_pending_info, new_thread_info)
 	endif
 
-	;/
-	Thread_SetInitialScriptName(self, Thread_Create_kt_d_initialScriptName(threadid), initialScriptName)
-	Thread_SetTarget(self, Thread_Create_kt_d_target(threadid), target)
-	Target_AddThread(self, Target_Create_ktgt_threads_idlist(target.GetFormID()), threadid)
-	/;
-
 	bool scriptStarted = sl_triggers_internal.StartScript(target, initialScriptName)
 	if !scriptStarted
-		MiscUtil.PrintConsole("Too many SLTR effects on target(" + target + "); attempting to delay script execution")
+		SLTWarnMsg("Too many SLTR effects on target(" + target + "); attempting to delay script execution")
 		target.SendModEvent(EVENT_SLT_DELAY_START_COMMAND(), initialScriptName, 0.0)
 	endif
 EndFunction

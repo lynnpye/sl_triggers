@@ -1,0 +1,16 @@
+{
+	"float" : 
+	{
+		"chance" : 100
+	},
+	"int" : 
+	{
+		"__slt_mod_version__" : 116,
+		"event" : 1,
+		"player" : 1
+	},
+	"string" : 
+	{
+		"do_1" : "AnnouncePlayerHavingSex.ini"
+	}
+}
