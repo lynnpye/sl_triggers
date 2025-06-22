@@ -231,7 +231,7 @@ string Function Resolve(string token)
     endif
 
     int tokenlength
-    string varscope
+    int[] varscopelist = new int[2]
     string vtok
     int j
     int i = 0
@@ -262,10 +262,10 @@ string Function Resolve(string token)
                     return PapyrusUtil.StringJoin(vartoks, "")
                 endif
             endif
-
-            varscope = GetVarScope(token)
-            if varscope
-                return GetVarString(self, varscope, token)
+            
+            GetVarScope(token, varscopelist)
+            if varscopelist[0]
+                return GetVarString(self, varscopelist, token, "")
             endif
         endif
         
@@ -332,6 +332,7 @@ Function RunScript()
     string   po
     string[] cmdLine
     int[] tokentypes = new int[128]
+    int[] varscopelist = new int[2]
 
     while isExecuting && frameid
         while currentLine < totalLines
@@ -346,10 +347,9 @@ Function RunScript()
                     currentLine += 1
                 elseIf command == "set"
                     if ParamLengthGT(self, cmdLine.Length, 2)
-                        string varscope = GetVarScope(cmdLine[1])
-                    
-                        if varscope
-                        
+                        GetVarScope(cmdLine[1], varscopelist)
+
+                        if varscopelist[0]
                             string strparm2 = Resolve(cmdLine[2])
                         
                             if cmdLine.Length > 3 && strparm2 == "resultfrom"
@@ -358,12 +358,12 @@ Function RunScript()
                                     string[] subCmdLine = PapyrusUtil.SliceStringArray(cmdLine, 3)
                                     subCmdLine[0] = subcode
                                     RunOperationOnActor(subCmdLine)
-                                    SetVarString(self, varscope, cmdLine[1], MostRecentResult)
+                                    SetVarString(self, varscopelist, cmdLine[1], MostRecentResult)
                                 else
                                     SFE("Unable to resolve function for 'set resultfrom' with (" + cmdLine[3] + ")")
                                 endif
                             elseif cmdLine.length == 3
-                                SetVarString(self, varscope, cmdLine[1], strparm2)
+                                SetVarString(self, varscopelist, cmdLine[1], strparm2)
                             elseif cmdLine.length == 5
                                 string strparm4 = Resolve(cmdLine[4])
                                 float op1 = strparm2 as float
@@ -385,7 +385,7 @@ Function RunScript()
                                 else
                                     SFE("unexpected operator for 'set' (" + operat + ")")
                                 endif
-                                SetVarString(self, varscope, cmdLine[1], strresult)
+                                SetVarString(self, varscopelist, cmdLine[1], strresult)
                             endif
                         else
                             SFE("invalid variable name, not resolvable (" + cmdLine[1] + ")")
@@ -402,7 +402,6 @@ Function RunScript()
                         po = Resolve(cmdLine[2])
                         
                         if po
-                            ;bool ifTrue = resolveCond(p1, p2, po)
 
                             bool ifTrue = false
                             if po == "=" || po == "==" || po == "&="
@@ -455,19 +454,20 @@ Function RunScript()
                             incrFloat = Resolve(cmdLine[2]) as float
                             isIncrInt = (incrInt == incrFloat)
                         endif
-
-                        string varscope = GetVarScope(varstr)
-                        if varscope
-                            string fetchedvar = GetVarString(self, varscope, varstr)
+                            
+                        GetVarScope(varstr, varscopelist)
+                        if varscopelist[0]
+                            string fetchedvar = GetVarString(self, varscopelist, varstr, "")
+                            
                             int varint = fetchedvar as int
                             float varfloat = fetchedvar as float
                             if (varint == varfloat && isIncrInt)
-                                SetVarString(self, varscope, varstr, (varint + incrInt) as string)
+                                SetVarString(self, varscopelist, varstr, (varint + incrInt) as string)
                             else
-                                SetVarString(self, varscope, varstr, (varfloat + incrFloat) as string)
+                                SetVarString(self, varscopelist, varstr, (varfloat + incrFloat) as string)
                             endif
                         else
-                            SFE("no resolve found for variable parameter (" + cmdLine[1] + ") varstr(" + varstr + ") varscope(" + varscope + ")")
+                            SFE("no resolve found for variable parameter (" + cmdLine[1] + ") varstr(" + varstr + ") varscope(" + varscopelist[1] + ")")
                         endif
                     endif
                     currentLine += 1
@@ -486,10 +486,11 @@ Function RunScript()
                     if ParamLengthGT(self, cmdLine.Length, 2)
                         string varstr = cmdLine[1]
                         float incrAmount = Resolve(cmdLine[2]) as float
-
-                        string varscope = GetVarScope(varstr)
-                        if varscope
-                            SetVarString(self, varscope, varstr, (GetVarString(self, varscope, varstr) + Resolve(cmdLine[2])) as string)
+                            
+                        GetVarScope(varstr, varscopelist)
+                        if varscopelist[0]
+                            SetVarString(self, varscopelist, varstr, (GetVarString(self, varscopelist, varstr, "") + Resolve(cmdLine[2])) as string)
+                            
                         else
                             SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
                         endif
@@ -561,10 +562,11 @@ Function RunScript()
                         else
                             SFE("maximum index for callarg is " + callargs.Length)
                         endif
-
-                        string varscope = GetVarScope(arg)
-                        if varscope
-                            SetVarString(self, varscope, arg, newval)
+                            
+                        GetVarScope(arg, varscopelist)
+                        if varscopelist[0]
+                            SetVarString(self, varscopelist, arg, newval)
+                            
                         else
                             SFE("unable to resolve variable name (" + arg + ")")
                         endif

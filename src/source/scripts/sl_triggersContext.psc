@@ -5,65 +5,66 @@ import sl_triggersStatics
 
 ;;;;
 ;; Support
-string function GetVarScope(string varname) global
-    if "$" != StringUtil.GetNthChar(varname, 0)
-        return ""
+function GetVarScope(string varname, int[] varscope) global
+    if "$" == StringUtil.GetNthChar(varname, 0)
+        int dotindex = StringUtil.Find(varname, ".", 1)
+        if dotindex < 0
+            varscope[0] = 1
+            varscope[1] = 1
+        else
+            int varnamelen = StringUtil.GetLength(varname)
+            
+            if dotindex >= varnamelen - 1
+                varscope[0] = 0
+                varscope[1] = 0
+            else
+                string scope = StringUtil.Substring(varname, 0, dotindex)
+                if scope == "$local"
+                    varscope[0] = 1
+                    varscope[1] = 6
+                elseif scope == "$thread"
+                    varscope[0] = 2
+                    varscope[1] = 7
+                elseif scope == "$target"
+                    varscope[0] = 3
+                    varscope[1] = 7
+                elseif scope == "$global"
+                    varscope[0] = 4
+                    varscope[1] = 7
+                elseif scope == "$system"
+                    varscope[0] = 0
+                    varscope[1] = 0
+                endif
+            endif
+        endif
+    else
+        varscope[0] = 0
+        varscope[1] = 0
     endif
+endfunction
 
-    int dotindex = StringUtil.Find(varname, ".", 1)
-    if dotindex < 0
-        return "default"
+string function GetVarString(sl_triggersCmd cmdPrimary, int[] varscope, string token, string missing) global
+    if varscope[0] == 1
+        return GetStringValue(cmdPrimary.SLT, cmdPrimary.kframe_v_prefix + StringUtil.Substring(token, varscope[1]), missing)
+    elseif varscope[0] == 2
+        return GetStringValue(cmdPrimary.SLT, cmdPrimary.kthread_v_prefix + StringUtil.Substring(token, varscope[1]), missing)
+    elseif varscope[0] == 3
+        return GetStringValue(cmdPrimary.SLT, cmdPrimary.ktarget_v_prefix + StringUtil.Substring(token, varscope[1]), missing)
+    elseif varscope[0] == 4
+        return GetStringValue(cmdPrimary.SLT, "SLTR:global:vars:" + StringUtil.Substring(token, varscope[1]), missing)
     endif
-
-    int varnamelen = StringUtil.GetLength(varname)
-    
-    if dotindex >= varnamelen - 1
-        return ""
-    endif
-
-    string scope = StringUtil.Substring(varname, 0, dotindex)
-    if scope == "$local"
-        return "frame"
-    elseif scope == "$thread"
-        return "thread"
-    elseif scope == "$target"
-        return "target"
-    elseif scope == "$global"
-        return "global"
-    elseif scope == "$system"
-        return ""
-    endif
-    
     return ""
 endfunction
 
-
-string function GetVarString(sl_triggersCmd cmdPrimary, string scope, string varname, string missing = "") global
-    if scope == "default"
-        return Frame_GetStringValue(cmdPrimary.SLT, cmdPrimary.kframe_v_prefix, StringUtil.Substring(varname, 1), missing)
-    elseif scope == "frame"
-        return Frame_GetStringValue(cmdPrimary.SLT, cmdPrimary.kframe_v_prefix, StringUtil.Substring(varname, 6), missing)
-    elseif scope == "thread"
-        return Thread_GetStringValue(cmdPrimary.SLT, cmdPrimary.kthread_v_prefix, StringUtil.Substring(varname, 7), missing)
-    elseif scope == "target"
-        return Target_GetStringValue(cmdPrimary.SLT, cmdPrimary.ktarget_v_prefix, StringUtil.Substring(varname, 7), missing)
-    elseif scope == "global"
-        return Global_GetStringValue(cmdPrimary.SLT, StringUtil.Substring(varname, 7), missing)
-    endif
-    return ""
-endfunction
-
-string function SetVarString(sl_triggersCmd cmdPrimary, string scope, string varname, string value) global
-    if scope == "default"
-        return Frame_SetStringValue(cmdPrimary.SLT, cmdPrimary.kframe_v_prefix, StringUtil.Substring(varname, 1), value)
-    elseif scope == "frame"
-        return Frame_SetStringValue(cmdPrimary.SLT, cmdPrimary.kframe_v_prefix, StringUtil.Substring(varname, 6), value)
-    elseif scope == "thread"
-        return Thread_SetStringValue(cmdPrimary.SLT, cmdPrimary.kthread_v_prefix, StringUtil.Substring(varname, 7), value)
-    elseif scope == "target"
-        return Target_SetStringValue(cmdPrimary.SLT, cmdPrimary.ktarget_v_prefix, StringUtil.Substring(varname, 7), value)
-    elseif scope == "global"
-        return Global_SetStringValue(cmdPrimary.SLT, StringUtil.Substring(varname, 7), value)
+string function SetVarString(sl_triggersCmd cmdPrimary, int[] varscope, string token, string value) global
+    if varscope[0] == 1
+        return SetStringValue(cmdPrimary.SLT, cmdPrimary.kframe_v_prefix + StringUtil.Substring(token, varscope[1]), value)
+    elseif varscope[0] == 2
+        return SetStringValue(cmdPrimary.SLT, cmdPrimary.kthread_v_prefix + StringUtil.Substring(token, varscope[1]), value)
+    elseif varscope[0] == 3
+        return SetStringValue(cmdPrimary.SLT, cmdPrimary.ktarget_v_prefix + StringUtil.Substring(token, varscope[1]), value)
+    elseif varscope[0] == 4
+        return SetStringValue(cmdPrimary.SLT, "SLTR:global:vars:" + StringUtil.Substring(token, varscope[1]), value)
     endif
     return ""
 endfunction
