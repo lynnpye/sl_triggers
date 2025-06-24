@@ -5,6 +5,12 @@ setlocal
 REM Everything below this line should be able to remain untouched
 SET "SRC_DIR=%~dp0src"
 
+
+SET "DLL_SRC=..\..\sl-triggers\build\release-msvc\sl-triggers.dll"
+SET "SRC_DLL_DIR=%SRC_DIR%\SKSE\Plugins\"
+ECHO Copy sll-triggers.dll to %SRC_DIR%
+XCOPY /i /y "%DLL_SRC%" "%SRC_DLL_DIR%"
+
 :: Check for exactly one argument
 if "%~1"=="" (
     echo Usage: %~nx0 ^<integer-version-number^>
@@ -32,6 +38,8 @@ del /f %THEZIP%
 pushd src
 powershell -Command "Compress-Archive -Path '%SRC_DIR%\*' -DestinationPath '%THEZIP%'"
 popd
+
+DEL "%SRC_DLL_DIR%\sl-triggers.dll"
 
 endlocal
 

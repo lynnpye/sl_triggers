@@ -6,16 +6,23 @@ scriptname sl_triggersExtensionCore extends sl_triggersExtension
 
 import sl_triggersStatics
 
+ActorBase Property pkSentinelBase Auto
+Actor Property pkSentinel Auto Hidden
+
 string	EVENT_TOP_OF_THE_HOUR					= "TopOfTheHour"
 string	EVENT_TOP_OF_THE_HOUR_HANDLER			= "OnTopOfTheHour"
 
 int		EVENT_ID_KEYMAPPING 					= 1
 int		EVENT_ID_TOP_OF_THE_HOUR				= 2
 int  	EVENT_ID_NEW_SESSION					= 3
+int		EVENT_ID_PLAYER_CELL_CHANGE				= 4
+int		EVENT_ID_PLAYER_LOADING_SCREEN			= 5
 string	ATTR_EVENT								= "event"
 string	ATTR_KEYMAPPING							= "keymapping"
 string	ATTR_MODIFIERKEYMAPPING 				= "modifierkeymapping"
 string	ATTR_USEDAK								= "usedak"
+string  ATTR_DAYTIME							= "daytime"
+string	ATTR_LOCATION							= "location"
 string	ATTR_CHANCE								= "chance"
 string	ATTR_DO_1								= "do_1"
 string	ATTR_DO_2								= "do_2"
@@ -44,11 +51,20 @@ bool[]		_keystates
 string[]	triggerKeys_topOfTheHour
 string[]	triggerKeys_keyDown
 string[]	triggerKeys_newSession
+string[]	triggerKeys_playercellchange
+string[]	triggerKeys_playerloadingscreen
+
+bool		playerCellChangeHandlingReady
+float 		last_time_PlayerCellChangeEvent
 
 Event OnInit()
 	if !self
 		return
 	endif
+
+	playerCellChangeHandlingReady = false
+	pkSentinel = PlayerRef.PlaceActorAtMe(pkSentinelBase)
+
 	; REQUIRED CALL
 	UnregisterForUpdate()
 	RegisterForSingleUpdate(0.01)
@@ -59,6 +75,12 @@ Event OnUpdate()
 EndEvent
 
 Function SLTReady()
+	if !pkSentinel
+		pkSentinel = PlayerRef.PlaceActorAtMe(pkSentinelBase)
+	endif
+	RelocatePlayerLoadingScreenSentinel()
+	playerCellChangeHandlingReady = true
+
 	_keystates = PapyrusUtil.BoolArray(256, false)
 	UpdateDAKStatus()
 	RefreshData()
@@ -139,10 +161,58 @@ Event OnKeyDown(Int KeyCode)
 	Endif
 EndEvent
 
+Function Send_SLTR_OnPlayerCellChange()
+	; optional send actual mod event, otherwise at least pass it off to our handlers
+	SendModEvent(EVENT_SLTR_ON_PLAYER_CELL_CHANGE())
+	HandleOnPlayerCellChange()
+EndFunction
+
+Function SLTR_Internal_PlayerCellChange()
+	if !playerCellChangeHandlingReady
+		return
+	endif
+	float nowtime = Utility.GetCurrentRealTime()
+
+	if (nowtime - last_time_PlayerCellChangeEvent) < 0.1
+		; ignoring flutter
+		return
+	endif
+	last_time_PlayerCellChangeEvent = nowtime
+	RelocatePlayerLoadingScreenSentinel()
+	SLTDebugMsg("Core.SendPlayerCellChangeEvent")
+	Send_SLTR_OnPlayerCellChange()
+EndFunction
+
+Function RelocatePlayerLoadingScreenSentinel()
+	pkSentinel.MoveTo(PlayerRef, 0.0, 0.0, 256.0)
+EndFunction
+
+Function Send_SLTR_OnPlayerLoadingScreen()
+	; optional send actual mod event, otherwise at least pass it off to our handlers
+	SendModEvent(EVENT_SLTR_ON_PLAYER_LOADING_SCREEN())
+	HandleOnPlayerLoadingScreen()
+EndFunction
+
+; in the example, called OnPlayerLoadingScreen() but surely it's for more than that?
+Function SLTR_Internal_PlayerNewSpaceEvent()
+	SLTDebugMsg("Core.SLTR_Internal_PlayerNewSpaceEvent")
+	;/
+{Event called manually by our sentinel actor's AI package.}
+   CallSomeFunction() ; THIS IS WHERE YOU'D NOTIFY YOUR MOD THAT A LOAD SCREEN HAS TAKEN PLACE
+   ;
+   ; Prep for next load screen.
+   ;
+	/;
+	RelocatePlayerLoadingScreenSentinel()
+	Send_SLTR_OnPlayerLoadingScreen()
+EndFunction
+
 Function RefreshTriggerCache()
-	triggerKeys_topOfTheHour = PapyrusUtil.StringArray(0)
-	triggerKeys_keyDown = PapyrusUtil.StringArray(0)
-	triggerKeys_newSession = PapyrusUtil.StringArray(0)
+	triggerKeys_topOfTheHour			= PapyrusUtil.StringArray(0)
+	triggerKeys_keyDown					= PapyrusUtil.StringArray(0)
+	triggerKeys_newSession				= PapyrusUtil.StringArray(0)
+	triggerKeys_playercellchange		= PapyrusUtil.StringArray(0)
+	triggerKeys_playerloadingscreen		= PapyrusUtil.StringArray(0)
 	int i = 0
 	
 	while i < TriggerKeys.Length
@@ -157,6 +227,10 @@ Function RefreshTriggerCache()
 				triggerKeys_keyDown = PapyrusUtil.PushString(triggerKeys_keyDown, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_NEW_SESSION
 				triggerKeys_newSession = PapyrusUtil.PushString(triggerKeys_newSession, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_PLAYER_CELL_CHANGE
+				triggerKeys_playercellchange = PapyrusUtil.PushString(triggerKeys_playercellchange, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_PLAYER_LOADING_SCREEN
+				triggerKeys_playerloadingscreen = PapyrusUtil.PushString(triggerKeys_playerloadingscreen, TriggerKeys[i])
 			endif
 		endif
 
@@ -391,3 +465,83 @@ Function HandleOnKeyDown()
 	endwhile
 EndFunction
 
+Function HandleOnPlayerCellChange()
+	int i = 0
+	string triggerKey
+	string command
+	while i < triggerKeys_playercellchange.Length
+		triggerKey = triggerKeys_playercellchange[i]
+		string _triggerFile = FN_T(triggerKey)
+
+		float chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
+
+		if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+			int    ival
+			bool   doRun = true
+
+			if doRun
+				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
+				if ival != 0 ; 0 is Any
+					if ival == 1 && dayTime() != 1
+						doRun = false
+					elseIf ival == 2 && dayTime() != 2
+						doRun = false
+					endIf
+				endIf
+			endIf
+
+			if doRun
+				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_LOCATION)
+				if ival != 0 ; 0 is Any
+					if ival == 1 && !PlayerRef.IsInInterior()
+						doRun = false
+					elseIf ival == 2 && PlayerRef.IsInInterior()
+						doRun = false
+					endIf
+				endIf
+			endIf
+
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
+		endif
+		i += 1
+	endwhile
+EndFunction
+
+Function HandleOnPlayerLoadingScreen()
+	int i = 0
+	string triggerKey
+	string command
+	while i < triggerKeys_playerloadingscreen.Length
+		triggerKey = triggerKeys_playerloadingscreen[i]
+		string _triggerFile = FN_T(triggerKey)
+
+		float chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
+
+		if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
+		endif
+		i += 1
+	endwhile
+EndFunction

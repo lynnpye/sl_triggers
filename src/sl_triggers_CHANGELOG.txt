@@ -1,3 +1,7 @@
+122
+    enhancement: New Core event trigger "OnCellChange"
+        new standard modevent: OnSLTRPlayerCellChange
+
 121
     Savegame compatibility: NEW SAVE REQUIRED
     enhancement: stability - this version has been worked over considerably to improve the stability of the callstack mechanism and properly support load-resume mechanics
