@@ -17,6 +17,10 @@
         ["daytime", "triggerattribute_daytime"],
         ["location", "triggerattribute_location"],
         ["chance", "triggerattribute_chance"],
+        ["comconmat", "triggerattribute_comconmat"],
+        ["deeplocation", "triggerattribute_deeplocation"],
+        ["container_corpse", "triggerattribute_container_corpse"],
+        ["container_empty", "triggerattribute_container_empty"],
         ["do_1", "triggerattribute_do_1"],
         ["do_2", "triggerattribute_do_2"],
         ["do_3", "triggerattribute_do_3"]
@@ -24,7 +28,7 @@
     "triggerattribute_event" : [
         ["# here is where you define aspects of the attribute"],
         ["type", "int"],
-        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Key Mapping", "Top of the Hour", "New Session", "Player Cell Change", "Player Loading Screen"],
+        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Key Mapping", "Top of the Hour", "New Session", "Player Cell Change", "Player Loading Screen", "Player Container Activate"],
         ["info", "Choose which type of event this trigger will use."]
     ],
     "triggerattribute_keymapping" : 
@@ -60,6 +64,26 @@
         ["widget", "slider", "Chance: ", "0.0", "100.0", "1.0", "{0}"],
         ["info", "The chance the trigger will run when all prerequisites are met."]
     ],
+    "triggerattribute_comconmat" : [
+        ["type", "int"],
+        ["widget", "menu", "Common Containers :", "0", "Any", "Ignore Common Containers", "Only Common Containers"],
+        ["info", "How to handle containers based on their status as 'common' i.e. 'Barrel', 'Sack' and such. Definable in 'sl-triggers/containers.json'."]
+    ],
+    "triggerattribute_deeplocation": [
+        ["type", "int"],
+        ["widget", "menu", "Location :", "0", "Any", "Safe (Home/Jail/Inn)", "City / Town", "Wilderness", "Dungeon", "Player Home", "Jail", "Dungeon", "Cave", "Dwelling", "City", "Town", "Habitation", "Draugr Crypt", "Dragon Priest Lair", "Bandit Camp", "Falmer Hive", "Vampire Lair", "Dwarven Automatons", "Military Fort", "Mine", "Inn", "Hold"],
+        ["info", "The location, indoors or outdoors, the cell qualifies as."]
+    ],
+    "triggerattribute_container_corpse": [
+        ["type", "int"],
+        ["widget", "menu", "Corpses :", "0", "Any", "Ignore Corpses", "Only Corpses"],
+        ["info", "Whether the container is a corpse."]
+    ],
+    "triggerattribute_container_empty": [
+        ["type", "int"],
+        ["widget", "menu", "Empty Containers :", "0", "Any", "Ignore Empty Containers", "Only Empty Containers"],
+        ["info", "Whether the container has any contents."]
+    ],
     "triggerattribute_do_1" : [
         ["type", "string"],
         ["widget", "command", "Command 1: "],
@@ -82,7 +106,8 @@
         ["2", "triggerlayout_topofthehour"],
         ["3", "triggerlayout_newsession"],
         ["4", "triggerlayout_playercellchange"],
-        ["5", "triggerlayout_playerloadingscreen"]
+        ["5", "triggerlayout_playerloadingscreen"],
+        ["6", "triggerlayout_playercontaineractivate"]
     ],
     "triggerlayout_keymapping" : [
         ["event", "keymapping"],
@@ -108,6 +133,13 @@
     ],
     "triggerlayout_playerloadingscreen" : [
         ["event", "chance"],
+        ["do_1", "do_2"],
+        ["do_3"]
+    ],
+    "triggerlayout_playercontaineractivate" : [
+        ["event", "chance"],
+        ["comconmat", "deeplocation"],
+        ["container_corpse", "container_empty"],
         ["do_1", "do_2"],
         ["do_3"]
     ],

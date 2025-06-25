@@ -1,7 +1,7 @@
 scriptname sl_triggers Hidden
 
 sl_triggersMain Function Main() global
-    return sl_triggersStatics.GetForm_SLT_Main() as sl_triggersMain
+    return sl_triggersStatics.GetSLTMain()
 endFunction
 
 Form Function       GetForm(string someFormOfFormIdentification) global native

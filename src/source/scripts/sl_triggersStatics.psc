@@ -115,11 +115,11 @@ string FUNCTION DELETED_ATTRIBUTE() global
 EndFunction
 
 sl_TriggersMain Function GetSLTMain() global
-	return Game.GetFormFromFile(0xD62, "sl_triggers.esp") as sl_TriggersMain
+	return Game.GetFormFromFile(0x83F, "sl_triggers.esp") as sl_TriggersMain
 EndFunction
 
 Form Function GetForm_SLT_Main() global
-	return Game.GetFormFromFile(0xD62, "sl_triggers.esp")
+	return Game.GetFormFromFile(0x83F, "sl_triggers.esp")
 EndFunction
 
 Form Function GetForm_SLT_ExtensionCore() global
@@ -127,7 +127,7 @@ Form Function GetForm_SLT_ExtensionCore() global
 EndFunction
 
 Form Function GetForm_SLT_ExtensionSexLab() global
-	return Game.GetFormFromFile(0x85B, "sl_triggers.esp")
+	return Game.GetFormFromFile(0x83D, "sl_triggers.esp")
 EndFunction
 
 Form Function GetForm_Skyrim_ActorTypeNPC() global
@@ -185,6 +185,10 @@ EndFunction
 
 string Function FN_Settings() global
 	return "../sl_triggers/settings"
+EndFunction
+
+string Function FN_MoreContainersWeKnowAndLove() global
+	return "../sl_triggers/containers.json"
 EndFunction
 
 string Function FN_X_Settings(string _x) global

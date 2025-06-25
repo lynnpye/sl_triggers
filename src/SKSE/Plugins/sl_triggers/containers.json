@@ -1,0 +1,12 @@
+{
+	"formList" : 
+	{
+        "comment": ["These are JsonUtil formID format entries for containers which will be dynamically added to the container list at game start"],
+		"dt_additional" : [ "1055893|Skyrim.esm", "557932|Skyrim.esm" ]
+	},
+	"stringList" : 
+	{
+        "comment": ["Add the 'DisplayName' of any containers you want to have considered as 'common'"],
+		"dt_common" : [ "Barrel", "Large Sack", "Sack", "Urn", "Burial Urn", "Honningbrew Mead Barrel", "Black-Briar Mead Barrel" ]
+	}
+}

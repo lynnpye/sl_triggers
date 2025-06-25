@@ -35,6 +35,8 @@ string function event_sltr_on_container_activate() global
 endfunction
 string function event_sltr_on_player_cell_change() global
 endfunction
+string function event_sltr_on_player_loading_screen() global
+endfunction
 float function slt_list_request_su_key_is_global() global
 endfunction
 string function deleted_attribute() global
@@ -72,6 +74,8 @@ endfunction
 string function extensiontriggersfolder(string _extensionkey) global
 endfunction
 string function fn_settings() global
+endfunction
+string function fn_morecontainersweknowandlove() global
 endfunction
 string function fn_x_settings(string _x) global
 endfunction

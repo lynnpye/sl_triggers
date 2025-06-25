@@ -11,6 +11,31 @@ int		REGISTRATION_BEACON_COUNT		= 15
 ; Properties
 Actor               Property PlayerRef				Auto
 sl_triggersSetup	Property SLTMCM					Auto
+
+
+Keyword Property LocTypePlayerHome  Auto 
+Keyword Property LocTypeJail  Auto 
+Keyword Property LocTypeDungeon  Auto  
+Keyword Property LocSetCave  Auto 
+Keyword Property LocTypeDwelling  Auto  
+Keyword Property LocTypeCity  Auto  
+Keyword Property LocTypeTown  Auto  
+Keyword Property LocTypeHabitation  Auto  
+Keyword Property LocTypeDraugrCrypt  Auto  
+Keyword Property LocTypeDragonPriestLair  Auto  
+Keyword Property LocTypeBanditCamp  Auto  
+Keyword Property LocTypeFalmerHive  Auto  
+Keyword Property LocTypeVampireLair  Auto  
+Keyword Property LocTypeDwarvenAutomatons  Auto  
+Keyword Property LocTypeMilitaryFort  Auto  
+Keyword Property LocTypeMine  Auto  
+Keyword Property LocTypeInn  Auto
+Keyword Property LocTypeHold Auto
+
+Keyword[] Property LocationKeywords Auto Hidden
+
+
+
 bool				Property bEnabled		= true	Auto Hidden
 bool				Property bDebugMsg		= false	Auto Hidden
 Form[]				Property Extensions				Auto Hidden
@@ -52,6 +77,26 @@ Event OnInit()
 	if !self
 		return
 	endif
+
+	LocationKeywords = new Keyword[18]
+	LocationKeywords[0] = LocTypePlayerHome
+	LocationKeywords[1] = LocTypeJail
+	LocationKeywords[2] = LocTypeDungeon
+	LocationKeywords[3] = LocSetCave
+	LocationKeywords[4] = LocTypeDwelling
+	LocationKeywords[5] = LocTypeCity
+	LocationKeywords[6] = LocTypeTown
+	LocationKeywords[7] = LocTypeHabitation
+	LocationKeywords[8] = LocTypeDraugrCrypt
+	LocationKeywords[9] = LocTypeDragonPriestLair
+	LocationKeywords[10] = LocTypeBanditCamp
+	LocationKeywords[11] = LocTypeFalmerHive
+	LocationKeywords[12] = LocTypeVampireLair
+	LocationKeywords[13] = LocTypeDwarvenAutomatons
+	LocationKeywords[14] = LocTypeMilitaryFort
+	LocationKeywords[15] = LocTypeMine
+	LocationKeywords[16] = LocTypeInn
+	LocationKeywords[17] = LocTypeHold
 
 	global_var_keys = PapyrusUtil.StringArray(0)
 	global_var_vals = PapyrusUtil.StringArray(0)
@@ -482,4 +527,141 @@ Function StartCommand(Form targetForm, string initialScriptName)
 		SLTWarnMsg("Too many SLTR effects on target(" + target + "); attempting to delay script execution")
 		target.SendModEvent(EVENT_SLT_DELAY_START_COMMAND(), initialScriptName, 0.0)
 	endif
+EndFunction
+
+; flagset: bool[] - min length >= 19
+; Upon return, flagset will have the following values (true if the indicated keyword is present at current location):
+; [0] - no Location set
+; [1] - LocTypePlayerHome
+; [2] - LocTypeJail
+; ...etc
+Function GetPlayerLocationFlags(bool[] flagset)
+	if !flagset.Length
+		return
+	endif
+
+	Location pLoc = PlayerRef.GetCurrentLocation()
+	flagset[0] = pLoc != none
+
+	int i = 1
+	while i < LocationKeywords.Length && i < flagset.Length
+		flagset[i] = pLoc.HasKeyword(LocationKeywords[i - 1])
+		i += 1
+	endwhile
+EndFunction
+
+Function GetActorLocationFlags(Actor theActor, bool[] flagset)
+	if !flagset.Length || !theActor
+		return
+	endif
+
+	Location pLoc = theActor.GetCurrentLocation()
+	flagset[0] = pLoc != none
+
+	int i = 1
+	while i < LocationKeywords.Length && i < flagset.Length
+		flagset[i] = pLoc.HasKeyword(LocationKeywords[i - 1])
+		i += 1
+	endwhile
+EndFunction
+
+Keyword Function GetPlayerLocationKeyword()
+	Location pLoc = PlayerRef.GetCurrentLocation()
+	int i = 0
+	while pLoc && i < LocationKeywords.length
+		if pLoc.HasKeyword(LocationKeywords[i])
+			return LocationKeywords[i]
+		endif
+		i += 1
+	endwhile
+	return none
+EndFunction
+
+Keyword Function GetActorLocationKeyword(Actor theActor)
+	Location pLoc = theActor.GetCurrentLocation()
+	int i = 0
+	while pLoc && i < LocationKeywords.length
+		if pLoc.HasKeyword(LocationKeywords[i])
+			return LocationKeywords[i]
+		endif
+		i += 1
+	endwhile
+	return none
+EndFunction
+
+bool Function IsLocationKeywordSafe(Keyword locKeyword)
+	return locKeyword == LocTypePlayerHome || locKeyword == LocTypeJail || locKeyword == LocTypeInn
+EndFunction
+
+bool Function IsLocationKeywordCity(Keyword locKeyword)
+	return locKeyword == LocTypeCity || locKeyword == LocTypeTown || locKeyword == LocTypeHabitation || locKeyword == LocTypeDwelling
+EndFunction
+
+bool Function IsLocationKeywordWilderness(Keyword locKeyword)
+	return !locKeyword || locKeyword == LocTypeHold || locKeyword == LocTypeBanditCamp || locKeyword == LocTypeMilitaryFort
+EndFunction
+
+bool Function IsLocationKeywordDungeon(Keyword locKeyword)
+	return locKeyword == LocTypeDraugrCrypt || locKeyword == LocTypeDragonPriestLair || locKeyword == LocTypeFalmerHive || locKeyword == LocTypeVampireLair || locKeyword == LocTypeDwarvenAutomatons || locKeyword == LocTypeDungeon || locKeyword == LocTypeMine || locKeyword == LocSetCave
+EndFunction
+
+; available in a pinch, but not performant
+bool Function PlayerIsInDungeon()
+	if !PlayerRef.GetParentCell().IsInterior()
+		return false
+	endif
+	Location pLoc = PlayerRef.GetCurrentLocation()
+
+	return pLoc && (pLoc.HasKeyword(LocTypeDraugrCrypt) || ploc.HasKeyword(LocTypeDragonPriestLair) || ploc.HasKeyword(LocTypeFalmerHive) || ploc.HasKeyword(LocTypeVampireLair) || ploc.HasKeyword(LocTypeDwarvenAutomatons) || ploc.HasKeyword(LocTypeDungeon) || ploc.HasKeyword(LocTypeMine) || ploc.HasKeyword(LocSetCave))
+EndFunction
+
+bool Function PlayerIsInWilderness()
+	if PlayerRef.GetParentCell().IsInterior()
+		return false
+	endif
+	Location pLoc = PlayerRef.GetCurrentLocation()
+
+	return !pLoc || pLoc.HasKeyword(LocTypeHold) || ploc.HasKeyword(LocTypeBanditCamp) || ploc.HasKeyword(LocTypeMilitaryFort)
+EndFunction
+
+bool Function PlayerIsInCity()
+	Location pLoc = PlayerRef.GetCurrentLocation()
+
+	return pLoc && (pLoc.HasKeyword(LocTypeCity) || pLoc.HasKeyword(LocTypeTown) || pLoc.HasKeyword(LocTypeHabitation) || pLoc.HasKeyword(LocTypeDwelling))
+EndFunction
+
+bool Function PlayerIsInSafeLocation()
+	Location pLoc = PlayerRef.GetCurrentLocation()
+
+	return pLoc && (pLoc.HasKeyword(LocTypePlayerHome) || pLoc.HasKeyword(LocTypeJail) || pLoc.HasKeyword(LocTypeInn))
+EndFunction
+
+bool Function ActorIsInDungeon(Actor theActor)
+	if !theActor.GetParentCell().IsInterior()
+		return false
+	endif
+	Location pLoc = theActor.GetCurrentLocation()
+
+	return pLoc && (pLoc.HasKeyword(LocTypeDraugrCrypt) || ploc.HasKeyword(LocTypeDragonPriestLair) || ploc.HasKeyword(LocTypeFalmerHive) || ploc.HasKeyword(LocTypeVampireLair) || ploc.HasKeyword(LocTypeDwarvenAutomatons) || ploc.HasKeyword(LocTypeDungeon) || ploc.HasKeyword(LocTypeMine) || ploc.HasKeyword(LocSetCave))
+EndFunction
+
+bool Function ActorIsInWilderness(Actor theActor)
+	if theActor.GetParentCell().IsInterior()
+		return false
+	endif
+	Location pLoc = theActor.GetCurrentLocation()
+
+	return !pLoc || pLoc.HasKeyword(LocTypeHold) || ploc.HasKeyword(LocTypeBanditCamp) || ploc.HasKeyword(LocTypeMilitaryFort)
+EndFunction
+
+bool Function ActorIsInCity(Actor theActor)
+	Location pLoc = theActor.GetCurrentLocation()
+
+	return pLoc && (pLoc.HasKeyword(LocTypeCity) || pLoc.HasKeyword(LocTypeTown) || pLoc.HasKeyword(LocTypeHabitation) || pLoc.HasKeyword(LocTypeDwelling))
+EndFunction
+
+bool Function ActorIsInSafeLocation(Actor theActor)
+	Location pLoc = theActor.GetCurrentLocation()
+
+	return pLoc && (pLoc.HasKeyword(LocTypePlayerHome) || pLoc.HasKeyword(LocTypeJail) || pLoc.HasKeyword(LocTypeInn))
 EndFunction

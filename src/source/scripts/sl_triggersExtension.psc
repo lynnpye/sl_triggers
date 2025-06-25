@@ -149,7 +149,7 @@ Function SLTInit()
 	FN_S = FN_X_Settings(SLTExtensionKey)
 
 	if !SLT
-		SLT = GetForm_SLT_Main() as sl_triggersMain
+		SLT = GetSLTMain()
 	endif
 	if !ActorTypeNPC
 		ActorTypeNPC = GetForm_Skyrim_ActorTypeNPC() as Keyword

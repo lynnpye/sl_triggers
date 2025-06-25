@@ -1,5 +1,6 @@
 scriptname sl_triggersextensioncore extends sl_triggersextension
-actorbase property pksentinelbase auto
+actorbase property    pksentinelbase auto
+formlist property    thecontainersweknowandlove auto ; so many naming schemes to choose from
 actor property pksentinel auto hidden
 globalvariable  property dakstatus    auto hidden
 bool    property dakavailable   auto hidden
@@ -25,11 +26,21 @@ event onkeyup(int keycode, float holdtime)
 endevent
 event onkeydown(int keycode)
 endevent
-function sendplayercellchangeevent()
+function send_sltr_onplayercellchange()
+endfunction
+function sltr_internal_playercellchange()
 endfunction
 function relocateplayerloadingscreensentinel()
 endfunction
+function send_sltr_onplayerloadingscreen()
+endfunction
 function sltr_internal_playernewspaceevent()
+endfunction
+function send_sltr_onplayeractivatecontainer(objectreference containerref, bool container_is_corpse, bool container_is_empty)
+endfunction
+function sltr_internal_playeractivatedcontainer(objectreference containerref, bool container_is_corpse, bool container_is_empty)
+endfunction
+function refreshthecontainersweknowandlove()
 endfunction
 function refreshtriggercache()
 endfunction
@@ -46,5 +57,11 @@ endfunction
 function handletopofthehour()
 endfunction
 function handleonkeydown()
+endfunction
+function handleonplayercellchange()
+endfunction
+function handleonplayerloadingscreen()
+endfunction
+function handleplayercontaineractivation(objectreference containerref, bool container_is_corpse, bool container_is_empty, keyword playerlocationkeyword)
 endfunction
 ;This file was cleaned with PapyrusSourceHeadliner 1

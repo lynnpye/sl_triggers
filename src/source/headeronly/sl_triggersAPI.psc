@@ -1,19 +1,12 @@
-scriptname sl_triggersAPI
-
-int Function GetVersion() global
-    return 0
-EndFunction
-
-string[] Function GetScriptsList() global
-    return none
-EndFunction
-
-Function RunScript(string _scriptname, Actor _theActor = none) global
-EndFunction
-
-string Function GetOnNewSessionEventName() global
-    return ""
-EndFunction
-
-Function RegisterExtension(sl_triggersExtension extensionToRegister) global
-EndFunction
+scriptname sl_triggersapi
+int function getversion() global
+endfunction
+string[] function getscriptslist() global
+endfunction
+function runscript(string _scriptname, actor _theactor = none) global
+endfunction
+string function getonnewsessioneventname() global
+endfunction
+function registerextension(sl_triggersextension extensiontoregister) global
+endfunction
+;This file was cleaned with PapyrusSourceHeadliner 1
