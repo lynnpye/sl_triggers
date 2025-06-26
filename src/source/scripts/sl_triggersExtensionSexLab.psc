@@ -71,14 +71,59 @@ sslThreadController Function GetThreadForActor(Actor theActor)
     return (SexLabForm as SexLabFramework).GetActorController(theActor)
 EndFunction
 
-bool Function CustomResolveSystem(sl_triggersCmd CmdPrimary, string token)
-	if token == "is_available.sexlab"
-		CmdPrimary.CustomResolveResult = (IsEnabled && SexLabForm) as int
-		return true
+bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string scope, string token)
+	if scope == "system"
+		int skip = -1
+		if token == "partner" || token == "partner1"
+			skip = 1
+		elseif token == "partner2"
+			skip = 2
+		elseif token == "partner3"
+			skip = 3
+		elseif token == "partner4"
+			skip = 4
+		elseif token == "is_available.sexlab"
+			CmdPrimary.CustomResolveResult = (IsEnabled && SexLabForm) as int
+			return true
+		endif
+
+		if skip > 0
+			skip -= 1
+			
+			sslThreadController thread = (SexLabForm as SexLabFramework).GetActorController(CmdPrimary.CmdTargetActor)
+			if !thread
+				CmdPrimary.CustomResolveFormResult = none
+				CmdPrimary.CustomResolveResult = ""
+				return true
+			endif
+
+			int i = 0
+			while i < thread.Positions.Length
+				Actor other = thread.Positions[i]
+
+				if other != CmdPrimary.CmdTargetActor
+					if skip == 0
+						CmdPrimary.CustomResolveFormResult = other
+						CmdPrimary.CustomResolveResult = other.GetFormID()
+						return true
+					else
+						skip -= 1
+					endif
+				endif
+
+				i += 1
+			endwhile
+
+			CmdPrimary.CustomResolveFormResult = none
+			CmdPrimary.CustomResolveResult = ""
+			return true
+		endif
 	endif
+
 	return false
 EndFunction
 
+;/
 bool Function CustomResolveForm(sl_triggersCmd CmdPrimary, string token)
     if !self || !IsEnabled || !SexLabForm
         return false
@@ -99,7 +144,9 @@ bool Function CustomResolveForm(sl_triggersCmd CmdPrimary, string token)
 
     sslThreadController thread = (SexLabForm as SexLabFramework).GetActorController(CmdPrimary.CmdTargetActor)
     if !thread
-        return false
+		CmdPrimary.CustomResolveFormResult = none
+		CmdPrimary.CustomResolveResult = ""
+        return true
     endif
 
     int i = 0
@@ -109,6 +156,7 @@ bool Function CustomResolveForm(sl_triggersCmd CmdPrimary, string token)
         if other != CmdPrimary.CmdTargetActor
             if skip == 0
 				CmdPrimary.CustomResolveFormResult = other
+				CmdPrimary.CustomResolveResult = other.GetFormID()
                 return true
             else
                 skip -= 1
@@ -119,8 +167,10 @@ bool Function CustomResolveForm(sl_triggersCmd CmdPrimary, string token)
     endwhile
 
 	CmdPrimary.CustomResolveFormResult = none
+	CmdPrimary.CustomResolveResult = ""
     return true
 EndFunction
+/;
 
 ; EXTERNAL EVENT HANDLERS
 Event OnSexLabStart(String _eventName, String _args, Float _argc, Form _sender)

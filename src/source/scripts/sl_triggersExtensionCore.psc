@@ -101,17 +101,17 @@ Function RefreshData()
 	RegisterEvents()
 EndFunction
 
-bool Function CustomResolveSystem(sl_triggersCmd CmdPrimary, string token)
-	if token == "is_available.core"
-		CmdPrimary.CustomResolveResult = IsEnabled as int
-		return true
-	endif
-	return false
-EndFunction
-
-bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string token)
-	if token == "toh_elapsed"
-		return TohElapsedTime
+bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string scope, string token)
+	if scope == "core"
+		if token == "toh_elapsed"
+			CmdPrimary.CustomResolveResult = TohElapsedTime as string
+			return true
+		endif
+	elseif scope == "system"
+		if token == "is_available.core"
+			CmdPrimary.CustomResolveResult = IsEnabled as int
+			return true
+		endif
 	endif
 	return false
 EndFunction
@@ -566,7 +566,6 @@ Function HandleOnKeyDown()
 		endif
 		
 		if doRun
-			SLTDebugMsg("Core.HandleOnKeyDown: running _triggerFile(" + _triggerFile + ")")
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
 			if command
 				RequestCommand(PlayerRef, command)

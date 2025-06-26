@@ -52,8 +52,6 @@ int			Property lastKey = 0 auto  Hidden
 bool        Property cleanedup = false auto  hidden
 
 string	    Property MostRecentResult = "" auto Hidden
-string      Property CustomResolveResult = "" auto Hidden
-Form        Property CustomResolveFormResult = none auto Hidden
 Actor       Property iterActor = none auto Hidden
 string      Property currentScriptName = "" auto hidden
 int         Property currentLine = 0 auto hidden
@@ -62,6 +60,65 @@ int         Property lineNum = 1 auto hidden
 string[]    Property callargs auto hidden
 string      Property command = "" auto hidden
 
+string  _resolvedString
+bool    _resolvedBool
+int     _resolvedInt
+float   _resolvedFloat
+Form    _resolvedForm
+
+int         Property RT_STRING =    1 AutoReadOnly
+int         Property RT_BOOL =      2 AutoReadOnly
+int         Property RT_INT =       3 AutoReadOnly
+int         Property RT_FLOAT =     4 AutoReadOnly
+int         Property RT_FORM =      5 AutoReadOnly
+
+int         Property CustomResolveType Auto Hidden
+
+string      Property CustomResolveResult Hidden
+    string Function Get()
+        return _resolvedString
+    EndFunction
+    Function Set(string value)
+        _resolvedString = value
+        CustomResolveType = RT_STRING
+    EndFunction
+EndProperty
+bool        Property CustomResolveBoolResult Hidden
+    bool Function Get()
+        return _resolvedBool
+    EndFunction
+    Function Set(bool value)
+        _resolvedBool = value
+        CustomResolveType = RT_BOOL
+    EndFunction
+EndProperty
+int         Property CustomResolveIntResult  Hidden
+    int Function Get()
+        return _resolvedInt
+    EndFunction
+    Function Set(int value)
+        _resolvedInt = value
+        CustomResolveType = RT_INT
+    EndFunction
+EndProperty
+float        Property CustomResolveFloatResult  Hidden
+    float Function Get()
+        return _resolvedFloat
+    EndFunction
+    Function Set(float value)
+        _resolvedFloat = value
+        CustomResolveType = RT_FLOAT
+    EndFunction
+EndProperty
+Form        Property CustomResolveFormResult Hidden
+    Form Function Get()
+        return _resolvedForm
+    EndFunction
+    Function Set(Form value)
+        _resolvedForm = value
+        CustomResolveType = RT_FORM
+    EndFunction
+EndProperty
 
 
 string[] threadVarKeys
@@ -189,64 +246,187 @@ Function CompleteOperationOnActor()
     runOpPending = false
 EndFunction
 
-; Resolve
-; string token - a variable to retrieve the value of e.g. $$, $global.foo, $g3
-; returns: the value as a string; token if unable to resolve
-string Function Resolve(string token)
+bool Function InternalResolve(string token)
+    ;SLTDebugMsg("Cmd.InternalResolve: token(" + token + ")")
     if token == "$$"
-        return MostRecentResult
+        CustomResolveResult = MostRecentResult
+        return true
     endif
 
-    int tokenlength
-    int[] varscopelist = new int[2]
+    int tokenlength = StringUtil.GetLength(token)
+    string[] varscopestringlist = new string[2]
     string vtok
     int j
     int i = 0
     bool resolved = false
     bool sltChecked = false
 
-    while i < SLT.Extensions.Length
-        sl_triggersExtension slext = SLT.Extensions[i] as sl_triggersExtension
+    string char0 = StringUtil.GetNthChar(token, 0)
 
-        if !sltChecked && slext.GetPriority() >= 0
-            sltChecked = true
-                
-            tokenlength = StringUtil.GetLength(token)
-            if StringUtil.GetNthChar(token, tokenlength - 1) == "\""
-                if StringUtil.GetNthChar(token, 0) == "\""
-                    token = StringUtil.Substring(token, 1, tokenlength - 2)
-                    return token
-                    
-                elseif StringUtil.Substring(token, 0, 2) == "$\""
-                    string trimmed = StringUtil.Substring(token, 2, tokenlength - 3)
-                    string[] vartoks = sl_triggers.TokenizeForVariableSubstitution(trimmed)
-                    j = 0
-                    while j < vartoks.Length
-                        vartoks[j] = Resolve(vartoks[j])
+    if char0 == "\""
+        if StringUtil.GetNthChar(token, tokenlength - 1) == "\""
+            CustomResolveResult = StringUtil.Substring(token, 1, tokenlength - 2)
+            return true
+        endif
 
-                        j += 1
-                    endwhile
-                    return PapyrusUtil.StringJoin(vartoks, "")
+        ; imbalanced starting quote, treat as bare
+    elseif char0 == "$"
+        if StringUtil.GetNthChar(token, 1) == "\""
+            string trimmed = StringUtil.Substring(token, 2, tokenlength - 3)
+            string[] vartoks = sl_triggers.TokenizeForVariableSubstitution(trimmed)
+
+            j = 0
+            while j < vartoks.Length
+                ; everybody disliked the recursion
+                if InternalResolve(vartoks[j])
+                    vartoks[j] = CustomResolveResult
+                endif
+                ;/
+                GetVarScope2(vartoks[j], varscopestringlist)
+                if varscopestringlist[0]
+                    vartoks[j] = GetVarString2(varscopestringlist[0], varscopestringlist[1], "")
+                endif
+                /;
+
+                j += 1
+            endwhile
+            CustomResolveResult = PapyrusUtil.StringJoin(vartoks, "")
+            return true
+        endif
+
+        GetVarScope2(token, varscopestringlist)
+        string scope = varscopestringlist[0]
+        string vname = varscopestringlist[1]
+        
+        while i < SLT.Extensions.Length
+            sl_triggersExtension slext = SLT.Extensions[i] as sl_triggersExtension
+
+            if !sltChecked && slext.GetPriority() >= 0
+                sltChecked = true
+
+                if "system" == scope
+                    if "stats.running_scripts" == vname
+                        CustomResolveResult = SLT.RunningScriptCount
+                        return true
+                    elseif "self" == vname
+                        CustomResolveFormResult = CmdTargetActor
+                        return true
+                    elseif "player" == vname
+                        CustomResolveFormResult = PlayerRef
+                        return true
+                    elseif "actor" == vname
+                        CustomResolveFormResult = iterActor
+                        return true
+                    elseif "none" == vname
+                        CustomResolveFormResult = none
+                        return true
+                    endif
+                endif
+
+                if "local" == scope || "thread" == scope || "target" == scope || "global" == scope
+                    CustomResolveResult = GetVarString2(scope, vname, "")
+                    return true
                 endif
             endif
             
-            GetVarScope(token, varscopelist)
-            if varscopelist[0]
-                return GetVarString(varscopelist, token, "")
-            elseif token == "$system.stats.running_scripts"
-                return SLT.RunningScriptCount
+            ; might resolve to form?
+            resolved = slext.CustomResolveScoped(self, scope, vname)
+            if resolved
+                return true
             endif
+
+            i += 1
+        endwhile
+    endif
+
+    ; doesn't start with " nor $
+    ; treat as bare
+    return false
+EndFunction
+
+; Resolve
+; string token - a variable to retrieve the value of e.g. $$, $global.foo, $g3
+; returns: the value as a string; token if unable to resolve
+string Function Resolve(string token)
+    ;SLTDebugMsg("Cmd.Resolve token(" + token + ")")
+    if InternalResolve(token)
+        if RT_FORM == CustomResolveType
+            ;SLTDebugMsg("Cmd.Resolve: InternalResolve resolved to a form? form(" + CustomResolveFormResult + ") returning FormID(" + CustomResolveFormResult.GetFormID() + ")")
+            return CustomResolveFormResult.GetFormID()
+        endif
+
+        ;SLTDebugMsg("Cmd.Resolve: InternalResolve resolved to (" + CustomResolveResult + ")")
+        return CustomResolveResult
+    endif
+
+    ;SLTDebugMsg("Cmd.Resolve: InternalResolve did not resolve, returning token (" + token + ")")
+    return token
+    ;/
+    if token == "$$"
+        return MostRecentResult
+    endif
+
+    int tokenlength = StringUtil.GetLength(token)
+    int[] varscopelist = new int[2]
+    string[] varscopestringlist = new string[2]
+    string vtok
+    int j
+    int i = 0
+    bool resolved = false
+    bool sltChecked = false
+
+    string char0 = StringUtil.GetNthChar(token, 0)
+
+    if char0 == "\""
+        if StringUtil.GetNthChar(token, tokenlength - 1) == "\""
+            return StringUtil.Substring(token, 1, tokenlength - 2)
+        endif
+
+        ; imbalanced starting quote, treat as bare
+        return token
+    elseif char0 == "$"
+        if StringUtil.GetNthChar(token, 1) == "\""
+            string trimmed = StringUtil.Substring(token, 2, tokenlength - 3)
+            string[] vartoks = sl_triggers.TokenizeForVariableSubstitution(trimmed)
+            j = 0
+            while j < vartoks.Length
+                GetVarScope2(vartoks[j], varscopestringlist)
+                if varscopestringlist[1]
+                    vartoks[j] = GetVarString2(varscopestringlist[0], varscopestringlist[1], "")
+                endif
+                ;vartoks[j] = Resolve(vartoks[j])
+
+                j += 1
+            endwhile
+            return PapyrusUtil.StringJoin(vartoks, "")
         endif
         
-        resolved = slext.CustomResolve(self, token)
-        if resolved
-            return CustomResolveResult
-        endif
+        while i < SLT.Extensions.Length
+            sl_triggersExtension slext = SLT.Extensions[i] as sl_triggersExtension
 
-        i += 1
-    endwhile
+            if !sltChecked && slext.GetPriority() >= 0
+                sltChecked = true
+                
+                GetVarScope2(token, varscopestringlist)
+                if varscopestringlist[0]
+                    return GetVarString2(varscopestringlist[0], varscopestringlist[1], "")
+                endif
 
+            endif
+            
+            resolved = slext.CustomResolveScoped(self, varscopestringlist[0], varscopestringlist[1])
+            if resolved
+                return CustomResolveResult
+            endif
+
+            i += 1
+        endwhile
+    endif
+
+    ; doesn't start with " nor $
+    ; treat as bare
     return token
+    /;
 EndFunction
 
 ; ResolveActor
@@ -261,6 +441,29 @@ Actor Function ResolveActor(string token)
 EndFunction
 
 Form Function ResolveForm(string token)
+    CustomResolveFormResult = none
+
+    ;SLTDebugMsg("Cmd.ResolveForm token(" + token + ")")
+    if InternalResolve(token)
+        ;SLTDebugMsg("Internal resolved")
+        if RT_FORM == CustomResolveType
+            ;SLTDebugMsg("Resulted in form result (" + CustomResolveFormResult + ")")
+            return CustomResolveFormResult
+        elseif RT_STRING == CustomResolveType
+            ;Form f =  GetFormById(CustomResolveResult)
+;            SLTDebugMsg("Resulted in string result(" + CustomResolveResult + "), GetFormById resulted in (" + f + ")")
+            return GetFormById(CustomResolveResult)
+        elseif RT_INT == CustomResolveType
+            return GetFormById(CustomResolveIntResult)
+        endif
+
+        ;SLTDebugMsg("and no result, falllllling out")
+    endif
+
+    ;Form g = GetFormById(token)
+    ;SLTDebugMsg("Attempting GetFormById(" + token + ") => (" + g + ")")
+    return GetFormById(token)
+    ;/
     int i = 0
     bool resolved = false
     bool sltChecked = false
@@ -293,6 +496,7 @@ Form Function ResolveForm(string token)
     endwhile
 
     return GetFormById(token)
+    /;
 EndFunction
 
 Function RunScript()
@@ -302,6 +506,7 @@ Function RunScript()
     string[] cmdLine
     int[] tokentypes = new int[128]
     int[] varscopelist = new int[2]
+    string[] varscopestringlist = new string[2]
 
     while isExecuting && hasValidFrame
         while currentLine < totalLines
@@ -312,15 +517,18 @@ Function RunScript()
             
             if cmdLine.Length
                 command = Resolve(cmdLine[0])
+                ;SLTDebugMsg("Cmd: resolved(" + cmdLine[0] +") => (" + command + ")")
                 cmdLine[0] = command
 
                 If !command
                     currentLine += 1
                 elseIf command == "set"
                     if ParamLengthGT(self, cmdLine.Length, 2)
-                        GetVarScope(cmdLine[1], varscopelist)
+                        GetVarScope2(cmdLine[1], varscopestringlist)
+                        ;GetVarScope(cmdLine[1], varscopelist)
 
-                        if varscopelist[0]
+                        ;if varscopelist[0]
+                        if varscopestringlist[0]
                             string strparm2 = Resolve(cmdLine[2])
                         
                             if cmdLine.Length > 3 && strparm2 == "resultfrom"
@@ -329,12 +537,14 @@ Function RunScript()
                                     string[] subCmdLine = PapyrusUtil.SliceStringArray(cmdLine, 3)
                                     subCmdLine[0] = subcode
                                     RunOperationOnActor(subCmdLine)
-                                    SetVarString(varscopelist, cmdLine[1], MostRecentResult)
+                                    ;SetVarString(varscopelist, cmdLine[1], MostRecentResult)
+                                    SetVarString2(varscopestringlist[0], varscopestringlist[1], MostRecentResult)
                                 else
                                     SFE("Unable to resolve function for 'set resultfrom' with (" + cmdLine[3] + ")")
                                 endif
                             elseif cmdLine.length == 3
-                                SetVarString(varscopelist, cmdLine[1], strparm2)
+                                ;SetVarString(varscopelist, cmdLine[1], strparm2)
+                                SetVarString2(varscopestringlist[0], varscopestringlist[1], strparm2)
                             elseif cmdLine.length == 5
                                 string strparm4 = Resolve(cmdLine[4])
                                 float op1 = strparm2 as float
@@ -356,7 +566,8 @@ Function RunScript()
                                 else
                                     SFE("unexpected operator for 'set' (" + operat + ")")
                                 endif
-                                SetVarString(varscopelist, cmdLine[1], strresult)
+                                ;SetVarString(varscopelist, cmdLine[1], strresult)
+                                SetVarString2(varscopestringlist[0], varscopestringlist[1], strresult)
                             endif
                         else
                             SFE("invalid variable name, not resolvable (" + cmdLine[1] + ")")
@@ -427,6 +638,22 @@ Function RunScript()
                             isIncrInt = (incrInt == incrFloat)
                         endif
                             
+                        GetVarScope2(varstr, varscopestringlist)
+                        if varscopestringlist[0]
+                            string fetchedvar = GetVarString2(varscopestringlist[0], varscopestringlist[1], "")
+                            
+                            int varint = fetchedvar as int
+                            float varfloat = fetchedvar as float
+                            if (varint == varfloat && isIncrInt)
+                                SetVarString2(varscopestringlist[0], varscopestringlist[1], (varint + incrInt) as string)
+                            else
+                                SetVarString2(varscopestringlist[0], varscopestringlist[1], (varfloat + incrFloat) as string)
+                            endif
+                        else
+                            SFE("no resolve found for variable parameter (" + cmdLine[1] + ") varstr(" + varstr + ") varscope(" + varscopelist[1] + ")")
+                        endif
+                        
+                        ;/
                         GetVarScope(varstr, varscopelist)
                         if varscopelist[0]
                             string fetchedvar = GetVarString(varscopelist, varstr, "")
@@ -441,6 +668,7 @@ Function RunScript()
                         else
                             SFE("no resolve found for variable parameter (" + cmdLine[1] + ") varstr(" + varstr + ") varscope(" + varscopelist[1] + ")")
                         endif
+                        /;
                     endif
                     currentLine += 1
                 elseIf command == "goto"
@@ -459,14 +687,22 @@ Function RunScript()
                     if ParamLengthGT(self, cmdLine.Length, 2)
                         string varstr = cmdLine[1]
                         float incrAmount = Resolve(cmdLine[2]) as float
-                            
-                        GetVarScope(varstr, varscopelist)
-                        if varscopelist[0]
-                            SetVarString(varscopelist, varstr, (GetVarString(varscopelist, varstr, "") + Resolve(cmdLine[2])) as string)
-                            
+                        
+                        GetVarScope2(varstr, varscopestringlist)
+                        if varscopestringlist[0]
+                            SetVarString2(varscopestringlist[0], varscopestringlist[1], (GetVarString2(varscopestringlist[0], varscopestringlist[1], "") + Resolve(cmdLine[2])) as string)
                         else
                             SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
                         endif
+
+                        ;/
+                        GetVarScope(varstr, varscopelist)
+                        if varscopelist[0]
+                            SetVarString(varscopelist, varstr, (GetVarString(varscopelist, varstr, "") + Resolve(cmdLine[2])) as string)
+                        else
+                            SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
+                        endif
+                        /;
                     endif
                     currentLine += 1
                 elseIf command == "gosub"
@@ -540,14 +776,22 @@ Function RunScript()
                         else
                             SFE("maximum index for callarg is " + callargs.Length)
                         endif
-                            
-                        GetVarScope(arg, varscopelist)
-                        if varscopelist[0]
-                            SetVarString(varscopelist, arg, newval)
-                            
+                        
+                        GetVarScope2(arg, varscopestringlist)
+                        if varscopestringlist[0]
+                            SetVarString2(varscopestringlist[0], varscopestringlist[1], newval)
                         else
                             SFE("unable to resolve variable name (" + arg + ")")
                         endif
+
+                        ;/
+                        GetVarScope(arg, varscopelist)
+                        if varscopelist[0]
+                            SetVarString(varscopelist, arg, newval)
+                        else
+                            SFE("unable to resolve variable name (" + arg + ")")
+                        endif
+                        /;
                     endif
                     currentLine += 1
                 elseIf command == "return"
@@ -1312,30 +1556,6 @@ string Function SetThreadVar(string _key, string value)
     return value
 EndFunction
 
-string Function GetSystemVar(string _key)
-    if _key == "stats.running_scripts"
-        return SLT.RunningScriptCount
-    endif
-
-    ; priority matters less here... you shouldn't override another mod's system vars nor the base system's
-    int i = 0
-    while i < SLT.Extensions.Length
-        sl_triggersExtension sltrext = SLT.GetExtensionByIndex(i)
-        if sltrext && sltrext.CustomResolveSystem(self, _key)
-            return CustomResolveResult
-        endif
-    endwhile
-    return ""
-EndFunction
-
-string Function GetCustomVar(string[] varscope)
-    sl_triggersExtension sltrextension = SLT.GetExtensionByScope(varscope[0])
-    if sltrextension && sltrextension.CustomResolveScoped(self, varscope[1])
-        return CustomResolveResult
-    endif
-    return ""
-EndFunction
-
 
 ;;;;
 ;; Support
@@ -1352,7 +1572,7 @@ function GetVarScope2(string varname, string[] varscope)
                 varscope[0] = "local"
                 varscope[1] = StringUtil.SubString(varname, 1)
             else
-                varscope[0] = StringUtil.Substring(varname, 1, dotindex)
+                varscope[0] = StringUtil.Substring(varname, 1, dotindex - 1)
                 varscope[1] = StringUtil.Substring(varname, dotindex + 1)
             endif
         endif
@@ -1362,6 +1582,7 @@ function GetVarScope2(string varname, string[] varscope)
     endif
 endfunction
 
+;/
 function GetVarScope(string varname, int[] varscope)
     if "$" == StringUtil.GetNthChar(varname, 0)
         int dotindex = StringUtil.Find(varname, ".", 1)
@@ -1399,24 +1620,35 @@ function GetVarScope(string varname, int[] varscope)
         varscope[1] = 0
     endif
 endfunction
+/;
 
-string function GetVarString2(string[] varscope, string token, string missing)
-    if varscope[0] == "local"
-        return GetFrameVar(varscope[1], missing)
-    elseif varscope[0] == "thread"
-        return GetThreadVar(varscope[1], missing)
-    elseif varscope[0] == "target"
-        return GetStringValue(SLT, ktarget_v_prefix + varscope[1], missing)
-    elseif varscope[0] == "global"
-        return SLT.GetGlobalVar(varscope[1], missing)
-    elseif varscope[0] == "system"
-        return GetSystemVar(varscope[1])
-    elseif varscope[0] ; non-empty scope of some kind
-        return GetCustomVar(varscope)
+string function GetVarString2(string scope, string varname, string missing)
+    if scope == "local"
+        return GetFrameVar(varname, missing)
+    elseif scope == "thread"
+        return GetThreadVar(varname, missing)
+    elseif scope == "target"
+        return GetStringValue(SLT, ktarget_v_prefix + varname, missing)
+    elseif scope == "global"
+        return SLT.GetGlobalVar(varname, missing)
+    ;/
+    elseif scope ; non-empty scope of some kind
+        int i = 0
+        while i < SLT.Extensions.Length
+            sl_triggersExtension sltrext = SLT.Extensions[i] as sl_triggersExtension
+            if sltrext && sltrext.CustomResolveScoped(self, scope, varname)
+                return CustomResolveResult
+            endif
+
+            i += 1
+        endwhile
+        return ""
+    /;
     endif
     return ""
 endfunction
 
+;/
 string function GetVarString(int[] varscope, string token, string missing)
     if varscope[0] == 1
         return GetFrameVar(StringUtil.Substring(token, varscope[1]), missing)
@@ -1429,7 +1661,26 @@ string function GetVarString(int[] varscope, string token, string missing)
     endif
     return ""
 endfunction
+/;
 
+string function SetVarString2(string scope, string varname, string value)
+    if scope == "local"
+        return SetFrameVar(varname, value)
+    elseif scope == "thread"
+        return SetThreadVar(varname, value)
+    elseif scope == "target"
+        return SetStringValue(SLT, ktarget_v_prefix + varname, value)
+    elseif scope == "global"
+        return SLT.SetGlobalVar(varname, value)
+    elseif scope
+        SFE("Attempted to assign to read-only scope (" + scope + ")")
+        return ""
+    endif
+    SFE("Invalid scope for set")
+    return ""
+endfunction
+
+;/
 string function SetVarString(int[] varscope, string token, string value)
     if varscope[0] == 1
         return SetFrameVar(StringUtil.Substring(token, varscope[1]), value)
@@ -1442,3 +1693,4 @@ string function SetVarString(int[] varscope, string token, string value)
     endif
     return ""
 endfunction
+/;

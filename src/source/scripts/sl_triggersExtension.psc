@@ -67,6 +67,7 @@ be registered at bootstrap.
 Function SLTSettingsUpdated()
 EndFunction
 
+;/
 bool Function CustomResolve(sl_triggersCmd CmdPrimary, string token)
 	return false
 EndFunction
@@ -74,12 +75,9 @@ EndFunction
 bool Function CustomResolveForm(sl_triggersCmd CmdPrimary, string token)
 	return false
 EndFunction
+/;
 
-bool Function CustomResolveSystem(sl_triggersCmd CmdPrimary, string token)
-	return false
-EndFunction
-
-bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string token)
+bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string scope, string token)
 	return false
 EndFunction
 
