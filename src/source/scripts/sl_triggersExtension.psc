@@ -6,6 +6,7 @@ import sl_triggersStatics
 string				Property SLTExtensionKey Auto
 string				Property SLTFriendlyName Auto
 int					Property SLTPriority Auto
+string				Property SLTScope Auto
 
 ; Properties
 Actor               Property PlayerRef Auto
@@ -71,6 +72,14 @@ bool Function CustomResolve(sl_triggersCmd CmdPrimary, string token)
 EndFunction
 
 bool Function CustomResolveForm(sl_triggersCmd CmdPrimary, string token)
+	return false
+EndFunction
+
+bool Function CustomResolveSystem(sl_triggersCmd CmdPrimary, string token)
+	return false
+EndFunction
+
+bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string token)
 	return false
 EndFunction
 

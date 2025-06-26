@@ -2,7 +2,19 @@
 	"formList" : 
 	{
         "comment": ["These are JsonUtil formID format entries for containers which will be dynamically added to the container list at game start"],
-		"dt_additional" : [ "1055893|Skyrim.esm", "557932|Skyrim.esm" ]
+		"dt_additional" : [ "0101C95|Skyrim.esm", "08836C|Skyrim.esm" 
+	
+	, "020040A5|Dawnguard.esm"
+	, "02019DD6|Dawnguard.esm"
+	, "03025E46|Dragonborn.esm"
+	, "0302AABA|Dragonborn.esm"
+	, "0302AABF|Dragonborn.esm"
+	, "0302AAC2|Dragonborn.esm"
+	, "0302C456|Dragonborn.esm"
+	, "0302C461|Dragonborn.esm"
+	, "03024FA5|Dragonborn.esm"
+	, "0302C464|Dragonborn.esm"
+	]
 	},
 	"stringList" : 
 	{

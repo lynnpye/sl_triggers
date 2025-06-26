@@ -71,6 +71,14 @@ sslThreadController Function GetThreadForActor(Actor theActor)
     return (SexLabForm as SexLabFramework).GetActorController(theActor)
 EndFunction
 
+bool Function CustomResolveSystem(sl_triggersCmd CmdPrimary, string token)
+	if token == "is_available.sexlab"
+		CmdPrimary.CustomResolveResult = (IsEnabled && SexLabForm) as int
+		return true
+	endif
+	return false
+EndFunction
+
 bool Function CustomResolveForm(sl_triggersCmd CmdPrimary, string token)
     if !self || !IsEnabled || !SexLabForm
         return false

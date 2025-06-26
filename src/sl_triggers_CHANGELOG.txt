@@ -1,6 +1,11 @@
 122
     enhancement: New Core event trigger "OnCellChange"
         new standard modevent: OnSLTRPlayerCellChange
+    enhancement: New Core event trigger "OnPlayerLoadingScreen"
+    enhancement: New Core event trigger "OnPlayerContainerActivate" (i.e. opening containers/bodies)
+        new standard modevent: OnSLTRPlayerActivateContainer
+    enhancement: new $system variables
+    enhancement: Additional scopes, $core, $sexlab, with new custom variables (should make certain queries simpler)
 
 121
     Savegame compatibility: NEW SAVE REQUIRED
@@ -31,6 +36,15 @@
     change: new string-literal syntax for variable interpolation
         Prefixing a string literal with $ will attempt variable interpolation on any items enclosed in curly braces '{}', treating them like a variable name, including scope
             $"local: {var}  the same local var, but explicit: {local.var}  completely different var due to scope: {thread.var}"
+    change: numeric values will be assumed to be base 10 unless prefixed with "0x"
+        Previously:
+            23 != 023
+            ; 0x23 wasn't even valid notation
+            023 == 0x23
+        Now:
+            23 == 023 == 00000023 == 0x17 == 0x00000017
+            023 != 0x23
+            017 != 0x17
         
 
 120

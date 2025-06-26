@@ -4710,7 +4710,7 @@ function snd_play(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
 	
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Sound   thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[1])) as Sound
-        Actor   _targetActor = CmdPrimary.resolveActor(param[2])
+        Actor   _targetActor = CmdPrimary.ResolveActor(param[2])
         int     retVal
         if thing && _targetActor
             nextResult = thing.Play(_targetActor)

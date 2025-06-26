@@ -41,6 +41,8 @@ bool				Property bDebugMsg		= false	Auto Hidden
 Form[]				Property Extensions				Auto Hidden
 int					Property nextInstanceId			Auto Hidden
 
+int					Property RunningScriptCount = 0 Auto Hidden
+
 ; Variables
 int			SLTUpdateState
 int			_registrationBeaconCount
@@ -418,6 +420,18 @@ sl_triggersExtension Function GetExtensionByKey(string _extensionKey)
 	while i < Extensions.Length
 		sl_triggersExtension slext = Extensions[i] as sl_triggersExtension
 		if slext && slext.SLTExtensionKey == _extensionKey
+			return slext
+		endif
+		i += 1
+	endwhile
+	return none
+EndFunction
+
+sl_triggersExtension Function GetExtensionByScope(string _scope)
+	int i = 0
+	while i < Extensions.Length
+		sl_triggersExtension slext = Extensions[i] as sl_triggersExtension
+		if slext && slext.SLTScope == _scope
 			return slext
 		endif
 		i += 1

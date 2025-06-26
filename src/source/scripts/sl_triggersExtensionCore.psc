@@ -101,6 +101,21 @@ Function RefreshData()
 	RegisterEvents()
 EndFunction
 
+bool Function CustomResolveSystem(sl_triggersCmd CmdPrimary, string token)
+	if token == "is_available.core"
+		CmdPrimary.CustomResolveResult = IsEnabled as int
+		return true
+	endif
+	return false
+EndFunction
+
+bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string token)
+	if token == "toh_elapsed"
+		return TohElapsedTime
+	endif
+	return false
+EndFunction
+
 Event OnUpdateGameTime()
 	if !self
 		return
@@ -231,14 +246,68 @@ EndFunction
 Function RefreshTheContainersWeKnowAndLove()
 	TheContainersWeKnowAndLove.Revert()
 	Container containerToAdd
-	Int iCount = JsonUtil.FormListCount(FN_MoreContainersWeKnowAndLove(), "dt_additional")
-	While iCount
-		iCount -=1
-		containerToAdd = JsonUtil.FormListGet(FN_MoreContainersWeKnowAndLove(), "dt_additional", iCount) As Container
+	Int i = JsonUtil.FormListCount(FN_MoreContainersWeKnowAndLove(), "dt_additional")
+	While i
+		i -=1
+		containerToAdd = JsonUtil.FormListGet(FN_MoreContainersWeKnowAndLove(), "dt_additional", i) As Container
 		If containerToAdd
 			TheContainersWeKnowAndLove.AddForm(containerToAdd)
 		EndIf	
 	EndWhile
+	
+	; and some hard-coded entries to prevent requiring Dawnguard and Dragonborn as hard dependencies
+	;/
+	, "020040A5|Dawnguard.esm"
+	, "02019DD6|Dawnguard.esm"
+	, "03025E46|Dragonborn.esm"
+	, "0302AABA|Dragonborn.esm"
+	, "0302AABF|Dragonborn.esm"
+	, "0302AAC2|Dragonborn.esm"
+	, "0302C456|Dragonborn.esm"
+	, "0302C461|Dragonborn.esm"
+	, "03024FA5|Dragonborn.esm"
+	, "0302C464|Dragonborn.esm"
+	/;
+	containerToAdd = sl_triggers.GetForm("0x040A5|Dawnguard.esm") as Container
+	if containerToAdd
+		TheContainersWeKnowAndLove.AddForm(containerToAdd)
+	endif
+	containerToAdd = sl_triggers.GetForm("0x019DD6|Dawnguard.esm") as Container
+	if containerToAdd
+		TheContainersWeKnowAndLove.AddForm(containerToAdd)
+	endif
+	containerToAdd = sl_triggers.GetForm("0x025E46|Dragonborn.esm") as Container
+	if containerToAdd
+		TheContainersWeKnowAndLove.AddForm(containerToAdd)
+	endif
+	containerToAdd = sl_triggers.GetForm("0x02AABA|Dragonborn.esm") as Container
+	if containerToAdd
+		TheContainersWeKnowAndLove.AddForm(containerToAdd)
+	endif
+	containerToAdd = sl_triggers.GetForm("0x02AABF|Dragonborn.esm") as Container
+	if containerToAdd
+		TheContainersWeKnowAndLove.AddForm(containerToAdd)
+	endif
+	containerToAdd = sl_triggers.GetForm("0x02AAC2|Dragonborn.esm") as Container
+	if containerToAdd
+		TheContainersWeKnowAndLove.AddForm(containerToAdd)
+	endif
+	containerToAdd = sl_triggers.GetForm("0x02C456|Dragonborn.esm") as Container
+	if containerToAdd
+		TheContainersWeKnowAndLove.AddForm(containerToAdd)
+	endif
+	containerToAdd = sl_triggers.GetForm("0x02C461|Dragonborn.esm") as Container
+	if containerToAdd
+		TheContainersWeKnowAndLove.AddForm(containerToAdd)
+	endif
+	containerToAdd = sl_triggers.GetForm("0x024FA5|Dragonborn.esm") as Container
+	if containerToAdd
+		TheContainersWeKnowAndLove.AddForm(containerToAdd)
+	endif
+	containerToAdd = sl_triggers.GetForm("0x02C464|Dragonborn.esm") as Container
+	if containerToAdd
+		TheContainersWeKnowAndLove.AddForm(containerToAdd)
+	endif
 
 	common_container_names = JsonUtil.StringListToArray(FN_MoreContainersWeKnowAndLove(), "dt_common")
 EndFunction
@@ -249,6 +318,7 @@ Function RefreshTriggerCache()
 	triggerKeys_newSession				= PapyrusUtil.StringArray(0)
 	triggerKeys_playercellchange		= PapyrusUtil.StringArray(0)
 	triggerKeys_playerloadingscreen		= PapyrusUtil.StringArray(0)
+	triggerKeys_container				= PapyrusUtil.StringArray(0)
 	int i = 0
 	
 	while i < TriggerKeys.Length
@@ -267,6 +337,8 @@ Function RefreshTriggerCache()
 				triggerKeys_playercellchange = PapyrusUtil.PushString(triggerKeys_playercellchange, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_PLAYER_LOADING_SCREEN
 				triggerKeys_playerloadingscreen = PapyrusUtil.PushString(triggerKeys_playerloadingscreen, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_CONTAINER
+				triggerKeys_container = PapyrusUtil.PushString(triggerKeys_container, TriggerKeys[i])
 			endif
 		endif
 
@@ -368,40 +440,14 @@ EndFunction
 Function HandleNewSession(int _newSessionId)
 	int i = 0
 	string triggerKey
+	string _triggerFile
 	string command
 	
 	while i < triggerKeys_newSession.Length
 		triggerKey = triggerKeys_newSession[i]
-		string _triggerFile = FN_T(triggerKey)
-		
-		command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
-		if command
-			RequestCommand(PlayerRef, command)
-		endIf
-		command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
-		if command
-			RequestCommand(PlayerRef, command)
-		endIf
-		command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
-		if command
-			RequestCommand(PlayerRef, command)
-		endIf
+		_triggerFile = FN_T(triggerKey)
 
-		i += 1
-	endwhile
-EndFunction
-
-Function HandleTopOfTheHour()
-	int i = 0
-	string triggerKey
-	string command
-	while i < triggerKeys_topOfTheHour.Length
-		triggerKey = triggerKeys_topOfTheHour[i]
-		string _triggerFile = FN_T(triggerKey)
-
-		float chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
-
-		if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
 			if command
 				RequestCommand(PlayerRef, command)
@@ -414,6 +460,40 @@ Function HandleTopOfTheHour()
 			if command
 				RequestCommand(PlayerRef, command)
 			endIf
+		endif
+
+		i += 1
+	endwhile
+EndFunction
+
+Function HandleTopOfTheHour()
+	int i = 0
+	string triggerKey
+	string _triggerFile
+	string command
+	float chance
+	
+	while i < triggerKeys_topOfTheHour.Length
+		triggerKey = triggerKeys_topOfTheHour[i]
+		_triggerFile = FN_T(triggerKey)
+
+		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
+
+			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+				if command
+					RequestCommand(PlayerRef, command)
+				endIf
+				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+				if command
+					RequestCommand(PlayerRef, command)
+				endIf
+				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+				if command
+					RequestCommand(PlayerRef, command)
+				endIf
+			endif
 		endif
 		i += 1
 	endwhile
@@ -438,19 +518,21 @@ Function HandleOnKeyDown()
 
 		_triggerFile = FN_T(triggerKey)
 		
-		doRun = true
 		dakused = false
+		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
 		
-		ival = JsonUtil.GetIntValue(_triggerFile, ATTR_KEYMAPPING)
-		;statusidx = _keycodes_of_interest.Find(ival)
-		
-		; check keycode status, must be true
-		;if statusidx < 0
-		;	doRun = false
-		;else
-		if ival
-			;doRun = _keycode_status[statusidx]
-			doRun = _keystates[ival]
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_KEYMAPPING)
+			;statusidx = _keycodes_of_interest.Find(ival)
+			
+			; check keycode status, must be true
+			;if statusidx < 0
+			;	doRun = false
+			;else
+			if ival
+				;doRun = _keycode_status[statusidx]
+				doRun = _keystates[ival]
+			endif
 		endif
 		
 		; check dynamic activation key if in use and specified
@@ -484,6 +566,7 @@ Function HandleOnKeyDown()
 		endif
 		
 		if doRun
+			SLTDebugMsg("Core.HandleOnKeyDown: running _triggerFile(" + _triggerFile + ")")
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
 			if command
 				RequestCommand(PlayerRef, command)
@@ -505,40 +588,41 @@ EndFunction
 Function HandleOnPlayerCellChange()
 	int i = 0
 	string triggerKey
+	string _triggerFile
 	string command
 	int    ival
 	bool   doRun
+	float  chance
 	while i < triggerKeys_playercellchange.Length
 		triggerKey = triggerKeys_playercellchange[i]
-		string _triggerFile = FN_T(triggerKey)
+		_triggerFile = FN_T(triggerKey)
 
-		float chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
+		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
 
-		if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
-			ival = 0
-			doRun = true
+		if doRun
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
 
-			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
-			if ival != 0 ; 0 is Any
-				if ival == 1 && dayTime() != 1
-					doRun = false
-				elseIf ival == 2 && dayTime() != 2
-					doRun = false
-				endIf
-			endIf
-
-			if doRun
-				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_LOCATION)
+			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
 				if ival != 0 ; 0 is Any
-					if ival == 1 && !PlayerRef.IsInInterior()
+					if ival == 1 && dayTime() != 1
 						doRun = false
-					elseIf ival == 2 && PlayerRef.IsInInterior()
+					elseIf ival == 2 && dayTime() != 2
 						doRun = false
 					endIf
 				endIf
-			endIf
 
-			if doRun
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_LOCATION)
+					if ival != 0 ; 0 is Any
+						if ival == 1 && !PlayerRef.IsInInterior()
+							doRun = false
+						elseIf ival == 2 && PlayerRef.IsInInterior()
+							doRun = false
+						endIf
+					endIf
+				endIf
+				
 				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
 				if command
 					RequestCommand(PlayerRef, command)
@@ -551,7 +635,7 @@ Function HandleOnPlayerCellChange()
 				if command
 					RequestCommand(PlayerRef, command)
 				endIf
-			endIf
+			endif
 		endif
 		i += 1
 	endwhile
@@ -560,26 +644,30 @@ EndFunction
 Function HandleOnPlayerLoadingScreen()
 	int i = 0
 	string triggerKey
+	string _triggerFile
 	string command
+	float  chance
 	while i < triggerKeys_playerloadingscreen.Length
 		triggerKey = triggerKeys_playerloadingscreen[i]
-		string _triggerFile = FN_T(triggerKey)
+		_triggerFile = FN_T(triggerKey)
 
-		float chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
+		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
 
-		if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
-			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
-			if command
-				RequestCommand(PlayerRef, command)
-			endIf
-			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
-			if command
-				RequestCommand(PlayerRef, command)
-			endIf
-			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
-			if command
-				RequestCommand(PlayerRef, command)
-			endIf
+			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+				if command
+					RequestCommand(PlayerRef, command)
+				endIf
+				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+				if command
+					RequestCommand(PlayerRef, command)
+				endIf
+				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+				if command
+					RequestCommand(PlayerRef, command)
+				endIf
+			endif
 		endif
 		i += 1
 	endwhile
@@ -607,74 +695,82 @@ Function HandlePlayerContainerActivation(ObjectReference containerRef, bool cont
 		triggerKey = triggerKeys_container[i]
 		_triggerFile = FN_T(triggerKey)
 
-		chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
+		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
 
-		if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
-			ival = 0
+			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+				ival = 0
 
-			doRun =	(container_is_empty == (JsonUtil.GetIntValue(_triggerFile, ATTR_CONTAINER_EMPTY) == 2)) && (container_is_corpse == (JsonUtil.GetIntValue(_triggerFile, ATTR_CONTAINER_CORPSE) == 2))
+				doRun =	(container_is_empty == (JsonUtil.GetIntValue(_triggerFile, ATTR_CONTAINER_EMPTY) == 2)) && (container_is_corpse == (JsonUtil.GetIntValue(_triggerFile, ATTR_CONTAINER_CORPSE) == 2))
 
-			; if needed: are we filtering for commons?
-			if doRun
-				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_COMMONCONTAINERMATCHING)
-				if ival != 0 ; 0 is Any
-					bval = false
-					j = 0
-					while j < common_container_names.Length && !bval
-						if common_container_names[j] == containerRef.GetDisplayName()
-							bval = true
-						endif
-						j += 1
-					endwhile
-					doRun = (bval && ival == 1) || (!bval && ival == 2)
+				; if needed: are we filtering for commons?
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_COMMONCONTAINERMATCHING)
+					if ival != 0 ; 0 is Any
+						bval = false
+						j = 0
+						while j < common_container_names.Length && !bval
+							if common_container_names[j] == containerRef.GetDisplayName()
+								bval = true
+							endif
+							j += 1
+						endwhile
+						doRun = (bval && ival == 1) || (!bval && ival == 2)
+					endif
 				endif
-			endif
 
-			if doRun
-				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION)
-				if ival != 0
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION)
+					if ival != 0
 ;/
 0 - Any
 
-1 - Safe (Home/Jail/Inn)
-2 - City (City/Town/Habitation/Dwelling)
-3 - Wilderness (!pLoc(DEFAULT)/Hold/Fort/Bandit Camp)
-4 - Dungeon (Cave/et. al.)
+1 - Inside
+2 - Outside
+3 - Safe (Home/Jail/Inn)
+4 - City (City/Town/Habitation/Dwelling)
+5 - Wilderness (!pLoc(DEFAULT)/Hold/Fort/Bandit Camp)
+6 - Dungeon (Cave/et. al.)
 
-; LocationKeywords[i - 5]
+; LocationKeywords[i - 7]
 5 - Player Home
 6 - Jail
 ...
 /;
 
-					if ival == 1
-						doRun = SLT.IsLocationKeywordSafe(playerLocationKeyword)
-					elseif ival == 2
-						doRun = SLT.IsLocationKeywordCity(playerLocationKeyword)
-					elseif ival == 3
-						doRun = SLT.IsLocationKeywordWilderness(playerLocationKeyword)
-					elseif ival == 4
-						doRun = SLT.IsLocationKeywordDungeon(playerLocationKeyword)
-					else
-						j = ival - 5
-						doRun = playerLocationKeyword == SLT.LocationKeywords[j]
+						if ival == 1
+							doRun = PlayerRef.IsInInterior()
+						elseif ival == 2
+							doRun = !PlayerRef.IsInInterior()
+						elseif ival == 3
+							doRun = SLT.IsLocationKeywordSafe(playerLocationKeyword)
+						elseif ival == 4
+							doRun = SLT.IsLocationKeywordCity(playerLocationKeyword)
+						elseif ival == 5
+							doRun = SLT.IsLocationKeywordWilderness(playerLocationKeyword)
+						elseif ival == 6
+							doRun = SLT.IsLocationKeywordDungeon(playerLocationKeyword)
+						else
+							j = ival - 7
+							doRun = playerLocationKeyword == SLT.LocationKeywords[j]
+						endif
 					endif
 				endif
-			endif
 
-			if doRun
-				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
-				if command
-					RequestCommand(PlayerRef, command)
-				endIf
-				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
-				if command
-					RequestCommand(PlayerRef, command)
-				endIf
-				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
-				if command
-					RequestCommand(PlayerRef, command)
-				endIf
+				if doRun
+					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+					if command
+						RequestCommand(PlayerRef, command)
+					endIf
+					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+					if command
+						RequestCommand(PlayerRef, command)
+					endIf
+					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+					if command
+						RequestCommand(PlayerRef, command)
+					endIf
+				endif
 			endif
 		endif
 		i += 1

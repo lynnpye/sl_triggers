@@ -71,7 +71,7 @@
     ],
     "triggerattribute_deeplocation": [
         ["type", "int"],
-        ["widget", "menu", "Location :", "0", "Any", "Safe (Home/Jail/Inn)", "City / Town", "Wilderness", "Dungeon", "Player Home", "Jail", "Dungeon", "Cave", "Dwelling", "City", "Town", "Habitation", "Draugr Crypt", "Dragon Priest Lair", "Bandit Camp", "Falmer Hive", "Vampire Lair", "Dwarven Automatons", "Military Fort", "Mine", "Inn", "Hold"],
+        ["widget", "menu", "Location :", "0", "Any", "Inside", "Outside", "Safe (Home/Jail/Inn)", "City / Town", "Wilderness", "Dungeon", "Player Home", "Jail", "Dungeon", "Cave", "Dwelling", "City", "Town", "Habitation", "Draugr Crypt", "Dragon Priest Lair", "Bandit Camp", "Falmer Hive", "Vampire Lair", "Dwarven Automatons", "Military Fort", "Mine", "Inn", "Hold"],
         ["info", "The location, indoors or outdoors, the cell qualifies as."]
     ],
     "triggerattribute_container_corpse": [

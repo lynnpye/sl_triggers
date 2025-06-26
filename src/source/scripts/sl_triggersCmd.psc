@@ -147,7 +147,9 @@ Event OnUpdate()
 
     isExecuting = true
 
+    SLT.RunningScriptCount += 1
     RunScript()
+    SLT.RunningScriptCount -= 1
     
     CleanupAndRemove()
 EndEvent
@@ -231,6 +233,8 @@ string Function Resolve(string token)
             GetVarScope(token, varscopelist)
             if varscopelist[0]
                 return GetVarString(varscopelist, token, "")
+            elseif token == "$system.stats.running_scripts"
+                return SLT.RunningScriptCount
             endif
         endif
         
@@ -1308,9 +1312,56 @@ string Function SetThreadVar(string _key, string value)
     return value
 EndFunction
 
+string Function GetSystemVar(string _key)
+    if _key == "stats.running_scripts"
+        return SLT.RunningScriptCount
+    endif
+
+    ; priority matters less here... you shouldn't override another mod's system vars nor the base system's
+    int i = 0
+    while i < SLT.Extensions.Length
+        sl_triggersExtension sltrext = SLT.GetExtensionByIndex(i)
+        if sltrext && sltrext.CustomResolveSystem(self, _key)
+            return CustomResolveResult
+        endif
+    endwhile
+    return ""
+EndFunction
+
+string Function GetCustomVar(string[] varscope)
+    sl_triggersExtension sltrextension = SLT.GetExtensionByScope(varscope[0])
+    if sltrextension && sltrextension.CustomResolveScoped(self, varscope[1])
+        return CustomResolveResult
+    endif
+    return ""
+EndFunction
+
 
 ;;;;
 ;; Support
+function GetVarScope2(string varname, string[] varscope)
+    if "$" == StringUtil.GetNthChar(varname, 0)
+        int dotindex = StringUtil.Find(varname, ".", 1)
+        if dotindex < 0
+            varscope[0] = "local"
+            varscope[1] = StringUtil.SubString(varname, 1)
+        else
+            int varnamelen = StringUtil.GetLength(varname)
+            
+            if dotindex >= varnamelen - 1 ; not possible, but sure why not
+                varscope[0] = "local"
+                varscope[1] = StringUtil.SubString(varname, 1)
+            else
+                varscope[0] = StringUtil.Substring(varname, 1, dotindex)
+                varscope[1] = StringUtil.Substring(varname, dotindex + 1)
+            endif
+        endif
+    else
+        varscope[0] = ""
+        varscope[1] = varname
+    endif
+endfunction
+
 function GetVarScope(string varname, int[] varscope)
     if "$" == StringUtil.GetNthChar(varname, 0)
         int dotindex = StringUtil.Find(varname, ".", 1)
@@ -1347,6 +1398,23 @@ function GetVarScope(string varname, int[] varscope)
         varscope[0] = 0
         varscope[1] = 0
     endif
+endfunction
+
+string function GetVarString2(string[] varscope, string token, string missing)
+    if varscope[0] == "local"
+        return GetFrameVar(varscope[1], missing)
+    elseif varscope[0] == "thread"
+        return GetThreadVar(varscope[1], missing)
+    elseif varscope[0] == "target"
+        return GetStringValue(SLT, ktarget_v_prefix + varscope[1], missing)
+    elseif varscope[0] == "global"
+        return SLT.GetGlobalVar(varscope[1], missing)
+    elseif varscope[0] == "system"
+        return GetSystemVar(varscope[1])
+    elseif varscope[0] ; non-empty scope of some kind
+        return GetCustomVar(varscope)
+    endif
+    return ""
 endfunction
 
 string function GetVarString(int[] varscope, string token, string missing)
