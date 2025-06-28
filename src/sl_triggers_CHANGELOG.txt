@@ -6,6 +6,8 @@
         new standard modevent: OnSLTRPlayerActivateContainer
     enhancement: new $system variables
     enhancement: Additional scopes, $core, $sexlab, with new custom variables (should make certain queries simpler)
+    enhancement: Improved script parsing speed
+    enhancement: Improved variable resolution speed
 
 121
     Savegame compatibility: NEW SAVE REQUIRED
