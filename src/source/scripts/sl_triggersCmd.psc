@@ -827,12 +827,15 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
         return false
     endif
     
-    string[] cmdLine
     string cmdLineJoined
     int lineno = 0
-    int cmdNum = 0
-    int cmdIdx = 0
+    string[] cmdLine
+
+    string[] rawtokenresult
+    int totalFunctionalCommands = 0
+
     string[] cmdlines
+    int totalFileLines = 0
 
     ; 0 - unknown
     ; 1 - json explicit
@@ -843,20 +846,28 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
     string _myCmdName
     if scrtype == 1
         _myCmdName = CommandsFolder() + scriptfilename
-        cmdNum = JsonUtil.PathCount(_myCmdName, ".cmd")
+        totalFileLines = JsonUtil.PathCount(_myCmdName, ".cmd")
     elseif scrtype == 2
         _myCmdName = scriptfilename
+
         cmdlines = sl_triggers.SplitScriptContents(_myCmdName)
-        cmdNum = cmdlines.Length
+        totalFileLines = cmdlines.Length
+
+        rawtokenresult = sl_triggers.SplitScriptContentsAndTokenize(_myCmdName)
+        totalFunctionalCommands = rawtokenresult[0] as int
     elseif scrtype == 10
         scrtype = 1
         _myCmdName = CommandsFolder() + scriptfilename + ".json"
-        cmdNum = JsonUtil.PathCount(_myCmdName, ".cmd")
+        totalFileLines = JsonUtil.PathCount(_myCmdName, ".cmd")
     elseif scrtype == 20
         scrtype = 2
         _myCmdName = scriptfilename + ".ini"
+
         cmdlines = sl_triggers.SplitScriptContents(_myCmdName)
-        cmdNum = cmdlines.Length
+        totalFileLines = cmdlines.Length
+
+        rawtokenresult = sl_triggers.SplitScriptContentsAndTokenize(_myCmdName)
+        totalFunctionalCommands = rawtokenresult[0] as int
     else
         SFE("SLT: (unusual here) attempted to parse an unknown file type(" + _myCmdName + ") for scrtype (" + scrtype + ")")
         return false
@@ -1095,13 +1106,13 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
         tokens = PapyrusUtil.StringArray(0)
     endif
 
-    cmdIdx = 0
-    while cmdIdx < cmdNum
-        lineno += 1
-        
-        ; this accounts for comments
-        if scrtype == 1
-            cmdLine = JsonUtil.PathStringElements(_myCmdName, ".cmd[" + cmdIdx + "]")
+    if scrtype == 1
+        int theFileLine = 0
+        while theFileLine < totalFileLines
+            lineno += 1
+            
+            ; this accounts for comments
+            cmdLine = JsonUtil.PathStringElements(_myCmdName, ".cmd[" + theFileLine + "]")
             if cmdLine.Length && cmdLine[0]
                 if cmdLine.Length >= 2 && cmdLine[1] && ":" == cmdLine[0]
                     int newclen = cmdLine.Length - 1
@@ -1112,29 +1123,73 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
                 cmdLineJoined = PapyrusUtil.StringJoin(cmdLine, " ")
                 cmdLine = sl_triggers.Tokenizev2(cmdLineJoined)
             endif
-        elseif scrtype == 2
-            cmdLine = sl_triggers.Tokenizev2(cmdlines[cmdIdx])
-        endif
-        if cmdLine.Length && cmdLine[0]
-            slt_AddLineData(lineno, cmdLine)
+
+            if cmdLine.Length && cmdLine[0]
+                slt_AddLineData(lineno, cmdLine)
+            
+                if cmdLine.Length == 1
+                    int tlen = StringUtil.GetLength(cmdLine[0])
+                    int tlenm1 = tlen - 1
+                    int tlenm2 = tlenm1 - 1
+                    if tlen > 2 && StringUtil.GetNthChar(cmdLine[0], 0) == "[" && StringUtil.GetNthChar(cmdLine[0], tlenm1) == "]"
+                        string lbl = sl_triggers.Trim(StringUtil.Substring(cmdLine[0], 1, tlenm2))
+                        if lbl
+                            slt_AddGoto(lbl, scriptlines.Length - 1)
+                        endif
+                    endif
+                elseif cmdLine.Length == 2 && cmdLine[0] == "beginsub"
+                    slt_AddGosub(cmdLine[1], scriptlines.Length - 1)
+                endif
+                
+            endif
+            theFileLine += 1
+        endwhile
+    elseif scrtype == 2
+
+        scriptlines = PapyrusUtil.IntArray(totalFunctionalCommands)
+        tokencounts = PapyrusUtil.IntArray(totalFunctionalCommands)
+        tokenoffsets = PapyrusUtil.IntArray(totalFunctionalCommands)
+        tokens = PapyrusUtil.SliceStringArray(rawtokenresult, 1 + 3 * totalFunctionalCommands)
+
+        int sloff = 1
+        int tcoff = sloff + totalFunctionalCommands
+        int tooff = tcoff + totalFunctionalCommands
+        int tokoff = tooff + totalFunctionalCommands
+        int offset
+        int tokens_offset
+        int iter
+
+        int lhs
+        int rhs
         
-            if cmdLine.Length == 1
-                int tlen = StringUtil.GetLength(cmdLine[0])
+        int cmdIdx = 0
+        while cmdIdx < totalFunctionalCommands
+            offset = sloff + cmdIdx
+            scriptlines[cmdIdx] = rawtokenresult[offset] as int
+            offset = tcoff + cmdIdx
+            tokencounts[cmdIdx] = rawtokenresult[offset] as int
+            offset = tooff + cmdIdx
+            tokenoffsets[cmdIdx] = rawtokenresult[offset] as int
+
+            if tokencounts[cmdIdx] == 1
+                string cmdLine0 = tokens[tokenoffsets[cmdIdx]]
+                int tlen = StringUtil.GetLength(cmdLine0)
                 int tlenm1 = tlen - 1
                 int tlenm2 = tlenm1 - 1
-                if tlen > 2 && StringUtil.GetNthChar(cmdLine[0], 0) == "[" && StringUtil.GetNthChar(cmdLine[0], tlenm1) == "]"
-                    string lbl = sl_triggers.Trim(StringUtil.Substring(cmdLine[0], 1, tlenm2))
+                if tlen > 2 && StringUtil.GetNthChar(cmdLine0, 0) == "[" && StringUtil.GetNthChar(cmdLine0, tlenm1) == "]"
+                    string lbl = sl_triggers.Trim(StringUtil.Substring(cmdLine0, 1, tlenm2))
                     if lbl
-                        slt_AddGoto(lbl, scriptlines.Length - 1)
+                        slt_AddGoto(lbl, cmdIdx)
                     endif
                 endif
-            elseif cmdLine.Length == 2 && cmdLine[0] == "beginsub"
-                slt_AddGosub(cmdLine[1], scriptlines.Length - 1)
+            elseif tokencounts[cmdIdx] == 2 && tokens[tokenoffsets[cmdIdx]] == "beginsub"
+                offset = tokenoffsets[cmdIdx] + 1
+                slt_AddGosub(tokens[offset], cmdIdx)
             endif
-            
-        endif
-        cmdIdx += 1
-    endwhile
+
+            cmdIdx += 1
+        endwhile
+    endif
 
     lastKey = 0
     MostRecentResult = ""

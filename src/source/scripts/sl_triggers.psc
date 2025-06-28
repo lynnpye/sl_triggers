@@ -10,8 +10,8 @@ int Function        GetSessionId() global native
 string Function     GetTranslatedString(string _translationKey) global native
 int Function        NormalizeScriptfilename(string scriptfilename) global native
 bool Function       SmartEquals(string a, string b) global native
-string[] Function   SplitFileContents(string _filecontents) global native
 string[] Function   SplitScriptContents(string _scriptfilename) global native
+string[] Function   SplitScriptContentsAndTokenize(string _scriptfilename) global native
 string[] Function   Tokenize(string _tokenString) global native
 string[] Function   Tokenizev2(string _tokenString) global native
 string[] Function   TokenizeForVariableSubstitution(string _tokenString) global native
