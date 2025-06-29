@@ -388,6 +388,24 @@ bool Function InternalResolve(string token)
                     elseif "none" == vname
                         CustomResolveFormResult = none
                         return true
+                    elseif "is_player.inside"
+                        CustomResolveResult = PlayerRef.IsInInterior() as int
+                        return true
+                    elseif "is_player.outside"
+                        CustomResolveResult = (!PlayerRef.IsInInterior()) as int
+                        return true
+                    elseif "is_player.in_city"
+                        CustomResolveResult = (SLT.IsLocationKeywordCity(SLT.GetPlayerLocationKeyword())) as int
+                        return true
+                    elseif "is_player.in_dungeon"
+                        CustomResolveResult = (SLT.IsLocationKeywordDungeon(SLT.GetPlayerLocationKeyword())) as int
+                        return true
+                    elseif "is_player.in_safe"
+                        CustomResolveResult = (SLT.IsLocationKeywordSafe(SLT.GetPlayerLocationKeyword())) as int
+                        return true
+                    elseif "is_player.in_wilderness"
+                        CustomResolveResult = (SLT.IsLocationKeywordWilderness(SLT.GetPlayerLocationKeyword())) as int
+                        return true
                     endif
                 endif
 

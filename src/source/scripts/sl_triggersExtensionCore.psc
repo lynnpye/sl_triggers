@@ -306,9 +306,9 @@ Function Send_SLTR_OnPlayerCellChange()
 
 	; should
 	; optional send actual mod event, otherwise at least pass it off to our handlers
-	HandleOnPlayerCellChange(isNewGameLaunch, isNewSession, playerLocationKeyword, PlayerRef.IsInInterior())
-
 	Keyword playerLocationKeyword = SLT.GetPlayerLocationKeyword()
+
+	HandleOnPlayerCellChange(isNewGameLaunch, isNewSession, playerLocationKeyword, PlayerRef.IsInInterior())
 
 	int mehandle = ModEvent.Create(EVENT_SLTR_ON_PLAYER_CELL_CHANGE())
 	; is this in response to a "new launch" (i.e. new run of SkyrimSE.exe) ; multiple can be true
@@ -712,7 +712,7 @@ Function HandleOnPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Keywo
 		_triggerFile = FN_T(triggerKey)
 
 		; could filter by isNewGameLaunch and/or isNewSession too
-		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE()) && !isNewGameLaunch && !isNewSession
+		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
 
 		if doRun
 			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
@@ -747,9 +747,9 @@ Function HandleOnPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Keywo
 /;
 
 						if ival == 1
-							doRun = PlayerRef.IsInInterior()
+							doRun = playerWasInInterior
 						elseif ival == 2
-							doRun = !PlayerRef.IsInInterior()
+							doRun = !playerWasInInterior
 						elseif ival == 3
 							doRun = SLT.IsLocationKeywordSafe(playerLocationKeyword)
 						elseif ival == 4
@@ -845,7 +845,21 @@ Function HandlePlayerContainerActivation(ObjectReference containerRef, bool cont
 			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
 				ival = 0
 
-				doRun =	(container_is_empty == (JsonUtil.GetIntValue(_triggerFile, ATTR_CONTAINER_EMPTY) == 2)) && (container_is_corpse == (JsonUtil.GetIntValue(_triggerFile, ATTR_CONTAINER_CORPSE) == 2))
+				doRun =	true
+
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_CONTAINER_EMPTY)
+					if ival != 0
+						doRun = (ival == 2)
+					endif
+				endif
+
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_CONTAINER_CORPSE)
+					if ival != 0
+						doRun = (ival == 2)
+					endif
+				endif
 
 				; if needed: are we filtering for commons?
 				if doRun
