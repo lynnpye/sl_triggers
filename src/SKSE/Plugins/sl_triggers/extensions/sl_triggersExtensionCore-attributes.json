@@ -127,7 +127,7 @@
     ],
     "triggerlayout_playercellchange" : [
         ["event", "chance"],
-        ["daytime", "location"],
+        ["daytime", "deeplocation"],
         ["do_1", "do_2"],
         ["do_3"]
     ],

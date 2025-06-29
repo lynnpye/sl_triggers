@@ -5,7 +5,6 @@ scriptname sl_triggersContainerPerk extends Perk Hidden
 ;BEGIN FRAGMENT Fragment_18
 Function Fragment_18(ObjectReference akTargetRef, Actor akActor)
 ;BEGIN CODE
-    sl_triggersStatics.SLTDebugMsg("\n\n\t\t>>>>>>>>>>    Perk.Fragment_18")
     SignalContainerActivation(akActor, akTargetRef, false, (akTargetRef.GetNumItems() == 0))
 ;END CODE
 EndFunction
@@ -14,7 +13,6 @@ EndFunction
 ;BEGIN FRAGMENT Fragment_3
 Function Fragment_3(ObjectReference akTargetRef, Actor akActor)
 ;BEGIN CODE
-    sl_triggersStatics.SLTDebugMsg("\n\n\t\t>>>>>>>>>>    Perk.Fragment_3")
     SignalContainerActivation(akActor, akTargetRef, true, (akTargetRef.GetNumItems() == 0))
 ;END CODE
 EndFunction
@@ -39,8 +37,6 @@ Function SignalContainerActivation(Actor _akActor, ObjectReference _containerRef
     ; we should probably do something here
     if SLTRCore
         if _akActor == PlayerRef
-            sl_triggersStatics.SLTDebugMsg("\n\n\t\t>>>>>>>>>>    Perk.SignalContainerActivation for PlayerRef")
-            sl_triggersStatics.SLTDebugMsg("\n\n\t\t>>>>>>>>>>    _containerRef(" + _containerRef + ") corpse(" + is_origin_corpse + ") empty(" + is_target_empty + ")")
             SLTRCore.SLTR_Internal_PlayerActivatedContainer(_containerRef, is_origin_corpse, is_target_empty)
         ;else
             ;sl_triggersStatics.SLTDebugMsg("\n\n\t\t>>>>>>>>>>    Perk.SignalContainerActivation for Actor(" + _akActor + ")")

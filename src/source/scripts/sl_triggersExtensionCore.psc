@@ -72,8 +72,6 @@ int Property CS_POLLING 		= 2 AutoReadOnly Hidden
 
 int CS_STATE
 
-bool pollingForSentinel
-
 Function QueueUpdateLoop(float afDelay = 1.0)
 	if !self
 		return
@@ -98,21 +96,18 @@ Event OnUpdate()
 	if CS_SLTINIT == CS_STATE
 		SLTInit()
 		
-		pollingForSentinel = true
 		CS_STATE = CS_POLLING
 		QueueUpdateLoop(0.01)
 		return
 	elseif CS_POLLING == CS_STATE
-		if pollingForSentinel
-			if PopulateSentinel()
-				pollingForSentinel = false
-			elseif !PlayerRef
-				QueueUpdateLoop()
-				return
-			elseif PlayerRef && PlayerRef.Is3DLoaded()
-				QueueUpdateLoop(0.1)
-				return
-			endif
+		if PopulateSentinel()
+			return
+		elseif !PlayerRef
+			QueueUpdateLoop()
+			return
+		elseif PlayerRef && PlayerRef.Is3DLoaded()
+			QueueUpdateLoop(0.1)
+			return
 		endif
 	endif
 EndEvent
@@ -144,66 +139,32 @@ EndFunction
 
 Function PopulatePerk()
 	if !SLT.SLTRContainerPerk
-		SLTErrMsg("Core.OnUpdate: SLTRContainerPerk is not filled; Container activation tracking disabled; this is probably an error")
+		SLTErrMsg("Core.PopulatePerk: SLTRContainerPerk is not filled; Container activation tracking disabled; this is probably an error")
 	else
 		If !PlayerRef.HasPerk(SLT.SLTRContainerPerk)
 			;SLTDebugMsg("Core.OnUpdate: Adding SLTRContainerPerk to PlayerRef")
 			PlayerRef.AddPerk(SLT.SLTRContainerPerk)
 
 			If !PlayerRef.HasPerk(SLT.SLTRContainerPerk)
-				SLTErrMsg("Core.OnUpdate: SLTRContainerPerk is not present on PlayerRef even after validation; Container activation tracking disabled; this is probably an error")
+				SLTErrMsg("Core.PopulatePerk: SLTRContainerPerk is not present on PlayerRef even after validation; Container activation tracking disabled; this is probably an error")
 			else
-				SLTInfoMsg("Core.OnUpdate: Registering/1 for OnSLTRContainerActivate")
+				;SLTInfoMsg("Core.PopulatePerk: Registering/1 for OnSLTRContainerActivate")
 				SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_CONTAINER_ACTIVATE(), "OnSLTRContainerActivate")
 			Endif
 		else
-			SLTInfoMsg("Core.OnUpdate: Registering/2 for OnSLTRContainerActivate")
+			;SLTInfoMsg("Core.PopulatePerk: Registering/2 for OnSLTRContainerActivate")
 			SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_CONTAINER_ACTIVATE(), "OnSLTRContainerActivate")
 		Endif
 	Endif
 EndFunction
 
-Function Bugbear()
-	SLTDebugMsg("\n\n\t\t BUGBEAR BEGIN")
-
-	bool isen = IsEnabled
-	Perk theperk = SLT.SLTRContainerPerk
-	Actor pref = PlayerRef
-	bool hasperk = pref.HasPerk(theperk)
-	SLTDebugMsg("Bugbear: IsEnabled(" + isen + ") / SLT.SLTRContainerPerk(" + theperk + ") / PlayerRef(" + pref + ") / PlayerRef.HasPerk(" + hasperk + ")")
-
-	sl_triggersContainerPerk sltconperk = theperk as sl_triggersContainerPerk
-	if !sltconperk
-		SLTDebugMsg("\n\n\t\t!!!!!   Bugbear: could not cast to sl_triggersContainerPerk")
-	else
-		; won't go anywhere, just shaking the plumbing
-		SLTDebugMsg("going to generate fake container activation")
-		sltconperk.SignalContainerActivation(PlayerRef, none, false, true)
-		SLTDebugMsg("done generating fake container activation")
-		if !hasperk && pref
-			if hasperk
-				SLTDebugMsg("Bugbear: says has perk, should be success")
-			else
-				SLTDebugMsg("Bugbear: no perk, very weird")
-			endif
-		else
-			if hasperk
-				SLTDebugMsg("Bugbear: already has perk")
-			endif
-			if !pref
-				SLTDebugMsg("Bugbear: unsafe, no PlayerRef")
-			endif
-		endif
-	endif
-EndFunction
-
 Function SLTReady()
-	SLTDebugMsg("Core.SLTReady: enabling polling")
-
 	PopulatePerk()
-
-	Bugbear()
-	pollingForSentinel = true
+	if CS_POLLING != CS_STATE && !pkSentinel
+		CS_STATE = CS_POLLING
+		UnregisterForUpdate()
+		QueueUpdateLoop(0.01)
+	endif
 
 	_keystates = PapyrusUtil.BoolArray(256, false)
 	UpdateDAKStatus()
@@ -301,8 +262,9 @@ Event OnKeyDown(Int KeyCode)
 	Endif
 EndEvent
 
-Event OnSLTRPlayerCellChange(bool isNewGameLaunch, bool isNewSession)
-	SLTDebugMsg("\tCore.OnSLTRPlayerCellChange: isNewGameLaunch:" + isNewGameLaunch + " / isNewSession: " + isNewSession)
+Event OnSLTRPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Form fkwPlayerLocation)
+	Keyword kwpLocation = fkwPlayerLocation as Keyword
+	SLTDebugMsg("\tCore.OnSLTRPlayerCellChange: isNewGameLaunch:" + isNewGameLaunch + " / isNewSession: " + isNewSession + " / keywordPlayerLocation : " + kwpLocation)
 EndEvent
 
 int cellPreviousSessionId;
@@ -323,7 +285,7 @@ Function Send_SLTR_OnPlayerCellChange()
 		endif
 	; i.e. new launch of the .exe; not reversing time (is there an API for that?)
 	else
-		SLTDebugMsg("Core.Send_SLTR_OnPlayerCellChange: new launch detected")
+		;SLTDebugMsg("Core.Send_SLTR_OnPlayerCellChange: new launch detected")
 		isNewGameLaunch = true
 	endif
 	last_time_PlayerCellChangeEvent = nowtime
@@ -337,21 +299,22 @@ Function Send_SLTR_OnPlayerCellChange()
 	endif
 
 	if isNewGameLaunch && !isNewSession
-		SLTErrMsg("Core.Send_SLTR_OnPlayerCellChange: IsNewGameLaunch(" + isNewGameLaunch + ") but isNewSession(" + isNewSession + ") this really ought to be an error")
+		SLTWarnMsg("Core.Send_SLTR_OnPlayerCellChange: IsNewGameLaunch(" + isNewGameLaunch + ") but isNewSession(" + isNewSession + ") this really ought to be an error")
 	endif
 
 	; should
 	; optional send actual mod event, otherwise at least pass it off to our handlers
-	SendModEvent(EVENT_SLTR_ON_PLAYER_CELL_CHANGE())
+	HandleOnPlayerCellChange(isNewGameLaunch, isNewSession, playerLocationKeyword)
+
+	Keyword playerLocationKeyword = SLT.GetPlayerLocationKeyword()
 
 	int mehandle = ModEvent.Create(EVENT_SLTR_ON_PLAYER_CELL_CHANGE())
 	; is this in response to a "new launch" (i.e. new run of SkyrimSE.exe) ; multiple can be true
 	ModEvent.PushBool(mehandle, isNewGameLaunch)
 	; is this in response to "new session" (i.e. game load or new game) ; this should imply isNewGameLaunch and otherwise ought to be an error in my opinion
 	ModEvent.PushBool(mehandle, isNewSession)
+	ModEvent.PushForm(mehandle, playerLocationKeyword)
 	ModEvent.Send(mehandle)
-
-	HandleOnPlayerCellChange(isNewGameLaunch, isNewSession)
 
 	isNewGameLaunch = false
 EndFunction
@@ -373,8 +336,9 @@ EndEvent
 
 Function Send_SLTR_OnPlayerLoadingScreen()
 	; optional send actual mod event, otherwise at least pass it off to our handlers
-	SendModEvent(EVENT_SLTR_ON_PLAYER_LOADING_SCREEN())
 	HandleOnPlayerLoadingScreen()
+
+	SendModEvent(EVENT_SLTR_ON_PLAYER_LOADING_SCREEN())
 EndFunction
 
 ; in the example, called OnPlayerLoadingScreen() but surely it's for more than that?
@@ -392,7 +356,7 @@ Event OnSLTRContainerActivate(Form fcontainerRef, bool isConCorpse, bool isConEm
 EndEvent
 
 Function Send_SLTR_OnPlayerActivateContainer(ObjectReference containerRef, bool container_is_corpse, bool container_is_empty)
-	SLTDebugMsg("Core.Send_SLTR_OnPlayerActivateContainer containerRef(" + containerRef + ") corpse(" + container_is_corpse + ") empty(" + container_is_empty + ")")
+	;SLTDebugMsg("Core.Send_SLTR_OnPlayerActivateContainer containerRef(" + containerRef + ") corpse(" + container_is_corpse + ") empty(" + container_is_empty + ")")
 	Keyword playerLocationKeyword = SLT.GetPlayerLocationKeyword()
 
 	HandlePlayerContainerActivation(containerRef, container_is_corpse, container_is_empty, playerLocationKeyword)
@@ -549,20 +513,18 @@ Function RegisterEvents()
 		RegisterForKeyEvents()
 	endif
 
-	SLTDebugMsg("Core.RegisterEvents: registering OnSLTRPlayerCellChange")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_CELL_CHANGE(), "OnSLTRPlayerCellChange")
 
-	SLTDebugMsg("Core.RegisterEvents: registering OnSLTRPlayerLoadingScreen")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_LOADING_SCREEN(), "OnSLTRPlayerLoadingScreen")
 
 	if SLT.SLTRContainerPerk
 		if PlayerRef && !PlayerRef.HasPerk(SLT.SLTRContainerPerk)
-			SLTDebugMsg("Core.RegisterEvents: during check for OnSLTRContainerActivate, adding missing perk to player")
+			;SLTDebugMsg("Core.RegisterEvents: during check for OnSLTRContainerActivate, adding missing perk to player")
 			PlayerRef.AddPerk(SLT.SLTRContainerPerk)
 		endif
 
 		if PlayerRef.HasPerk(SLT.SLTRContainerPerk)
-			SLTDebugMsg("Core.RegisterEvents: registering OnSLTRContainerActivate")
+			;SLTDebugMsg("Core.RegisterEvents: registering OnSLTRContainerActivate")
 			SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_CONTAINER_ACTIVATE(), "OnSLTRContainerActivate")
 		else
 			SLTDebugMsg("Core.RegisterEvents: failed/1 to register OnSLTRContainerActivate: IsEnabled(" + IsEnabled + ") / SLT.SLTRContainerPerk(" + SLT.SLTRContainerPerk + ") / PlayerRef(" + PlayerRef + ") / PlayerRef.HasPerk(" + (SLT && SLT.SLTRContainerPerk && PlayerRef && PlayerRef.HasPerk(SLT.SLTRContainerPerk)) + ")")
@@ -728,9 +690,10 @@ Function HandleOnKeyDown()
 	endwhile
 EndFunction
 
-Function HandleOnPlayerCellChange(bool isNewGameLaunch, bool isNewSession)
-	SLTDebugMsg("Core.HandleOnPlayerCellChange: isNewGameLaunch(" + isNewGameLaunch + ") / isNewSession(" + isNewSession + ")")
+Function HandleOnPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Keyword playerLocationKeyword)
+	;SLTDebugMsg("Core.HandleOnPlayerCellChange: isNewGameLaunch(" + isNewGameLaunch + ") / isNewSession(" + isNewSession + ")")
 	int i = 0
+	int j
 	string triggerKey
 	string _triggerFile
 	string command
@@ -741,7 +704,8 @@ Function HandleOnPlayerCellChange(bool isNewGameLaunch, bool isNewSession)
 		triggerKey = triggerKeys_playercellchange[i]
 		_triggerFile = FN_T(triggerKey)
 
-		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+		; could filter by isNewGameLaunch and/or isNewSession too
+		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE()) && !isNewGameLaunch && !isNewSession
 
 		if doRun
 			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
@@ -757,28 +721,57 @@ Function HandleOnPlayerCellChange(bool isNewGameLaunch, bool isNewSession)
 				endIf
 
 				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_LOCATION)
-					if ival != 0 ; 0 is Any
-						if ival == 1 && !PlayerRef.IsInInterior()
-							doRun = false
-						elseIf ival == 2 && PlayerRef.IsInInterior()
-							doRun = false
-						endIf
-					endIf
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION)
+					if ival != 0
+;/
+0 - Any
+
+1 - Inside
+2 - Outside
+3 - Safe (Home/Jail/Inn)
+4 - City (City/Town/Habitation/Dwelling)
+5 - Wilderness (!pLoc(DEFAULT)/Hold/Fort/Bandit Camp)
+6 - Dungeon (Cave/et. al.)
+
+; LocationKeywords[i - 7]
+5 - Player Home
+6 - Jail
+...
+/;
+
+						if ival == 1
+							doRun = PlayerRef.IsInInterior()
+						elseif ival == 2
+							doRun = !PlayerRef.IsInInterior()
+						elseif ival == 3
+							doRun = SLT.IsLocationKeywordSafe(playerLocationKeyword)
+						elseif ival == 4
+							doRun = SLT.IsLocationKeywordCity(playerLocationKeyword)
+						elseif ival == 5
+							doRun = SLT.IsLocationKeywordWilderness(playerLocationKeyword)
+						elseif ival == 6
+							doRun = SLT.IsLocationKeywordDungeon(playerLocationKeyword)
+						else
+							j = ival - 7
+							doRun = playerLocationKeyword == SLT.LocationKeywords[j]
+						endif
+					endif
 				endIf
 				
-				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
-				if command
-					RequestCommand(PlayerRef, command)
-				endIf
-				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
-				if command
-					RequestCommand(PlayerRef, command)
-				endIf
-				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
-				if command
-					RequestCommand(PlayerRef, command)
-				endIf
+				if doRun
+					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+					if command
+						RequestCommand(PlayerRef, command)
+					endIf
+					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+					if command
+						RequestCommand(PlayerRef, command)
+					endIf
+					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+					if command
+						RequestCommand(PlayerRef, command)
+					endIf
+				endif
 			endif
 		endif
 		i += 1
