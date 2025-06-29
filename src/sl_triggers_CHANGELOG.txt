@@ -4,6 +4,8 @@
     enhancement: New Core event trigger "OnPlayerLoadingScreen"
     enhancement: New Core event trigger "OnPlayerContainerActivate" (i.e. opening containers/bodies)
         new standard modevent: OnSLTRPlayerActivateContainer
+        NOTE: Due to implementation constraints, SLTScript will run after the container is closed
+            I don't currently see a pragmatic way to pause the opening of the container window long enough to guarantee running an SLTScript to completion
     enhancement: new $system variables
     enhancement: Additional scopes, $core, $sexlab, with new custom variables (should make certain queries simpler)
     enhancement: Improved script parsing speed
