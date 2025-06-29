@@ -262,9 +262,11 @@ Event OnKeyDown(Int KeyCode)
 	Endif
 EndEvent
 
-Event OnSLTRPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Form fkwPlayerLocation)
-	Keyword kwpLocation = fkwPlayerLocation as Keyword
-	SLTDebugMsg("\tCore.OnSLTRPlayerCellChange: isNewGameLaunch:" + isNewGameLaunch + " / isNewSession: " + isNewSession + " / keywordPlayerLocation : " + kwpLocation)
+Event OnSLTRPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Form fkwPlayerLocation, bool playerWasInInterior)
+	if SLT.bDebugMsg
+		Keyword kwpLocation = fkwPlayerLocation as Keyword
+		SLTDebugMsg("\tCore.OnSLTRPlayerCellChange: isNewGameLaunch:" + isNewGameLaunch + " / isNewSession: " + isNewSession + " / keywordPlayerLocation : " + kwpLocation + " / playerWasInInterior:" + playerWasInInterior)
+	endif
 EndEvent
 
 int cellPreviousSessionId;
@@ -304,7 +306,7 @@ Function Send_SLTR_OnPlayerCellChange()
 
 	; should
 	; optional send actual mod event, otherwise at least pass it off to our handlers
-	HandleOnPlayerCellChange(isNewGameLaunch, isNewSession, playerLocationKeyword)
+	HandleOnPlayerCellChange(isNewGameLaunch, isNewSession, playerLocationKeyword, PlayerRef.IsInInterior())
 
 	Keyword playerLocationKeyword = SLT.GetPlayerLocationKeyword()
 
@@ -314,6 +316,7 @@ Function Send_SLTR_OnPlayerCellChange()
 	; is this in response to "new session" (i.e. game load or new game) ; this should imply isNewGameLaunch and otherwise ought to be an error in my opinion
 	ModEvent.PushBool(mehandle, isNewSession)
 	ModEvent.PushForm(mehandle, playerLocationKeyword)
+	ModEvent.PushBool(mehandle, PlayerRef.IsInInterior())
 	ModEvent.Send(mehandle)
 
 	isNewGameLaunch = false
@@ -331,7 +334,9 @@ Function RelocatePlayerLoadingScreenSentinel()
 EndFunction
 
 Event OnSLTRPlayerLoadingScreen(string _eventName, string _strvalue, float _fltvalue, Form _frmvalue)
-	SLTDebugMsg("\tCore.OnSLTRPlayerLoadingScreen")
+	if SLT.bDebugMsg
+		SLTDebugMsg("\tCore.OnSLTRPlayerLoadingScreen")
+	endif
 EndEvent
 
 Function Send_SLTR_OnPlayerLoadingScreen()
@@ -347,25 +352,27 @@ Function SLTR_Internal_PlayerNewSpaceEvent()
 	Send_SLTR_OnPlayerLoadingScreen()
 EndFunction
 
-Event OnSLTRPlayerContainerActivate(Form fcontainerRef, bool isConCorpse, bool isConEmpty, Form fplocKeywd)
-	ObjectReference containerRef = fcontainerRef as ObjectReference
-	Keyword kwpLocation = fplocKeywd as Keyword
+Event OnSLTRPlayerContainerActivate(Form fcontainerRef, bool isConCorpse, bool isConEmpty, Form fkwPlayerLocation, bool playerWasInInterior)
+	if SLT.bDebugMsg
+		ObjectReference containerRef = fcontainerRef as ObjectReference
+		Keyword kwpLocation = fkwPlayerLocation as Keyword
 
-	SLTDebugMsg("\tCore.OnSLTRPlayerContainerActivate fcontainerRef(" + fcontainerRef + ") / containerRef(" + containerRef + ") / isConCorpse(" + isConCorpse + ") / isConEmpty(" + isConEmpty + ") / fplocKeywd(" + fplocKeywd + ") / kwpLocation(" + kwpLocation + ")")
-
+		SLTDebugMsg("\tCore.OnSLTRPlayerContainerActivate fcontainerRef(" + fcontainerRef + ") / containerRef(" + containerRef + ") / isConCorpse(" + isConCorpse + ") / isConEmpty(" + isConEmpty + ") / fkwPlayerLocation(" + fkwPlayerLocation + ") / kwpLocation(" + kwpLocation + ")")
+	endif
 EndEvent
 
 Function Send_SLTR_OnPlayerActivateContainer(ObjectReference containerRef, bool container_is_corpse, bool container_is_empty)
 	;SLTDebugMsg("Core.Send_SLTR_OnPlayerActivateContainer containerRef(" + containerRef + ") corpse(" + container_is_corpse + ") empty(" + container_is_empty + ")")
 	Keyword playerLocationKeyword = SLT.GetPlayerLocationKeyword()
 
-	HandlePlayerContainerActivation(containerRef, container_is_corpse, container_is_empty, playerLocationKeyword)
+	HandlePlayerContainerActivation(containerRef, container_is_corpse, container_is_empty, playerLocationKeyword, PlayerRef.IsInInterior())
 
 	int handle = ModEvent.Create(EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE())
 	ModEvent.PushForm(handle, containerRef)
 	ModEvent.PushBool(handle, container_is_corpse)
 	ModEvent.PushBool(handle, container_is_empty)
 	ModEvent.PushForm(handle, playerLocationKeyword)
+	ModEvent.PushBool(handle, PlayerRef.IsInInterior())
 	ModEvent.Send(handle)
 EndFunction
 
@@ -690,7 +697,7 @@ Function HandleOnKeyDown()
 	endwhile
 EndFunction
 
-Function HandleOnPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Keyword playerLocationKeyword)
+Function HandleOnPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Keyword playerLocationKeyword, bool playerWasInInterior)
 	;SLTDebugMsg("Core.HandleOnPlayerCellChange: isNewGameLaunch(" + isNewGameLaunch + ") / isNewSession(" + isNewSession + ")")
 	int i = 0
 	int j
@@ -810,8 +817,7 @@ Function HandleOnPlayerLoadingScreen()
 	endwhile
 EndFunction
 
-Function HandlePlayerContainerActivation(ObjectReference containerRef, bool container_is_corpse, bool container_is_empty, Keyword playerLocationKeyword)
-	SLTDebugMsg("Core.HandlePlayerContainerActivation")
+Function HandlePlayerContainerActivation(ObjectReference containerRef, bool container_is_corpse, bool container_is_empty, Keyword playerLocationKeyword, bool playerWasInInterior)
 	if !containerRef
 		return
 	endif
@@ -877,9 +883,9 @@ Function HandlePlayerContainerActivation(ObjectReference containerRef, bool cont
 /;
 
 						if ival == 1
-							doRun = PlayerRef.IsInInterior()
+							doRun = playerWasInInterior
 						elseif ival == 2
-							doRun = !PlayerRef.IsInInterior()
+							doRun = !playerWasInInterior
 						elseif ival == 3
 							doRun = SLT.IsLocationKeywordSafe(playerLocationKeyword)
 						elseif ival == 4
