@@ -22,8 +22,6 @@ int         property previousframeid = 0 auto hidden
 int   property lastkey = 0 auto  hidden
 bool        property cleanedup = false auto  hidden
 string     property mostrecentresult = "" auto hidden
-string      property customresolveresult = "" auto hidden
-form        property customresolveformresult = none auto hidden
 actor       property iteractor = none auto hidden
 string      property currentscriptname = "" auto hidden
 int         property currentline = 0 auto hidden
@@ -31,6 +29,42 @@ int         property totallines = 0 auto hidden
 int         property linenum = 1 auto hidden
 string[]    property callargs auto hidden
 string      property command = "" auto hidden
+int         property rt_string =    1 autoreadonly
+int         property rt_bool =      2 autoreadonly
+int         property rt_int =       3 autoreadonly
+int         property rt_float =     4 autoreadonly
+int         property rt_form =      5 autoreadonly
+int         property customresolvetype auto hidden
+string      property customresolveresult hidden
+string function get()
+endfunction
+function set(string value)
+endfunction
+endproperty
+bool        property customresolveboolresult hidden
+bool function get()
+endfunction
+function set(bool value)
+endfunction
+endproperty
+int         property customresolveintresult  hidden
+int function get()
+endfunction
+function set(int value)
+endfunction
+endproperty
+float        property customresolvefloatresult  hidden
+float function get()
+endfunction
+function set(float value)
+endfunction
+endproperty
+form        property customresolveformresult hidden
+form function get()
+endfunction
+function set(form value)
+endfunction
+endproperty
 event onsltreset(string eventname, string strarg, float numarg, form sender)
 endevent
 event oneffectstart(actor aktarget, actor akcaster)
@@ -47,11 +81,19 @@ function runoperationonactor(string[] opcmdline)
 endfunction
 function completeoperationonactor()
 endfunction
+bool function internalresolve(string token)
+endfunction
 string function resolve(string token)
 endfunction
 actor function resolveactor(string token)
 endfunction
 form function resolveform(string token)
+endfunction
+bool function resolvebool(string token)
+endfunction
+int function resolveint(string token)
+endfunction
+float function resolvefloat(string token)
 endfunction
 function runscript()
 endfunction
@@ -99,10 +141,10 @@ string function getthreadvar(string _key, string missing)
 endfunction
 string function setthreadvar(string _key, string value)
 endfunction
-function getvarscope(string varname, int[] varscope)
+function getvarscope2(string varname, string[] varscope)
 endfunction
-string function getvarstring(int[] varscope, string token, string missing)
+string function getvarstring2(string scope, string varname, string missing)
 endfunction
-string function setvarstring(int[] varscope, string token, string value)
+string function setvarstring2(string scope, string varname, string value)
 endfunction
 ;This file was cleaned with PapyrusSourceHeadliner 1

@@ -13,7 +13,7 @@ bool function _slt_additionalenabledrequirements()
 endfunction
 sslthreadcontroller function getthreadforactor(actor theactor)
 endfunction
-bool function customresolveform(sl_triggerscmd cmdprimary, string token)
+bool function customresolvescoped(sl_triggerscmd cmdprimary, string scope, string token)
 endfunction
 event onsexlabstart(string _eventname, string _args, float _argc, form _sender)
 endevent

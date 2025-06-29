@@ -2,6 +2,7 @@ scriptname sl_triggersextension extends quest
 string    property sltextensionkey auto
 string    property sltfriendlyname auto
 int     property sltpriority auto
+string    property sltscope auto
 actor               property playerref auto
 sl_triggersmain  property slt auto hidden ; will be populated on startup
 keyword    property actortypenpc auto hidden ; will be populated on startup
@@ -18,9 +19,7 @@ function sltready()
 endfunction
 function sltsettingsupdated()
 endfunction
-bool function customresolve(sl_triggerscmd cmdprimary, string token)
-endfunction
-bool function customresolveform(sl_triggerscmd cmdprimary, string token)
+bool function customresolvescoped(sl_triggerscmd cmdprimary, string scope, string token)
 endfunction
 bool    property isdebugmsg
 bool function get()

@@ -16,6 +16,8 @@ function sltready()
 endfunction
 function refreshdata()
 endfunction
+bool function customresolvescoped(sl_triggerscmd cmdprimary, string scope, string token)
+endfunction
 event onupdategametime()
 endevent
 event onnewsession(int _newsessionid)

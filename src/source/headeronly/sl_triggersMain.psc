@@ -19,11 +19,14 @@ keyword property loctypemilitaryfort  auto
 keyword property loctypemine  auto  
 keyword property loctypeinn  auto
 keyword property loctypehold auto
+perk property sltrcontainerperk auto
 keyword[] property locationkeywords auto hidden
-bool    property benabled  = true auto hidden
+bool    property isresetting = false auto hidden
+bool    property isenabled  = true auto hidden
 bool    property bdebugmsg  = false auto hidden
 form[]    property extensions    auto hidden
 int     property nextinstanceid   auto hidden
+int     property runningscriptcount = 0 auto hidden
 function setenabled(bool _newenabledflag)
 endfunction
 event oninit()
@@ -48,6 +51,8 @@ function doregistrationactivity(sl_triggersextension _extensiontoregister)
 endfunction
 function doinmemoryreset()
 endfunction
+event onsltreset(string eventname, string strarg, float numarg, form sender)
+endevent
 function queueupdateloop(float afdelay = 1.0)
 endfunction
 function sendeventsltonnewsession()
@@ -61,6 +66,8 @@ endfunction
 sl_triggersextension function getextensionbyindex(int _index)
 endfunction
 sl_triggersextension function getextensionbykey(string _extensionkey)
+endfunction
+sl_triggersextension function getextensionbyscope(string _scope)
 endfunction
 event onsltdelaystartcommand(string eventname, string initialscriptname, float reattemptcount, form sender)
 endevent
