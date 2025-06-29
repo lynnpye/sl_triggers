@@ -148,12 +148,12 @@ Function PopulatePerk()
 			If !PlayerRef.HasPerk(SLT.SLTRContainerPerk)
 				SLTErrMsg("Core.PopulatePerk: SLTRContainerPerk is not present on PlayerRef even after validation; Container activation tracking disabled; this is probably an error")
 			else
-				;SLTInfoMsg("Core.PopulatePerk: Registering/1 for OnSLTRContainerActivate")
-				SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_CONTAINER_ACTIVATE(), "OnSLTRContainerActivate")
+				;SLTInfoMsg("Core.PopulatePerk: Registering/1 for OnSLTRPlayerContainerActivate")
+				SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE(), EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE())
 			Endif
 		else
 			;SLTInfoMsg("Core.PopulatePerk: Registering/2 for OnSLTRContainerActivate")
-			SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_CONTAINER_ACTIVATE(), "OnSLTRContainerActivate")
+			SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE(), EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE())
 		Endif
 	Endif
 EndFunction
@@ -347,11 +347,11 @@ Function SLTR_Internal_PlayerNewSpaceEvent()
 	Send_SLTR_OnPlayerLoadingScreen()
 EndFunction
 
-Event OnSLTRContainerActivate(Form fcontainerRef, bool isConCorpse, bool isConEmpty, Form fplocKeywd)
+Event OnSLTRPlayerContainerActivate(Form fcontainerRef, bool isConCorpse, bool isConEmpty, Form fplocKeywd)
 	ObjectReference containerRef = fcontainerRef as ObjectReference
 	Keyword kwpLocation = fplocKeywd as Keyword
 
-	SLTDebugMsg("\tCore.OnSLTRContainerActivate fcontainerRef(" + fcontainerRef + ") / containerRef(" + containerRef + ") / isConCorpse(" + isConCorpse + ") / isConEmpty(" + isConEmpty + ") / fplocKeywd(" + fplocKeywd + ") / kwpLocation(" + kwpLocation + ")")
+	SLTDebugMsg("\tCore.OnSLTRPlayerContainerActivate fcontainerRef(" + fcontainerRef + ") / containerRef(" + containerRef + ") / isConCorpse(" + isConCorpse + ") / isConEmpty(" + isConEmpty + ") / fplocKeywd(" + fplocKeywd + ") / kwpLocation(" + kwpLocation + ")")
 
 EndEvent
 
@@ -361,7 +361,7 @@ Function Send_SLTR_OnPlayerActivateContainer(ObjectReference containerRef, bool 
 
 	HandlePlayerContainerActivation(containerRef, container_is_corpse, container_is_empty, playerLocationKeyword)
 
-	int handle = ModEvent.Create(EVENT_SLTR_ON_CONTAINER_ACTIVATE())
+	int handle = ModEvent.Create(EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE())
 	ModEvent.PushForm(handle, containerRef)
 	ModEvent.PushBool(handle, container_is_corpse)
 	ModEvent.PushBool(handle, container_is_empty)
@@ -525,7 +525,7 @@ Function RegisterEvents()
 
 		if PlayerRef.HasPerk(SLT.SLTRContainerPerk)
 			;SLTDebugMsg("Core.RegisterEvents: registering OnSLTRContainerActivate")
-			SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_CONTAINER_ACTIVATE(), "OnSLTRContainerActivate")
+			SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE(), EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE())
 		else
 			SLTDebugMsg("Core.RegisterEvents: failed/1 to register OnSLTRContainerActivate: IsEnabled(" + IsEnabled + ") / SLT.SLTRContainerPerk(" + SLT.SLTRContainerPerk + ") / PlayerRef(" + PlayerRef + ") / PlayerRef.HasPerk(" + (SLT && SLT.SLTRContainerPerk && PlayerRef && PlayerRef.HasPerk(SLT.SLTRContainerPerk)) + ")")
 		endif

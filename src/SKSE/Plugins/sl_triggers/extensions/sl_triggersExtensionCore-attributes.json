@@ -28,7 +28,7 @@
     "triggerattribute_event" : [
         ["# here is where you define aspects of the attribute"],
         ["type", "int"],
-        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Key Mapping", "Top of the Hour", "New Session", "Player Cell Change", "Player Loading Screen", "Player Container Activate"],
+        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Key Mapping", "Top of the Hour", "New Session", "Player Cell Change", "Player Loading Screen", "Player Opened Container"],
         ["info", "Choose which type of event this trigger will use."]
     ],
     "triggerattribute_keymapping" : 

@@ -92,8 +92,8 @@ string Function EVENT_SLT_DELAY_START_COMMAND() global
 	return "OnSLTDelayStartCommand"
 EndFunction
 
-string Function EVENT_SLTR_ON_CONTAINER_ACTIVATE() global
-	return "OnSLTRContainerActivate"
+string Function EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE() global
+	return "OnSLTRPlayerContainerActivate"
 EndFunction
 
 string Function EVENT_SLTR_ON_PLAYER_CELL_CHANGE() global

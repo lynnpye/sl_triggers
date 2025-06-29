@@ -1,13 +1,12 @@
 122
-    enhancement: New Core event trigger "OnCellChange"
-        new standard modevent: OnSLTRPlayerCellChange
-    enhancement: New Core event trigger "OnPlayerLoadingScreen"
-    enhancement: New Core event trigger "OnPlayerContainerActivate" (i.e. opening containers/bodies)
-        new standard modevent: OnSLTRPlayerActivateContainer
+    enhancement: New Core event trigger "Player Changed Cell"
+        new custom modevent: OnSLTRPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Form fkwPlayerLocation)
+    enhancement: New Core event trigger "Player Loading Screen"
+        new standard modevent: OnSLTRPlayerLoadingScreen
+    enhancement: New Core event trigger "Player Activated Container" (i.e. opening containers/bodies)
+        new custom modevent: OnSLTRPlayerContainerActivate(Form fcontainerRef, bool isConCorpse, bool isConEmpty, Form fplocKeywd)
         NOTE: Due to implementation constraints, SLTScript will run after the container is closed
             I don't currently see a pragmatic way to pause the opening of the container window long enough to guarantee running an SLTScript to completion
-    enhancement: new $system variables
-    enhancement: Additional scopes, $core, $sexlab, with new custom variables (should make certain queries simpler)
     enhancement: Improved script parsing speed
     enhancement: Improved variable resolution speed
 
