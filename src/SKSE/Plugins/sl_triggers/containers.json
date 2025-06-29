@@ -1,24 +1,26 @@
 {
-	"formList" : 
-	{
-        "comment": ["These are JsonUtil formID format entries for containers which will be dynamically added to the container list at game start"],
-		"dt_additional" : [ "0101C95|Skyrim.esm", "08836C|Skyrim.esm" 
-	
-	, "020040A5|Dawnguard.esm"
-	, "02019DD6|Dawnguard.esm"
-	, "03025E46|Dragonborn.esm"
-	, "0302AABA|Dragonborn.esm"
-	, "0302AABF|Dragonborn.esm"
-	, "0302AAC2|Dragonborn.esm"
-	, "0302C456|Dragonborn.esm"
-	, "0302C461|Dragonborn.esm"
-	, "03024FA5|Dragonborn.esm"
-	, "0302C464|Dragonborn.esm"
-	]
-	},
 	"stringList" : 
 	{
         "comment": ["Add the 'DisplayName' of any containers you want to have considered as 'common'"],
-		"dt_common" : [ "Barrel", "Large Sack", "Sack", "Urn", "Burial Urn", "Honningbrew Mead Barrel", "Black-Briar Mead Barrel" ]
+		"dt_common" : [ "Barrel", "Large Sack", "Sack", "Urn", "Burial Urn", "Honningbrew Mead Barrel", "Black-Briar Mead Barrel" ],
+
+		
+        "comment2": ["These are JsonUtil formID format entries for containers which will be dynamically added to the container list at game start"],
+		"dt_additional" : [
+			  "0x0101C95|Skyrim.esm"
+			, "0x08836C|Skyrim.esm"
+			, "0x0040A5|Dawnguard.esm"
+			, "0x019DD6|Dawnguard.esm"
+			, "0x025E46|Dragonborn.esm"
+			, "0x02AABA|Dragonborn.esm"
+			, "0x02AABF|Dragonborn.esm"
+			, "0x02AAC2|Dragonborn.esm"
+			, "0x02C456|Dragonborn.esm"
+			, "0x02C461|Dragonborn.esm"
+			, "0x024FA5|Dragonborn.esm"
+			, "0x02C464|Dragonborn.esm"
+			, "0x003881|Quick Start - SE.esp"
+			, "0x00B9C8|Quick Start - SE.esp"
+	]
 	}
 }

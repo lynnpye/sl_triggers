@@ -30,7 +30,7 @@ Function SetEnabled(bool _newEnabledFlag)
 		JsonUtil.SetIntValue(FN_S, "enabled", bEnabled as int)
 	endif
 	sl_triggers_internal.SetExtensionEnabled(SLTExtensionKey, bEnabled)
-	IsEnabled = SLT.bEnabled && bEnabled
+	IsEnabled = SLT.IsEnabled && bEnabled
 EndFunction
 
 ; string[] TriggerKeys

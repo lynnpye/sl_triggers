@@ -66,29 +66,144 @@ bool		playerCellChangeHandlingReady
 float 		last_time_PlayerCellChangeEvent
 string[]	common_container_names
 
+int Property CS_DEFAULT 		= 0 AutoReadOnly Hidden
+int Property CS_SLTINIT		 	= 1 AutoReadOnly Hidden
+int Property CS_POLLING 		= 2 AutoReadOnly Hidden
+
+int CS_STATE
+
+bool pollingForSentinel
+
+Function QueueUpdateLoop(float afDelay = 1.0)
+	if !self
+		return
+	endif
+	RegisterForSingleUpdate(afDelay)
+EndFunction
+
 Event OnInit()
 	if !self
 		return
 	endif
 
 	playerCellChangeHandlingReady = false
-	pkSentinel = PlayerRef.PlaceActorAtMe(pkSentinelBase)
 
 	; REQUIRED CALL
+	CS_STATE = CS_SLTINIT
 	UnregisterForUpdate()
-	RegisterForSingleUpdate(0.01)
+	QueueUpdateLoop(0.01)
 EndEvent
 
 Event OnUpdate()
-	SLTInit()
+	if CS_SLTINIT == CS_STATE
+		SLTInit()
+		
+		pollingForSentinel = true
+		CS_STATE = CS_POLLING
+		QueueUpdateLoop(0.01)
+		return
+	elseif CS_POLLING == CS_STATE
+		if pollingForSentinel
+			if PopulateSentinel()
+				pollingForSentinel = false
+			elseif !PlayerRef
+				QueueUpdateLoop()
+				return
+			elseif PlayerRef && PlayerRef.Is3DLoaded()
+				QueueUpdateLoop(0.1)
+				return
+			endif
+		endif
+	endif
 EndEvent
 
-Function SLTReady()
-	if !pkSentinel
+bool Function PopulateSentinel()
+	if pkSentinel
+		; got filled at some point when we weren't looking, huzzah!
+		RelocatePlayerLoadingScreenSentinel()
+		playerCellChangeHandlingReady = true
+		return true
+	elseif !PlayerRef
+		;SLTDebugMsg("Core.OnUpdate: pollingForSentinel requested, PlayerRef is not filled, polling 1 second")
+		return false
+	elseif PlayerRef.Is3DLoaded()
 		pkSentinel = PlayerRef.PlaceActorAtMe(pkSentinelBase)
+
+		if pkSentinel
+			;SLTDebugMsg("Core.OnUpdate: pollingForSentinel requested, PlayerRef.Is3DLoaded, pkSentinel is (" + pkSentinel + ")")
+			RelocatePlayerLoadingScreenSentinel()
+			playerCellChangeHandlingReady = true
+			return true
+		;else
+			; keep checking until satisfied?
+			;SLTDebugMsg("Core.OnUpdate: pollingForSentinel requested, waiting 1 second to check for pkSentinel and player 3d loaded; this isn't actually good... it means placeactoratme failed even when PlayerRef.Is3dLoaded()")
+		endif
 	endif
-	RelocatePlayerLoadingScreenSentinel()
-	playerCellChangeHandlingReady = true
+	return false
+EndFunction
+
+Function PopulatePerk()
+	if !SLT.SLTRContainerPerk
+		SLTErrMsg("Core.OnUpdate: SLTRContainerPerk is not filled; Container activation tracking disabled; this is probably an error")
+	else
+		If !PlayerRef.HasPerk(SLT.SLTRContainerPerk)
+			;SLTDebugMsg("Core.OnUpdate: Adding SLTRContainerPerk to PlayerRef")
+			PlayerRef.AddPerk(SLT.SLTRContainerPerk)
+
+			If !PlayerRef.HasPerk(SLT.SLTRContainerPerk)
+				SLTErrMsg("Core.OnUpdate: SLTRContainerPerk is not present on PlayerRef even after validation; Container activation tracking disabled; this is probably an error")
+			else
+				SLTInfoMsg("Core.OnUpdate: Registering/1 for OnSLTRContainerActivate")
+				SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_CONTAINER_ACTIVATE(), "OnSLTRContainerActivate")
+			Endif
+		else
+			SLTInfoMsg("Core.OnUpdate: Registering/2 for OnSLTRContainerActivate")
+			SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_CONTAINER_ACTIVATE(), "OnSLTRContainerActivate")
+		Endif
+	Endif
+EndFunction
+
+Function Bugbear()
+	SLTDebugMsg("\n\n\t\t BUGBEAR BEGIN")
+
+	bool isen = IsEnabled
+	Perk theperk = SLT.SLTRContainerPerk
+	Actor pref = PlayerRef
+	bool hasperk = pref.HasPerk(theperk)
+	SLTDebugMsg("Bugbear: IsEnabled(" + isen + ") / SLT.SLTRContainerPerk(" + theperk + ") / PlayerRef(" + pref + ") / PlayerRef.HasPerk(" + hasperk + ")")
+
+	sl_triggersContainerPerk sltconperk = theperk as sl_triggersContainerPerk
+	if !sltconperk
+		SLTDebugMsg("\n\n\t\t!!!!!   Bugbear: could not cast to sl_triggersContainerPerk")
+	else
+		; won't go anywhere, just shaking the plumbing
+		SLTDebugMsg("going to generate fake container activation")
+		sltconperk.SignalContainerActivation(PlayerRef, none, false, true)
+		SLTDebugMsg("done generating fake container activation")
+		if !hasperk && pref
+			if hasperk
+				SLTDebugMsg("Bugbear: says has perk, should be success")
+			else
+				SLTDebugMsg("Bugbear: no perk, very weird")
+			endif
+		else
+			if hasperk
+				SLTDebugMsg("Bugbear: already has perk")
+			endif
+			if !pref
+				SLTDebugMsg("Bugbear: unsafe, no PlayerRef")
+			endif
+		endif
+	endif
+EndFunction
+
+Function SLTReady()
+	SLTDebugMsg("Core.SLTReady: enabling polling")
+
+	PopulatePerk()
+
+	Bugbear()
+	pollingForSentinel = true
 
 	_keystates = PapyrusUtil.BoolArray(256, false)
 	UpdateDAKStatus()
@@ -186,30 +301,75 @@ Event OnKeyDown(Int KeyCode)
 	Endif
 EndEvent
 
+Event OnSLTRPlayerCellChange(bool isNewGameLaunch, bool isNewSession)
+	SLTDebugMsg("\tCore.OnSLTRPlayerCellChange: isNewGameLaunch:" + isNewGameLaunch + " / isNewSession: " + isNewSession)
+EndEvent
+
+int cellPreviousSessionId;
 Function Send_SLTR_OnPlayerCellChange()
+	if !PlayerRef || !PlayerRef.Is3DLoaded() || PlayerRef.IsDisabled()
+        SLTDebugMsg("Core.Send_SLTR_OnPlayerCellChange: Player not ready for cell change processing")
+        return
+    endif
+
+	float nowtime = Utility.GetCurrentRealTime()
+	bool isNewGameLaunch = false
+	; i.e. still this game load
+	if last_time_PlayerCellChangeEvent && nowtime > last_time_PlayerCellChangeEvent
+		if (nowtime - last_time_PlayerCellChangeEvent) < 1.0
+			; ignoring flutter
+			SLTDebugMsg("Core.Send_SLTR_OnPlayerCellChange: ignoring flutter")
+			return
+		endif
+	; i.e. new launch of the .exe; not reversing time (is there an API for that?)
+	else
+		SLTDebugMsg("Core.Send_SLTR_OnPlayerCellChange: new launch detected")
+		isNewGameLaunch = true
+	endif
+	last_time_PlayerCellChangeEvent = nowtime
+
+	RelocatePlayerLoadingScreenSentinel()
+
+	int nowSessionId = sl_triggers.GetSessionId()
+	bool isNewSession = nowSessionId != cellPreviousSessionId
+	if isNewSession
+		cellPreviousSessionId = nowSessionId
+	endif
+
+	if isNewGameLaunch && !isNewSession
+		SLTErrMsg("Core.Send_SLTR_OnPlayerCellChange: IsNewGameLaunch(" + isNewGameLaunch + ") but isNewSession(" + isNewSession + ") this really ought to be an error")
+	endif
+
+	; should
 	; optional send actual mod event, otherwise at least pass it off to our handlers
 	SendModEvent(EVENT_SLTR_ON_PLAYER_CELL_CHANGE())
-	HandleOnPlayerCellChange()
+
+	int mehandle = ModEvent.Create(EVENT_SLTR_ON_PLAYER_CELL_CHANGE())
+	; is this in response to a "new launch" (i.e. new run of SkyrimSE.exe) ; multiple can be true
+	ModEvent.PushBool(mehandle, isNewGameLaunch)
+	; is this in response to "new session" (i.e. game load or new game) ; this should imply isNewGameLaunch and otherwise ought to be an error in my opinion
+	ModEvent.PushBool(mehandle, isNewSession)
+	ModEvent.Send(mehandle)
+
+	HandleOnPlayerCellChange(isNewGameLaunch, isNewSession)
+
+	isNewGameLaunch = false
 EndFunction
 
 Function SLTR_Internal_PlayerCellChange()
 	if !playerCellChangeHandlingReady
 		return
 	endif
-	float nowtime = Utility.GetCurrentRealTime()
-
-	if (nowtime - last_time_PlayerCellChangeEvent) < 0.1
-		; ignoring flutter
-		return
-	endif
-	last_time_PlayerCellChangeEvent = nowtime
-	RelocatePlayerLoadingScreenSentinel()
 	Send_SLTR_OnPlayerCellChange()
 EndFunction
 
 Function RelocatePlayerLoadingScreenSentinel()
 	pkSentinel.MoveTo(PlayerRef, 0.0, 0.0, 256.0)
 EndFunction
+
+Event OnSLTRPlayerLoadingScreen(string _eventName, string _strvalue, float _fltvalue, Form _frmvalue)
+	SLTDebugMsg("\tCore.OnSLTRPlayerLoadingScreen")
+EndEvent
 
 Function Send_SLTR_OnPlayerLoadingScreen()
 	; optional send actual mod event, otherwise at least pass it off to our handlers
@@ -223,7 +383,16 @@ Function SLTR_Internal_PlayerNewSpaceEvent()
 	Send_SLTR_OnPlayerLoadingScreen()
 EndFunction
 
+Event OnSLTRContainerActivate(Form fcontainerRef, bool isConCorpse, bool isConEmpty, Form fplocKeywd)
+	ObjectReference containerRef = fcontainerRef as ObjectReference
+	Keyword kwpLocation = fplocKeywd as Keyword
+
+	SLTDebugMsg("\tCore.OnSLTRContainerActivate fcontainerRef(" + fcontainerRef + ") / containerRef(" + containerRef + ") / isConCorpse(" + isConCorpse + ") / isConEmpty(" + isConEmpty + ") / fplocKeywd(" + fplocKeywd + ") / kwpLocation(" + kwpLocation + ")")
+
+EndEvent
+
 Function Send_SLTR_OnPlayerActivateContainer(ObjectReference containerRef, bool container_is_corpse, bool container_is_empty)
+	SLTDebugMsg("Core.Send_SLTR_OnPlayerActivateContainer containerRef(" + containerRef + ") corpse(" + container_is_corpse + ") empty(" + container_is_empty + ")")
 	Keyword playerLocationKeyword = SLT.GetPlayerLocationKeyword()
 
 	HandlePlayerContainerActivation(containerRef, container_is_corpse, container_is_empty, playerLocationKeyword)
@@ -238,6 +407,7 @@ EndFunction
 
 Function SLTR_Internal_PlayerActivatedContainer(ObjectReference containerRef, bool container_is_corpse, bool container_is_empty)
 	if !containerRef
+		SLTErrMsg("Core.SLTR_Internal_PlayerActivatedContainer: containerRef is null")
 		return
 	endif
 	Send_SLTR_OnPlayerActivateContainer(containerRef, container_is_corpse, container_is_empty)
@@ -246,68 +416,16 @@ EndFunction
 Function RefreshTheContainersWeKnowAndLove()
 	TheContainersWeKnowAndLove.Revert()
 	Container containerToAdd
-	Int i = JsonUtil.FormListCount(FN_MoreContainersWeKnowAndLove(), "dt_additional")
+	Int i = JsonUtil.StringListCount(FN_MoreContainersWeKnowAndLove(), "dt_additional")
 	While i
 		i -=1
-		containerToAdd = JsonUtil.FormListGet(FN_MoreContainersWeKnowAndLove(), "dt_additional", i) As Container
-		If containerToAdd
-			TheContainersWeKnowAndLove.AddForm(containerToAdd)
-		EndIf	
+		Form conForm = sl_triggers.GetForm(JsonUtil.StringListGet(FN_MoreContainersWeKnowAndLove(), "dt_additional", i))
+		if conForm
+			TheContainersWeKnowAndLove.AddForm(conForm)
+		else
+			SLTErrMsg("Core.RefreshTheContainersWeKnowAndLove: unable to load form for " + i)
+		endif
 	EndWhile
-	
-	; and some hard-coded entries to prevent requiring Dawnguard and Dragonborn as hard dependencies
-	;/
-	, "020040A5|Dawnguard.esm"
-	, "02019DD6|Dawnguard.esm"
-	, "03025E46|Dragonborn.esm"
-	, "0302AABA|Dragonborn.esm"
-	, "0302AABF|Dragonborn.esm"
-	, "0302AAC2|Dragonborn.esm"
-	, "0302C456|Dragonborn.esm"
-	, "0302C461|Dragonborn.esm"
-	, "03024FA5|Dragonborn.esm"
-	, "0302C464|Dragonborn.esm"
-	/;
-	containerToAdd = sl_triggers.GetForm("0x040A5|Dawnguard.esm") as Container
-	if containerToAdd
-		TheContainersWeKnowAndLove.AddForm(containerToAdd)
-	endif
-	containerToAdd = sl_triggers.GetForm("0x019DD6|Dawnguard.esm") as Container
-	if containerToAdd
-		TheContainersWeKnowAndLove.AddForm(containerToAdd)
-	endif
-	containerToAdd = sl_triggers.GetForm("0x025E46|Dragonborn.esm") as Container
-	if containerToAdd
-		TheContainersWeKnowAndLove.AddForm(containerToAdd)
-	endif
-	containerToAdd = sl_triggers.GetForm("0x02AABA|Dragonborn.esm") as Container
-	if containerToAdd
-		TheContainersWeKnowAndLove.AddForm(containerToAdd)
-	endif
-	containerToAdd = sl_triggers.GetForm("0x02AABF|Dragonborn.esm") as Container
-	if containerToAdd
-		TheContainersWeKnowAndLove.AddForm(containerToAdd)
-	endif
-	containerToAdd = sl_triggers.GetForm("0x02AAC2|Dragonborn.esm") as Container
-	if containerToAdd
-		TheContainersWeKnowAndLove.AddForm(containerToAdd)
-	endif
-	containerToAdd = sl_triggers.GetForm("0x02C456|Dragonborn.esm") as Container
-	if containerToAdd
-		TheContainersWeKnowAndLove.AddForm(containerToAdd)
-	endif
-	containerToAdd = sl_triggers.GetForm("0x02C461|Dragonborn.esm") as Container
-	if containerToAdd
-		TheContainersWeKnowAndLove.AddForm(containerToAdd)
-	endif
-	containerToAdd = sl_triggers.GetForm("0x024FA5|Dragonborn.esm") as Container
-	if containerToAdd
-		TheContainersWeKnowAndLove.AddForm(containerToAdd)
-	endif
-	containerToAdd = sl_triggers.GetForm("0x02C464|Dragonborn.esm") as Container
-	if containerToAdd
-		TheContainersWeKnowAndLove.AddForm(containerToAdd)
-	endif
 
 	common_container_names = JsonUtil.StringListToArray(FN_MoreContainersWeKnowAndLove(), "dt_common")
 EndFunction
@@ -410,22 +528,48 @@ EndFunction
 
 ; selectively enables only events with triggers
 Function RegisterEvents()
+	if !self || !IsEnabled
+		return
+	endif
+
 	UnregisterForModEvent(EVENT_SLT_ON_NEW_SESSION())
-	if IsEnabled && triggerKeys_newSession.Length > 0
+	if triggerKeys_newSession.Length > 0
 		SafeRegisterForModEvent_Quest(self, EVENT_SLT_ON_NEW_SESSION(), "OnNewSession")
 	endif
 
 	UnregisterForModEvent(EVENT_TOP_OF_THE_HOUR)
 	handlingTopOfTheHour = false
-	if IsEnabled && triggerKeys_topOfTheHour.Length > 0
+	if triggerKeys_topOfTheHour.Length > 0
 		SafeRegisterForModEvent_Quest(self, EVENT_TOP_OF_THE_HOUR, EVENT_TOP_OF_THE_HOUR_HANDLER)
 		AlignToNextHour()
 		handlingTopOfTheHour = true
 	endif
 	
-	if IsEnabled && triggerKeys_keyDown.Length > 0
+	if triggerKeys_keyDown.Length > 0
 		RegisterForKeyEvents()
 	endif
+
+	SLTDebugMsg("Core.RegisterEvents: registering OnSLTRPlayerCellChange")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_CELL_CHANGE(), "OnSLTRPlayerCellChange")
+
+	SLTDebugMsg("Core.RegisterEvents: registering OnSLTRPlayerLoadingScreen")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_LOADING_SCREEN(), "OnSLTRPlayerLoadingScreen")
+
+	if SLT.SLTRContainerPerk
+		if PlayerRef && !PlayerRef.HasPerk(SLT.SLTRContainerPerk)
+			SLTDebugMsg("Core.RegisterEvents: during check for OnSLTRContainerActivate, adding missing perk to player")
+			PlayerRef.AddPerk(SLT.SLTRContainerPerk)
+		endif
+
+		if PlayerRef.HasPerk(SLT.SLTRContainerPerk)
+			SLTDebugMsg("Core.RegisterEvents: registering OnSLTRContainerActivate")
+			SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_CONTAINER_ACTIVATE(), "OnSLTRContainerActivate")
+		else
+			SLTDebugMsg("Core.RegisterEvents: failed/1 to register OnSLTRContainerActivate: IsEnabled(" + IsEnabled + ") / SLT.SLTRContainerPerk(" + SLT.SLTRContainerPerk + ") / PlayerRef(" + PlayerRef + ") / PlayerRef.HasPerk(" + (SLT && SLT.SLTRContainerPerk && PlayerRef && PlayerRef.HasPerk(SLT.SLTRContainerPerk)) + ")")
+		endif
+	else
+		SLTDebugMsg("Core.RegisterEvents: failed/2 to register OnSLTRContainerActivate: IsEnabled(" + IsEnabled + ") / SLT.SLTRContainerPerk(" + SLT.SLTRContainerPerk + ") / PlayerRef(" + PlayerRef + ") / PlayerRef.HasPerk(" + (SLT && SLT.SLTRContainerPerk && PlayerRef && PlayerRef.HasPerk(SLT.SLTRContainerPerk)) + ")")
+	EndIf
 EndFunction
 
 Function RegisterForKeyEvents()
@@ -584,7 +728,8 @@ Function HandleOnKeyDown()
 	endwhile
 EndFunction
 
-Function HandleOnPlayerCellChange()
+Function HandleOnPlayerCellChange(bool isNewGameLaunch, bool isNewSession)
+	SLTDebugMsg("Core.HandleOnPlayerCellChange: isNewGameLaunch(" + isNewGameLaunch + ") / isNewSession(" + isNewSession + ")")
 	int i = 0
 	string triggerKey
 	string _triggerFile
@@ -673,6 +818,7 @@ Function HandleOnPlayerLoadingScreen()
 EndFunction
 
 Function HandlePlayerContainerActivation(ObjectReference containerRef, bool container_is_corpse, bool container_is_empty, Keyword playerLocationKeyword)
+	SLTDebugMsg("Core.HandlePlayerContainerActivation")
 	if !containerRef
 		return
 	endif

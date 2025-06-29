@@ -683,11 +683,11 @@ Event OnOptionSelect(int option)
 	endif
 	If option == oidEnabled
 		; this should have ramifications
-		SLT.SetEnabled(!SLT.bEnabled)
-		SetToggleOptionValue(option, SLT.bEnabled)
+		SLT.SetEnabled(!SLT.IsEnabled)
+		SetToggleOptionValue(option, SLT.IsEnabled)
 
 		int newval = 0
-		if SLT.bEnabled
+		if SLT.IsEnabled
 			newval = 1
 		endif
 		JsonUtil.SetIntValue(FN_Settings(), "enabled", newval)
@@ -700,7 +700,7 @@ Event OnOptionSelect(int option)
 		SetToggleOptionValue(option, SLT.bDebugMsg)
 
 		int newval = 0
-		if SLT.bEnabled
+		if SLT.IsEnabled
 			newval = 1
 		endif
 		JsonUtil.SetIntValue(FN_Settings(), "debugmsg", newval)
@@ -1197,7 +1197,7 @@ Function ShowHeaderPage()
 	AddHeaderOption("(" + sl_triggers.GetTranslatedString("$SLT_LBL_VERSION") + " " + (ver as string) + ")")
 	
 	AddHeaderOption("$SLT_LBL_GLOBAL_SETTINGS")
-	oidEnabled    = AddToggleOption("$SLT_LBL_ENABLED_QUESTION", SLT.bEnabled)
+	oidEnabled    = AddToggleOption("$SLT_LBL_ENABLED_QUESTION", SLT.IsEnabled)
 	oidDebugMsg   = AddToggleOption("$SLT_LBL_DEBUG_MESSAGES", SLT.bDebugMsg)
 	AddEmptyOption()
 	AddEmptyOption()

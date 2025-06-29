@@ -32,11 +32,13 @@ Keyword Property LocTypeMine  Auto
 Keyword Property LocTypeInn  Auto
 Keyword Property LocTypeHold Auto
 
+Perk Property SLTRContainerPerk Auto
+
 Keyword[] Property LocationKeywords Auto Hidden
 
 
-
-bool				Property bEnabled		= true	Auto Hidden
+bool				Property IsResetting = false Auto Hidden
+bool				Property IsEnabled		= true	Auto Hidden
 bool				Property bDebugMsg		= false	Auto Hidden
 Form[]				Property Extensions				Auto Hidden
 int					Property nextInstanceId			Auto Hidden
@@ -51,9 +53,9 @@ string[] global_var_keys
 string[] global_var_vals
 
 Function SetEnabled(bool _newEnabledFlag)
-	if bEnabled != _newEnabledFlag
-		bEnabled = _newEnabledFlag
-		JsonUtil.SetIntValue(FN_Settings(), "enabled", bEnabled as int)
+	if IsEnabled != _newEnabledFlag
+		IsEnabled = _newEnabledFlag
+		JsonUtil.SetIntValue(FN_Settings(), "enabled", IsEnabled as int)
 	endif
 
 	sl_triggersExtension ext
@@ -100,8 +102,6 @@ Event OnInit()
 	LocationKeywords[16] = LocTypeInn
 	LocationKeywords[17] = LocTypeHold
 
-	global_var_keys = PapyrusUtil.StringArray(0)
-	global_var_vals = PapyrusUtil.StringArray(0)
 	BootstrapSLTInit()
 EndEvent
 
@@ -123,6 +123,12 @@ Function BootstrapSLTInit()
 		return
 	endif
 
+	if !global_var_keys || !global_var_vals
+		global_var_keys = PapyrusUtil.StringArray(0)
+		global_var_vals = PapyrusUtil.StringArray(0)
+	endif
+
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_RESET(), "OnSLTReset")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_DELAY_START_COMMAND(), "OnSLTDelayStartCommand")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REGISTER_EXTENSION(), "OnSLTRegisterExtension")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_REQUEST_COMMAND(), "OnSLTRequestCommand")
@@ -157,6 +163,8 @@ Function BootstrapSLTInit()
 		endif
 	endwhile
 
+	IsResetting = false
+
 	UnregisterForUpdate()
 	QueueUpdateLoop(0.01)
 EndFunction
@@ -169,6 +177,7 @@ Event OnUpdate()
 	; state checks
 	if SLTUpdateState
 		if SLTUpdateState == SLT_BOOTSTRAPPING
+
 			SLTUpdateState = SLT_HEARTBEAT
 
 			QueueUpdateLoop(0.1)
@@ -358,10 +367,24 @@ Function DoInMemoryReset()
 	if bDebugMsg
 		SLTDebugMsg("Main: Sending SLT Reset event and clearing StorageUtil for SLTR objects")
 	endif
+	
+	IsResetting = true
+
+	; Clear all frame and thread contexts
 	SendModEvent(EVENT_SLT_RESET())
-	StorageUtil.ClearAllObjPrefix(self, "SLTR:")
-	BootstrapSLTInit()
+
 EndFunction
+
+Event OnSLTReset(string eventName, string strArg, float numArg, Form sender)
+	; Clear all target contexts
+	StorageUtil.ClearAllObjPrefix(self, "SLTR:")
+
+	; Clear global context
+	global_var_keys = none
+	global_var_vals = none
+	
+	BootstrapSLTInit()
+EndEvent
 
 Function QueueUpdateLoop(float afDelay = 1.0)
 	if !self

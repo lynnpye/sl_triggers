@@ -142,6 +142,7 @@ string[]    tokens
 string      initialScriptName = ""
 
 bool hasValidFrame
+bool IsResetRequested = false
 
 ;/
 Event OnEffectFinish(Actor akTarget, Actor akCaster)
@@ -150,6 +151,7 @@ EndEvent
 /;
 
 Event OnSLTReset(string eventName, string strArg, float numArg, Form sender)
+    IsResetRequested = true
     CleanupAndRemove()
 EndEvent
 
@@ -167,6 +169,12 @@ Event OnPlayerLoadGame()
 EndEvent
 
 Function DoStartup()
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return
+    endif
+
 	SafeRegisterForModEvent_AME(self, EVENT_SLT_RESET(), "OnSLTReset")
     
     if !threadid
@@ -175,9 +183,14 @@ Function DoStartup()
         if nextThreadInfo.Length
             threadid = nextThreadInfo[0] as int
             initialScriptName = nextThreadInfo[1]
-        else
-            
         endif
+
+        if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+            SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+            CleanupAndRemove()
+            Return
+        endif
+
         if threadid > 0
             if !slt_Frame_Push(initialScriptName, none)
                 SLTErrMsg("sl_triggersCmd: invalid push frame attempt for script(" + initialScriptName + ")")
@@ -185,6 +198,12 @@ Function DoStartup()
                 return
             endif
         endif
+    endif
+    
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return
     endif
 
     if threadid && hasValidFrame
@@ -200,6 +219,12 @@ EndFunction
 Event OnUpdate()
     if !self || isExecuting
         return
+    endif
+
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return
     endif
 
     isExecuting = true
@@ -227,6 +252,12 @@ Function RunOperationOnActor(string[] opCmdLine)
     if !opCmdLine.Length
         return
     endif
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return
+    endif
+
     runOpPending = true
     bool success = sl_triggers_internal.RunOperationOnActor(CmdTargetActor, self, opCmdLine)
     if !success
@@ -234,15 +265,35 @@ Function RunOperationOnActor(string[] opCmdLine)
         return
     endif
     float afDelay = 0.0
+    
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return
+    endif
+
     while runOpPending && isExecuting
         if afDelay < 1.0
             afDelay += 0.01
         endif
+        
+        if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+            SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+            CleanupAndRemove()
+            Return
+        endif
+
         Utility.Wait(afDelay)
     endwhile
 EndFunction
 
 Function CompleteOperationOnActor()
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return
+    endif
+
     runOpPending = false
 EndFunction
 
@@ -250,6 +301,12 @@ bool Function InternalResolve(string token)
     if token == "$$"
         CustomResolveResult = MostRecentResult
         return true
+    endif
+
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return false
     endif
 
     int tokenlength = StringUtil.GetLength(token)
@@ -271,6 +328,13 @@ bool Function InternalResolve(string token)
         ; imbalanced starting quote, treat as bare
     elseif char0 == "$"
         if StringUtil.GetNthChar(token, 1) == "\""
+
+            if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+                SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+                CleanupAndRemove()
+                Return false
+            endif
+
             string trimmed = StringUtil.Substring(token, 2, tokenlength - 3)
             string[] vartoks = sl_triggers.TokenizeForVariableSubstitution(trimmed)
 
@@ -286,12 +350,24 @@ bool Function InternalResolve(string token)
             return true
         endif
 
+        if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+            SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+            CleanupAndRemove()
+            Return false
+        endif
+
         GetVarScope2(token, varscopestringlist)
         string scope = varscopestringlist[0]
         string vname = varscopestringlist[1]
         
         while i < SLT.Extensions.Length
             sl_triggersExtension slext = SLT.Extensions[i] as sl_triggersExtension
+
+            if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+                SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+                CleanupAndRemove()
+                Return false
+            endif
 
             if !sltChecked && slext.GetPriority() >= 0
                 sltChecked = true
@@ -319,6 +395,12 @@ bool Function InternalResolve(string token)
                     CustomResolveResult = GetVarString2(scope, vname, "")
                     return true
                 endif
+            endif
+            
+            if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+                SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+                CleanupAndRemove()
+                Return false
             endif
             
             resolved = slext.CustomResolveScoped(self, scope, vname)
@@ -353,6 +435,12 @@ string Function Resolve(string token)
         return CustomResolveResult
     endif
 
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return ""
+    endif
+
     return token
 EndFunction
 
@@ -364,6 +452,13 @@ Actor Function ResolveActor(string token)
     if token
         _resolvedActor = ResolveForm(token) as Actor
     endif
+    
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return none
+    endif
+
     return _resolvedActor
 EndFunction
 
@@ -383,6 +478,12 @@ Form Function ResolveForm(string token)
         endif
     endif
 
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return none
+    endif
+
     return GetFormById(token)
 EndFunction
 
@@ -400,6 +501,13 @@ bool Function ResolveBool(string token)
             return CustomResolveFloatResult != 0.0
         endif
     endif
+
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return false
+    endif
+
     return false
 EndFunction
 
@@ -417,6 +525,13 @@ int Function ResolveInt(string token)
             return CustomResolveFloatResult as int
         endif
     endif
+    
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return 0
+    endif
+
     return 0
 EndFunction
 
@@ -434,6 +549,13 @@ float Function ResolveFloat(string token)
             return CustomResolveFloatResult
         endif
     endif
+    
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return 0.0
+    endif
+
     return 0.0
 EndFunction
 
@@ -447,7 +569,20 @@ Function RunScript()
     string[] varscopestringlist = new string[2]
 
     while isExecuting && hasValidFrame
+        if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+            SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+            CleanupAndRemove()
+            Return
+        endif
+
         while currentLine < totalLines
+            
+            if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+                SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+                CleanupAndRemove()
+                Return
+            endif
+
             lineNum = scriptlines[currentLine]
             int startidx = tokenoffsets[currentLine]
             int endidx = tokencounts[currentLine] + startidx - 1
@@ -827,6 +962,12 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
         return false
     endif
     
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return false
+    endif
+
     string cmdLineJoined
     int lineno = 0
     string[] cmdLine
@@ -1216,6 +1357,12 @@ bool Function slt_Frame_Pop()
     if !frame_var_count.Length
         hasValidFrame = false
         return false
+    endif
+    
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return false
     endif
 
     currentLine                 = pushed_currentLine[pushed_currentLine.Length - 1]

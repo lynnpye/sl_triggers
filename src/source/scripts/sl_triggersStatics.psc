@@ -5,7 +5,7 @@ Function SLTDebugMsg(string msg) global
 EndFunction
 
 Function SLTErrMsg(string msg) global
-	sl_triggers_internal.LogError(msg)
+	sl_triggers_internal.LogError("\n\n!!!!!!!!!!!!!!!!!\n\n\t\t\t\t" + msg + "\n\n\n")
 EndFunction
 
 Function SLTInfoMsg(string msg) global

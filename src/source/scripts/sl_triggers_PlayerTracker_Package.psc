@@ -5,7 +5,15 @@ Scriptname sl_triggers_PlayerTracker_Package Extends Package Hidden
 ;BEGIN FRAGMENT Fragment_1
 Function Fragment_1(Actor akActor)
 ;BEGIN CODE
-SLTRCore.SLTR_Internal_PlayerNewSpaceEvent()
+if !SLTRCore
+    SLTRCore = sl_triggersStatics.GetForm_SLT_ExtensionCore() as sl_triggersExtensionCore
+    ;sl_triggersStatics.SLTInfoMsg("PlayerTrackePackage.Fragment_1: Initializin SLTRCore")
+endif
+if SLTRCore
+    SLTRCore.SLTR_Internal_PlayerNewSpaceEvent()
+else
+    sl_triggersStatics.SLTErrMsg("PlayerTrackerPackage.Fragment_1: SLTRCore not available")
+endif
 ;END CODE
 EndFunction
 ;END FRAGMENT
