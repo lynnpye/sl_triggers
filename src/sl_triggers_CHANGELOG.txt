@@ -6,7 +6,7 @@
             rnd_float 23.0 482.0
             set $result $$
     enhancement: New system variables:
-        system.chance.100 - result of rnd_float 0 100.0
+        system.random.100 - result of rnd_float 0 100.0
     enhancement: New contextual system variables:
         request.* - these will vary depending on the trigger
             - e.g. Player Opened Container
