@@ -19,8 +19,6 @@ All work associated with "SL Triggers Redux" aka "SLTR" aka "SLT" (in relation t
 
 All other work that exists as part of this project as well as the associated SKSE C++ plugin project (when it's not hosted here) is and always will be [free and unencumbered released into the public domain](https://unlicense.org) or [MIT Licensed](https://opensource.org/license/mit) depending on the project and compatibility requirements.
 
-Code and data related to container activation was graciously provided by "Bane Master" (associated link of preference if any?); they deserve any credit for the efficacy of the container activation logic and I'll take the heat for the issues with my implementation. As agreed, this code and data, as part of this project, will remain [free and unencumbered released into the public domain](https://unlicense.org).
-
 # Installation:
 
 If you have an older version (i.e. Fotogen's original) you will need a new save. Sorry. :(
