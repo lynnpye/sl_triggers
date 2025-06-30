@@ -1,16 +1,25 @@
 # SL Triggers Redux
-This is a renewal of development on the [original SL Triggers by Fotogen](https://www.loverslab.com/files/file/8760-sl-triggersv12-2022-06-05/). I received approval to continue development. More info available on the [SLT Wiki](https://github.com/lynnpye/sl_triggers/wiki).
 
 # What Does It Do:
+SLTR lets you run simple scripts without the need to compile and without worrying about Papyrus script dependencies or whether your script will build. SLTR comes with some scripts for you, thinks like giving yourself a little gold, healing yourself, giving yourself a drink. You can also write your own custom SLTScripts. And finally, you can set up triggers, ways to make SLTScripts run in response to game events, like on game load, on changing location, or even tied to custom keymappings of your choice. All of this is configurable via MCM or text files if you prefer.
 
-SL Triggers Redux (SLT) is, at its heart, a way to run various tasks in response to events in game. The original focus of SLT was purely on the four basic SexLab events (Sex Start, Orgasm, Sex End, Separate Orgasm via SLSO), but the framework has been expanded to not be tied solely to SexLab events. In addition, out of the box, you can also set up hotkeys to run scripts on demand, set scripts up to run on the (in-game) hour, and even run scripts directly via console command.
+It is ESL flagged to minimize impact on your load order and most dependencies are loaded dynamically, so aside from the requirements of SKSE and PapyrusUtils, everything else is optional depending on what functionality you want.
+
+# More Details Please!
+SL Triggers Redux (SLTR, though you may still see references to SLT) is, at its heart, a way to run various tasks in response to events in game. The original focus of SLTR was purely on the four basic SexLab events (Sex Start, Orgasm, Sex End, Separate Orgasm via SLSO), but the framework has been expanded to not be tied solely to SexLab events. In addition, out of the box, you can also set up hotkeys to run scripts on demand, set scripts up to run on the (in-game) hour, and even run scripts directly via console command.
 
 These scripts are simple .ini files with an easy to understand syntax and a number of examples available to work from. Scripts are comprised of commands. Commands can be things like "av_set" (to set an Actor Value) or syntactic commands like "goto" (to script execution to a different line). 
 
 Additionally, more commands can be added as command libraries, to expand the capabilities of your scripts even further.
 
-You don't have to program the scripts to use them. A selection is available for you to work with from the get-go and you can also share scripts with other SLT users.
+You don't have to program the scripts to use them. A selection is available for you to work with from the get-go, plus any you want to copy and modify, plus you can also share scripts with other SLT users. (I hold no copyright over any SLTScripts anyone creates, just so you know.)
 
+# Speaking of Copyright and Licensing
+All work associated with "SL Triggers Redux" aka "SLTR" aka "SLT" (in relation to it's origin) is derived from [the original, SL Triggers, by Fotogen](https://www.loverslab.com/files/file/8760-sl-triggersv12-2022-06-05/). I received approval to continue development. More info available on the [SLT Wiki](https://github.com/lynnpye/sl_triggers/wiki).
+
+All other work that exists as part of this project as well as the associated SKSE C++ plugin project (when it's not hosted here) is and always will be [free and unencumbered released into the public domain](https://unlicense.org) or [MIT Licensed](https://opensource.org/license/mit) depending on the project and compatibility requirements.
+
+Code and data related to container activation was graciously provided by "Bane Master" (associated link of preference if any?); they deserve any credit for the efficacy of the container activation logic and I'll take the heat for the issues with my implementation. As agreed, this code and data, as part of this project, will remain [free and unencumbered released into the public domain](https://unlicense.org).
 
 # Installation:
 

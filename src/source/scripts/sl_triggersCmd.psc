@@ -51,6 +51,8 @@ int         Property previousFrameId = 0 Auto Hidden
 int			Property lastKey = 0 auto  Hidden
 bool        Property cleanedup = false auto  hidden
 
+; going to replace this with ResultFromBool(bool), ResultFromString(string), ResultFromForm(Form), etc.
+; oh frabjous joy
 string	    Property MostRecentResult = "" auto Hidden
 Actor       Property iterActor = none auto Hidden
 string      Property currentScriptName = "" auto hidden
@@ -71,6 +73,22 @@ int         Property RT_BOOL =      2 AutoReadOnly
 int         Property RT_INT =       3 AutoReadOnly
 int         Property RT_FLOAT =     4 AutoReadOnly
 int         Property RT_FORM =      5 AutoReadOnly
+
+string Function RT_ToString(int rt_type)
+    if RT_STRING == rt_type
+        return "RT_STRING"
+    elseif RT_INT == rt_type
+        return "RT_INT"
+    elseif RT_FLOAT == rt_type
+        return "RT_FLOAT"
+    elseif RT_BOOL == rt_type
+        return "RT_BOOL"
+    elseif RT_FORM == rt_type
+        return "RT_FORM"
+    endif
+    return "<invalid RT type: " + rt_type + ">"
+EndFunction
+
 
 int         Property CustomResolveType Auto Hidden
 
@@ -170,7 +188,7 @@ EndEvent
 
 Function DoStartup()
     if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
         CleanupAndRemove()
         Return
     endif
@@ -186,7 +204,7 @@ Function DoStartup()
         endif
 
         if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-            SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+            SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
             CleanupAndRemove()
             Return
         endif
@@ -201,7 +219,7 @@ Function DoStartup()
     endif
     
     if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
         CleanupAndRemove()
         Return
     endif
@@ -222,7 +240,7 @@ Event OnUpdate()
     endif
 
     if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
         CleanupAndRemove()
         Return
     endif
@@ -253,7 +271,7 @@ Function RunOperationOnActor(string[] opCmdLine)
         return
     endif
     if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
         CleanupAndRemove()
         Return
     endif
@@ -265,12 +283,6 @@ Function RunOperationOnActor(string[] opCmdLine)
         return
     endif
     float afDelay = 0.0
-    
-    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
-        CleanupAndRemove()
-        Return
-    endif
 
     while runOpPending && isExecuting
         if afDelay < 1.0
@@ -278,7 +290,7 @@ Function RunOperationOnActor(string[] opCmdLine)
         endif
         
         if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-            SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+            SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
             CleanupAndRemove()
             Return
         endif
@@ -288,25 +300,25 @@ Function RunOperationOnActor(string[] opCmdLine)
 EndFunction
 
 Function CompleteOperationOnActor()
+    runOpPending = false
+
     if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
         CleanupAndRemove()
         Return
     endif
-
-    runOpPending = false
 EndFunction
 
 bool Function InternalResolve(string token)
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return false
+    endif
+
     if token == "$$"
         CustomResolveResult = MostRecentResult
         return true
-    endif
-
-    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
-        CleanupAndRemove()
-        Return false
     endif
 
     int tokenlength = StringUtil.GetLength(token)
@@ -330,7 +342,7 @@ bool Function InternalResolve(string token)
         if StringUtil.GetNthChar(token, 1) == "\""
 
             if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-                SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+                SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
                 CleanupAndRemove()
                 Return false
             endif
@@ -351,7 +363,7 @@ bool Function InternalResolve(string token)
         endif
 
         if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-            SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+            SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
             CleanupAndRemove()
             Return false
         endif
@@ -364,7 +376,7 @@ bool Function InternalResolve(string token)
             sl_triggersExtension slext = SLT.Extensions[i] as sl_triggersExtension
 
             if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-                SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+                SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
                 CleanupAndRemove()
                 Return false
             endif
@@ -374,7 +386,7 @@ bool Function InternalResolve(string token)
 
                 if "system" == scope
                     if "stats.running_scripts" == vname
-                        CustomResolveResult = SLT.RunningScriptCount
+                        CustomResolveIntResult = SLT.RunningScriptCount
                         return true
                     elseif "self" == vname
                         CustomResolveFormResult = CmdTargetActor
@@ -389,22 +401,25 @@ bool Function InternalResolve(string token)
                         CustomResolveFormResult = none
                         return true
                     elseif "is_player.inside"
-                        CustomResolveResult = PlayerRef.IsInInterior() as int
+                        CustomResolveBoolResult = PlayerRef.IsInInterior()
                         return true
                     elseif "is_player.outside"
-                        CustomResolveResult = (!PlayerRef.IsInInterior()) as int
+                        CustomResolveBoolResult = !PlayerRef.IsInInterior()
                         return true
                     elseif "is_player.in_city"
-                        CustomResolveResult = (SLT.IsLocationKeywordCity(SLT.GetPlayerLocationKeyword())) as int
+                        CustomResolveBoolResult = SLT.IsLocationKeywordCity(SLT.GetPlayerLocationKeyword())
                         return true
                     elseif "is_player.in_dungeon"
-                        CustomResolveResult = (SLT.IsLocationKeywordDungeon(SLT.GetPlayerLocationKeyword())) as int
+                        CustomResolveBoolResult = SLT.IsLocationKeywordDungeon(SLT.GetPlayerLocationKeyword())
                         return true
                     elseif "is_player.in_safe"
-                        CustomResolveResult = (SLT.IsLocationKeywordSafe(SLT.GetPlayerLocationKeyword())) as int
+                        CustomResolveBoolResult = SLT.IsLocationKeywordSafe(SLT.GetPlayerLocationKeyword())
                         return true
                     elseif "is_player.in_wilderness"
-                        CustomResolveResult = (SLT.IsLocationKeywordWilderness(SLT.GetPlayerLocationKeyword())) as int
+                        CustomResolveBoolResult = SLT.IsLocationKeywordWilderness(SLT.GetPlayerLocationKeyword())
+                        return true
+                    elseif "random.100"
+                        CustomResolveFloatResult = Utility.RandomFloat(0.0, 100.0)
                         return true
                     endif
                 endif
@@ -416,7 +431,7 @@ bool Function InternalResolve(string token)
             endif
             
             if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-                SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+                SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
                 CleanupAndRemove()
                 Return false
             endif
@@ -444,17 +459,17 @@ string Function Resolve(string token)
             return CustomResolveFormResult.GetFormID()
         elseif RT_FLOAT == CustomResolveType
             return CustomResolveFloatResult
-        elseif RT_BOOL == CustomResolveType
-            return (CustomResolveBoolResult as int) as string
         elseif RT_INT == CustomResolveType
             return CustomResolveIntResult
+        elseif RT_BOOL == CustomResolveType
+            return (CustomResolveBoolResult as int) as string
         endif
 
         return CustomResolveResult
     endif
 
     if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
         CleanupAndRemove()
         Return ""
     endif
@@ -468,11 +483,19 @@ EndFunction
 Actor Function ResolveActor(string token)
     Actor _resolvedActor = CmdTargetActor
     if token
-        _resolvedActor = ResolveForm(token) as Actor
+        Form _localForm = ResolveForm(token)
+        if _localForm
+            _resolvedActor = _localForm as Actor
+            if !_resolvedActor
+                SFW("Cmd.ResolveActor: ResolveForm() returned () but was not an Actor; unable to convert")
+            endif
+        else
+            _resolvedActor = none
+        endif
     endif
     
     if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
         CleanupAndRemove()
         Return none
     endif
@@ -491,37 +514,41 @@ Form Function ResolveForm(string token)
         elseif RT_INT == CustomResolveType
             return GetFormById(CustomResolveIntResult)
         else
+            SFW("ResolveForm: no auto-conversion exists except RT_STRING and RT_INT (from: " + RT_ToString(CustomResolveType) + ")")
             ; no auto-conversion from float or bool
             return none
         endif
     endif
 
     if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
         CleanupAndRemove()
         Return none
     endif
 
+    if SLT.bDebugMsg
+        SFD("Cmd.ResolveForm: falling back to GetFormById(\"" + token + "\")")
+    endif
     return GetFormById(token)
 EndFunction
 
 bool Function ResolveBool(string token)
     if InternalResolve(token)
-        if RT_STRING == CustomResolveType
-            return CustomResolveResult != ""
-        elseif RT_FORM == CustomResolveType
-            return CustomResolveFormResult != none
-        elseif RT_BOOL == CustomResolveType
+        if RT_BOOL == CustomResolveType
             return CustomResolveBoolResult
+        elseif RT_STRING == CustomResolveType
+            return CustomResolveResult != ""
         elseif RT_INT == CustomResolveType
             return CustomResolveIntResult != 0
         elseif RT_FLOAT == CustomResolveType
             return CustomResolveFloatResult != 0.0
+        elseif RT_FORM == CustomResolveType
+            return CustomResolveFormResult != none
         endif
     endif
 
     if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
         CleanupAndRemove()
         Return false
     endif
@@ -531,21 +558,21 @@ EndFunction
 
 int Function ResolveInt(string token)
     if InternalResolve(token)
-        if RT_STRING == CustomResolveType
-            return CustomResolveResult as int
-        elseif RT_FORM == CustomResolveType
-            return CustomResolveFormResult.GetFormID()
-        elseif RT_BOOL == CustomResolveType
-            return CustomResolveBoolResult as int
-        elseif RT_INT == CustomResolveType
+        if RT_INT == CustomResolveType
             return CustomResolveIntResult
+        elseif RT_STRING == CustomResolveType
+            return CustomResolveResult as int
         elseif RT_FLOAT == CustomResolveType
             return CustomResolveFloatResult as int
+        elseif RT_BOOL == CustomResolveType
+            return CustomResolveBoolResult as int
+        elseif RT_FORM == CustomResolveType
+            return CustomResolveFormResult.GetFormID()
         endif
     endif
     
     if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
         CleanupAndRemove()
         Return 0
     endif
@@ -555,21 +582,22 @@ EndFunction
 
 float Function ResolveFloat(string token)
     if InternalResolve(token)
-        if RT_STRING == CustomResolveType
+        if RT_FLOAT == CustomResolveType
+            return CustomResolveFloatResult
+        elseif RT_STRING == CustomResolveType
             return CustomResolveResult as float
-        elseif RT_FORM == CustomResolveType
-            return 0.0
-        elseif RT_BOOL == CustomResolveType
-            return CustomResolveBoolResult as float
         elseif RT_INT == CustomResolveType
             return CustomResolveIntResult as float
-        elseif RT_FLOAT == CustomResolveType
-            return CustomResolveFloatResult
+        elseif RT_BOOL == CustomResolveType
+            return CustomResolveBoolResult as float
+        elseif RT_FORM == CustomResolveType
+            SFW("ResolveFloat: from RT_FORM is very suspicious")
+            return 0.0
         endif
     endif
     
     if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
         CleanupAndRemove()
         Return 0.0
     endif
@@ -588,7 +616,7 @@ Function RunScript()
 
     while isExecuting && hasValidFrame
         if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-            SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+            SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
             CleanupAndRemove()
             Return
         endif
@@ -596,7 +624,7 @@ Function RunScript()
         while currentLine < totalLines
             
             if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-                SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+                SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
                 CleanupAndRemove()
                 Return
             endif
@@ -884,6 +912,18 @@ Function SFE(string msg)
 	SquawkFunctionError(self, msg)
 EndFunction
 
+Function SFW(string msg)
+	SquawkFunctionWarn(self, msg)
+EndFunction
+
+Function SFI(string msg)
+	SquawkFunctionInfo(self, msg)
+EndFunction
+
+Function SFD(string msg)
+	SquawkFunctionDebug(self, msg)
+EndFunction
+
 Event OnKeyDown(Int keyCode)
     lastKey = keyCode
 EndEvent
@@ -981,7 +1021,7 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
     endif
     
     if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
         CleanupAndRemove()
         Return false
     endif
@@ -1378,7 +1418,7 @@ bool Function slt_Frame_Pop()
     endif
     
     if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-        SLTInfoMsg("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
         CleanupAndRemove()
         Return false
     endif

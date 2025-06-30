@@ -247,7 +247,19 @@ int Function GlobalHexToInt(string _value) global
 EndFunction
 
 Function SquawkFunctionError(sl_triggersCmd _cmdPrimary, string msg) global
-	sl_triggers_internal.LogError("SLT:(" + _cmdPrimary.currentScriptName + ")[" + _cmdPrimary.lineNum + "]: " + msg)
+	sl_triggers_internal.LogError("SLTR:(" + _cmdPrimary.currentScriptName + ")[" + _cmdPrimary.lineNum + "]: " + msg)
+EndFunction
+
+Function SquawkFunctionWarn(sl_triggersCmd _cmdPrimary, string msg) global
+	sl_triggers_internal.LogWarn("SLTR:(" + _cmdPrimary.currentScriptName + ")[" + _cmdPrimary.lineNum + "]: " + msg)
+EndFunction
+
+Function SquawkFunctionInfo(sl_triggersCmd _cmdPrimary, string msg) global
+	sl_triggers_internal.LogInfo("SLTR:(" + _cmdPrimary.currentScriptName + ")[" + _cmdPrimary.lineNum + "]: " + msg)
+EndFunction
+
+Function SquawkFunctionDebug(sl_triggersCmd _cmdPrimary, string msg) global
+	sl_triggers_internal.LogDebug("SLTR:(" + _cmdPrimary.currentScriptName + ")[" + _cmdPrimary.lineNum + "]: " + msg)
 EndFunction
 
 bool Function ParamLengthLT(sl_triggersCmd _cmdPrimary, int actualLength, int neededLength) global

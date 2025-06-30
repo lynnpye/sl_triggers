@@ -805,6 +805,26 @@ function rnd_int(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
+; sltname rnd_float
+; sltgrup Utility
+; sltdesc Sets $$ to a random integer between min and max inclusive
+; sltargs min: number
+; sltargs max: number
+; sltsamp rnd_float 1 100
+function rnd_float(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    string nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        nextResult = Utility.RandomFloat(CmdPrimary.ResolveFloat(param[1]), CmdPrimary.ResolveFloat(param[2])) as string
+    endif
+
+    CmdPrimary.MostRecentResult = nextResult
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
 ; sltname util_wait
 ; sltgrup Utility
 ; sltdesc Wait specified number of seconds i.e. Utility.Wait()
