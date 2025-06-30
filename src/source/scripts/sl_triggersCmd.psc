@@ -15,6 +15,11 @@ Keyword			Property ActorTypeUndead Auto
 
 Actor _cmdTA = none
 string ktarget_v_prefix
+string krequest_v_prefix
+Function Set_krequest_v_prefix()
+    krequest_v_prefix = "SLTR:target:" + CmdTargetFormID + ":request:" + CmdRequestId + ":vars:"
+EndFunction
+
 Actor			Property CmdTargetActor Hidden
     Actor Function Get()
         return _cmdTA
@@ -26,6 +31,7 @@ Actor			Property CmdTargetActor Hidden
             CmdTargetFormID             = _cmdTA.GetFormID()
 
             ktarget_v_prefix = "SLTR:target:" + CmdTargetFormID + ":vars:"
+            Set_krequest_v_prefix()
         endif
     EndFunction
 EndProperty
@@ -39,6 +45,18 @@ int         Property threadid Hidden
     EndFunction
     Function Set(int value)
         _threadid = value
+    EndFunction
+EndProperty
+
+int _cmdRequestId = 0
+int         Property CmdRequestId Hidden
+    int Function Get()
+        return _cmdRequestId
+    EndFunction
+    Function Set(int value)
+        _cmdRequestId = value
+
+        Set_krequest_v_prefix()
     EndFunction
 EndProperty
 
@@ -61,6 +79,8 @@ int         Property totalLines = 0 auto hidden
 int         Property lineNum = 1 auto hidden
 string[]    Property callargs auto hidden
 string      Property command = "" auto hidden
+
+float       Property initialGameTime = 0.0 auto hidden
 
 string  _resolvedString
 bool    _resolvedBool
@@ -174,6 +194,8 @@ Event OnSLTReset(string eventName, string strArg, float numArg, Form sender)
 EndEvent
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
+    initialGameTime = Utility.GetCurrentGameTime()
+
 	CmdTargetActor = akCaster
     
     threadVarKeys = PapyrusUtil.StringArray(0)
@@ -201,6 +223,7 @@ Function DoStartup()
         if nextThreadInfo.Length
             threadid = nextThreadInfo[0] as int
             initialScriptName = nextThreadInfo[1]
+            CmdRequestId = nextThreadInfo[2] as int
         endif
 
         if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
@@ -385,10 +408,7 @@ bool Function InternalResolve(string token)
                 sltChecked = true
 
                 if "system" == scope
-                    if "stats.running_scripts" == vname
-                        CustomResolveIntResult = SLT.RunningScriptCount
-                        return true
-                    elseif "self" == vname
+                    if "self" == vname
                         CustomResolveFormResult = CmdTargetActor
                         return true
                     elseif "player" == vname
@@ -400,31 +420,52 @@ bool Function InternalResolve(string token)
                     elseif "none" == vname
                         CustomResolveFormResult = none
                         return true
-                    elseif "is_player.inside"
+                    elseif "is_player.inside" == vname
                         CustomResolveBoolResult = PlayerRef.IsInInterior()
                         return true
-                    elseif "is_player.outside"
+                    elseif "is_player.outside" == vname
                         CustomResolveBoolResult = !PlayerRef.IsInInterior()
                         return true
-                    elseif "is_player.in_city"
+                    elseif "is_player.in_city" == vname
                         CustomResolveBoolResult = SLT.IsLocationKeywordCity(SLT.GetPlayerLocationKeyword())
                         return true
-                    elseif "is_player.in_dungeon"
+                    elseif "is_player.in_dungeon" == vname
                         CustomResolveBoolResult = SLT.IsLocationKeywordDungeon(SLT.GetPlayerLocationKeyword())
                         return true
-                    elseif "is_player.in_safe"
+                    elseif "is_player.in_safe" == vname
                         CustomResolveBoolResult = SLT.IsLocationKeywordSafe(SLT.GetPlayerLocationKeyword())
                         return true
-                    elseif "is_player.in_wilderness"
+                    elseif "is_player.in_wilderness" == vname
                         CustomResolveBoolResult = SLT.IsLocationKeywordWilderness(SLT.GetPlayerLocationKeyword())
                         return true
-                    elseif "random.100"
+                    elseif "random.100" == vname
                         CustomResolveFloatResult = Utility.RandomFloat(0.0, 100.0)
+                        return true
+                    elseif "stats.running_scripts" == vname
+                        CustomResolveIntResult = SLT.RunningScriptCount
+                        return true
+                    elseif "realtime" == vname
+                        CustomResolveFloatResult = Utility.GetCurrentRealTime()
+                        return true
+                    elseif "gametime" == vname
+                        CustomResolveFloatResult = Utility.GetCurrentGameTime()
+                        return true
+                    elseif "initialGameTime" == vname
+                        CustomResolveFloatResult = initialGameTime
+                        return true
+                    elseif "initialScriptName" == vname
+                        CustomResolveResult = initialScriptName
+                        return true
+                    elseif "currentScriptName" == vname
+                        CustomResolveResult = currentScriptName
+                        return true
+                    elseif "sessionid" == vname
+                        CustomResolveIntResult = sl_triggers.GetSessionId()
                         return true
                     endif
                 endif
 
-                if "local" == scope || "thread" == scope || "target" == scope || "global" == scope
+                if "local" == scope || "global" == scope || "thread" == scope || "target" == scope
                     CustomResolveResult = GetVarString2(scope, vname, "")
                     return true
                 endif
@@ -854,7 +895,7 @@ Function RunScript()
 
                         if argidx < callargs.Length
                             newval = callargs[argidx]
-                        else
+                        elseif argidx
                             SFE("maximum index for callarg is " + callargs.Length)
                         endif
                         
@@ -1704,6 +1745,13 @@ string Function SetThreadVar(string _key, string value)
     return value
 EndFunction
 
+string Function GetRequestVar(string _key)
+    return GetStringValue(SLT, krequest_v_prefix + _key)
+EndFunction
+
+Form Function GetRequestForm(string _key)
+    return GetFormValue(SLT, krequest_v_prefix + _key)
+EndFunction
 
 ;;;;
 ;; Support
@@ -1733,12 +1781,12 @@ endfunction
 string function GetVarString2(string scope, string varname, string missing)
     if scope == "local"
         return GetFrameVar(varname, missing)
+    elseif scope == "global"
+        return SLT.GetGlobalVar(varname, missing)
     elseif scope == "thread"
         return GetThreadVar(varname, missing)
     elseif scope == "target"
         return GetStringValue(SLT, ktarget_v_prefix + varname, missing)
-    elseif scope == "global"
-        return SLT.GetGlobalVar(varname, missing)
     endif
     return ""
 endfunction
@@ -1746,16 +1794,27 @@ endfunction
 string function SetVarString2(string scope, string varname, string value)
     if scope == "local"
         return SetFrameVar(varname, value)
+    elseif scope == "global"
+        return SLT.SetGlobalVar(varname, value)
     elseif scope == "thread"
         return SetThreadVar(varname, value)
     elseif scope == "target"
         return SetStringValue(SLT, ktarget_v_prefix + varname, value)
-    elseif scope == "global"
-        return SLT.SetGlobalVar(varname, value)
     elseif scope
         SFE("Attempted to assign to read-only scope (" + scope + ")")
         return ""
     endif
     SFE("Invalid scope for set")
     return ""
+endfunction
+
+function PrecacheRequestVar(sl_triggersMain slthost, int requestTargetFormId, int requestId, string varname, string value) global
+    string ckey = "SLTR:target:" + requestTargetFormId + ":system.request:" + requestId + ":vars:" + varname
+    SetStringValue(slthost, ckey, value)
+endfunction
+
+function PrecacheRequestForm(sl_triggersMain slthost, int requestTargetFormId, int requestId, string varname, Form value) global
+    string ckey = "SLTR:target:" + requestTargetFormId + ":system.request:" + requestId + ":vars:" + varname
+    SetFormValue(slthost, ckey, value)
+    SetStringValue(slthost, ckey, value.GetFormID())
 endfunction

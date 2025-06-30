@@ -188,6 +188,49 @@ bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string scope, strin
 			CmdPrimary.CustomResolveResult = IsEnabled as int
 			return true
 		endif
+	elseif scope == "request"
+		if token == "core.activatedContainer"
+			CmdPrimary.CustomResolveFormResult = CmdPrimary.GetRequestForm(token)
+			return true
+		elseif token == "core.activatedContainer.is_corpse"
+			CmdPrimary.CustomResolveBoolResult = CmdPrimary.GetRequestVar(token) as int
+			return true
+		elseif token == "core.activatedContainer.is_empty"
+			CmdPrimary.CustomResolveBoolResult = CmdPrimary.GetRequestVar(token) as int
+			return true
+		elseif token == "core.activatedContainer.is_common"
+			CmdPrimary.CustomResolveBoolResult = CmdPrimary.GetRequestVar(token) as int
+			return true
+		elseif token == "core.activatedContainer.count"
+			ObjectReference _acon = CmdPrimary.GetRequestForm("activatedContainer") as ObjectReference
+			if !_acon
+				CmdPrimary.SFE("Core.CustomResolveScoped: requested activatedContainer.count but no ObjectReference available")
+			endif
+			CmdPrimary.CustomResolveIntResult = _acon.GetNumItems()
+			return true
+		elseif token == "core.was_player.inside"
+			CmdPrimary.CustomResolveBoolResult = CmdPrimary.GetRequestVar(token) as int
+			return true
+		elseif token == "core.was_player.outside"
+			CmdPrimary.CustomResolveBoolResult = CmdPrimary.GetRequestVar(token) as int
+			return true
+		elseif token == "core.was_player.in_safe_area"
+			Keyword _pkwd = CmdPrimary.GetRequestForm("core.playerLocationKeyword") as Keyword
+			CmdPrimary.CustomResolveBoolResult = SLT.IsLocationKeywordSafe(_pkwd)
+			return true
+		elseif token == "core.was_player.in_city"
+			Keyword _pkwd = CmdPrimary.GetRequestForm("core.playerLocationKeyword") as Keyword
+			CmdPrimary.CustomResolveBoolResult = SLT.IsLocationKeywordCity(_pkwd)
+			return true
+		elseif token == "core.was_player.in_wilderness"
+			Keyword _pkwd = CmdPrimary.GetRequestForm("core.playerLocationKeyword") as Keyword
+			CmdPrimary.CustomResolveBoolResult = SLT.IsLocationKeywordWilderness(_pkwd)
+			return true
+		elseif token == "core.was_player.in_dungeon"
+			Keyword _pkwd = CmdPrimary.GetRequestForm("core.playerLocationKeyword") as Keyword
+			CmdPrimary.CustomResolveBoolResult = SLT.IsLocationKeywordDungeon(_pkwd)
+			return true
+		endif
 	endif
 	return false
 EndFunction
@@ -701,6 +744,9 @@ Function HandleOnPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Keywo
 	;SLTDebugMsg("Core.HandleOnPlayerCellChange: isNewGameLaunch(" + isNewGameLaunch + ") / isNewSession(" + isNewSession + ")")
 	int i = 0
 	int j
+
+	int cmdRequestId
+	int		requestTargetFormId = PlayerRef.GetFormID() ; conveniently so, in this case
 	string triggerKey
 	string _triggerFile
 	string command
@@ -766,23 +812,42 @@ Function HandleOnPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Keywo
 				endIf
 				
 				if doRun
+					int cmdThreadId
+
 					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
 					if command
-						RequestCommand(PlayerRef, command)
+						cmdRequestId = GetNextPlayerCellChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword)
+						cmdThreadId = SLT.GetNextInstanceId()
+						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
 					endIf
 					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
 					if command
-						RequestCommand(PlayerRef, command)
+						cmdRequestId = GetNextPlayerCellChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword)
+						cmdThreadId = SLT.GetNextInstanceId()
+						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
 					endIf
 					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
 					if command
-						RequestCommand(PlayerRef, command)
+						cmdRequestId = GetNextPlayerCellChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword)
+						cmdThreadId = SLT.GetNextInstanceId()
+						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
 					endIf
 				endif
 			endif
 		endif
 		i += 1
 	endwhile
+EndFunction
+
+int Function GetNextPlayerCellChangeRequestId(int requestTargetFormId, int cmdRequestId, bool playerWasInInterior, Keyword playerLocationKeyword)
+	if !cmdRequestId
+		cmdRequestId = SLT.GetNextInstanceId()
+
+		sl_triggersCmd.PrecacheRequestVar(SLT, requestTargetFormId, cmdRequestId, "core.was_player.inside", playerWasInInterior)
+		sl_triggersCmd.PrecacheRequestVar(SLT, requestTargetFormId, cmdRequestId, "core.was_player.outside", !playerWasInInterior)
+		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.playerLocationKeyword", playerLocationKeyword)
+	endif
+	return cmdRequestId
 EndFunction
 
 Function HandleOnPlayerLoadingScreen()
@@ -825,13 +890,18 @@ Function HandlePlayerContainerActivation(ObjectReference containerRef, bool cont
 	int i = 0
 	int j
 
-	bool   doRun
-	string triggerKey
-	string _triggerFile
-	string command
+	int cmdRequestId
+	int		requestTargetFormId = PlayerRef.GetFormID() ; conveniently so, in this case
+	bool   	doRun
+	string 	triggerKey
+	string 	_triggerFile
+	string 	command
 
 	int    	ival
 	bool 	bval
+
+	bool	isCommonalityDetermined = false
+	bool 	container_is_common = false
 	
 	float chance
 
@@ -865,15 +935,18 @@ Function HandlePlayerContainerActivation(ObjectReference containerRef, bool cont
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_COMMONCONTAINERMATCHING)
 					if ival != 0 ; 0 is Any
-						bval = false
-						j = 0
-						while j < common_container_names.Length && !bval
-							if common_container_names[j] == containerRef.GetDisplayName()
-								bval = true
-							endif
-							j += 1
-						endwhile
-						doRun = (bval && ival == 1) || (!bval && ival == 2)
+						if !isCommonalityDetermined
+							isCommonalityDetermined = true
+							container_is_common = false
+							j = 0
+							while j < common_container_names.Length && !bval
+								if common_container_names[j] == containerRef.GetDisplayName()
+									container_is_common = true
+								endif
+								j += 1
+							endwhile
+						endif
+						doRun = (container_is_common && ival == 1) || (!container_is_common && ival == 2)
 					endif
 				endif
 
@@ -916,21 +989,45 @@ Function HandlePlayerContainerActivation(ObjectReference containerRef, bool cont
 				endif
 
 				if doRun
+					int cmdThreadId
+
 					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
 					if command
-						RequestCommand(PlayerRef, command)
+						cmdRequestId = GetNextPlayerContainerActivationRequestId(requestTargetFormId, cmdRequestId, containerRef, container_is_corpse, container_is_empty, container_is_common, playerWasInInterior, playerLocationKeyword)
+						cmdThreadId = SLT.GetNextInstanceId()
+						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
 					endIf
 					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
 					if command
-						RequestCommand(PlayerRef, command)
+						cmdRequestId = GetNextPlayerContainerActivationRequestId(requestTargetFormId, cmdRequestId, containerRef, container_is_corpse, container_is_empty, container_is_common, playerWasInInterior, playerLocationKeyword)
+						cmdThreadId = SLT.GetNextInstanceId()
+						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
 					endIf
 					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
 					if command
-						RequestCommand(PlayerRef, command)
+						cmdRequestId = GetNextPlayerContainerActivationRequestId(requestTargetFormId, cmdRequestId, containerRef, container_is_corpse, container_is_empty, container_is_common, playerWasInInterior, playerLocationKeyword)
+						cmdThreadId = SLT.GetNextInstanceId()
+						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
 					endIf
 				endif
 			endif
 		endif
 		i += 1
 	endwhile
+EndFunction
+
+int Function GetNextPlayerContainerActivationRequestId(int requestTargetFormId, int cmdRequestId, Form containerRef, bool container_is_corpse, bool container_is_empty, bool container_is_common, bool playerWasInInterior, Keyword playerLocationKeyword)
+	if !cmdRequestId
+		cmdRequestId = SLT.GetNextInstanceId()
+
+		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.activatedContainer", containerRef)
+		sl_triggersCmd.PrecacheRequestVar(SLT, requestTargetFormId, cmdRequestId, "core.activatedContainer.is_corpse", container_is_corpse)
+		sl_triggersCmd.PrecacheRequestVar(SLT, requestTargetFormId, cmdRequestId, "core.activatedContainer.is_empty", container_is_empty)
+		sl_triggersCmd.PrecacheRequestVar(SLT, requestTargetFormId, cmdRequestId, "core.activatedContainer.is_common", container_is_common)
+
+		sl_triggersCmd.PrecacheRequestVar(SLT, requestTargetFormId, cmdRequestId, "core.was_player.inside", playerWasInInterior)
+		sl_triggersCmd.PrecacheRequestVar(SLT, requestTargetFormId, cmdRequestId, "core.was_player.outside", !playerWasInInterior)
+		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.playerLocationKeyword", playerLocationKeyword)
+	endif
+	return cmdRequestId
 EndFunction

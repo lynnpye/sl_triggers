@@ -1,4 +1,5 @@
 123
+    Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)
     bugfix: fixed sl_triggersCmd.CompleteOperationOnActor(): now correctly marks runOpPending = false before responding to SLTReset
     enhancement: added rnd_float function which returns a random float between parameter1 and parameter2, inclusive
         example:
@@ -7,20 +8,20 @@
     enhancement: New system variables:
         system.chance.100 - result of rnd_float 0 100.0
     enhancement: New contextual system variables:
-        system.thread.*
+        request.* - these will vary depending on the trigger
+            - e.g. Player Opened Container
+                *.activatedContainer - the form/formID of the container that triggered the event
+                *.activatedContainer.is_corpse - 1 if you are looting a corpse; 0 otherwise
+                *.activatedContainer.is_empty - 1 if the container is empty; 0 otherwise
+                *.activatedContainer.count - current count of items in the container; this will update if you modify the contents
             *.currentScriptName - the name of the currently executing script
             *.initialScriptName - the first script called in the call chain (if the script never "calls" another script, it will always be the same as the current script name)
-            *.context.* - these will vary depending on the trigger
-                - e.g. Player Opened Container
-                    *.container - the form/formID of the container that triggered the event
-                    *.is_corpse - 1 if you are looting a corpse; 0 otherwise
-                    *.is_empty - 1 if the container is empty; 0 otherwise
-                    *.count - current count of items in the container; this will update if you modify the contents << NEED TO VERIFY THIS
         See more on the wiki.
     minor enhancement: slight improvement in accuracy of script related logging output
     rearchitecture: laying groundwork for improved typing
 
 122
+    Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)
     enhancement: New Core event trigger "Player Cell Change"
         new custom modevent: OnSLTRPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Form fkwPlayerLocation, bool playerWasInInterior)
     enhancement: New Core event trigger "Player Loading Screen"

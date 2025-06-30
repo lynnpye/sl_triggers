@@ -516,26 +516,38 @@ string[] Function ClaimNextThread(int targetformid)
 		int fid = thread_pending_info[i + 2] as int
 		if fid == targetformid
 			thread_pending_info[i + 2] = 0
-			string[] result = new string[2]
+			string[] result = new string[3]
 			result[0] = thread_pending_info[i]
 			result[1] = thread_pending_info[i + 1]
-			if (i + 3) < thread_pending_info.length
-				thread_pending_info = PapyrusUtil.MergeStringArray(PapyrusUtil.SliceStringArray(thread_pending_info, 0, i - 1), PapyrusUtil.SliceStringArray(thread_pending_info, i + 3))
+			result[2] = thread_pending_info[i + 3]
+			if (i + 4) < thread_pending_info.length
+				thread_pending_info = PapyrusUtil.MergeStringArray(PapyrusUtil.SliceStringArray(thread_pending_info, 0, i - 1), PapyrusUtil.SliceStringArray(thread_pending_info, i + 4))
 			else
 				thread_pending_info = PapyrusUtil.SliceStringArray(thread_pending_info, 0, i - 1)
 			endif
 			return result
 		endif
 
-		i += 3
+		i += 4
 	endwhile
 	return none
+EndFunction
+
+
+Function StartCommand(Form targetForm, string initialScriptName)
+	if !self
+		return
+	endif
+	
+	int requestId = GetNextInstanceId()
+	int threadId = GetNextInstanceId()
+	StartCommandWithThreadId(targetForm, initialScriptName, requestId, threadId)
 EndFunction
 
 ; StartCommand
 ; Form targetForm: the Actor to attach this command to
 ; string initialScriptName: the file to run
-Function StartCommand(Form targetForm, string initialScriptName)
+Function StartCommandWithThreadId(Form targetForm, string initialScriptName, int requestId, int threadid)
 	if !self
 		return
 	endif
@@ -545,13 +557,12 @@ Function StartCommand(Form targetForm, string initialScriptName)
 		target = PlayerRef
 	endif
 
-	int threadid = GetNextInstanceId()
-
-	string[] new_thread_info = new string[3]
+	string[] new_thread_info = new string[4]
 
 	new_thread_info[0] = threadid as string
 	new_thread_info[1] = initialScriptName
 	new_thread_info[2] = target.GetFormID() as string
+	new_thread_info[3] = requestId as string
 
 	if !thread_pending_info
 		thread_pending_info = new_thread_info

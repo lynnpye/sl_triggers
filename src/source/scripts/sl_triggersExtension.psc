@@ -188,6 +188,10 @@ bool Function RequestCommand(Actor _theActor, string _theScript)
 	return SLT.StartCommand(_theActor, _theScript)
 EndFunction
 
+bool Function RequestCommandWithThreadId(Actor _theActor, string _theScript, int _requestId, int _threadid)
+	return SLT.StartCommandWithThreadId(_theActor, _theScript, _requestId, _threadid)
+EndFunction
+
 Event _slt_OnSLTInternalReady(string eventName, string strArg, float numArg, Form sender)
 	if !self
 		return
