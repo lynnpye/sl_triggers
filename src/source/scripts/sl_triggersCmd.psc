@@ -686,9 +686,7 @@ Function RunScript()
                         GetVarScope2(cmdLine[1], varscopestringlist)
                         
                         if varscopestringlist[0]
-                            string strparm2 = Resolve(cmdLine[2])
-                        
-                            if cmdLine.Length > 3 && strparm2 == "resultfrom"
+                            if cmdLine.Length > 3 && (cmdLine[2] == "resultfrom" || cmdLine[2] == "=") ; I mean, seriously
                                 string subcode = Resolve(cmdLine[3])
                                 if subcode
                                     string[] subCmdLine = PapyrusUtil.SliceStringArray(cmdLine, 3)
@@ -699,8 +697,11 @@ Function RunScript()
                                     SFE("Unable to resolve function for 'set resultfrom' with (" + cmdLine[3] + ")")
                                 endif
                             elseif cmdLine.length == 3
-                                SetVarString2(varscopestringlist[0], varscopestringlist[1], strparm2)
+                                SetVarString2(varscopestringlist[0], varscopestringlist[1], Resolve(cmdLine[2]))
+                            elseif cmdLine.length == 4 && cmdLine[2] == "="
+                                SetVarString2(varscopestringlist[0], varscopestringlist[1], Resolve(cmdLine[3]))
                             elseif cmdLine.length == 5
+                                string strparm2 = Resolve(cmdLine[2])
                                 string strparm4 = Resolve(cmdLine[4])
                                 float op1 = strparm2 as float
                                 float op2 = strparm4 as float
