@@ -7,6 +7,7 @@ endFunction
 Form Function       GetForm(string someFormOfFormIdentification) global native
 string[] Function   GetScriptsList() global native
 int Function        GetSessionId() global native
+string Function     GetTopicInfoResponse(TopicInfo tinfo) global native
 string Function     GetTranslatedString(string _translationKey) global native
 int Function        NormalizeScriptfilename(string scriptfilename) global native
 bool Function       SmartEquals(string a, string b) global native

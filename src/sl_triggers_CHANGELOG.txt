@@ -1,6 +1,10 @@
 123
     Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)
     bugfix: fixed sl_triggersCmd.CompleteOperationOnActor(): now correctly marks runOpPending = false before responding to SLTReset
+    enhancement: added topicinfo_getresponsetext function which returns the dialog text associated with the provided TopicInfo (by FormID or editorID)
+        example:
+            topicinfo_getresponsetext "Skyrim.esm:0x00020954"
+            ; $$ would contain "I used to be an adventurer like you. Then I took an arrow in the knee..."
     enhancement: added rnd_float function which returns a random float between parameter1 and parameter2, inclusive
         example:
             rnd_float 23.0 482.0
@@ -19,6 +23,7 @@
         See more on the wiki.
     minor enhancement: slight improvement in accuracy of script related logging output
     rearchitecture: laying groundwork for improved typing
+	bugfix: .esp change; marked the cell change detection actor as IsGhost and SimpleActor
 
 122
     Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)

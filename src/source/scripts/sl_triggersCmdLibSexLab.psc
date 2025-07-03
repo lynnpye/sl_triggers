@@ -323,6 +323,35 @@ function sl_hastag(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
     CmdPrimary.CompleteOperationOnActor()
 endFunction
 
+; sltname sl_disableorgasm
+; sltgrup SexLab
+; sltdesc 
+; sltargs actor: target Actor
+; sltargs disable: 1 to disable, 0 to enable
+; sltsamp sl_disableorgasm $system.player 1
+; sltsamp ; this disables orgasm for the player
+; sltsamp sl_disableorgasm $system.player 0
+; sltsamp ; this enables orgasm for the player
+function sl_disableorgasm(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    int nextResult = 0
+	
+	if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor
+            sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
+            thread.ActorAlias(_targetActor).DisableOrgasm(CmdPrimary.ResolveBool(param[2]))
+        endif
+	endif
+	
+	CmdPrimary.MostRecentResult = nextResult
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
+
 ; sltname sl_animname
 ; sltgrup SexLab
 ; sltdesc Sets $$ to the current SexLab animation name

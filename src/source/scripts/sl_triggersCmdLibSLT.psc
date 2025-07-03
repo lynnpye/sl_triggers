@@ -5646,4 +5646,35 @@ function Math(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] para
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
- 
+
+; sltname topicinfo_getresponsetext
+; sltgrup TopicInfo
+; sltdesc Attempts to return a single response text associated with the provided TopicInfo (by editorID or FormID)
+; sltdesc Note: This is more beta than normal; it isn't obvious whether in some cases multiple strings should actually be returned.
+; sltargs topicinfo: <formID> or <editorID> for the desired TopicInfo (not Topic)
+; sltsamp topicinfo_getresponsetext "Skyrim.esm:0x00020954"
+; sltsamp msg_notify $$
+; sltsamp ; $$ would contain "I used to be an adventurer like you. Then I took an arrow in the knee..."
+Function topicinfo_getresponsetext(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    string responsetext = ""
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Form tiform = CmdPrimary.ResolveForm(param[1])
+        if !tiform
+            CmdPrimary.SFE("Unable to resolve (" + param[1] + ")")
+        else
+            TopicInfo ti = tiform as TopicInfo
+            if !ti
+                CmdPrimary.SFE("Resolved (" + param[1] + ") but instead of TopicInfo received(" + tiform + ")")
+            else
+                responsetext = sl_triggers.GetTopicInfoResponse(ti)
+            endif
+        endif
+    endif
+
+    CmdPrimary.MostRecentResult = responsetext
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
