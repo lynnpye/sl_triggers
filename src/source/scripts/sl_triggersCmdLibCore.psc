@@ -14,7 +14,8 @@ EndFunction
 ; sltrslt $$ would contain the actual elapsed game time from the previous "Top of the Hour" event
 function toh_elapsed_time(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-    CmdPrimary.MostRecentResult = GetExtension().TohElapsedTime as string
+
+    CmdPrimary.MostRecentFloatResult = GetExtension().TohElapsedTime
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction

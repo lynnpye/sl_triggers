@@ -69,9 +69,6 @@ int         Property previousFrameId = 0 Auto Hidden
 int			Property lastKey = 0 auto  Hidden
 bool        Property cleanedup = false auto  hidden
 
-; going to replace this with ResultFromBool(bool), ResultFromString(string), ResultFromForm(Form), etc.
-; oh frabjous joy
-string	    Property MostRecentResult = "" auto Hidden
 Actor       Property iterActor = none auto Hidden
 string      Property currentScriptName = "" auto hidden
 int         Property currentLine = 0 auto hidden
@@ -81,12 +78,6 @@ string[]    Property callargs auto hidden
 string      Property command = "" auto hidden
 
 float       Property initialGameTime = 0.0 auto hidden
-
-string  _resolvedString
-bool    _resolvedBool
-int     _resolvedInt
-float   _resolvedFloat
-Form    _resolvedForm
 
 int         Property RT_STRING =    1 AutoReadOnly
 int         Property RT_BOOL =      2 AutoReadOnly
@@ -109,6 +100,11 @@ string Function RT_ToString(int rt_type)
     return "<invalid RT type: " + rt_type + ">"
 EndFunction
 
+string  _resolvedString
+bool    _resolvedBool
+int     _resolvedInt
+float   _resolvedFloat
+Form    _resolvedForm
 
 int         Property CustomResolveType Auto Hidden
 
@@ -159,6 +155,64 @@ Form        Property CustomResolveFormResult Hidden
 EndProperty
 
 
+
+; going to replace this with ResultFromBool(bool), ResultFromString(string), ResultFromForm(Form), etc.
+; oh frabjous joy
+int         Property MostRecentResultType Auto Hidden
+
+string  _recentResultString
+bool    _recentResultBool
+int     _recentResultInt
+float   _recentResultFloat
+Form    _recentResultForm
+
+string	    Property MostRecentResult Hidden
+    string Function Get()
+        return _recentResultString
+    EndFunction
+    Function Set(string value)
+        _recentResultString = value
+        MostRecentResultType = RT_STRING
+    EndFunction
+EndProperty
+bool        Property MostRecentBoolResult Hidden
+    bool Function Get()
+        return _resolvedBool
+    EndFunction
+    Function Set(bool value)
+        _recentResultBool = value
+        MostRecentResultType = RT_BOOL
+    EndFunction
+EndProperty
+int         Property MostRecentIntResult  Hidden
+    int Function Get()
+        return _resolvedInt
+    EndFunction
+    Function Set(int value)
+        _recentResultInt = value
+        MostRecentResultType = RT_INT
+    EndFunction
+EndProperty
+float        Property MostRecentFloatResult  Hidden
+    float Function Get()
+        return _resolvedFloat
+    EndFunction
+    Function Set(float value)
+        _recentResultFloat = value
+        MostRecentResultType = RT_FLOAT
+    EndFunction
+EndProperty
+Form        Property MostRecentFormResult Hidden
+    Form Function Get()
+        return _resolvedForm
+    EndFunction
+    Function Set(Form value)
+        _recentResultForm = value
+        MostRecentResultType = RT_FORM
+    EndFunction
+EndProperty
+
+
 string[] threadVarKeys
 string[] threadVarVals
 
@@ -194,6 +248,10 @@ Event OnSLTReset(string eventName, string strArg, float numArg, Form sender)
 EndEvent
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
+    if SLT.bDebugMsg
+        SLTDebugMsg("Cmd.OnEffectStart")
+    endif
+
     initialGameTime = Utility.GetCurrentGameTime()
 
 	CmdTargetActor = akCaster
@@ -271,8 +329,14 @@ Event OnUpdate()
     isExecuting = true
 
     SLT.RunningScriptCount += 1
+    if SLT.bDebugMsg
+        SFD("Cmd.OnUpdate: starting threadid(" + threadid + ") RunningScriptCount is :" + SLT.RunningScriptCount)
+    endif
     RunScript()
     SLT.RunningScriptCount -= 1
+    if SLT.bDebugMsg
+        SFD("Cmd.OnUpdate: ending threadid(" + threadid + ") RunningScriptCount is :" + SLT.RunningScriptCount)
+    endif
     
     CleanupAndRemove()
 EndEvent
@@ -332,6 +396,14 @@ Function CompleteOperationOnActor()
     endif
 EndFunction
 
+; InternalResolve - returns true if resolution succeeded, false otherwise
+; string token - any input that needs to be "resolved" into one of the CustomResolve<Type>Result properties.
+; token resolution will be performed, meaning if what is provided is just a string, just a string will be returned (i.e. CustomResolveResult)
+; if it is an interpolated string i.e. $"with spooky {varname} fields", the string will be interpolated (recursively using InternalResolve as needed) and the final string returned (i.e. CustomResolveResult)
+; in other cases, if the environment warrants, a different CustomResolve<Type>Result will be populated, allowing more accurate follow-on results
+;
+; This is a one-time, context-sensitive resolution process; depending on variable and environmental values, the final result could differ dramatically
+; This also means all of it should be quite transient and not need to be pushed and popped, right?
 bool Function InternalResolve(string token)
     if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
         SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
@@ -340,7 +412,28 @@ bool Function InternalResolve(string token)
     endif
 
     if token == "$$"
-        CustomResolveResult = MostRecentResult
+        if RT_STRING == MostRecentResultType
+            CustomResolveResult = MostRecentResult
+        elseif RT_BOOL == MostRecentResultType
+            CustomResolveBoolResult = MostRecentBoolResult
+        elseif RT_INT == MostRecentResultType
+            CustomResolveIntResult = MostRecentIntResult
+        elseif RT_FLOAT == MostRecentResultType
+            CustomResolveFloatResult = MostRecentFloatResult
+        elseif RT_FORM == MostRecentResultType
+            CustomResolveFormResult = MostRecentFormResult
+        else
+            SLTErrMsg("Invalid MostRecentResultType value(" + MostRecentResultType + ")")
+        endif
+        return true
+    endif
+
+    if token == "true"
+        CustomResolveBoolResult = true
+        return true
+    endif
+    if token == "false"
+        CustomResolveBoolResult = false
         return true
     endif
 
@@ -486,6 +579,25 @@ bool Function InternalResolve(string token)
         endwhile
     endif
 
+    ; last chance, checking for literal int or float values (we already checked for literal bools above)
+    string literalNumeric = sl_triggers.GetNumericLiteral(token)
+    if "invalid" != literalNumeric
+        string[] numlitinfo = PapyrusUtil.StringSplit(literalNumeric, ":")
+        if !numlitinfo || numlitinfo.Length != 2
+            SFE("Literal numeric result returned (" + literalNumeric + ") but doesn't appear valid")
+        elseif numlitinfo[0] == "int"
+            CustomResolveIntResult = numlitinfo[1] as int
+            return true
+        elseif numlitinfo[1] == "float"
+            CustomResolveFloatResult = numlitinfo[1] as float
+            return true
+        endif
+    else
+        if SLT.bDebugMsg
+            SFD("Cmd.InternalResolve: literalNumeric check failed for (" + token + ")")
+        endif
+    endif
+
     return false
 EndFunction
 
@@ -528,7 +640,7 @@ Actor Function ResolveActor(string token)
         if _localForm
             _resolvedActor = _localForm as Actor
             if !_resolvedActor
-                SFW("Cmd.ResolveActor: ResolveForm() returned () but was not an Actor; unable to convert")
+                SFW("Cmd.ResolveActor: ResolveForm() returned (" + _localForm + ") but was not an Actor; unable to convert")
             endif
         else
             _resolvedActor = none
@@ -594,7 +706,7 @@ bool Function ResolveBool(string token)
         Return false
     endif
 
-    return false
+    return sl_triggers.SmartEquals(true, token)
 EndFunction
 
 int Function ResolveInt(string token)
@@ -618,7 +730,9 @@ int Function ResolveInt(string token)
         Return 0
     endif
 
-    return 0
+    SFW("Cmd.ResolveInt defaulted to casting token(" + token + ")")
+
+    return token as int
 EndFunction
 
 float Function ResolveFloat(string token)
@@ -643,10 +757,16 @@ float Function ResolveFloat(string token)
         Return 0.0
     endif
 
-    return 0.0
+    SFW("Cmd.ResolveFloat defaulted to casting token(" + token + ")")
+
+    return token as float
 EndFunction
 
 Function RunScript()
+    if SLT.bDebugMsg
+        SFD("Cmd.RunScript")
+    endif
+
     string   p1
     string   p2
     string   po
@@ -656,6 +776,9 @@ Function RunScript()
     string[] varscopestringlist = new string[2]
 
     while isExecuting && hasValidFrame
+        if SLT.bDebugMsg
+            SFD("Cmd.RunScript: isExecuting and hasValidFrame")
+        endif
         if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
             SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
             CleanupAndRemove()
@@ -663,7 +786,6 @@ Function RunScript()
         endif
 
         while currentLine < totalLines
-            
             if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
                 SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
                 CleanupAndRemove()
@@ -675,13 +797,26 @@ Function RunScript()
             int endidx = tokencounts[currentLine] + startidx - 1
             cmdLine = PapyrusUtil.SliceStringArray(tokens, startidx, endidx)
             
+            if SLT.bDebugMsg
+                SFD("Cmd.RunScript: cmdLine(" + PapyrusUtil.StringJoin(cmdLine, "), (") + ")")
+            endif
+            
             if cmdLine.Length
                 command = Resolve(cmdLine[0])
+                if SLT.bDebugMsg
+                    SFD("Cmd.RunScript: Resolve(" + cmdLine[0] + ") => [" + command + "]")
+                endif
                 cmdLine[0] = command
 
                 If !command
+                    if SLT.bDebugMsg
+                        SFD("Cmd.RunScript: empty command")
+                    endif
                     currentLine += 1
                 elseIf command == "set"
+                    if SLT.bDebugMsg
+                        SFD("Cmd.RunScript: set")
+                    endif
                     if ParamLengthGT(self, cmdLine.Length, 2)
                         GetVarScope2(cmdLine[1], varscopestringlist)
                         
@@ -809,6 +944,9 @@ Function RunScript()
                     endif
                     currentLine += 1
                 elseIf command == "goto"
+                    if SLT.bDebugMsg
+                        SFD("Cmd.RunScript: goto")
+                    endif
                     if ParamLengthEQ(self, cmdLine.Length, 2)
                         string resolvedCmdLine = Resolve(cmdLine[1])
                         int gotoTargetLine = slt_FindGoto(resolvedCmdLine)
@@ -917,8 +1055,14 @@ Function RunScript()
                 else
                     string _slt_mightBeLabel = _slt_IsLabel(cmdLine)
                     if _slt_mightBeLabel
+                        if SLT.bDebugMsg
+                            SFD("Cmd.RunScript: [might be label]")
+                        endif
                         slt_AddGoto(_slt_mightBeLabel, currentLine)
                     else
+                        if SLT.bDebugMsg
+                            SFD("Cmd.RunScript: RunOperationOnActor(" + PapyrusUtil.StringJoin(cmdLine, "),(") + ")")
+                        endif
                         RunOperationOnActor(cmdLine)
                     endif
 
@@ -1051,10 +1195,13 @@ int[]       pushed_currentLine
 int[]       pushed_totalLines
 int[]       pushed_lastKey
 string[]    pushed_command
-string[]    pushed_mostrecentresult
+string[]    pushed_recentresultstring
+bool[]      pushed_recentresultbool
+int[]       pushed_recentresultint
+float[]     pushed_recentresultfloat
+Form[]      pushed_recentresultform
+int[]       pushed_mostrecentresulttype
 Actor[]     pushed_iteractor
-string[]    pushed_customresolveresult
-Form[]      pushed_customresolveformresult
 string[]    pushed_currentscriptname
 
 bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
@@ -1120,11 +1267,14 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
             pushed_totalLines = PapyrusUtil.IntArray(0)
             pushed_lastKey = PapyrusUtil.IntArray(0)
             pushed_command = PapyrusUtil.StringArray(0)
-            pushed_mostrecentresult = PapyrusUtil.StringArray(0)
+            pushed_recentresultstring = PapyrusUtil.StringArray(0)
+            pushed_recentresultbool = PapyrusUtil.BoolArray(0)
+            pushed_recentresultint = PapyrusUtil.IntArray(0)
+            pushed_recentresultfloat = PapyrusUtil.FloatArray(0)
+            pushed_recentresultform = PapyrusUtil.FormArray(0)
+            pushed_mostrecentresulttype = PapyrusUtil.IntArray(0)
             pushed_iteractor = new Actor[1]
             pushed_iteractor = PapyrusUtil.ResizeActorArray(pushed_iteractor, 0)
-            pushed_customresolveresult = PapyrusUtil.StringArray(0)
-            pushed_customresolveformresult = PapyrusUtil.FormArray(0)
             pushed_currentscriptname = PapyrusUtil.StringArray(0)
         endif
 
@@ -1132,10 +1282,14 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
         pushed_totalLines = PapyrusUtil.PushInt(pushed_totalLines, totalLines)
         pushed_lastKey = PapyrusUtil.PushInt(pushed_lastKey, lastKey)
         pushed_command = PapyrusUtil.PushString(pushed_command, command)
-        pushed_mostrecentresult = PapyrusUtil.PushString(pushed_mostrecentresult, MostRecentResult)
+        pushed_recentresultstring = PapyrusUtil.PushString(pushed_recentresultstring, _recentResultString)
+        pushed_recentresultbool = PapyrusUtil.PushBool(pushed_recentresultbool, _recentResultBool)
+        pushed_recentresultint = PapyrusUtil.PushInt(pushed_recentresultint, _recentResultInt)
+        pushed_recentresultfloat = PapyrusUtil.PushFloat(pushed_recentresultfloat, _recentResultFloat)
+        pushed_recentresultform = PapyrusUtil.PushForm(pushed_recentresultform, _recentResultForm)
+        pushed_mostrecentresulttype = PapyrusUtil.PushInt(pushed_mostrecentresulttype, MostRecentResultType)
+
         pushed_iteractor = PapyrusUtil.PushActor(pushed_iteractor, iterActor)
-        pushed_customresolveresult = PapyrusUtil.PushString(pushed_customresolveresult, CustomResolveResult)
-        pushed_customresolveformresult = PapyrusUtil.PushForm(pushed_customresolveformresult, CustomResolveFormResult)
         pushed_currentscriptname = PapyrusUtil.PushString(pushed_currentscriptname, currentScriptName)
 
         int varcount
@@ -1433,9 +1587,12 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
     endif
 
     lastKey = 0
-    MostRecentResult = ""
-    CustomResolveResult = ""
-    CustomResolveFormResult = none
+    MostRecentResultType = RT_STRING
+    _recentResultString = ""
+    _recentResultBool = false
+    _recentResultInt = 0
+    _recentResultFloat = 0.0
+    _recentResultForm = none
     iterActor = none
     currentScriptName = _myCmdName
     currentLine = 0
@@ -1469,21 +1626,27 @@ bool Function slt_Frame_Pop()
     totalLines                  = pushed_totalLines[pushed_totalLines.Length - 1]
     lastKey                     = pushed_lastKey[pushed_lastKey.Length - 1]
     command                     = pushed_command[pushed_command.Length - 1]
-    MostRecentResult            = pushed_mostrecentresult[pushed_mostrecentresult.Length - 1]
-    CustomResolveResult         = pushed_customresolveresult[pushed_customresolveresult.Length - 1]
+    MostRecentResultType        = pushed_mostrecentresulttype[pushed_mostrecentresulttype.Length - 1]
+    _recentResultString         = pushed_recentresultstring[pushed_recentresultstring.Length - 1]
+    _recentResultBool           = pushed_recentresultbool[pushed_recentresultbool.Length - 1]
+    _recentResultInt            = pushed_recentresultint[pushed_recentresultint.Length - 1]
+    _recentResultFloat          = pushed_recentresultfloat[pushed_recentresultfloat.Length - 1]
+    _recentResultForm           = pushed_recentresultform[pushed_recentresultform.Length - 1]
     currentScriptName           = pushed_currentscriptname[pushed_currentscriptname.Length - 1]
-    CustomResolveFormResult     = pushed_customresolveformresult[pushed_customresolveformresult.Length - 1]
     iterActor                   = pushed_iteractor[pushed_iteractor.Length - 1]
 
     pushed_currentLine          = PapyrusUtil.ResizeIntArray(pushed_currentLine, pushed_currentLine.Length - 1)
     pushed_totalLines           = PapyrusUtil.ResizeIntArray(pushed_totalLines, pushed_totalLines.Length - 1)
     pushed_lastKey              = PapyrusUtil.ResizeIntArray(pushed_lastKey, pushed_lastKey.Length - 1)
     pushed_command              = PapyrusUtil.ResizeStringArray(pushed_command, pushed_command.Length - 1)
-    pushed_mostrecentresult     = PapyrusUtil.ResizeStringArray(pushed_mostrecentresult, pushed_mostrecentresult.Length - 1)
-    pushed_customresolveresult  = PapyrusUtil.ResizeStringArray(pushed_customresolveresult, pushed_customresolveresult.Length - 1)
+    pushed_mostrecentresulttype = PapyrusUtil.ResizeIntArray(pushed_mostrecentresulttype, pushed_mostrecentresulttype.Length - 1)
+    pushed_recentresultstring   = PapyrusUtil.ResizeStringArray(pushed_recentresultstring, pushed_recentresultstring.Length - 1)
+    pushed_recentresultbool     = PapyrusUtil.ResizeBoolArray(pushed_recentresultbool, pushed_recentresultbool.Length - 1)
+    pushed_recentresultint      = PapyrusUtil.ResizeIntArray(pushed_recentresultint, pushed_recentresultint.Length - 1)
+    pushed_recentresultfloat    = PapyrusUtil.ResizeFloatArray(pushed_recentresultfloat, pushed_recentresultfloat.Length - 1)
+    pushed_recentresultform     = PapyrusUtil.ResizeFormArray(pushed_recentresultform, pushed_recentresultform.Length - 1)
     pushed_currentscriptname    = PapyrusUtil.ResizeStringArray(pushed_currentscriptname, pushed_currentscriptname.Length - 1)
     pushed_iteractor            = PapyrusUtil.ResizeActorArray(pushed_iteractor, pushed_iteractor.Length - 1)
-    pushed_customresolveformresult = PapyrusUtil.ResizeFormArray(pushed_customresolveformresult, pushed_customresolveformresult.Length - 1)
 
     int varcount
     int newvarstoresize
@@ -1779,6 +1942,7 @@ function GetVarScope2(string varname, string[] varscope)
     endif
 endfunction
 
+; these might get interesting soon
 string function GetVarString2(string scope, string varname, string missing)
     if scope == "local"
         return GetFrameVar(varname, missing)

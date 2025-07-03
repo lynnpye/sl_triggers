@@ -233,7 +233,7 @@ function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentIntResult = nextResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -276,16 +276,16 @@ function sl_isin(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
 
     sl_triggersExtensionSexLab slExtension = GetExtension()
     
-    int nextResult = 0
+    bool nextResult = false
 
 	if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor && _targetActor.GetFactionRank(slExtension.SexLabAnimatingFaction) >= 0 && CmdPrimary.InSameCell(_targetActor)
-            nextResult = 1
+            nextResult = true
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentBoolResult = nextResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -301,8 +301,8 @@ function sl_hastag(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     sl_triggersExtensionSexLab slExtension = GetExtension()
-
-    int nextResult = 0
+    
+    bool nextResult = false
 	
 	if slExtension.IsEnabled && ParamLengthLT(CmdPrimary, param.Length, 4)
         Actor _targetActor = CmdTargetActor
@@ -313,12 +313,12 @@ function sl_hastag(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
         if thread
             string ss = CmdPrimary.Resolve(param[1])
             if thread.Animation.HasTag(ss)
-                nextResult = 1
+                nextResult = true
             endIf
         endIf
     endif
     
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentBoolResult = nextResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -336,8 +336,6 @@ function sl_disableorgasm(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     sl_triggersExtensionSexLab slExtension = GetExtension()
-
-    int nextResult = 0
 	
 	if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
@@ -346,8 +344,6 @@ function sl_disableorgasm(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
             thread.ActorAlias(_targetActor).DisableOrgasm(CmdPrimary.ResolveBool(param[2]))
         endif
 	endif
-	
-	CmdPrimary.MostRecentResult = nextResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -450,8 +446,8 @@ function sl_isinslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     sl_triggersExtensionSexLab slExtension = GetExtension()
-
-    int nextResult = 0
+    
+    bool nextResult = false
 	
 	if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
@@ -464,7 +460,7 @@ function sl_isinslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
                     while actorIdx < thread.Positions.Length
                         if slPosition == actorIdx + 1 && thread.Positions[actorIdx]
                             if _targetActor ==  thread.Positions[actorIdx]
-                                nextResult = 1
+                                nextResult = true
                                 actorIdx = thread.Positions.Length
                             endif
                         endif
@@ -475,7 +471,7 @@ function sl_isinslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
         endif
 	endif
 	
-	CmdPrimary.MostRecentResult = nextResult
+	CmdPrimary.MostRecentBoolResult = nextResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -672,7 +668,7 @@ endFunction
 function osla_get_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    string newResult
+    float newResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
@@ -681,7 +677,7 @@ function osla_get_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    CmdPrimary.MostRecentFloatResult = newResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -695,7 +691,7 @@ endFunction
 function osla_get_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    string newResult
+    float newResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
@@ -704,7 +700,7 @@ function osla_get_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _Cm
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    CmdPrimary.MostRecentFloatResult = newResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -718,7 +714,7 @@ endFunction
 function osla_get_exposure(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    string newResult
+    float newResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
@@ -727,7 +723,7 @@ function osla_get_exposure(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, 
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    CmdPrimary.MostRecentFloatResult = newResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -741,7 +737,7 @@ endFunction
 function osla_get_actor_days_since_last_orgasm(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    string newResult
+    float newResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
@@ -750,7 +746,7 @@ function osla_get_actor_days_since_last_orgasm(Actor CmdTargetActor, ActiveMagic
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    CmdPrimary.MostRecentFloatResult = newResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -765,7 +761,7 @@ endFunction
 function osla_modify_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    string newResult
+    float newResult
 
     if ParamLengthGT(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
@@ -779,7 +775,7 @@ function osla_modify_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    CmdPrimary.MostRecentFloatResult = newResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -794,7 +790,7 @@ endFunction
 function osla_set_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    string newResult
+    float newResult
 
     if ParamLengthGT(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
@@ -808,7 +804,7 @@ function osla_set_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    CmdPrimary.MostRecentFloatResult = newResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -823,7 +819,7 @@ endFunction
 function osla_modify_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    string newResult
+    float newResult
 
     if ParamLengthGT(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
@@ -837,7 +833,7 @@ function osla_modify_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect 
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    CmdPrimary.MostRecentFloatResult = newResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -852,7 +848,7 @@ endFunction
 function osla_set_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    string newResult
+    float newResult
 
     if ParamLengthGT(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
@@ -866,7 +862,7 @@ function osla_set_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _Cm
         endif
     endif
 
-    CmdPrimary.MostRecentResult = newResult
+    CmdPrimary.MostRecentFloatResult = newResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction

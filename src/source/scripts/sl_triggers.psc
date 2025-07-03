@@ -5,6 +5,7 @@ sl_triggersMain Function Main() global
 endFunction
 
 Form Function       GetForm(string someFormOfFormIdentification) global native
+string Function     GetNumericLiteral(string token) global native
 string[] Function   GetScriptsList() global native
 int Function        GetSessionId() global native
 string Function     GetTopicInfoResponse(TopicInfo tinfo) global native

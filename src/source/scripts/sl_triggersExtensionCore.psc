@@ -80,6 +80,10 @@ Function QueueUpdateLoop(float afDelay = 1.0)
 EndFunction
 
 Event OnInit()
+	if SLT.bDebugMsg
+		SLTDebugMsg("Core.OnInit")
+	endif
+
 	if !self
 		return
 	endif
@@ -159,6 +163,10 @@ Function PopulatePerk()
 EndFunction
 
 Function SLTReady()
+	if SLT.bDebugMsg
+		SLTDebugMsg("Core.SLTReady")
+	endif
+
 	PopulatePerk()
 	if CS_POLLING != CS_STATE && !pkSentinel
 		CS_STATE = CS_POLLING
@@ -656,6 +664,10 @@ Function HandleTopOfTheHour()
 EndFunction
 
 Function HandleOnKeyDown()
+	if SLT.bDebugMsg
+		SLTDebugMsg("Core.HandleOnKeyDown")
+	endif
+
 	; all we know at this point is that at least one of the keys of interest were pressed
 	; now we iterate all of the triggers (by slotnoprefix), check the status array against their
 	; settings, and execute or skip

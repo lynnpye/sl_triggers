@@ -19,6 +19,64 @@ function hextun_test2(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
+; HAVE TO FIX THE STRING PARAM TO STRING[] PARAM BEFORE YOU CAN USE THIS
+function validate_get_numeric_literal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    SLTDebugMsg("validate_get_numeric_literal begin")
+
+    string literal
+    string literalResultCode
+
+    literal = "10"
+    literalResultCode = sl_triggers.GetNumericLiteral(literal)
+    SLTDebugMsg("testing GetLiteral(" + literal + ") == (" + literalResultCode + ") <int:10>")
+
+    literal = "010"
+    literalResultCode = sl_triggers.GetNumericLiteral(literal)
+    SLTDebugMsg("testing GetLiteral(" + literal + ") == (" + literalResultCode + ") <int:10>")
+
+    literal = "0x10"
+    literalResultCode = sl_triggers.GetNumericLiteral(literal)
+    SLTDebugMsg("testing GetLiteral(" + literal + ") == (" + literalResultCode + ") <int:16>")
+
+    literal = "10.0"
+    literalResultCode = sl_triggers.GetNumericLiteral(literal)
+    SLTDebugMsg("testing GetLiteral(" + literal + ") == (" + literalResultCode + ") <float:10>")
+
+    literal = "010.0"
+    literalResultCode = sl_triggers.GetNumericLiteral(literal)
+    SLTDebugMsg("testing GetLiteral(" + literal + ") == (" + literalResultCode + ") <float:10>")
+
+    literal = "0x10.0"
+    literalResultCode = sl_triggers.GetNumericLiteral(literal)
+    SLTDebugMsg("testing GetLiteral(" + literal + ") == (" + literalResultCode + ") <invalid>")
+
+    literal = "true"
+    literalResultCode = sl_triggers.GetNumericLiteral(literal)
+    SLTDebugMsg("testing GetLiteral(" + literal + ") == (" + literalResultCode + ") <invalid>")
+
+    literal = "false"
+    literalResultCode = sl_triggers.GetNumericLiteral(literal)
+    SLTDebugMsg("testing GetLiteral(" + literal + ") == (" + literalResultCode + ") <invalid>")
+
+    literal = ""
+    literalResultCode = sl_triggers.GetNumericLiteral(literal)
+    SLTDebugMsg("testing GetLiteral(" + literal + ") == (" + literalResultCode + ") <invalid>")
+
+    literal = "ff"
+    literalResultCode = sl_triggers.GetNumericLiteral(literal)
+    SLTDebugMsg("testing GetLiteral(" + literal + ") == (" + literalResultCode + ") <invalid>")
+
+    literal = "0xFF"
+    literalResultCode = sl_triggers.GetNumericLiteral(literal)
+    SLTDebugMsg("testing GetLiteral(" + literal + ") == (" + literalResultCode + ") <int:255>")
+    
+    SLTDebugMsg("validate_get_numeric_literal end")
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
 ; sltname deb_msg
 ; sltgrup Utility
 ; sltdesc Joins all <msg> arguments together and logs to "<Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log"
@@ -64,7 +122,7 @@ function msg_notify(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         endwhile
         string msg = PapyrusUtil.StringJoin(darr, "")
         Debug.Notification(msg)
-        ;SLTInfoMsg(msg)
+        SLTInfoMsg(msg)
     endif
 
 	CmdPrimary.CompleteOperationOnActor()
@@ -83,16 +141,13 @@ endFunction
 Function form_getbyid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    string _outcome
+    Form outcome
 
     if ParamLengthEQ(CmdPrimary, param.Length, 2)
-        Form _result = CmdPrimary.ResolveForm(param[1])
-        if _result
-            _outcome = _result.GetFormID()
-        endif
+        outcome = CmdPrimary.ResolveForm(param[1])
     endif
 
-    CmdPrimary.MostRecentResult = _outcome
+    CmdPrimary.MostRecentFormResult = outcome
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -195,17 +250,17 @@ endFunction
 function av_getbase(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    string nextResult
+    float nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
 
         if _targetActor
-            nextResult = _targetActor.GetBaseActorValue(CmdPrimary.Resolve(param[2])) as string
+            nextResult = _targetActor.GetBaseActorValue(CmdPrimary.Resolve(param[2]))
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentFloatResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -220,17 +275,17 @@ endFunction
 function av_get(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    string nextResult
+    float nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
 
         if _targetActor
-            nextResult = _targetActor.GetActorValue(CmdPrimary.Resolve(param[2])) as string
+            nextResult = _targetActor.GetActorValue(CmdPrimary.Resolve(param[2]))
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentFloatResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -245,17 +300,17 @@ endFunction
 function av_getmax(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    string nextResult
+    float nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
 
         if _targetActor
-            nextResult = _targetActor.GetActorValueMax(CmdPrimary.Resolve(param[2])) as string
+            nextResult = _targetActor.GetActorValueMax(CmdPrimary.Resolve(param[2]))
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentFloatResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -270,16 +325,16 @@ endFunction
 function av_getpercent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    string nextResult
+    float nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if _targetActor
-            nextResult = (_targetActor.GetActorValuePercentage(CmdPrimary.Resolve(param[2])) * 100.0) as string
+            nextResult = (_targetActor.GetActorValuePercentage(CmdPrimary.Resolve(param[2])) * 100.0)
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentFloatResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -735,7 +790,7 @@ function item_getcount(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentIntResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -794,13 +849,13 @@ endFunction
 function rnd_int(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    string nextResult
+    int nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        nextResult = Utility.RandomInt(CmdPrimary.Resolve(param[1]) as int, CmdPrimary.Resolve(param[2]) as int) as string
+        nextResult = Utility.RandomInt(CmdPrimary.Resolve(param[1]) as int, CmdPrimary.Resolve(param[2]) as int)
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentIntResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -814,13 +869,13 @@ endFunction
 function rnd_float(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    string nextResult
+    float nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        nextResult = Utility.RandomFloat(CmdPrimary.ResolveFloat(param[1]), CmdPrimary.ResolveFloat(param[2])) as string
+        nextResult = Utility.RandomFloat(CmdPrimary.ResolveFloat(param[1]), CmdPrimary.ResolveFloat(param[2]))
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentFloatResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -891,6 +946,8 @@ function util_getrandomactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary
     endif
 
     CmdPrimary.IterActor = nextIterActor
+
+    CmdPrimary.CustomResolveFormResult = nextIterActor
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -1076,7 +1133,7 @@ function actor_isvalid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
                     endif
                     
                     if actor_isvalid_problems
-                        actor_isvalid_problems = "actor_isvalid: problems for _targetActor(" + _targetActor + ") " actor_isvalid_problems
+                        actor_isvalid_problems = "actor_isvalid: problems for _targetActor(" + _targetActor + ") " + actor_isvalid_problems
                     endif
                     
                 endif
@@ -1091,7 +1148,7 @@ function actor_isvalid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentIntResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -1106,18 +1163,18 @@ endFunction
 function actor_haslos(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    int nextResult
+    bool nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _actorOne = CmdPrimary.resolveActor(param[1])
         Actor _actorTwo = CmdPrimary.resolveActor(param[2])
         
         if _actorOne && _actorTwo && _actorOne.hasLOS(_actorTwo)
-            nextResult = 1
+            nextResult = true
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentBoolResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -1215,16 +1272,16 @@ endFunction
 function actor_isguard(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    int nextResult
+    bool nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if _targetActor && _targetActor.IsGuard()
-            nextResult = 1
+            nextResult = true
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentBoolResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -1243,16 +1300,16 @@ endFunction
 function actor_isplayer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    int nextResult
+    bool nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if _targetActor && _targetActor == CmdPrimary.PlayerRef
-            nextResult = 1
+            nextResult = true
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentBoolResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -1265,7 +1322,7 @@ endFunction
 function actor_getgender(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    string nextResult
+    int nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
@@ -1274,7 +1331,7 @@ function actor_getgender(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentIntResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -1311,17 +1368,17 @@ endFunction
 function actor_haskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    int nextResult
+    bool nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Keyword keyw = Keyword.GetKeyword(CmdPrimary.Resolve(param[2]))
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if keyw && _targetActor && _targetActor.HasKeyword(keyw)
-            nextResult = 1
+            nextResult = true
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentBoolResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -1335,17 +1392,17 @@ endFunction
 function actor_iswearing(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    int nextResult
+    bool nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Armor thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[2])) as Armor
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if thing && _targetActor && _targetActor.IsEquipped(thing)
-            nextResult = 1
+            nextResult = true
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentBoolResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -1360,16 +1417,16 @@ endFunction
 function actor_getscale(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    string nextResult
+    float nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
-            nextResult = _targetActor.GetScale() as string
+            nextResult = _targetActor.GetScale()
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentFloatResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -1404,16 +1461,16 @@ endFunction
 function actor_worninslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    int nextResult
+    bool nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Actor _targetActor = CmdPrimary.resolveActor(param[1])
-        if _targetActor && _targetActor.GetEquippedArmorInSlot(CmdPrimary.Resolve(param[2]) as int)
-            nextResult = 1
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor && _targetActor.GetEquippedArmorInSlot(CmdPrimary.ResolveInt(param[2]))
+            nextResult = true
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentBoolResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -1427,18 +1484,18 @@ endFunction
 function actor_wornhaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    int nextResult
+    bool nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Keyword keyw = Keyword.GetKeyword(CmdPrimary.Resolve(param[2]))
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         
         if keyw && _targetActor && _targetActor.WornHasKeyword(keyw)
-            nextResult = 1
+            nextResult = true
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentBoolResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -1453,18 +1510,18 @@ endFunction
 function actor_lochaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    int nextResult
+    bool nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Keyword keyw = Keyword.GetKeyword(CmdPrimary.Resolve(param[2]))
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         
         if keyw && _targetActor && _targetActor.GetCurrentLocation().HasKeyword(keyw)
-            nextResult = 1
+            nextResult = true
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentBoolResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -1493,11 +1550,11 @@ function actor_getrelation(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, 
         Actor _actorOne = CmdPrimary.resolveActor(param[1])
         Actor _actorTwo = CmdPrimary.resolveActor(param[2])
         if _actorOne && _actorTwo
-            nextResult = _actorOne.GetRelationshipRank(_actorTwo) as int
+            nextResult = _actorOne.GetRelationshipRank(_actorTwo)
         endif
     endif
     
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentIntResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -1534,17 +1591,17 @@ endFunction
 function actor_infaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    int nextResult = 0
+    bool nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         Faction thing = CmdPrimary.GetFormById(CmdPrimary.Resolve(param[2])) as Faction
         if _targetActor && thing && _targetActor.IsInFaction(thing)
-            nextResult = 1
+            nextResult = true
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentBoolResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -1571,7 +1628,7 @@ function actor_getfactionrank(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimar
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentIntResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -1611,6 +1668,7 @@ endFunction
 function actor_isaffectedby(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
+    bool actualResult
     int nextResult = -1
 
     if ParamLengthGT(CmdPrimary, param.Length, 2)
@@ -1665,8 +1723,10 @@ function actor_isaffectedby(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary,
     if nextResult < 0
         nextResult = 0
     endif
+
+    actualResult = (nextResult == 1)
 	
-	CmdPrimary.MostRecentResult = nextResult
+	CmdPrimary.MostRecentBoolResult = actualResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -1758,37 +1818,32 @@ function actor_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthGT(CmdPrimary, param.Length, 2)
-        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         string ss1 = CmdPrimary.Resolve(param[2])
         
-        string nextResult
         if _targetActor 
             if ss1 == "GetCombatState"
-                nextResult = _targetActor.GetCombatState() as string
+                CmdPrimary.MostRecentIntResult = _targetActor.GetCombatState()
             elseif ss1 == "GetLevel"
-                nextResult = _targetActor.GetLevel() as string
+                CmdPrimary.MostRecentIntResult = _targetActor.GetLevel()
             elseif ss1 == "GetSleepState"
-                nextResult = _targetActor.GetSleepState() as string
+                CmdPrimary.MostRecentIntResult = _targetActor.GetSleepState()
             elseif ss1 == "IsAlerted"
-                nextResult = _targetActor.IsAlerted() as string
+                CmdPrimary.MostRecentBoolResult = _targetActor.IsAlerted()
             elseif ss1 == "IsAlarmed"
-                nextResult = _targetActor.IsAlarmed() as string
+                CmdPrimary.MostRecentBoolResult = _targetActor.IsAlarmed()
             elseif ss1 == "IsPlayerTeammate"
-                nextResult = _targetActor.IsPlayerTeammate() as string
+                CmdPrimary.MostRecentBoolResult = _targetActor.IsPlayerTeammate()
             elseif ss1 == "SetPlayerTeammate"
-                int p3 = 0
+                bool p3 = false
                 if param.Length > 3
-                    p3 = CmdPrimary.Resolve(param[3]) as int
+                    p3 = CmdPrimary.ResolveBool(param[3])
                 endif
-                _targetActor.SetPlayerTeammate(p3 as bool)
+                _targetActor.SetPlayerTeammate(p3)
             elseif ss1 == "SendAssaultAlarm"
                 _targetActor.SendAssaultAlarm()
             endIf
         endIf
-
-        if StringUtil.GetLength(nextResult) > 0
-            CmdPrimary.MostRecentResult = nextResult
-        endif
     endif
 
 	CmdPrimary.CompleteOperationOnActor()
@@ -1818,7 +1873,7 @@ function actor_body(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
             elseif ss1 == "RegenerateHead"
                 _targetActor.RegenerateHead()
             elseif ss1 == "GetWeight"
-                CmdPrimary.MostRecentResult = _targetActor.GetActorBase().GetWeight() as string
+                CmdPrimary.MostRecentFloatResult = _targetActor.GetActorBase().GetWeight()
             elseif ss1 == "SetWeight"
                 float baseW = _targetActor.GetActorBase().GetWeight()
                 float p3
@@ -2174,350 +2229,335 @@ function actor_doaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 endFunction
 
 
-string function _slt_form_dogetter(sl_triggersCmd CmdPrimary, Form _target, string _theAction) global
-    string result
-        
+bool function _slt_form_dogetter(sl_triggersCmd CmdPrimary, Form _target, string _theAction) global
     if _target && _theAction
         if _theAction == "GetFormID"
-            result = _target.GetFormID()
+            CmdPrimary.MostRecentIntResult = _target.GetFormID()
+            return true
         elseif _theAction == "GetGoldValue"
-            result = _target.GetGoldValue()
+            CmdPrimary.MostRecentIntResult = _target.GetGoldValue()
+            return true
         elseif _theAction == "PlayerKnows"
-            result = _target.PlayerKnows() as int
+            CmdPrimary.MostRecentBoolResult = _target.PlayerKnows()
+            return true
         elseif _theAction == "GetType"
-            result = _target.GetType()
+            CmdPrimary.MostRecentIntResult = _target.GetType()
+            return true
         elseif _theAction == "GetName"
-            result = _target.GetName()
+            CmdPrimary.MostRecentResult = _target.GetName()
+            return true
         elseif _theAction == "GetWeight"
-            result = _target.GetWeight()
+            CmdPrimary.MostRecentFloatResult = _target.GetWeight()
+            return true
         elseif _theAction == "GetNumKeywords"
-            result = _target.GetNumKeywords()
+            CmdPrimary.MostRecentIntResult = _target.GetNumKeywords()
+            return true
         elseif _theAction == "IsPlayable"
-            result = _target.IsPlayable() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsPlayable()
+            return true
         elseif _theAction == "HasWorldModel"
-            result = _target.HasWorldModel() as int
+            CmdPrimary.MostRecentBoolResult = _target.HasWorldModel()
+            return true
         elseif _theAction == "GetWorldModelPath"
-            result = _target.GetWorldModelPath()
+            CmdPrimary.MostRecentResult = _target.GetWorldModelPath()
+            return true
         elseif _theAction == "GetWorldModelNumTextureSets"
-            result = _target.GetWorldModelNumTextureSets()
+            CmdPrimary.MostRecentIntResult = _target.GetWorldModelNumTextureSets()
+            return true
         elseif _theAction == "TempClone"
-            Form _cloneForm = _target.TempClone()
-            result = _cloneForm.GetFormID()
+            CmdPrimary.MostRecentFormResult = _target.TempClone()
+            return true
         endif
     endIf
 
-    return result
+    return false
 endFunction
 
-string function _slt_objectreference_dogetter(sl_triggersCmd CmdPrimary, ObjectReference _target, string _theAction) global
-    string result
-        
+bool function _slt_objectreference_dogetter(sl_triggersCmd CmdPrimary, ObjectReference _target, string _theAction) global
     if _target && _theAction
         if _theAction == "CanFastTravelToMarker"
-            result = _target.CanFastTravelToMarker() as int
+            CmdPrimary.MostRecentBoolResult = _target.CanFastTravelToMarker()
+            return true
         elseif _theAction == "GetActorOwner"
-            ActorBase _actorOwner = _target.GetActorOwner()
-            if _actorOwner
-                result = _actorOwner.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetActorOwner()
+            return true
         elseif _theAction == "GetAngleX"
-            result = _target.GetAngleX()
+            CmdPrimary.MostRecentFloatResult = _target.GetAngleX()
+            return true
         elseif _theAction == "GetAngleY"
-            result = _target.GetAngleY()
+            CmdPrimary.MostRecentFloatResult = _target.GetAngleY()
+            return true
         elseif _theAction == "GetAngleZ"
-            result = _target.GetAngleZ()
+            CmdPrimary.MostRecentFloatResult = _target.GetAngleZ()
+            return true
         elseif _theAction == "GetBaseObject"
-            Form _baseobj = _target.GetBaseObject()
-            if _baseobj
-                result = _baseobj.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetBaseObject()
+            return true
         elseif _theAction == "GetCurrentDestructionStage"
-            result = _target.GetCurrentDestructionStage()
+            CmdPrimary.MostRecentIntResult = _target.GetCurrentDestructionStage()
+            return true
         elseif _theAction == "GetCurrentLocation"
-            Location _loc = _target.GetCurrentLocation()
-            if _loc
-                result = _loc.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetCurrentLocation()
+            return true
         elseif _theAction == "GetCurrentScene"
-            Scene _scene = _target.GetCurrentScene()
-            if _scene
-                result = _scene.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetCurrentScene()
+            return true
         elseif _theAction == "GetEditorLocation"
-            Location _loc = _target.GetEditorLocation()
-            if _loc
-                result = _loc.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetEditorLocation()
+            return true
         elseif _theAction == "GetFactionOwner"
-            Faction _faction = _target.GetFactionOwner()
-            if _faction
-                result = _faction.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetFactionOwner()
+            return true
         elseif _theAction == "GetHeight"
-            result = _target.GetHeight()
+            CmdPrimary.MostRecentFloatResult = _target.GetHeight()
+            return true
         elseif _theAction == "GetItemHealthPercent"
-            result = _target.GetItemHealthPercent()
+            CmdPrimary.MostRecentFloatResult = _target.GetItemHealthPercent()
+            return true
         elseif _theAction == "GetKey"
-            Key _thekey = _target.GetKey()
-            if _thekey
-                result = _thekey.GetFormId()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetKey()
+            return true
         elseif _theAction == "GetLength"
-            result = _target.GetLength()
+            CmdPrimary.MostRecentFloatResult = _target.GetLength()
+            return true
         elseif _theAction == "GetLockLevel"
-            result = _target.GetLockLevel()
+            CmdPrimary.MostRecentIntResult = _target.GetLockLevel()
+            return true
         elseif _theAction == "GetMass"
-            result = _target.GetMass()
+            CmdPrimary.MostRecentFloatResult = _target.GetMass()
+            return true
         elseif _theAction == "GetOpenState"
-            result = _target.GetOpenState()
+            CmdPrimary.MostRecentIntResult = _target.GetOpenState()
+            return true
         elseif _theAction == "GetParentCell"
-            Cell _cell = _target.GetParentCell()
-            if _cell
-                result = _cell.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetParentCell()
+            return true
         elseif _theAction == "GetPositionX"
-            result = _target.GetPositionX()
+            CmdPrimary.MostRecentFloatResult = _target.GetPositionX()
+            return true
         elseif _theAction == "GetPositionY"
-            result = _target.GetPositionY()
+            CmdPrimary.MostRecentFloatResult = _target.GetPositionY()
+            return true
         elseif _theAction == "GetPositionZ"
-            result = _target.GetPositionZ()
+            CmdPrimary.MostRecentFloatResult = _target.GetPositionZ()
+            return true
         elseif _theAction == "GetScale"
-            result = _target.GetScale()
+            CmdPrimary.MostRecentFloatResult = _target.GetScale()
+            return true
         elseif _theAction == "GetTriggerObjectCount"
-            result = _target.GetTriggerObjectCount()
+            CmdPrimary.MostRecentIntResult = _target.GetTriggerObjectCount()
+            return true
         elseif _theAction == "GetVoiceType"
-            VoiceType _voiceType = _target.GetVoiceType()
-            if _voiceType
-                result = _voiceType.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetVoiceType()
+            return true
         elseif _theAction == "GetWidth"
-            result = _target.GetWidth()
+            CmdPrimary.MostRecentFloatResult = _target.GetWidth()
+            return true
         elseif _theAction == "GetWorldSpace"
-            WorldSpace _worldspace = _target.GetWorldSpace()
-            if _worldspace
-                result = _worldspace.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetWorldSpace()
+            return true
         elseif _theAction == "IsActivationBlocked"
-            result = _target.IsActivationBlocked() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsActivationBlocked()
+            return true
         elseif _theAction == "Is3DLoaded"
-            result = _target.Is3DLoaded() as int
+            CmdPrimary.MostRecentBoolResult = _target.Is3DLoaded()
+            return true
         elseif _theAction == "IsDeleted"
-            result = _target.IsDeleted() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsDeleted()
+            return true
         elseif _theAction == "IsDisabled"
-            result = _target.IsDisabled() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsDisabled()
+            return true
         elseif _theAction == "IsEnabled"
-            result = _target.IsEnabled() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsEnabled()
+            return true
         elseif _theAction == "IsIgnoringFriendlyHits"
-            result = _target.IsIgnoringFriendlyHits() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsIgnoringFriendlyHits()
+            return true
         elseif _theAction == "IsInDialogueWithPlayer"
-            result = _target.IsInDialogueWithPlayer() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsInDialogueWithPlayer()
+            return true
         elseif _theAction == "IsInInterior"
-            result = _target.IsInInterior() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsInInterior()
+            return true
         elseif _theAction == "IsLocked"
-            result = _target.IsLocked() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsLocked()
+            return true
         elseif _theAction == "IsMapMarkerVisible"
-            result = _target.IsMapMarkerVisible() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsMapMarkerVisible()
+            return true
         elseif _theAction == "IsNearPlayer"
-            result = _target.IsNearPlayer() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsNearPlayer()
+            return true
         elseif _theAction == "GetNumItems"
-            result = _target.GetNumItems()
+            CmdPrimary.MostRecentIntResult = _target.GetNumItems()
+            return true
         elseif _theAction == "GetTotalItemWeight"
-            result = _target.GetTotalItemWeight()
+            CmdPrimary.MostRecentFloatResult = _target.GetTotalItemWeight()
+            return true
         elseif _theAction == "GetTotalArmorWeight"
-            result = _target.GetTotalArmorWeight()
+            CmdPrimary.MostRecentFloatResult = _target.GetTotalArmorWeight()
+            return true
         elseif _theAction == "IsHarvested"
-            result = _target.IsHarvested() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsHarvested()
+            return true
         elseif _theAction == "GetItemMaxCharge"
-            result = _target.GetItemMaxCharge()
+            CmdPrimary.MostRecentFloatResult = _target.GetItemMaxCharge()
+            return true
         elseif _theAction == "GetItemCharge"
-            result = _target.GetItemCharge()
+            CmdPrimary.MostRecentFloatResult = _target.GetItemCharge()
+            return true
         elseif _theAction == "IsOffLimits"
-            result = _target.IsOffLimits() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsOffLimits()
+            return true
         elseif _theAction == "GetDisplayName"
-            result = _target.GetDisplayName()
+            CmdPrimary.MostRecentResult = _target.GetDisplayName()
+            return true
         elseif _theAction == "GetEnableParent"
-            ObjectReference _parent = _target.GetEnableParent()
-            if _parent
-                result = _parent.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetEnableParent()
+            return true
         elseif _theAction == "GetEnchantment"
-            Enchantment _ench = _target.GetEnchantment()
-            if _ench
-                result = _ench.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetEnchantment()
+            return true
         elseif _theAction == "GetNumReferenceAliases"
-            result = _target.GetNumReferenceAliases()
+            CmdPrimary.MostRecentIntResult = _target.GetNumReferenceAliases()
+            return true
         else
             return _slt_form_dogetter(CmdPrimary, _target, _theAction)
         endif
     endIf
 
-    return result
+    return false
 endFunction
 
-string function _slt_actor_dogetter(sl_triggersCmd CmdPrimary, Actor _target, string _theAction) global
-    string result
-        
+bool function _slt_actor_dogetter(sl_triggersCmd CmdPrimary, Actor _target, string _theAction) global
     if _target && _theAction
         if _theAction == "CanFlyHere"
-            result = _target.CanFlyHere() as int
+            CmdPrimary.MostRecentBoolResult = _target.CanFlyHere()
         elseif _theAction == "Dismount"
-            result = _target.Dismount() as int
+            CmdPrimary.MostRecentBoolResult = _target.Dismount()
         elseif _theAction == "GetActorBase"
-            ActorBase _obj = _target.GetActorBase()
-            if _obj
-                result = _obj.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetActorBase()
         elseif _theAction == "GetBribeAmount"
-            result = _target.GetBribeAmount()
+            CmdPrimary.MostRecentIntResult = _target.GetBribeAmount()
         elseif _theAction == "GetCrimeFaction"
-            Faction _obj = _target.GetCrimeFaction()
-            if _obj
-                result = _obj.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetCrimeFaction()
         elseif _theAction == "GetCombatState"
-            result = _target.GetCombatState()
+            CmdPrimary.MostRecentIntResult = _target.GetCombatState()
         elseif _theAction == "GetCombatTarget"
-            Actor _obj = _target.GetCombatTarget()
-            if _obj
-                result = _obj.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetCombatTarget()
         elseif _theAction == "GetCurrentPackage"
-            Package _obj = _target.GetCurrentPackage()
-            if _obj
-                result = _obj.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetCurrentPackage()
         elseif _theAction == "GetDialogueTarget"
-            Actor _obj = _target.GetDialogueTarget()
-            if _obj
-                result = _obj.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetDialogueTarget()
         elseif _theAction == "GetEquippedShield"
-            Armor _shield = _target.GetEquippedShield()
-            if _shield
-                result = _shield.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetEquippedShield()
         elseif _theAction == "GetEquippedShout"
-            Shout _shout = _target.GetEquippedShout()
-            if _shout
-                result = _shout.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetEquippedShout()
         elseif _theAction == "GetFlyingState"
-            result = _target.GetFlyingState()
+            CmdPrimary.MostRecentIntResult = _target.GetFlyingState()
         elseif _theAction == "GetForcedLandingMarker"
-            ObjectReference _marker = _target.GetForcedLandingMarker()
-            if _marker
-                result = _marker.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetForcedLandingMarker()
         elseif _theAction == "GetGoldAmount"
-            result = _target.GetGoldAmount()
+            CmdPrimary.MostRecentIntResult = _target.GetGoldAmount()
         elseif _theAction == "GetHighestRelationshipRank"
-            result = _target.GetHighestRelationshipRank()
+            CmdPrimary.MostRecentIntResult = _target.GetHighestRelationshipRank()
         elseif _theAction == "GetKiller"
-            Actor _killer = _target.GetKiller()
-            if _killer
-                result = _killer.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetKiller()
         elseif _theAction == "GetLevel"
-            result = _target.GetLevel()
+            CmdPrimary.MostRecentIntResult = _target.GetLevel()
         elseif _theAction == "GetLeveledActorBase"
-            ActorBase _levab = _target.GetLeveledActorBase()
-            if _levab
-                result = _levab.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetLeveledActorBase()
         elseif _theAction == "GetLightLevel"
-            result = _target.GetLightLevel()
+            CmdPrimary.MostRecentFloatResult = _target.GetLightLevel()
         elseif _theAction == "GetLowestRelationshipRank"
-            result = _target.GetLowestRelationshipRank()
+            CmdPrimary.MostRecentIntResult = _target.GetLowestRelationshipRank()
         elseif _theAction == "GetNoBleedoutRecovery"
-            result = _target.GetNoBleedoutRecovery() as int
+            CmdPrimary.MostRecentBoolResult = _target.GetNoBleedoutRecovery()
         elseif _theAction == "GetPlayerControls"
-            result = _target.GetPlayerControls() as int
+            CmdPrimary.MostRecentBoolResult = _target.GetPlayerControls()
         elseif _theAction == "GetRace"
-            Race _race = _target.GetRace()
-            if _race
-                result = _race.GetFormID()
-            endif
+            CmdPrimary.MostRecentFormResult = _target.GetRace()
         elseif _theAction == "GetSitState"
-            result = _target.GetSitState()
+            CmdPrimary.MostRecentIntResult = _target.GetSitState()
         elseif _theAction == "GetSleepState"
-            result = _target.GetSleepState()
+            CmdPrimary.MostRecentIntResult = _target.GetSleepState()
         elseif _theAction == "GetVoiceRecoveryTime"
-            result = _target.GetVoiceRecoveryTime()
+            CmdPrimary.MostRecentFloatResult = _target.GetVoiceRecoveryTime()
         elseif _theAction == "IsAlarmed"
-            result = _target.IsAlarmed() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsAlarmed() 
         elseif _theAction == "IsAlerted"
-            result = _target.IsAlerted() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsAlerted() 
         elseif _theAction == "IsAllowedToFly"
-            result = _target.IsAllowedToFly() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsAllowedToFly()
         elseif _theAction == "IsArrested"
-            result = _target.IsArrested() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsArrested() 
         elseif _theAction == "IsArrestingTarget"
-            result = _target.IsArrestingTarget() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsArrestingTarget()
         elseif _theAction == "IsBeingRidden"
-            result = _target.IsBeingRidden() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsBeingRidden()
         elseif _theAction == "IsBleedingOut"
-            result = _target.IsBleedingOut() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsBleedingOut()
         elseif _theAction == "IsBribed"
-            result = _target.IsBribed() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsBribed()
         elseif _theAction == "IsChild"
-            result = _target.IsChild() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsChild() 
         elseif _theAction == "IsCommandedActor"
-            result = _target.IsCommandedActor() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsCommandedActor()
         elseif _theAction == "IsDead"
-            result = _target.IsDead() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsDead() 
         elseif _theAction == "IsDoingFavor"
-            result = _target.IsDoingFavor() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsDoingFavor()
         elseif _theAction == "IsEssential"
-            result = _target.IsEssential() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsEssential() 
         elseif _theAction == "IsFlying"
-            result = _target.IsFlying() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsFlying()
         elseif _theAction == "IsGhost"
-            result = _target.IsGhost() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsGhost()
         elseif _theAction == "IsGuard"
-            result = _target.IsGuard() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsGuard() 
         elseif _theAction == "IsInCombat"
-            result = _target.IsInCombat() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsInCombat() 
         elseif _theAction == "IsInKillMove"
-            result = _target.IsInKillMove() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsInKillMove() 
         elseif _theAction == "IsIntimidated"
-            result = _target.IsIntimidated() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsIntimidated()
         elseif _theAction == "IsOnMount"
-            result = _target.IsOnMount() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsOnMount() 
         elseif _theAction == "IsPlayersLastRiddenHorse"
-            result = _target.IsPlayersLastRiddenHorse() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsPlayersLastRiddenHorse()
         elseif _theAction == "IsPlayerTeammate"
-            result = _target.IsPlayerTeammate() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsPlayerTeammate()
         elseif _theAction == "IsRunning"
-            result = _target.IsRunning() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsRunning()
         elseif _theAction == "IsSneaking"
-            result = _target.IsSneaking() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsSneaking()
         elseif _theAction == "IsSprinting"
-            result = _target.IsSprinting() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsSprinting()
         elseif _theAction == "IsTrespassing"
-            result = _target.IsTrespassing() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsTrespassing()
         elseif _theAction == "IsUnconscious"
-            result = _target.IsUnconscious() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsUnconscious()
         elseif _theAction == "IsWeaponDrawn"
-            result = _target.IsWeaponDrawn() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsWeaponDrawn()
         elseif _theAction == "GetSpellCount"
-            result = _target.GetSpellCount()
+            CmdPrimary.MostRecentIntResult = _target.GetSpellCount()
         elseif _theAction == "IsAIEnabled"
-            result = _target.IsAIEnabled() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsAIEnabled()
         elseif _theAction == "IsSwimming"
-            result = _target.IsSwimming() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsSwimming()
         elseif _theAction == "WillIntimidateSucceed"
-            result = _target.WillIntimidateSucceed() as int
+            CmdPrimary.MostRecentBoolResult = _target.WillIntimidateSucceed()
         elseif _theAction == "IsOverEncumbered"
-            result = _target.IsOverEncumbered() as int
+            CmdPrimary.MostRecentBoolResult = _target.IsOverEncumbered()
         elseif _theAction == "GetWarmthRating"
-            result = _target.GetWarmthRating()
+            CmdPrimary.MostRecentFloatResult = _target.GetWarmthRating()
         else
             return _slt_objectreference_dogetter(CmdPrimary, _target, _theAction)
         endif
     endIf
 
-    return result
+    return false
 endFunction
 
 ; sltname form_dogetter
@@ -2546,8 +2586,6 @@ endFunction
 function form_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    string result
-
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Form _target = CmdPrimary.ResolveForm(param[1])
         
@@ -2555,15 +2593,12 @@ function form_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
             string _theAction = CmdPrimary.Resolve(param[2])
 
             if _theAction
-                result = _slt_form_dogetter(CmdPrimary, _target, _theAction)
-                if !result
+                if !_slt_form_dogetter(CmdPrimary, _target, _theAction)
                     SquawkFunctionError(CmdPrimary, "form_dogetter: action returned empty string result, likely a problem(" + _theAction + ")")
                 endif
             endif
         endIf
     endif
-
-    CmdPrimary.MostRecentResult = result
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -2632,8 +2667,6 @@ endFunction
 function objectreference_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    string result
-
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         ObjectReference _target = CmdPrimary.ResolveForm(param[1]) as ObjectReference
         
@@ -2641,15 +2674,12 @@ function objectreference_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPr
             string _theAction = CmdPrimary.Resolve(param[2])
 
             if _theAction
-                result = _slt_objectreference_dogetter(CmdPrimary, _target, _theAction)
-                if !result
+                if !_slt_objectreference_dogetter(CmdPrimary, _target, _theAction)
                     SquawkFunctionError(CmdPrimary, "objectreference_dogetter: action returned empty string result, likely a problem(" + _theAction + ")")
                 endif
             endif
         endIf
     endif
-
-    CmdPrimary.MostRecentResult = result
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -2730,8 +2760,6 @@ endFunction
 function actor_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    string result
-
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _target = CmdPrimary.ResolveForm(param[1]) as Actor
         
@@ -2739,15 +2767,12 @@ function actor_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
             string _theAction = CmdPrimary.Resolve(param[2])
 
             if _theAction
-                result = _slt_actor_dogetter(CmdPrimary, _target, _theAction)
-                if !result
+                if !_slt_actor_dogetter(CmdPrimary, _target, _theAction)
                     SquawkFunctionError(CmdPrimary, "actor_dogetter: action returned empty string result, likely a problem(" + _theAction + ")")
                 endif
             endif
         endIf
     endif
-
-    CmdPrimary.MostRecentResult = result
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -4598,7 +4623,7 @@ function util_sendmodevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, 
         endif
         float  p3
         if param.Length > 3
-            p3 = CmdPrimary.Resolve(param[3]) as float
+            p3 = CmdPrimary.ResolveFloat(param[3])
         endif
         
         CmdTargetActor.SendModEvent(ss1, ss2, p3)
@@ -4681,10 +4706,7 @@ function util_getgametime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
     if ParamLengthEQ(CmdPrimary, param.Length, 1)
         float dayTime = Utility.GetCurrentGameTime()
         dayTime = Math.Floor(dayTime * 100.0) / 100.0
-        
-        CmdPrimary.MostRecentResult = dayTime
-    else
-        CmdPrimary.MostRecentResult = ""
+        CmdPrimary.MostRecentFloatResult = dayTime
     endif
 
 	CmdPrimary.CompleteOperationOnActor()
@@ -4701,9 +4723,7 @@ function util_getrealtime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         float realTime = Utility.GetCurrentRealTime()
         realTime = Math.Floor(realTime * 100.0) / 100.0
 
-        CmdPrimary.MostRecentResult = realTime
-    else
-        CmdPrimary.MostRecentResult = ""
+        CmdPrimary.MostRecentFloatResult = realTime
     endif
 
 	CmdPrimary.CompleteOperationOnActor()
@@ -4724,9 +4744,7 @@ function util_gethour(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
         
         int theHour = dayTime as int
         
-        CmdPrimary.MostRecentResult = theHour as string
-    else
-        CmdPrimary.MostRecentResult = ""
+        CmdPrimary.MostRecentIntResult = theHour
     endif
 
 	CmdPrimary.CompleteOperationOnActor()
@@ -4755,7 +4773,7 @@ function util_game(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
             Game.IncrementStat(p2, iModAmount)
         elseIf "QueryStat" == p1
             string p2 = CmdPrimary.Resolve(param[2])
-            CmdPrimary.MostRecentResult = Game.QueryStat(p2) as string
+            CmdPrimary.MostRecentIntResult = Game.QueryStat(p2)
         endIf
     endif
 
@@ -4782,7 +4800,7 @@ function snd_play(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentIntResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -4923,7 +4941,7 @@ function mfg_getphonememodifier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrim
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult as string
+    CmdPrimary.MostRecentIntResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -4970,7 +4988,7 @@ function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult as string
+    CmdPrimary.MostRecentIntResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -5000,14 +5018,13 @@ function json_getvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         
         if pname && ptype && pkey
             if ptype == "int"
-                int iRet = JsonUtil.GetIntValue(pname, pkey, pdef as int)
-                nextResult = iRet as string
+                CmdPrimary.MostRecentIntResult = JsonUtil.GetIntValue(pname, pkey, pdef as int)
             elseif ptype == "float"
-                float fRet = JsonUtil.GetFloatValue(pname, pkey, pdef as float)
-                nextResult = fRet as string
+                CmdPrimary.MostRecentFloatResult = JsonUtil.GetFloatValue(pname, pkey, pdef as float)
+            elseif ptype == "form"
+                CmdPrimary.MostRecentFormResult = JsonUtil.GetFormValue(pname, pkey, CmdPrimary.ResolveForm(pdef))
             else
-                string sRet = JsonUtil.GetStringValue(pname, pkey, pdef)
-                nextResult = sRet
+                CmdPrimary.MostRecentResult = JsonUtil.GetStringValue(pname, pkey, pdef)
             endIf
         else
             if !pname
@@ -5021,8 +5038,6 @@ function json_getvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
             endif
         endif
     endif
-
-    CmdPrimary.MostRecentResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -5141,13 +5156,13 @@ function jsonutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
             elseif "save" == func
                 JsonUtil.Save(jfile)
             elseif "ispendingsave" == func
-                CmdPrimary.MostRecentResult = JsonUtil.IsPendingSave(jfile) as int
+                CmdPrimary.MostRecentBoolResult = JsonUtil.IsPendingSave(jfile)
             elseif "isgood" == func
-                CmdPrimary.MostRecentResult = JsonUtil.IsGood(jfile) as int
+                CmdPrimary.MostRecentBoolResult = JsonUtil.IsGood(jfile)
             elseif "geterrors" == func
                 CmdPrimary.MostRecentResult = JsonUtil.GetErrors(jfile)
             elseif "exists" == func
-                CmdPrimary.MostRecentResult = 1
+                CmdPrimary.MostRecentBoolResult = JsonUtil.JsonExists(jfile)
             elseif "unload" == func
                 bool saveChanges = true
                 bool minify = false
@@ -5165,35 +5180,35 @@ function jsonutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
                 if jtype
                     if "unset" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.UnsetIntValue(jfile, jkey) as int
+                            CmdPrimary.MostRecentIntResult = JsonUtil.UnsetIntValue(jfile, jkey) as int
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.UnsetFloatValue(jfile, jkey) as int
+                            CmdPrimary.MostRecentFloatResult = JsonUtil.UnsetFloatValue(jfile, jkey) as int
                         elseif "string" == jtype
                             CmdPrimary.MostRecentResult = JsonUtil.UnsetStringValue(jfile, jkey) as int
                         endif
                     elseif "has" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.HasIntValue(jfile, jkey) as int
+                            CmdPrimary.MostRecentBoolResult = JsonUtil.HasIntValue(jfile, jkey)
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.HasFloatValue(jfile, jkey) as int
+                            CmdPrimary.MostRecentBoolResult = JsonUtil.HasFloatValue(jfile, jkey)
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.HasStringValue(jfile, jkey) as int
+                            CmdPrimary.MostRecentBoolResult = JsonUtil.HasStringValue(jfile, jkey)
                         endif
                     elseif "listclear" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.IntListClear(jfile, jkey)
+                            CmdPrimary.MostRecentIntResult = JsonUtil.IntListClear(jfile, jkey)
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.FloatListClear(jfile, jkey)
+                            CmdPrimary.MostRecentIntResult = JsonUtil.FloatListClear(jfile, jkey)
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.StringListClear(jfile, jkey)
+                            CmdPrimary.MostRecentIntResult = JsonUtil.StringListClear(jfile, jkey)
                         endif
                     elseif "listcount" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.IntListCount(jfile, jkey)
+                            CmdPrimary.MostRecentIntResult = JsonUtil.IntListCount(jfile, jkey)
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.FloatListCount(jfile, jkey)
+                            CmdPrimary.MostRecentIntResult = JsonUtil.FloatListCount(jfile, jkey)
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.StringListCount(jfile, jkey)
+                            CmdPrimary.MostRecentIntResult = JsonUtil.StringListCount(jfile, jkey)
                         endif
                     elseif "get" == func
                         string dval
@@ -5201,9 +5216,9 @@ function jsonutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
                             dval = CmdPrimary.Resolve(param[5])
                         endif
                         if "int" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.GetIntValue(jfile, jkey, dval as int)
+                            CmdPrimary.MostRecentIntResult = JsonUtil.GetIntValue(jfile, jkey, dval as int)
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentResult = JsonUtil.GetFloatValue(jfile, jkey, dval as float)
+                            CmdPrimary.MostRecentFloatResult = JsonUtil.GetFloatValue(jfile, jkey, dval as float)
                         elseif "string" == jtype
                             CmdPrimary.MostRecentResult = JsonUtil.GetStringValue(jfile, jkey, dval)
                         endif
@@ -5613,8 +5628,6 @@ endFunction
 ; sltsamp weather_state GetClassification
 function weather_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-
-    string nextResult = ""
 	
     if ParamLengthEQ(CmdPrimary, param.Length, 2)
         string ss1 = CmdPrimary.Resolve(param[1])
@@ -5622,12 +5635,10 @@ function weather_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         if ss1 == "GetClassification"
             Weather curr = Weather.GetCurrentWeather()
             if curr
-                nextResult = curr.GetClassification() as string
+                CmdPrimary.MostRecentIntResult = curr.GetClassification()
             endIf
         endIf
     endif
-
-    CmdPrimary.MostRecentResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -5645,49 +5656,22 @@ endFunction
 ; sltsamp math floor 1.2
 function Math(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-
-    string nextResult = ""
 	
     if ParamLengthGT(CmdPrimary, param.Length, 2)
-        string ss1 = CmdPrimary.Resolve(param[1])
-        string ss2
-        int    ii1
-        float  ff1
+        string subcode = CmdPrimary.Resolve(param[1])
         
-        if ss1 == "asint"
-            ss2 = CmdPrimary.Resolve(param[2])
-            if ss2 
-                ii1 = ss2 as int
-            else
-                ii1 = 0
-            endIf
-            nextResult = ii1 as string
-        elseIf ss1 == "floor"
-            ss1 = CmdPrimary.Resolve(param[2])
-            ii1 = Math.floor(ss1 as float)
-            nextResult = ii1 as string
-        elseIf ss1 == "ceiling"
-            ss1 = CmdPrimary.Resolve(param[2])
-            ii1 = Math.Ceiling(ss1 as float)
-            nextResult = ii1 as string
-        elseIf ss1 == "abs"
-            ss1 = CmdPrimary.Resolve(param[2])
-            ff1 = Math.abs(ss1 as float)
-            nextResult = ff1 as string
-        elseIf ss1 == "toint"
-            ss2 = CmdPrimary.Resolve(param[2])
-            if ss2 && (StringUtil.GetNthChar(ss2, 0) == "0")
-                ii1 = GlobalHexToInt(ss2)
-            elseIf ss2
-                ii1 = ss2 as int
-            else 
-                ii1 = 0
-            endIf
-            nextResult = ii1 as string
+        if      subcode == "asint"
+            CmdPrimary.MostRecentIntResult = CmdPrimary.ResolveInt(param[2])
+        elseIf  subcode == "floor"
+            CmdPrimary.MostRecentFloatResult = Math.floor(CmdPrimary.ResolveFloat(param[2]))
+        elseIf  subcode == "ceiling"
+            CmdPrimary.MostRecentFloatResult = Math.ceiling(CmdPrimary.ResolveFloat(param[2]))
+        elseIf  subcode == "abs"
+            CmdPrimary.MostRecentFloatResult = Math.abs(CmdPrimary.ResolveFloat(param[2]))
+        elseIf  subcode == "toint"
+            CmdPrimary.MostRecentIntResult = CmdPrimary.ResolveInt(param[2])
         endIf
     endif
-
-    CmdPrimary.MostRecentResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction

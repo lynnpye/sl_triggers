@@ -74,6 +74,11 @@ EndFunction
 ;; Events
 
 Event OnInit()
+	bool _userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "debugmsg") as bool
+	if _userStoredFlag != bDebugMsg
+		bDebugMsg = _userStoredFlag
+	endif
+
 	if bDebugMsg
 		SLTDebugMsg("Main.OnInit")
 	endif
@@ -106,6 +111,12 @@ Event OnInit()
 EndEvent
 
 Function DoPlayerLoadGame()
+	bool _userStoredFlag
+
+	_userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "debugmsg") as bool
+	if _userStoredFlag != bDebugMsg
+		bDebugMsg = _userStoredFlag
+	endif
 	if bDebugMsg
 		SLTDebugMsg("Main.DoPlayerLoadGame")
 	endif
@@ -116,9 +127,17 @@ Function DoPlayerLoadGame()
 EndFunction
 
 Function BootstrapSLTInit()
+	bool _userStoredFlag
+
+	_userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "debugmsg") as bool
+	if _userStoredFlag != bDebugMsg
+		bDebugMsg = _userStoredFlag
+	endif
+
 	if bDebugMsg
 		SLTDebugMsg("Main.BootstrapSLTInit")
 	endif
+	
 	if !self
 		return
 	endif
@@ -136,13 +155,8 @@ Function BootstrapSLTInit()
 
 	InitSettingsFile(FN_Settings())
 
-	bool _userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "enabled") as bool
+	_userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "enabled") as bool
 	SetEnabled(_userStoredFlag)
-
-	_userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "debugmsg") as bool
-	if _userStoredFlag != bDebugMsg
-		bDebugMsg = _userStoredFlag
-	endif
 	
 	SLTUpdateState = SLT_BOOTSTRAPPING
 	_registrationBeaconCount = REGISTRATION_BEACON_COUNT
@@ -535,6 +549,9 @@ EndFunction
 
 
 Function StartCommand(Form targetForm, string initialScriptName)
+	if bDebugMsg
+		SLTDebugMsg("Main.StartCommand targetForm(" + targetForm + ") initialScriptName(" + initialScriptName + ")")
+	endif
 	if !self
 		return
 	endif
@@ -548,6 +565,9 @@ EndFunction
 ; Form targetForm: the Actor to attach this command to
 ; string initialScriptName: the file to run
 Function StartCommandWithThreadId(Form targetForm, string initialScriptName, int requestId, int threadid)
+	if bDebugMsg
+		SLTDebugMsg("Main.StartCommandWithThreadId targetForm(" + targetForm + ") initialScriptName(" + initialScriptName + ") requestId(" + requestId + ") threadId(" + threadid + ")")
+	endif
 	if !self
 		return
 	endif
@@ -570,10 +590,17 @@ Function StartCommandWithThreadId(Form targetForm, string initialScriptName, int
 		thread_pending_info = PapyrusUtil.MergeStringArray(thread_pending_info, new_thread_info)
 	endif
 
+	if bDebugMsg
+		SLTDebugMsg("Calling sl_triggers_internal.StartScript(target=<" + target + ">, initialScriptName=<" + initialScriptName + ">)")
+	endif
 	bool scriptStarted = sl_triggers_internal.StartScript(target, initialScriptName)
 	if !scriptStarted
 		SLTWarnMsg("Too many SLTR effects on target(" + target + "); attempting to delay script execution")
 		target.SendModEvent(EVENT_SLT_DELAY_START_COMMAND(), initialScriptName, 0.0)
+	else
+		if bDebugMsg
+			SLTDebugMsg("sl_triggers_internal.StartScript(target=<" + target + ">, initialScriptName=<" + initialScriptName + ">) reported success")
+		endif
 	endif
 EndFunction
 
