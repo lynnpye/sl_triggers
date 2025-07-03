@@ -1,5 +1,6 @@
 123
     Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)
+    bugfix: fixed SexLab resolution of partner related variables
     bugfix: fixed sl_triggersCmd.CompleteOperationOnActor(): now correctly marks runOpPending = false before responding to SLTReset
     enhancement: added topicinfo_getresponsetext function which returns the dialog text associated with the provided TopicInfo (by FormID or editorID)
         example:
