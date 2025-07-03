@@ -1043,6 +1043,51 @@ function actor_isvalid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         Actor _targetActor = CmdPrimary.resolveActor(param[1])
         if _targetActor && _targetActor.isEnabled() && !_targetActor.isDead() && !_targetActor.isInCombat() && !_targetActor.IsUnconscious() && _targetActor.Is3DLoaded() && cc == _targetActor.getParentCell()
             nextResult = 1
+        else
+            If (CmdPrimary.SLT.bDebugMsg)
+                string actor_isvalid_problems = ""
+
+                if !_targetActor
+                    actor_isvalid_problems = "actor_isvalid: problems for _targetActor /_targetActor is null"
+                else
+                        
+                    if !_targetActor.IsEnabled()
+                        actor_isvalid_problems = actor_isvalid_problems + "/_targetActor is not enabled"
+                    endif
+
+                    if _targetActor.IsDead()
+                        actor_isvalid_problems = actor_isvalid_problems + "/_targetActor is dead"
+                    endif
+
+                    if _targetActor.isInCombat()
+                        actor_isvalid_problems = actor_isvalid_problems + "/_targetActor is in combat"
+                    endif
+
+                    if _targetActor.IsUnconscious()
+                        actor_isvalid_problems = actor_isvalid_problems + "/_targetActor is unconscious"
+                    endif
+
+                    if !_targetActor.Is3DLoaded()
+                        actor_isvalid_problems = actor_isvalid_problems + "/_targetActor is not 3D loaded"
+                    endif
+
+                    if cc != _targetActor.getParentCell()
+                        actor_isvalid_problems = actor_isvalid_problems + "/player's cell (" + cc + ") is not same as _targetActor's parentCell(" + _targetActor.GetParentCell() + ")"
+                    endif
+                    
+                    if actor_isvalid_problems
+                        actor_isvalid_problems = "actor_isvalid: problems for _targetActor(" + _targetActor + ") " actor_isvalid_problems
+                    endif
+                    
+                endif
+
+                if actor_isvalid_problems
+                    SLTDebugMsg(actor_isvalid_problems)
+                else
+                    SLTDebugMsg("_targetActor fulfilled allrequirements; nextResult is (" + nextResult + ") and should be (1), but then you shouldn't have hit this branch of logic")
+                endif
+
+            EndIf
         endIf
     endif
 

@@ -83,7 +83,7 @@ bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string scope, strin
 		elseif token == "partner4"
 			skip = 4
 		elseif token == "is_available.sexlab"
-			CmdPrimary.CustomResolveResult = (IsEnabled && SexLabForm) as int
+			CmdPrimary.CustomResolveBoolResult = (IsEnabled && SexLabForm)
 			return true
 		endif
 
@@ -93,7 +93,6 @@ bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string scope, strin
 			sslThreadController thread = (SexLabForm as SexLabFramework).GetActorController(CmdPrimary.CmdTargetActor)
 			if !thread
 				CmdPrimary.CustomResolveFormResult = none
-				CmdPrimary.CustomResolveResult = ""
 				return true
 			endif
 
@@ -103,8 +102,10 @@ bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string scope, strin
 
 				if other != CmdPrimary.CmdTargetActor
 					if skip == 0
+						if SLT.bDebugMsg
+							SLTDebugMsg("sl_triggersExtensionSexLab.CustomResolveScoped: requested scope(" + scope + ") token(" + token + ") 0-based thread.Position[i](" + i + "): skip == 0; matched other(" + other + "): setting CmdPrimary.CustomResolveFormResult to (" + other + ") and CmdPrimary.CustomResolveResult to (" + other.GetFormID() + ")")
+						endif
 						CmdPrimary.CustomResolveFormResult = other
-						CmdPrimary.CustomResolveResult = other.GetFormID()
 						return true
 					else
 						skip -= 1
@@ -115,7 +116,6 @@ bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string scope, strin
 			endwhile
 
 			CmdPrimary.CustomResolveFormResult = none
-			CmdPrimary.CustomResolveResult = ""
 			return true
 		endif
 	endif
