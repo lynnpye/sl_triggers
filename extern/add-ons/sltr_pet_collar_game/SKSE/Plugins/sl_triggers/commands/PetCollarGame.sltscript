@@ -5,6 +5,17 @@ deb_msg $"PetCollarGame: initializing global to {base}"
 set $global.petCollarGame.petCollarTime $base
 [setupdone]
 
+set $target.var1 = 42.0
+
+set $thread.var1 = 42.0
+
+set $local.var1 resultfrom 42.0
+
+set $var1 = $"a value like {local.var1}"
+
+; this is just for testing the syntax highlighting
+sl_isin ; commented in the middle $system.player n; here
+
 actor_isplayer $system.self
 if $$ == 0 endIsNotPlayer
 
@@ -36,7 +47,9 @@ if $$ == 1 main
 
 goto endWithoutFollower
 
+beginsub foobarsub
 
+endsub
 
 [main]
 set $low		= json_getvalue $petCollarGameData "int" "low"			1

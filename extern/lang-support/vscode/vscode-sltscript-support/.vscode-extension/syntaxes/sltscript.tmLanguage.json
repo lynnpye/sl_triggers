@@ -1,0 +1,307 @@
+{
+  "name": "SLTScript",
+  "scopeName": "source.sltscript",
+  "fileTypes": ["sltscript"],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#interpolated-strings"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#labels"
+    },
+    {
+      "include": "#variable-scopes"
+    },
+    {
+      "include": "#result-variable"
+    },
+    {
+      "include": "#variables"
+    },
+    {
+      "include": "#control-keywords"
+    },
+    {
+      "include": "#functions"
+    },
+    {
+      "include": "#operators"
+    },
+    {
+      "include": "#numbers"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "name": "comment.line.semicolon.sltscript",
+      "match": ";.*$"
+    },
+    "strings": {
+      "name": "string.quoted.double.sltscript",
+      "begin": "(?<!\\$)\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.sltscript",
+          "match": "\"\""
+        }
+      ]
+    },
+    "interpolated-strings": {
+      "name": "string.quoted.double.interpolated.sltscript",
+      "begin": "\\$\"",
+      "end": "\"",
+      "beginCaptures": {
+        "0": {
+          "name": "string.quoted.double.interpolated.begin.sltscript"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "string.quoted.double.interpolated.end.sltscript"
+        }
+      },
+      "patterns": [
+        {
+          "name": "variable.other.interpolated.sltscript",
+          "begin": "\\{",
+          "end": "\\}",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.variable.begin.sltscript"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.variable.end.sltscript"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#variable-scopes"
+            },
+            {
+              "include": "#variables"
+            }
+          ]
+        },
+        {
+          "name": "constant.character.escape.sltscript",
+          "match": "\"\""
+        }
+      ]
+    },
+    "labels": {
+      "name": "entity.name.label.sltscript",
+      "match": "\\[[^\\]]*\\]"
+    },
+    "variable-scopes": {
+      "patterns": [
+        {
+          "name": "variable.other.global.sltscript",
+          "match": "\\$(?i:global)\\.[a-zA-Z_][a-zA-Z0-9_.]*",
+          "captures": {
+            "0": {
+              "patterns": [
+                {
+                  "name": "support.type.scope.sltscript",
+                  "match": "\\$(?i:global)\\."
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "variable.other.target.sltscript",
+          "match": "\\$(?i:target)\\.[a-zA-Z_][a-zA-Z0-9_.]*",
+          "captures": {
+            "0": {
+              "patterns": [
+                {
+                  "name": "support.type.scope.sltscript",
+                  "match": "\\$(?i:target)\\."
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "variable.other.thread.sltscript",
+          "match": "\\$(?i:thread)\\.[a-zA-Z_][a-zA-Z0-9_.]*",
+          "captures": {
+            "0": {
+              "patterns": [
+                {
+                  "name": "support.type.scope.sltscript",
+                  "match": "\\$(?i:thread)\\."
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "variable.other.system.sltscript",
+          "match": "\\$(?i:system)\\.[a-zA-Z_][a-zA-Z0-9_.]*",
+          "captures": {
+            "0": {
+              "patterns": [
+                {
+                  "name": "support.type.scope.sltscript",
+                  "match": "\\$(?i:system)\\."
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "variable.other.core.sltscript",
+          "match": "\\$(?i:core)\\.[a-zA-Z_][a-zA-Z0-9_.]*",
+          "captures": {
+            "0": {
+              "patterns": [
+                {
+                  "name": "support.type.scope.sltscript",
+                  "match": "\\$(?i:core)\\."
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "variable.other.sexlab.sltscript",
+          "match": "\\$(?i:sexlab)\\.[a-zA-Z_][a-zA-Z0-9_.]*",
+          "captures": {
+            "0": {
+              "patterns": [
+                {
+                  "name": "support.type.scope.sltscript",
+                  "match": "\\$(?i:sexlab)\\."
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "variable.other.local.sltscript",
+          "match": "\\$(?i:local)\\.[a-zA-Z_][a-zA-Z0-9_.]*",
+          "captures": {
+            "0": {
+              "patterns": [
+                {
+                  "name": "support.type.scope.sltscript",
+                  "match": "\\$(?i:local)\\."
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "result-variable": {
+      "name": "variable.language.result.sltscript",
+      "match": "\\$\\$"
+    },
+    "variables": {
+      "name": "variable.other.sltscript",
+      "match": "\\$[a-zA-Z_][a-zA-Z0-9_.]*"
+    },
+    "control-keywords": {
+      "name": "keyword.control.sltscript",
+      "match": "\\b(?i:if|goto|gosub|call|set|inc|return|beginsub|endsub|callarg|cat)\\b"
+    },
+    "functions": {
+      "patterns": [
+        {
+          "name": "support.function.actor.sltscript",
+          "match": "\\b(?i:actor_display_name|actor_name|actor_dogetter|actor_doaction|actor_isvalid|actor_isplayer|actor_iswearing|actor_wornhaskeyword|actor_infaction)\\b"
+        },
+        {
+          "name": "support.function.av.sltscript",
+          "match": "\\b(?i:av_get|av_set)\\b"
+        },
+        {
+          "name": "support.function.item.sltscript",
+          "match": "\\b(?i:item_adduse)\\b"
+        },
+        {
+          "name": "support.function.form.sltscript",
+          "match": "\\b(?i:form_getbyid|form_dogetter)\\b"
+        },
+        {
+          "name": "support.function.util.sltscript",
+          "match": "\\b(?i:util_wait|util_getrealtime|util_getrandomactor|util_sendmodevent|util_sendevent)\\b"
+        },
+        {
+          "name": "support.function.message.sltscript",
+          "match": "\\b(?i:msg_notify|deb_msg)\\b"
+        },
+        {
+          "name": "support.function.perk.sltscript",
+          "match": "\\b(?i:perk_addpoints)\\b"
+        },
+        {
+          "name": "support.function.random.sltscript",
+          "match": "\\b(?i:rnd_int|rnd_list)\\b"
+        },
+        {
+          "name": "support.function.json.sltscript",
+          "match": "\\b(?i:json_getvalue)\\b"
+        },
+        {
+          "name": "support.function.sl.sltscript",
+          "match": "\\b(?i:sl_isin)\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.other.resultfrom.sltscript",
+          "match": "\\b(?i:resultfrom)\\b"
+        },
+        {
+          "name": "keyword.operator.assignment.compound.sltscript",
+          "match": "(&=|&!=)"
+        },
+        {
+          "name": "keyword.operator.comparison.sltscript",
+          "match": "(==|!=|>=|<=|>|<)"
+        },
+        {
+          "name": "keyword.operator.assignment.sltscript",
+          "match": "="
+        },
+        {
+          "name": "keyword.operator.arithmetic.sltscript",
+          "match": "(\\+|-|\\*|/)"
+        },
+        {
+          "name": "keyword.operator.string.sltscript",
+          "match": "&"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.hex.sltscript",
+          "match": "\\b0[xX][0-9a-fA-F]+\\b"
+        },
+        {
+          "name": "constant.numeric.float.sltscript",
+          "match": "\\b\\d+\\.\\d+\\b"
+        },
+        {
+          "name": "constant.numeric.integer.sltscript",
+          "match": "\\b\\d+\\b"
+        }
+      ]
+    }
+  }
+}
