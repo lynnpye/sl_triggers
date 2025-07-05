@@ -80,7 +80,7 @@ Function QueueUpdateLoop(float afDelay = 1.0)
 EndFunction
 
 Event OnInit()
-	if SLT.bDebugMsg
+	if SLT.Debug_Extension || SLT.Debug_Extension_Core
 		SLTDebugMsg("Core.OnInit")
 	endif
 
@@ -163,7 +163,7 @@ Function PopulatePerk()
 EndFunction
 
 Function SLTReady()
-	if SLT.bDebugMsg
+	if SLT.Debug_Extension || SLT.Debug_Extension_Core
 		SLTDebugMsg("Core.SLTReady")
 	endif
 
@@ -314,7 +314,7 @@ Event OnKeyDown(Int KeyCode)
 EndEvent
 
 Event OnSLTRPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Form fkwPlayerLocation, bool playerWasInInterior)
-	if SLT.bDebugMsg
+	if SLT.Debug_Extension_Core
 		Keyword kwpLocation = fkwPlayerLocation as Keyword
 		SLTDebugMsg("\tCore.OnSLTRPlayerCellChange: isNewGameLaunch:" + isNewGameLaunch + " / isNewSession: " + isNewSession + " / keywordPlayerLocation : " + kwpLocation + " / playerWasInInterior:" + playerWasInInterior)
 	endif
@@ -385,7 +385,7 @@ Function RelocatePlayerLoadingScreenSentinel()
 EndFunction
 
 Event OnSLTRPlayerLoadingScreen(string _eventName, string _strvalue, float _fltvalue, Form _frmvalue)
-	if SLT.bDebugMsg
+	if SLT.Debug_Extension_Core
 		SLTDebugMsg("\tCore.OnSLTRPlayerLoadingScreen")
 	endif
 EndEvent
@@ -404,7 +404,7 @@ Function SLTR_Internal_PlayerNewSpaceEvent()
 EndFunction
 
 Event OnSLTRPlayerContainerActivate(Form fcontainerRef, bool isConCorpse, bool isConEmpty, Form fkwPlayerLocation, bool playerWasInInterior)
-	if SLT.bDebugMsg
+	if SLT.Debug_Extension_Core
 		ObjectReference containerRef = fcontainerRef as ObjectReference
 		Keyword kwpLocation = fkwPlayerLocation as Keyword
 
@@ -664,7 +664,7 @@ Function HandleTopOfTheHour()
 EndFunction
 
 Function HandleOnKeyDown()
-	if SLT.bDebugMsg
+	if SLT.Debug_Extension_Core
 		SLTDebugMsg("Core.HandleOnKeyDown")
 	endif
 

@@ -45,6 +45,95 @@ int					Property nextInstanceId			Auto Hidden
 
 int					Property RunningScriptCount = 0 Auto Hidden
 
+bool Property Debug_Cmd Auto Hidden
+bool Property Debug_Cmd_Functions Auto Hidden
+bool Property Debug_Cmd_InternalResolve Auto Hidden
+bool Property Debug_Cmd_ResolveForm Auto Hidden
+bool Property Debug_Cmd_RunScript Auto Hidden
+bool Property Debug_Cmd_RunScript_Set Auto Hidden
+bool Property Debug_Extension Auto Hidden
+bool Property Debug_Extension_Core Auto Hidden
+bool Property Debug_Extension_SexLab Auto Hidden
+bool Property Debug_Extension_CustomResolveScoped Auto Hidden
+bool Property Debug_Setup Auto Hidden
+
+Function SetupDebugs()
+	bool _userStoredFlag
+
+	_userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "debugmsg") as bool
+	if _userStoredFlag != bDebugMsg
+		bDebugMsg = _userStoredFlag
+	endif
+	JsonUtil.SetIntValue(FN_Settings(), "debugmsg", bDebugMsg as int)
+
+	_userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "Debug_Cmd") as bool
+	if _userStoredFlag != Debug_Cmd
+		Debug_Cmd = _userStoredFlag
+	endif
+	JsonUtil.SetIntValue(FN_Settings(), "Debug_Cmd", Debug_Cmd as int)
+
+	_userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "Debug_Cmd_Functions") as bool
+	if _userStoredFlag != Debug_Cmd_Functions
+		Debug_Cmd_Functions = _userStoredFlag
+	endif
+	JsonUtil.SetIntValue(FN_Settings(), "Debug_Cmd_Functions", Debug_Cmd_Functions as int)
+
+	_userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "Debug_Cmd_InternalResolve") as bool
+	if _userStoredFlag != Debug_Cmd_InternalResolve
+		Debug_Cmd_InternalResolve = _userStoredFlag
+	endif
+	JsonUtil.SetIntValue(FN_Settings(), "Debug_Cmd_InternalResolve", Debug_Cmd_InternalResolve as int)
+
+	_userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "Debug_Cmd_ResolveForm") as bool
+	if _userStoredFlag != Debug_Cmd_ResolveForm
+		Debug_Cmd_ResolveForm = _userStoredFlag
+	endif
+	JsonUtil.SetIntValue(FN_Settings(), "Debug_Cmd_ResolveForm", Debug_Cmd_ResolveForm as int)
+
+	_userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "Debug_Cmd_RunScript") as bool
+	if _userStoredFlag != Debug_Cmd_RunScript
+		Debug_Cmd_RunScript = _userStoredFlag
+	endif
+	JsonUtil.SetIntValue(FN_Settings(), "Debug_Cmd_RunScript", Debug_Cmd_RunScript as int)
+
+	_userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "Debug_Cmd_RunScript_Set") as bool
+	if _userStoredFlag != Debug_Cmd_RunScript_Set
+		Debug_Cmd_RunScript_Set = _userStoredFlag
+	endif
+	JsonUtil.SetIntValue(FN_Settings(), "Debug_Cmd_RunScript_Set", Debug_Cmd_RunScript_Set as int)
+
+	_userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "Debug_Extension") as bool
+	if _userStoredFlag != Debug_Extension
+		Debug_Extension = _userStoredFlag
+	endif
+	JsonUtil.SetIntValue(FN_Settings(), "Debug_Extension", Debug_Extension as int)
+
+	_userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "Debug_Extension_Core") as bool
+	if _userStoredFlag != Debug_Extension_Core
+		Debug_Extension_Core = _userStoredFlag
+	endif
+	JsonUtil.SetIntValue(FN_Settings(), "Debug_Extension_Core", Debug_Extension_Core as int)
+
+	_userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "Debug_Extension_SexLab") as bool
+	if _userStoredFlag != Debug_Extension_SexLab
+		Debug_Extension_SexLab = _userStoredFlag
+	endif
+	JsonUtil.SetIntValue(FN_Settings(), "Debug_Extension_SexLab", Debug_Extension_SexLab as int)
+
+	_userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "Debug_Extension_CustomResolveScoped") as bool
+	if _userStoredFlag != Debug_Extension_CustomResolveScoped
+		Debug_Extension_CustomResolveScoped = _userStoredFlag
+	endif
+	JsonUtil.SetIntValue(FN_Settings(), "Debug_Extension_CustomResolveScoped", Debug_Extension_CustomResolveScoped as int)
+
+	_userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "Debug_Setup") as bool
+	if _userStoredFlag != Debug_Setup
+		Debug_Setup = _userStoredFlag
+	endif
+	JsonUtil.SetIntValue(FN_Settings(), "Debug_Setup", Debug_Setup as int)
+
+EndFunction
+
 ; Variables
 int			SLTUpdateState
 int			_registrationBeaconCount
@@ -127,12 +216,8 @@ Function DoPlayerLoadGame()
 EndFunction
 
 Function BootstrapSLTInit()
+	SetupDebugs()
 	bool _userStoredFlag
-
-	_userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "debugmsg") as bool
-	if _userStoredFlag != bDebugMsg
-		bDebugMsg = _userStoredFlag
-	endif
 
 	if bDebugMsg
 		SLTDebugMsg("Main.BootstrapSLTInit")

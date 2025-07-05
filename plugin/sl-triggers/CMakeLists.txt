@@ -8,7 +8,8 @@ include(GNUInstallDirs)
 
 # Otherwise, you can set OUTPUT_FOLDER to any place you'd like :)
 # set(OUTPUT_FOLDER "C:/path/to/any/folder")
-set(OUTPUT_FOLDER "D:/wabbajack/modlistinstalls/SME/mods/AaDevelopment")
+set(OUTPUT_FOLDER "../../../../src")
+set(OUTPUT_FOLDER2 "D:/wabbajack/modlistinstalls/SME/mods/AaDevelopment")
 # set(OUTPUT_FOLDER "D:/wabbajack/modlistinstalls/NEFARAM.15.4.1/mods/AaDevelopment")
 
 # YOU DO NOT NEED TO EDIT ANYTHING BELOW HERE
@@ -75,15 +76,26 @@ target_include_directories(
 )
 # When your SKSE .dll is compiled, this will automatically copy the .dll into your mods folder.
 # Only works if you configure DEPLOY_ROOT above (or set the SKYRIM_MODS_FOLDER environment variable)
+if(DEFINED OUTPUT_FOLDER2)
+    set(DLL_FOLDER "${OUTPUT_FOLDER2}/SKSE/Plugins")
+    
+    message(STATUS "SKSE plugin output folder: ${DLL_FOLDER}")
+
+    add_custom_command(
+        TARGET "${PROJECT_NAME}"
+        POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E make_directory "${DLL_FOLDER}"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:${PROJECT_NAME}>" "${DLL_FOLDER}/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
+        VERBATIM
+    ) 
+endif()
+
 if(DEFINED OUTPUT_FOLDER)
     # If you specify an <OUTPUT_FOLDER> (including via environment variables)
     # then we'll copy your mod files into Skyrim or a mod manager for you!
 
     # Copy the SKSE plugin .dll files into the SKSE/Plugins/ folder
     set(DLL_FOLDER "${OUTPUT_FOLDER}/SKSE/Plugins")
-
-    set (CONFIG_FOLDER "${PROJECT_NAME}")
-    set(SRC_CONFIG_FOLDER "${CMAKE_SOURCE_DIR}/config")
     
     message(STATUS "SKSE plugin output folder: ${DLL_FOLDER}")
 
@@ -94,6 +106,9 @@ if(DEFINED OUTPUT_FOLDER)
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:${PROJECT_NAME}>" "${DLL_FOLDER}/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
         VERBATIM
     )
+
+    set (CONFIG_FOLDER "${PROJECT_NAME}")
+    set(SRC_CONFIG_FOLDER "${CMAKE_SOURCE_DIR}/config")
     if (EXISTS "${SRC_CONFIG_FOLDER}")
         add_custom_command(
             TARGET "${PROJECT_NAME}"

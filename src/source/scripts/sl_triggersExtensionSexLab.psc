@@ -102,7 +102,7 @@ bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string scope, strin
 
 				if other != CmdPrimary.CmdTargetActor
 					if skip == 0
-						if SLT.bDebugMsg
+						if SLT.Debug_Extension_CustomResolveScoped
 							SLTDebugMsg("sl_triggersExtensionSexLab.CustomResolveScoped: requested scope(" + scope + ") token(" + token + ") 0-based thread.Position[i](" + i + "): skip == 0; matched other(" + other + "): setting CmdPrimary.CustomResolveFormResult to (" + other + ") and CmdPrimary.CustomResolveResult to (" + other.GetFormID() + ")")
 						endif
 						CmdPrimary.CustomResolveFormResult = other

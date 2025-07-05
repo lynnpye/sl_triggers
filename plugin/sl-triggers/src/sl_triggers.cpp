@@ -91,7 +91,7 @@ std::vector<std::string> SLTNativeFunctions::GetScriptsList(PAPYRUS_NATIVE_DECL)
         for (const auto& entry : fs::directory_iterator(scriptsFolderPath)) {
             if (entry.is_regular_file()) {
                 auto scriptname = entry.path().filename().string();
-                if (scriptname.ends_with(".ini") || scriptname.ends_with(".json")) {
+                if (scriptname.ends_with(".ini") || scriptname.ends_with(".sltscript") || scriptname.ends_with(".json")) {
                     result.push_back(scriptname);
                 }
             }
@@ -209,8 +209,10 @@ void SLTNativeFunctions::LogWarn(PAPYRUS_NATIVE_DECL, std::string_view logmsg) {
 0 - unrecognized
 1 - is explicitly .json
 2 - is explicitly .ini
+3 - is explicitly .sltscript
 10 - implicitly .json
 20 - implicitly .ini
+30 - implicitly .sltscript
 */
 std::int32_t SLTNativeFunctions::NormalizeScriptfilename(PAPYRUS_NATIVE_DECL, std::string_view scriptfilename) {
     fs::path scrpath = GetScriptfilePath(scriptfilename);
@@ -236,7 +238,7 @@ std::int32_t SLTNativeFunctions::NormalizeScriptfilename(PAPYRUS_NATIVE_DECL, st
         }
     } else {
         scrfn = scrpath.extension().string();
-        if (!scrpath.empty() && fs::exists(scrpath)) {
+        if (!scrpath.empty() && !scrfn.empty() && fs::exists(scrpath)) {
             if (scrfn == ".sltscript") {
                 return 3;
             }

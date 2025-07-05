@@ -1,5 +1,5 @@
 set $petCollarGameData	"../sl_triggers/commandstore/pet_collar_game"
-set $base				= json_getvalue $petCollarGameData "int" "base"			-3
+set $base				resultfrom json_getvalue $petCollarGameData "int" "base"			-3
 if $global.petCollarGame.petCollarTime &!= "" setupdone
 deb_msg $"PetCollarGame: initializing global to {base}"
 set $global.petCollarGame.petCollarTime $base
@@ -9,7 +9,7 @@ set $target.var1 = 42.0
 
 set $thread.var1 = 42.0
 
-set $local.var1 resultfrom 42.0
+set $local.var1 = 42.0
 
 set $var1 = $"a value like {local.var1}"
 
@@ -19,7 +19,7 @@ sl_isin ; commented in the middle $system.player n; here
 actor_isplayer $system.self
 if $$ == 0 endIsNotPlayer
 
-set $perspective = json_getvalue $petCollarGameData "int" "perspective"	-1
+set $perspective resultfrom json_getvalue $petCollarGameData "int" "perspective"	-1
 
 sl_isin $system.player
 if $$ == 0 notInScene
@@ -29,19 +29,19 @@ set $perspective -1
 goto main
 
 [handleSexLab]
-set $selfname = actor_name $system.partner1
+set $selfname resultfrom actor_name $system.partner1
 actor_infaction $system.partner1 "skyrim.esm:378958"
 if $$ == 1 withfollower
 
-set $selfname = actor_name $system.partner2
+set $selfname resultfrom actor_name $system.partner2
 actor_infaction $system.partner2 "skyrim.esm:378958"
 if $$ == 1 withfollower
 
-set $selfname = actor_name $system.partner3
+set $selfname resultfrom actor_name $system.partner3
 actor_infaction $system.partner3 "skyrim.esm:378958"
 if $$ == 1 withfollower
 
-set $selfname = actor_name $system.partner4
+set $selfname resultfrom actor_name $system.partner4
 actor_infaction $system.partner4 "skyrim.esm:378958"
 if $$ == 1 main
 
@@ -52,8 +52,8 @@ beginsub foobarsub
 endsub
 
 [main]
-set $low		= json_getvalue $petCollarGameData "int" "low"			1
-set $high		= json_getvalue $petCollarGameData "int" "high"			50
+set $low		resultfrom json_getvalue $petCollarGameData "int" "low"			1
+set $high		resultfrom json_getvalue $petCollarGameData "int" "high"			50
 
 rnd_int $low $high
 if $$ > $global.petCollarGame.petCollarTime endMissedChance
@@ -83,7 +83,7 @@ msg_notify $"{selfname} slaps a pet collar onto you before you can react!"
 goto say_on_done
 
 [say_on_3]
-set $playername = actor_name $system.player
+set $playername resultfrom actor_name $system.player
 msg_notify $"{selfname} slaps a pet collar onto {playername} before they can react!"
 goto say_on_done
 
@@ -94,7 +94,7 @@ goto end
 [handleMercy]
 util_sendevent "PetCollarManipulate" "form" $system.self "form" $system.player "int" 10
 
-set $mercybase	= json_getvalue $petCollarGameData "int" "mercybase"	20
+set $mercybase	resultfrom json_getvalue $petCollarGameData "int" "mercybase"	20
 
 if $perspective == 1 say_mercy_1
 if $perspective == 2 say_mercy_2
@@ -111,7 +111,7 @@ msg_notify $"{selfname} mercifully removes your pet collar."
 goto say_mercy_done
 
 [say_mercy_3]
-set $playername = actor_name $system.player
+set $playername resultfrom actor_name $system.player
 msg_notify $"{selfname} mercifully removes the pet collar from {playername}."
 goto say_mercy_done
 
@@ -121,7 +121,7 @@ goto end
 
 
 [endMissedChance]
-set $add		= json_getvalue $petCollarGameData "int" "add"			1
+set $add		resultfrom json_getvalue $petCollarGameData "int" "add"			1
 set $global.petCollarGame.petCollarTime $global.petCollarGame.petCollarTime  + $add
 goto end
 

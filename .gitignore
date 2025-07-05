@@ -1,8 +1,8 @@
 .vscode/
 src/scripts/
 
-*.code-workspace
-*.ppj
-*.cmd
+vcnuker.cmd
+sgrep.cmd
 *.zip
 sl-triggers-internal.dll
+sl-triggers.dll

@@ -177,7 +177,7 @@ string	    Property MostRecentResult Hidden
 EndProperty
 bool        Property MostRecentBoolResult Hidden
     bool Function Get()
-        return _resolvedBool
+        return _recentResultBool
     EndFunction
     Function Set(bool value)
         _recentResultBool = value
@@ -186,7 +186,7 @@ bool        Property MostRecentBoolResult Hidden
 EndProperty
 int         Property MostRecentIntResult  Hidden
     int Function Get()
-        return _resolvedInt
+        return _recentResultInt
     EndFunction
     Function Set(int value)
         _recentResultInt = value
@@ -195,7 +195,7 @@ int         Property MostRecentIntResult  Hidden
 EndProperty
 float        Property MostRecentFloatResult  Hidden
     float Function Get()
-        return _resolvedFloat
+        return _recentResultFloat
     EndFunction
     Function Set(float value)
         _recentResultFloat = value
@@ -204,7 +204,7 @@ float        Property MostRecentFloatResult  Hidden
 EndProperty
 Form        Property MostRecentFormResult Hidden
     Form Function Get()
-        return _resolvedForm
+        return _recentResultForm
     EndFunction
     Function Set(Form value)
         _recentResultForm = value
@@ -248,7 +248,7 @@ Event OnSLTReset(string eventName, string strArg, float numArg, Form sender)
 EndEvent
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
-    if SLT.bDebugMsg
+    if SLT.Debug_Cmd
         SLTDebugMsg("Cmd.OnEffectStart")
     endif
 
@@ -329,12 +329,12 @@ Event OnUpdate()
     isExecuting = true
 
     SLT.RunningScriptCount += 1
-    if SLT.bDebugMsg
+    if SLT.Debug_Cmd
         SFD("Cmd.OnUpdate: starting threadid(" + threadid + ") RunningScriptCount is :" + SLT.RunningScriptCount)
     endif
     RunScript()
     SLT.RunningScriptCount -= 1
-    if SLT.bDebugMsg
+    if SLT.Debug_Cmd
         SFD("Cmd.OnUpdate: ending threadid(" + threadid + ") RunningScriptCount is :" + SLT.RunningScriptCount)
     endif
     
@@ -487,88 +487,82 @@ bool Function InternalResolve(string token)
         GetVarScope2(token, varscopestringlist)
         string scope = varscopestringlist[0]
         string vname = varscopestringlist[1]
+
+        if SLT.Debug_Cmd_InternalResolve
+            SLTDebugMsg("Cmd.InternalResolve: varscope<" + PapyrusUtil.StringJoin(varscopestringlist, ">,<") + ">")
+        endif
+
+        if "local" == scope || "global" == scope || "thread" == scope || "target" == scope
+            CustomResolveResult = GetVarString2(scope, vname, "")
+            return true
+        endif
+
+        if "system" == scope
+            if "self" == vname
+                CustomResolveFormResult = CmdTargetActor
+                return true
+            elseif "player" == vname
+                CustomResolveFormResult = PlayerRef
+                return true
+            elseif "actor" == vname
+                CustomResolveFormResult = iterActor
+                return true
+            elseif "none" == vname
+                CustomResolveFormResult = none
+                return true
+            elseif "is_player.inside" == vname
+                CustomResolveBoolResult = PlayerRef.IsInInterior()
+                return true
+            elseif "is_player.outside" == vname
+                CustomResolveBoolResult = !PlayerRef.IsInInterior()
+                return true
+            elseif "is_player.in_city" == vname
+                CustomResolveBoolResult = SLT.IsLocationKeywordCity(SLT.GetPlayerLocationKeyword())
+                return true
+            elseif "is_player.in_dungeon" == vname
+                CustomResolveBoolResult = SLT.IsLocationKeywordDungeon(SLT.GetPlayerLocationKeyword())
+                return true
+            elseif "is_player.in_safe" == vname
+                CustomResolveBoolResult = SLT.IsLocationKeywordSafe(SLT.GetPlayerLocationKeyword())
+                return true
+            elseif "is_player.in_wilderness" == vname
+                CustomResolveBoolResult = SLT.IsLocationKeywordWilderness(SLT.GetPlayerLocationKeyword())
+                return true
+            elseif "random.100" == vname
+                CustomResolveFloatResult = Utility.RandomFloat(0.0, 100.0)
+                return true
+            elseif "stats.running_scripts" == vname
+                CustomResolveIntResult = SLT.RunningScriptCount
+                return true
+            elseif "realtime" == vname
+                CustomResolveFloatResult = Utility.GetCurrentRealTime()
+                return true
+            elseif "gametime" == vname
+                CustomResolveFloatResult = Utility.GetCurrentGameTime()
+                return true
+            elseif "initialGameTime" == vname
+                CustomResolveFloatResult = initialGameTime
+                return true
+            elseif "initialScriptName" == vname
+                CustomResolveResult = initialScriptName
+                return true
+            elseif "currentScriptName" == vname
+                CustomResolveResult = currentScriptName
+                return true
+            elseif "sessionid" == vname
+                CustomResolveIntResult = sl_triggers.GetSessionId()
+                return true
+            endif
+        endif
         
         while i < SLT.Extensions.Length
+            if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+                SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+                CleanupAndRemove()
+                Return false
+            endif
+
             sl_triggersExtension slext = SLT.Extensions[i] as sl_triggersExtension
-
-            if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-                SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
-                CleanupAndRemove()
-                Return false
-            endif
-
-            if !sltChecked && slext.GetPriority() >= 0
-                sltChecked = true
-
-                if "system" == scope
-                    if "self" == vname
-                        CustomResolveFormResult = CmdTargetActor
-                        return true
-                    elseif "player" == vname
-                        CustomResolveFormResult = PlayerRef
-                        return true
-                    elseif "actor" == vname
-                        CustomResolveFormResult = iterActor
-                        return true
-                    elseif "none" == vname
-                        CustomResolveFormResult = none
-                        return true
-                    elseif "is_player.inside" == vname
-                        CustomResolveBoolResult = PlayerRef.IsInInterior()
-                        return true
-                    elseif "is_player.outside" == vname
-                        CustomResolveBoolResult = !PlayerRef.IsInInterior()
-                        return true
-                    elseif "is_player.in_city" == vname
-                        CustomResolveBoolResult = SLT.IsLocationKeywordCity(SLT.GetPlayerLocationKeyword())
-                        return true
-                    elseif "is_player.in_dungeon" == vname
-                        CustomResolveBoolResult = SLT.IsLocationKeywordDungeon(SLT.GetPlayerLocationKeyword())
-                        return true
-                    elseif "is_player.in_safe" == vname
-                        CustomResolveBoolResult = SLT.IsLocationKeywordSafe(SLT.GetPlayerLocationKeyword())
-                        return true
-                    elseif "is_player.in_wilderness" == vname
-                        CustomResolveBoolResult = SLT.IsLocationKeywordWilderness(SLT.GetPlayerLocationKeyword())
-                        return true
-                    elseif "random.100" == vname
-                        CustomResolveFloatResult = Utility.RandomFloat(0.0, 100.0)
-                        return true
-                    elseif "stats.running_scripts" == vname
-                        CustomResolveIntResult = SLT.RunningScriptCount
-                        return true
-                    elseif "realtime" == vname
-                        CustomResolveFloatResult = Utility.GetCurrentRealTime()
-                        return true
-                    elseif "gametime" == vname
-                        CustomResolveFloatResult = Utility.GetCurrentGameTime()
-                        return true
-                    elseif "initialGameTime" == vname
-                        CustomResolveFloatResult = initialGameTime
-                        return true
-                    elseif "initialScriptName" == vname
-                        CustomResolveResult = initialScriptName
-                        return true
-                    elseif "currentScriptName" == vname
-                        CustomResolveResult = currentScriptName
-                        return true
-                    elseif "sessionid" == vname
-                        CustomResolveIntResult = sl_triggers.GetSessionId()
-                        return true
-                    endif
-                endif
-
-                if "local" == scope || "global" == scope || "thread" == scope || "target" == scope
-                    CustomResolveResult = GetVarString2(scope, vname, "")
-                    return true
-                endif
-            endif
-            
-            if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
-                SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
-                CleanupAndRemove()
-                Return false
-            endif
             
             resolved = slext.CustomResolveScoped(self, scope, vname)
             if resolved
@@ -593,8 +587,10 @@ bool Function InternalResolve(string token)
             return true
         endif
     else
-        if SLT.bDebugMsg
-            SFD("Cmd.InternalResolve: literalNumeric check failed for (" + token + ")")
+        if SLT.Debug_Cmd_InternalResolve
+            if (token as int) || (token as float)
+                SFD("Cmd.InternalResolve: literalNumeric check failed for (" + token + ")")
+            endif
         endif
     endif
 
@@ -659,18 +655,33 @@ EndFunction
 Form Function ResolveForm(string token)
     CustomResolveFormResult = none
 
+    if SLT.Debug_Cmd_ResolveForm
+        SFD("ResolveForm: token(" + token + ")")
+    endif
+
     if InternalResolve(token)
         if RT_FORM == CustomResolveType
+            if SLT.Debug_Cmd_ResolveForm
+                SFD("ResolveForm: had Form, returning Form")
+            endif
             return CustomResolveFormResult
         elseif RT_STRING == CustomResolveType
+            if SLT.Debug_Cmd_ResolveForm
+                SFD("ResolveForm: had string, returning GetFormById(\"" + CustomResolveResult + "\")")
+            endif
             return GetFormById(CustomResolveResult)
         elseif RT_INT == CustomResolveType
+            if SLT.Debug_Cmd_ResolveForm
+                SFD("ResolveForm: had int, returning GetFormById(" + CustomResolveIntResult + ")")
+            endif
             return GetFormById(CustomResolveIntResult)
         else
             SFW("ResolveForm: no auto-conversion exists except RT_STRING and RT_INT (from: " + RT_ToString(CustomResolveType) + ")")
             ; no auto-conversion from float or bool
             return none
         endif
+    else
+        SFW("ResolveForm: unable to resolve token(" + token + ")")
     endif
 
     if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
@@ -679,7 +690,7 @@ Form Function ResolveForm(string token)
         Return none
     endif
 
-    if SLT.bDebugMsg
+    if SLT.Debug_Cmd_ResolveForm || SLT.Debug_Cmd
         SFD("Cmd.ResolveForm: falling back to GetFormById(\"" + token + "\")")
     endif
     return GetFormById(token)
@@ -763,7 +774,7 @@ float Function ResolveFloat(string token)
 EndFunction
 
 Function RunScript()
-    if SLT.bDebugMsg
+    if SLT.Debug_Cmd_RunScript
         SFD("Cmd.RunScript")
     endif
 
@@ -776,7 +787,7 @@ Function RunScript()
     string[] varscopestringlist = new string[2]
 
     while isExecuting && hasValidFrame
-        if SLT.bDebugMsg
+        if SLT.Debug_Cmd_RunScript
             SFD("Cmd.RunScript: isExecuting and hasValidFrame")
         endif
         if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
@@ -797,45 +808,88 @@ Function RunScript()
             int endidx = tokencounts[currentLine] + startidx - 1
             cmdLine = PapyrusUtil.SliceStringArray(tokens, startidx, endidx)
             
-            if SLT.bDebugMsg
+            if SLT.Debug_Cmd_RunScript
                 SFD("Cmd.RunScript: cmdLine(" + PapyrusUtil.StringJoin(cmdLine, "), (") + ")")
             endif
             
             if cmdLine.Length
                 command = Resolve(cmdLine[0])
-                if SLT.bDebugMsg
+                if SLT.Debug_Cmd_RunScript
                     SFD("Cmd.RunScript: Resolve(" + cmdLine[0] + ") => [" + command + "]")
                 endif
                 cmdLine[0] = command
 
                 If !command
-                    if SLT.bDebugMsg
+                    if SLT.Debug_Cmd_RunScript
                         SFD("Cmd.RunScript: empty command")
                     endif
                     currentLine += 1
                 elseIf command == "set"
-                    if SLT.bDebugMsg
+                    if SLT.Debug_Cmd_RunScript
                         SFD("Cmd.RunScript: set")
                     endif
                     if ParamLengthGT(self, cmdLine.Length, 2)
+                        if SLT.Debug_Cmd_RunScript_Set
+                            SLTDebugMsg("Cmd.RunScript: set: pre var scope, varscopestringlist<" + PapyrusUtil.StringJoin(varscopestringlist, ">|<") + ">")
+                        endif
+
                         GetVarScope2(cmdLine[1], varscopestringlist)
+
+                        if SLT.Debug_Cmd_RunScript_Set
+                            SLTDebugMsg("Cmd.RunScript: set: post var scope, varscopestringlist<" + PapyrusUtil.StringJoin(varscopestringlist, ">|<") + ">")
+                        endif
                         
                         if varscopestringlist[0]
-                            if cmdLine.Length > 3 && (cmdLine[2] == "resultfrom" || cmdLine[2] == "=") ; I mean, seriously
+
+                            if cmdLine.Length > 3 && cmdLine[2] == "resultfrom"
+                            
+                                if SLT.Debug_Cmd_RunScript_Set
+                                    SLTDebugMsg("Cmd.RunScript: set>3/w/resultfrom <target> resultfrom <stuff...>")
+                                endif
+
                                 string subcode = Resolve(cmdLine[3])
                                 if subcode
                                     string[] subCmdLine = PapyrusUtil.SliceStringArray(cmdLine, 3)
                                     subCmdLine[0] = subcode
                                     RunOperationOnActor(subCmdLine)
-                                    SetVarString2(varscopestringlist[0], varscopestringlist[1], MostRecentResult)
+                                    if SLT.Debug_Cmd_RunScript_Set
+                                        string outresult = Resolve("$$")
+                                        SFD("set: resultfrom: MostRecentResultType(" + RT_ToString(MostRecentResultType) + ") and outresult is (" + outresult + ")")
+                                        SetVarString2(varscopestringlist[0], varscopestringlist[1], outresult)
+                                    else
+                                        SetVarString2(varscopestringlist[0], varscopestringlist[1], Resolve("$$"))
+                                    endif
                                 else
                                     SFE("Unable to resolve function for 'set resultfrom' with (" + cmdLine[3] + ")")
                                 endif
                             elseif cmdLine.length == 3
-                                SetVarString2(varscopestringlist[0], varscopestringlist[1], Resolve(cmdLine[2]))
+                                if SLT.Debug_Cmd_RunScript_Set
+                                    string outresult = Resolve(cmdLine[2])
+                                    SLTDebugMsg("Cmd.RunScript: set/3 <target> <source>(" + outresult + ") resolved from((" + cmdLine[2] + "))")
+                                    SetVarString2(varscopestringlist[0], varscopestringlist[1], outresult)
+                                else
+                                    SetVarString2(varscopestringlist[0], varscopestringlist[1], Resolve(cmdLine[2]))
+                                endif
+                                
+                                if SLT.Debug_Cmd_RunScript_Set
+                                    string outresult = GetVarString2(varscopestringlist[0], varscopestringlist[1], "GRARB")
+                                    if "GRARB" == outresult
+                                        SLTDebugMsg("Cmd.RunScript: outresult GRARB; this is bad")
+                                    else
+                                        SLTDebugMsg("Cmd.RunScript got back from putting in (" + outresult + ")")
+                                    endif
+                                endif
                             elseif cmdLine.length == 4 && cmdLine[2] == "="
+                            
+                                if SLT.Debug_Cmd_RunScript_Set
+                                    SLTDebugMsg("Cmd.RunScript: set/4/w/= <target> = <source>")
+                                endif
                                 SetVarString2(varscopestringlist[0], varscopestringlist[1], Resolve(cmdLine[3]))
                             elseif cmdLine.length == 5
+                            
+                                if SLT.Debug_Cmd_RunScript_Set
+                                    SLTDebugMsg("Cmd.RunScript: set/5 <target> = <source> <op> <source>")
+                                endif
                                 string strparm2 = Resolve(cmdLine[2])
                                 string strparm4 = Resolve(cmdLine[4])
                                 float op1 = strparm2 as float
@@ -858,8 +912,17 @@ Function RunScript()
                                     SFE("unexpected operator for 'set' (" + operat + ")")
                                 endif
                                 SetVarString2(varscopestringlist[0], varscopestringlist[1], strresult)
+                            else
+                                if SLT.Debug_Cmd_RunScript_Set
+                                    SLTDebugMsg("Cmd.RunScript: set/unhandled")
+                                    SLTDebugMsg("\tcmdLine<" + PapyrusUtil.StringJoin(cmdLine, ">,<") + "> varscopestringlist<" + PapyrusUtil.StringJoin(varscopestringlist, ">,<") + ">")
+                                endif
                             endif
                         else
+                            if SLT.Debug_Cmd_RunScript_Set
+                                SLTDebugMsg("Cmd.RunScript: set/unhandled")
+                                SLTDebugMsg("\tcmdLine<" + PapyrusUtil.StringJoin(cmdLine, ">,<") + "> varscopestringlist<" + PapyrusUtil.StringJoin(varscopestringlist, ">,<") + ">")
+                            endif
                             SFE("invalid variable name, not resolvable (" + cmdLine[1] + ")")
                         endif
                     else
@@ -944,7 +1007,7 @@ Function RunScript()
                     endif
                     currentLine += 1
                 elseIf command == "goto"
-                    if SLT.bDebugMsg
+                    if SLT.Debug_Cmd_RunScript
                         SFD("Cmd.RunScript: goto")
                     endif
                     if ParamLengthEQ(self, cmdLine.Length, 2)
@@ -1055,12 +1118,12 @@ Function RunScript()
                 else
                     string _slt_mightBeLabel = _slt_IsLabel(cmdLine)
                     if _slt_mightBeLabel
-                        if SLT.bDebugMsg
+                        if SLT.Debug_Cmd_RunScript
                             SFD("Cmd.RunScript: [might be label]")
                         endif
                         slt_AddGoto(_slt_mightBeLabel, currentLine)
                     else
-                        if SLT.bDebugMsg
+                        if SLT.Debug_Cmd_RunScript
                             SFD("Cmd.RunScript: RunOperationOnActor(" + PapyrusUtil.StringJoin(cmdLine, "),(") + ")")
                         endif
                         RunOperationOnActor(cmdLine)
@@ -1223,36 +1286,46 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
     int totalFunctionalCommands = 0
 
     string[] cmdlines
-    int totalFileLines = 0
+    int totalJsonCommandCount = 0
 
     ; 0 - unknown
     ; 1 - json explicit
     ; 2 - ini explicit
+    ; 3 - sltscript explicit
     ; 10 - json implicit
     ; 20 - ini implicit
+    ; 30 - sltscript explicit
     int scrtype = sl_triggers.NormalizeScriptfilename(scriptfilename)
     string _myCmdName
     if scrtype == 1
         _myCmdName = CommandsFolder() + scriptfilename
-        totalFileLines = JsonUtil.PathCount(_myCmdName, ".cmd")
+        totalJsonCommandCount = JsonUtil.PathCount(_myCmdName, ".cmd")
     elseif scrtype == 2
         _myCmdName = scriptfilename
 
-        cmdlines = sl_triggers.SplitScriptContents(_myCmdName)
-        totalFileLines = cmdlines.Length
+        rawtokenresult = sl_triggers.SplitScriptContentsAndTokenize(_myCmdName)
+        totalFunctionalCommands = rawtokenresult[0] as int
+    elseif scrtype == 3
+        _myCmdName = scriptfilename
 
         rawtokenresult = sl_triggers.SplitScriptContentsAndTokenize(_myCmdName)
         totalFunctionalCommands = rawtokenresult[0] as int
+        SLTDebugMsg("")
     elseif scrtype == 10
         scrtype = 1
         _myCmdName = CommandsFolder() + scriptfilename + ".json"
-        totalFileLines = JsonUtil.PathCount(_myCmdName, ".cmd")
+        totalJsonCommandCount = JsonUtil.PathCount(_myCmdName, ".cmd")
     elseif scrtype == 20
+        ; for now, treat as the same; .sltscript is just a bandaid to improve syntax highlighting
         scrtype = 2
         _myCmdName = scriptfilename + ".ini"
 
-        cmdlines = sl_triggers.SplitScriptContents(_myCmdName)
-        totalFileLines = cmdlines.Length
+        rawtokenresult = sl_triggers.SplitScriptContentsAndTokenize(_myCmdName)
+        totalFunctionalCommands = rawtokenresult[0] as int
+    elseif scrtype == 30
+        ; for now, treat as the same; .sltscript is just a bandaid to improve syntax highlighting
+        scrtype = 3
+        _myCmdName = scriptfilename + ".sltscript"
 
         rawtokenresult = sl_triggers.SplitScriptContentsAndTokenize(_myCmdName)
         totalFunctionalCommands = rawtokenresult[0] as int
@@ -1503,7 +1576,7 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
 
     if scrtype == 1
         int theFileLine = 0
-        while theFileLine < totalFileLines
+        while theFileLine < totalJsonCommandCount
             lineno += 1
             
             ; this accounts for comments
@@ -1539,7 +1612,7 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
             endif
             theFileLine += 1
         endwhile
-    elseif scrtype == 2
+    elseif scrtype == 2 || scrtype == 3
 
         scriptlines = PapyrusUtil.IntArray(totalFunctionalCommands)
         tokencounts = PapyrusUtil.IntArray(totalFunctionalCommands)
@@ -1600,6 +1673,10 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
     command = ""
 
     totalLines = scriptlines.Length
+
+    if SLT.Debug_Cmd
+        SLTDebugMsg("Cmd.slt_Frame_Push: scriptname:" + currentScriptName + ": totalLines:" + totalLines + ":")
+    endif
 
     hasValidFrame = true
 

@@ -10,7 +10,7 @@
 	},
 	"string" : 
 	{
-		"do_1" : "Greetings.ini",
+		"do_1" : "Greetings",
 		"trigger_deleted_by_user_via_mcm" : "TRUE"
 	}
 }

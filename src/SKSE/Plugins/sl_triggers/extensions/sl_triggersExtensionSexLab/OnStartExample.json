@@ -11,7 +11,7 @@
 	},
 	"string" : 
 	{
-		"do_1" : "AnnouncePlayerHavingSex.ini",
+		"do_1" : "AnnouncePlayerHavingSex",
 		"trigger_deleted_by_user_via_mcm" : "TRUE"
 	}
 }
