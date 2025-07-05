@@ -5549,6 +5549,69 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
+; sltname util_getrndactor
+; sltgrup SexLab
+; sltdesc Return a random actor within specified range of self
+; sltargs range: (0 - all | >0 - range in Skyrim units)
+; sltargs option: (0 - all | 1 - not in SexLab scene | 2 - must be in SexLab scene) (optional: default 0 - all)
+; sltsamp util_getrndactor 500 2
+; sltsamp actor_isvalid $actor
+; sltsamp if $$ = 0 end
+; sltsamp msg_notify "Someone is watching you!"
+; sltsamp [end]
+function util_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    Actor nextIterActor
+
+    if ParamLengthLT(CmdPrimary, param.Length, 4)
+        Actor[] inCell = MiscUtil.ScanCellNPCs(CmdPrimary.PlayerRef, CmdPrimary.Resolve(param[1]) as float)
+        if inCell.Length
+            int mode
+            if param.Length > 2
+                mode = CmdPrimary.Resolve(param[2]) as int
+            endif
+        
+            Keyword ActorTypeNPC = GetForm_Skyrim_ActorTypeNPC() as Keyword
+            Cell    cc = CmdPrimary.PlayerRef.getParentCell()
+        
+            int i = 0
+            int nuns = 0
+            while i < inCell.Length
+                Actor _targetActor = inCell[i]
+                if !_targetActor || _targetActor == CmdPrimary.PlayerRef || !_targetActor.isEnabled() || _targetActor.isDead() || _targetActor.isInCombat() || _targetActor.IsUnconscious() || (ActorTypeNPC && !_targetActor.HasKeyWord(ActorTypeNPC)) || !_targetActor.Is3DLoaded() || (cc && cc != _targetActor.getParentCell())
+                    inCell[i] = none
+                    nuns += 1
+                endif
+                i += 1
+            endwhile
+        
+            int remainder = inCell.Length - nuns
+            if remainder > 0
+                int _targetMetaIndex = Utility.RandomInt(0, remainder - 1)
+                int _metaIndex = -1
+
+                i = 0
+                while i < inCell.Length && _metaIndex < _targetMetaIndex
+                    if inCell[i]
+                        _metaIndex += 1
+                    endif
+                    if _metaIndex < _targetMetaIndex
+                        i += 1
+                    endif
+                endwhile
+
+                if _metaIndex == _targetMetaIndex
+                    nextIterActor = inCell[i]
+                endif
+            endif
+        endif
+    endif
+
+    CmdPrimary.iterActor = nextIterActor
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
 
 ; sltname weather_state
 ; sltgrup Utility

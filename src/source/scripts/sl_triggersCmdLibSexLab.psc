@@ -96,9 +96,6 @@ function sl_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 
     CmdPrimary.CompleteOperationOnActor()
 endfunction
-function util_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
-    sl_getrndactor(CmdTargetActor, _CmdPrimary, param)
-endFunction
 
 ; xsltname actor_say
 ; xsltgrup Actor
