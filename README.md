@@ -8,7 +8,7 @@ It is ESL flagged to minimize impact on your load order and most dependencies ar
 # More Details Please!
 SL Triggers Redux (SLTR, though you may still see references to SLT) is, at its heart, a way to run various tasks in response to events in game. The original focus of SLTR was purely on the four basic SexLab events (Sex Start, Orgasm, Sex End, Separate Orgasm via SLSO), but the framework has been expanded to not be tied solely to SexLab events. In addition, out of the box, you can also set up hotkeys to run scripts on demand, set scripts up to run on the (in-game) hour, and even run scripts directly via console command.
 
-These scripts are simple .ini files with an easy to understand syntax and a number of examples available to work from. Scripts are comprised of commands. Commands can be things like "av_set" (to set an Actor Value) or syntactic commands like "goto" (to script execution to a different line). 
+These scripts are simple .sltscript (text) files with an easy to understand syntax and a number of examples available to work from. Scripts are comprised of commands. Commands can be things like "av_set" (to set an Actor Value) or syntactic commands like "goto" (to script execution to a different line). 
 
 Additionally, more commands can be added as command libraries, to expand the capabilities of your scripts even further.
 
@@ -69,7 +69,7 @@ The SexLab events, involving multiple actors, are a little more involved to setu
 Fotogen's original sl_triggers effort is great and still works well. Plus I had already added some of these features (like the Keymapping and Top of the Hour event handling) to it. So what else is new in this updated version?
 
 - Extensible - It is very easy to expand functionality to add more operations to be available in your scripts with the new command libraries; Papyrus script developers can create their own .psc file with global functions to add new operations that will be available to any script run on the system
-- New script format - The original format used JSON which is conveniently supported in the Skyrim environment but not convenient for development; the new .ini format is easier to read and works conveniently with syntax highlighting for some of the features
+- New script format - The original format used JSON which is conveniently supported in the Skyrim environment but not convenient for development; the new .sltscript format is easier to read and works conveniently with syntax highlighting for some of the features
 - More than SexLab - I know, SexLab is the SL in SLT; but the framework supports any event to fire a script
 - ModEvent support for Script Execution - Mod authors can send mod events with a script name and SLT will run the script on the targeted Actor (or the Player if no target is available)
 - API support - You can also access the same features through an API if you prefer

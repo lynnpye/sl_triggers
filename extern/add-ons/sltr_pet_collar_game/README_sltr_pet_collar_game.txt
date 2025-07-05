@@ -17,7 +17,7 @@ SKSE/Plugins/sl_triggers/extensions/sl_triggersExtensionSexLab/PetCollarGame.jso
 	- Trigger, enabled by default, set to run "On SexLab Start" (i.e. at the start of a SexLab scene) with a 100% chance
 	- It is set to require "Player" (i.e. set to run "on" or "targeting" the Player; this is also the default state of scripts run via e.g. Hotkey)
 	
-SKSE/Plugins/sl_triggers/commands/PetCollarGame.ini
+SKSE/Plugins/sl_triggers/commands/PetCollarGame.sltscript
 	- it is currently written to require:
 		- being run during a SexLab scene
 		- run "on"/"targeting" the player
@@ -44,7 +44,7 @@ How to apply this:
 If you have installed Pet Collar and SL Triggers Redux, and all of their dependencies, to the extent that, individually you know both mods are working, then you can apply this like any other mod e.g. as with MO2.
 It does not overwrite any existing files, only adds files in an expected file structure.
 
-Once you're sure both are installed and working, then you can apply this like any other mod/addon-on. It's data only, not even Papyrus scripts, nor .esp, nor .dll. Just some .ini and .json files for SLTR.
+Once you're sure both are installed and working, then you can apply this like any other mod/addon-on. It's data only, not even Papyrus scripts, nor .esp, nor .dll. Just some .sltscript and .json files for SLTR.
 
 Basically each time the script is run is another tick on a counter and another roll of the dice as to whether the counter is still low enough. Too high and it's time to switch collar states!
 

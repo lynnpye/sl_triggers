@@ -1,6 +1,6 @@
 # SLTScript
 
-Script for SL Triggers, or SLTScript, is primarily an .ini, text formatted file using a simple marker-to-enclose tokenization strategy. Lines are tokenized by splitting on whitespace, except when fields are enclosed in either double quotes (`"`) or square brackets (`[]`). Enclosed strings may contain whitespace, and embedded double quotes are escaped by doubling them (`""`).
+Script for SL Triggers, or SLTScript, is primarily an .sltscript, text formatted file using a simple marker-to-enclose tokenization strategy. Lines are tokenized by splitting on whitespace, except when fields are enclosed in either double quotes (`"`) or square brackets (`[]`). Enclosed strings may contain whitespace, and embedded double quotes are escaped by doubling them (`""`).
 
     set $1 "Hello world"
     msg_console  $1
@@ -126,16 +126,16 @@ Scripts contain sequences of commands. A command can be a built-in operation or 
     * You can pass parameters to the called script on the same line with your `call`
     * The called script can access these arguments with `callarg <argindex> <variable>`, which places the indexed argument into the variable
     * Example
-      * ScriptA.ini
+      * ScriptA.sltscript
       * `set $1 100`
-      * `call ScriptB`
+      * `call "ScriptB"`
       * `if $1 >= 100 "we've been robbed!"`
       * `; we will end up here, even though ScriptB reduces $1, that is its local $1; we remain unaffected`
       * `msg_notify "All good!"`
       * `return`
       * `[we've been robbed!]`
       * `msg_notify "Get the sheriff!"`
-      * ScriptB.ini
+      * ScriptB.sltscript
       * `; note, we are putting it into our local $1 variable, but that doesn't impact the caller`
       * `callarg 0 $1`
       * `if $1 > 0 robthem`
@@ -179,9 +179,9 @@ Thread scoped variables exist in the script in which they are created, and in an
 An example would be:
 `$thread.variable1`
 
-For example, if ScriptA.ini is triggered, and calls ScriptB.ini, a thread scoped variable could be created in ScriptB.ini and still be available to ScriptA.ini once ScriptB.ini returns. Then if that same instance of ScriptA called ScriptC.ini, that ScriptC would also have access to the same thread scoped variables.
+For example, if ScriptA is triggered, and calls ScriptB, a thread scoped variable could be created in ScriptB and still be available to ScriptA once ScriptB returns. Then if that same instance of ScriptA called ScriptC, that ScriptC would also have access to the same thread scoped variables.
 
-But now suppose a completely different isntance of ScriptA.ini started via the same trigger. Any thread scoped variables from the other copy of ScriptA.ini, and any script it calls, will be unavailable to *this* instance of ScriptA.ini, and likewise for its thread scoped variables.
+But now suppose a completely different isntance of ScriptA started via the same trigger. Any thread scoped variables from the other copy of ScriptA, and any script it calls, will be unavailable to *this* instance of ScriptA, and likewise for its thread scoped variables.
 
 ### Target Scope
 Target scoped variables exist on any SLTScript running on the same target/Actor.
@@ -189,7 +189,7 @@ Target scoped variables exist on any SLTScript running on the same target/Actor.
 An example would be:
 `$target.variable1`
 
-If ScriptA.ini creates a target scoped variable, called `$preciousFlag`, then when run on the Player, the value of `$preciousFlag` will correspond to what the script set it to when run on the Player. But if run on Hod, then the value of `$preciousFlag` would be whatever it was set to while running on Hod.
+If ScriptA creates a target scoped variable, called `$preciousFlag`, then when run on the Player, the value of `$preciousFlag` will correspond to what the script set it to when run on the Player. But if run on Hod, then the value of `$preciousFlag` would be whatever it was set to while running on Hod.
 
 So the same variable can have a different value depending on who it is running on.
 
@@ -267,4 +267,4 @@ All other commands are going to come from Function Libraries and the Functions t
 ##### Okay, yeah, sure, give me a hard time. Feels garish, to be honest. But really, these are little scripts, I will refer to them as such, but Papyrus is referred to as a "script" language, the .psc files are also "scripts", but then this documentation also has to refer to the Papyrus... script.. side of things. So... SLTScript... SLTScripts... sltscript... sltscripts...
 
 #### Footnote about formats
-##### There is still support for the original .json format, and for now it hasn't caused any problems to retain it, but I don't plan to make more scripts for it and if something comes up where I need to choose between a new feature and retaining .json support, I would likely drop .json support. I prefer the .ini format as I think it is cleaner, but have no desire to remove it when retaining it costs me nothing.
+##### There is still support for the original .json format, and for now it hasn't caused any problems to retain it, but I don't plan to make more scripts for it and if something comes up where I need to choose between a new feature and retaining .json support, I would likely drop .json support. I prefer the .sltscript format as I think it is cleaner, but have no desire to remove it when retaining it costs me nothing.

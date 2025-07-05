@@ -2,6 +2,9 @@
     Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)
     bugfix: fixed SexLab resolution of partner related variables
     bugfix: fixed sl_triggersCmd.CompleteOperationOnActor(): now correctly marks runOpPending = false before responding to SLTReset
+    enhancement: .sltscript file extension (equivalent to .ini)
+    enhancement: Notepad++ syntax highlighting (see extern/lang-support/notepad++)
+    enhancement: VSCode syntax highlighting (see extern/lang-support/vscode)
     enhancement: added topicinfo_getresponsetext function which returns the dialog text associated with the provided TopicInfo (by FormID or editorID)
         example:
             topicinfo_getresponsetext "Skyrim.esm:0x00020954"
@@ -23,7 +26,8 @@
             *.initialScriptName - the first script called in the call chain (if the script never "calls" another script, it will always be the same as the current script name)
         See more on the wiki.
     minor enhancement: slight improvement in accuracy of script related logging output
-    rearchitecture: laying groundwork for improved typing
+    rearchitecture: typing is being supported more explicitly behind the scenes (not necessarily immediately obvious)
+    change: scripts converted to new extension, .sltscript
 	bugfix: .esp change; marked the cell change detection actor as IsGhost and SimpleActor
 
 122

@@ -1,6 +1,6 @@
 # SLTScript
 
-Script for SL Triggers, or SLTScript, is primarily an .ini, text formatted file using a simple marker-to-enclose tokenization strategy. Lines are tokenized by splitting on whitespace, except when fields are enclosed in either double quotes (`"`) or square brackets (`[]`). Enclosed strings may contain whitespace, and embedded double quotes are escaped by doubling them (`""`).
+Script for SL Triggers, or SLTScript, is primarily an .sltscript, text formatted file using a simple marker-to-enclose tokenization strategy. Lines are tokenized by splitting on whitespace, except when fields are enclosed in either double quotes (`"`) or square brackets (`[]`). Enclosed strings may contain whitespace, and embedded double quotes are escaped by doubling them (`""`).
 
     set $1 "Hello world"
     msg_console  $1
@@ -132,9 +132,9 @@ Scripts contain sequences of commands. A command can be a built-in operation or 
     * The called script can access these arguments with `callarg <argindex> <variable>`, which places the indexed argument into the variable
     * Example
 
-            ;ScriptA.ini
+            ;ScriptA.sltscript
             set $1 100
-            call ScriptB
+            call "ScriptB"
             if $1 >= 100 "we've been robbed!"
             ; we will end up here, even though ScriptB reduces $1, that is its local $1; we remain unaffected
             msg_notify "All good!"
@@ -142,7 +142,7 @@ Scripts contain sequences of commands. A command can be a built-in operation or 
             [we've been robbed!]
             msg_notify "Get the sheriff!"
 
-            ;ScriptB.ini
+            ;ScriptB.sltscript
             ; note, we are putting it into our local $1 variable, but that doesn't impact the caller
             callarg 0 $1
             if $1 > 0 robthem
@@ -231,4 +231,4 @@ All other commands are going to come from Function Libraries and the Functions t
 ##### Okay, yeah, sure, give me a hard time. Feels garish, to be honest. But really, these are little scripts, I will refer to them as such, but Papyrus is referred to as a "script" language, the .psc files are also "scripts", but then this documentation also has to refer to the Papyrus... script.. side of things. So... SLTScript... SLTScripts... sltscript... sltscripts...
 
 #### Footnote about formats
-##### There is still support for the original .json format, and form now it hasn't caused any problems to retain it, but I don't plan to make more scripts for it and if something comes up where I need to choose between a new feature and retaining .json support, I would likely drop .json support. I prefer the .ini format as I think it is cleaner, but have no desire to remove it when retaining it costs me nothing.
+##### There is still support for the original .json format, and form now it hasn't caused any problems to retain it, but I don't plan to make more scripts for it and if something comes up where I need to choose between a new feature and retaining .json support, I would likely drop .json support. I prefer the .sltscript format as I think it is cleaner, but have no desire to remove it when retaining it costs me nothing.
