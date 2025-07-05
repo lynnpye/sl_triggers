@@ -1201,7 +1201,7 @@ function actor_name(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
-; sltname actor_name
+; sltname actor_display_name
 ; sltgrup Actor
 ; sltdesc Set $$ to the actor displayName
 ; sltargs actor: target Actor
