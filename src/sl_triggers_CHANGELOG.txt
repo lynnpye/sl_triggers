@@ -14,16 +14,16 @@
             rnd_float 23.0 482.0
             set $result $$
     enhancement: New system variables:
-        system.random.100 - result of rnd_float 0 100.0
+        $system.random.100 - result of rnd_float 0 100.0
     enhancement: New contextual system variables:
-        request.* - these will vary depending on the trigger
+        $request.* - these will vary depending on the trigger
             - e.g. Player Opened Container
-                *.activatedContainer - the form/formID of the container that triggered the event
-                *.activatedContainer.is_corpse - 1 if you are looting a corpse; 0 otherwise
-                *.activatedContainer.is_empty - 1 if the container is empty; 0 otherwise
-                *.activatedContainer.count - current count of items in the container; this will update if you modify the contents
-            *.currentScriptName - the name of the currently executing script
-            *.initialScriptName - the first script called in the call chain (if the script never "calls" another script, it will always be the same as the current script name)
+                core.activatedContainer - the form/formID of the container that triggered the event
+                core.activatedContainer.is_corpse - 1 if you are looting a corpse; 0 otherwise
+                core.activatedContainer.is_empty - 1 if the container is empty; 0 otherwise
+                core.activatedContainer.count - current count of items in the container; this will update if you modify the contents
+        $system.currentScriptName - the name of the currently executing script
+        $system.initialScriptName - the first script called in the call chain (if the script never "calls" another script, it will always be the same as the current script name)
         See more on the wiki.
     minor enhancement: slight improvement in accuracy of script related logging output
     rearchitecture: typing is being supported more explicitly behind the scenes (not necessarily immediately obvious)

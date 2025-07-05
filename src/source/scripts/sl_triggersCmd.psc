@@ -507,6 +507,9 @@ bool Function InternalResolve(string token)
             elseif "actor" == vname
                 CustomResolveFormResult = iterActor
                 return true
+            elseif "random.100" == vname
+                CustomResolveFloatResult = Utility.RandomFloat(0.0, 100.0)
+                return true
             elseif "none" == vname
                 CustomResolveFormResult = none
                 return true
@@ -527,9 +530,6 @@ bool Function InternalResolve(string token)
                 return true
             elseif "is_player.in_wilderness" == vname
                 CustomResolveBoolResult = SLT.IsLocationKeywordWilderness(SLT.GetPlayerLocationKeyword())
-                return true
-            elseif "random.100" == vname
-                CustomResolveFloatResult = Utility.RandomFloat(0.0, 100.0)
                 return true
             elseif "stats.running_scripts" == vname
                 CustomResolveIntResult = SLT.RunningScriptCount
