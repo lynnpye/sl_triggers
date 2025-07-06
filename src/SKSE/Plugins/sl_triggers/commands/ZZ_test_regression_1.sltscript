@@ -25,9 +25,34 @@ deb_msg "FAILED: inc"
 goto done
 
 
-
-
 [incworked]
+inc $8000 1
+
+set $rnd100 -12.0
+
+if $rnd100 == -12.0 randosetworked
+deb_msg $"FAILED: rnd100 should have been set to -12.0, got value :{rnd100}:"
+goto done
+
+[randosetworked]
+set $rnd100 $system.random.100
+
+deb_msg $"INFO: rnd100 is :{rnd100}:"
+
+if $rnd100 >= 0.0 rando1worked
+
+deb_msg $"FAILED: rnd100 should be greater than or equal to 0.0, got value :{rnd100}:"
+goto done
+
+[rando1worked]
+if $rnd100 <= 100.0 randoworked
+
+deb_msg $"FAILED: rnd100 should be less than or equal to 100.0, got value :{rnd100}:"
+goto done
+
+deb_msg $"INFO:  random.100:{system.random.100} inside:{system.is_player.inside}  outside:{system.is_player.outside}  realtime:{system.realtime}  gametime:{system.gametime}   player:{system.player}  sessionid:{system.sessionid}  initialScriptName:{system.initialScriptName}  initialGameTime:{system.initialGameTime}"
+
+[randoworked]
 inc $8000 1
 
 

@@ -433,11 +433,37 @@ bool SLTNativeFunctions::SmartEquals(PAPYRUS_NATIVE_DECL, std::string_view a, st
     bool aIsNum = isNumeric(a, aNum);
     bool bIsNum = isNumeric(b, bNum);
 
+    std::optional<bool> aBoolVal;
+    std::optional<bool> bBoolVal;
+    if (!aIsNum) {
+        if (Util::String::isTrue(a)) {
+            aBoolVal = true;
+        } else if (Util::String::isFalse(a)) {
+            aBoolVal = false;
+        }
+    }
+    if (!bIsNum) {
+        if (Util::String::isTrue(b)) {
+            bBoolVal = true;
+        } else if (Util::String::isFalse(b)) {
+            bBoolVal = false;
+        }
+    }
+
     bool outcome = false;
-    if (aIsNum && bIsNum) {
+    if ((aBoolVal.has_value() || bBoolVal.has_value()) && ((aBoolVal.has_value() || aIsNum) && (bBoolVal.has_value() || bIsNum))) {
+        bool aVal = aBoolVal.value_or(aIsNum ? aNum != 0.0 : !a.empty());
+        bool bVal = bBoolVal.value_or(bIsNum ? bNum != 0.0 : !b.empty());
+        outcome = aVal == bVal;
+        //logger::debug("SmartEquals: a({}) b({}) aNum({}) bNum({}) aIsNum({}) bIsNum({}) outcome({}): at least one bool: aBoolVal.has({}) bBoolVal.has({}) aVal({}) bVal({})", a, b, aNum, bNum, aIsNum, bIsNum, outcome, aBoolVal.has_value(), bBoolVal.has_value(), aVal, bVal);
+    }
+    else if (aIsNum && bIsNum) {
         outcome = (std::fabs(aNum - bNum) < FLT_EPSILON);  // safe float comparison
-    } else {
+        //logger::debug("SmartEquals: a({}) b({}) aNum({}) bNum({}) aIsNum({}) bIsNum({}) outcome({}): treating as numeric checking diff vs FLT_EPSILON", a, b, aNum, bNum, aIsNum, bIsNum, outcome);
+    }
+    else {
         outcome = Util::String::iEquals(a, b);
+        //logger::debug("SmartEquals: a({}) b({}) aNum({}) bNum({}) aIsNum({}) bIsNum({}) outcome({}): treating as Util::String::iEquals(a,b) comparison", a, b, aNum, bNum, aIsNum, bIsNum, outcome);
     }
 
     return outcome;

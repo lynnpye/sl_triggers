@@ -470,9 +470,12 @@ bool Function InternalResolve(string token)
 
             j = 0
             while j < vartoks.Length
+                vartoks[j] = Resolve(vartoks[j])
+                ;/
                 if InternalResolve(vartoks[j])
                     vartoks[j] = CustomResolveResult
                 endif
+                /;
 
                 j += 1
             endwhile
@@ -613,7 +616,7 @@ string Function Resolve(string token)
         elseif RT_INT == CustomResolveType
             return CustomResolveIntResult
         elseif RT_BOOL == CustomResolveType
-            return (CustomResolveBoolResult as int) as string
+            return CustomResolveBoolResult as string
         endif
 
         return CustomResolveResult
