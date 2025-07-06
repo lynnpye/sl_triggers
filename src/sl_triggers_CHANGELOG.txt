@@ -1,5 +1,6 @@
 123
     Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)
+    Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log (or whichever folder you have your SKSE logs directed to)
     bugfix: fixed SexLab resolution of partner related variables
     bugfix: fixed sl_triggersCmd.CompleteOperationOnActor(): now correctly marks runOpPending = false before responding to SLTReset
 	bugfix: .esp change; marked the cell change detection actor as IsGhost and SimpleActor
@@ -7,6 +8,7 @@
     bugfix: SLTScripts comment to end of line ';' was being enforced too aggressively i.e. middle of string literals
     bugfix: some string compares were not case insensitive
     bugfix: some function library implementations were not calling CmdPrimary.Resolve*() functions before using parameters; this resulted in some values (string literals) remaining wrapped in double quotes
+    bugfix: on initial install, keys were all detected as pressed; the delusion has been cured
     enhancement: .sltscript file extension (equivalent to .ini)
     enhancement: Notepad++ syntax highlighting (see extern/lang-support/notepad++)
     enhancement: VSCode syntax highlighting (see extern/lang-support/vscode)
@@ -30,6 +32,7 @@
         $system.currentScriptName - the name of the currently executing script
         $system.initialScriptName - the first script called in the call chain (if the script never "calls" another script, it will always be the same as the current script name)
         See more on the wiki.
+    enhancement: many debug flags added and exposed via the MCM
     minor enhancement: slight improvement in accuracy of script related logging output
     rearchitecture: typing is being supported more explicitly behind the scenes (not necessarily immediately obvious)
     change: scripts converted to new extension, .sltscript
