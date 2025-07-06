@@ -1023,11 +1023,16 @@ Function RunScript()
                 elseIf command == "cat"
                     if ParamLengthGT(self, cmdLine.Length, 2)
                         string varstr = cmdLine[1]
-                        float incrAmount = Resolve(cmdLine[2]) as float
                         
                         GetVarScope2(varstr, varscopestringlist)
                         if varscopestringlist[0]
-                            SetVarString2(varscopestringlist[0], varscopestringlist[1], (GetVarString2(varscopestringlist[0], varscopestringlist[1], "") + Resolve(cmdLine[2])) as string)
+                            int i = 2
+                            string outresult = GetVarString2(varscopestringlist[0], varscopestringlist[1], "")
+                            while i < cmdLine.Length
+                                outresult = outresult + Resolve(cmdLine[i])
+                                i += 1
+                            endwhile
+                            SetVarString2(varscopestringlist[0], varscopestringlist[1], outresult)
                         else
                             SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
                         endif

@@ -2,6 +2,8 @@
     Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)
     bugfix: fixed SexLab resolution of partner related variables
     bugfix: fixed sl_triggersCmd.CompleteOperationOnActor(): now correctly marks runOpPending = false before responding to SLTReset
+	bugfix: .esp change; marked the cell change detection actor as IsGhost and SimpleActor
+    bugfix: 'cat' now properly concatenates all parameters
     enhancement: .sltscript file extension (equivalent to .ini)
     enhancement: Notepad++ syntax highlighting (see extern/lang-support/notepad++)
     enhancement: VSCode syntax highlighting (see extern/lang-support/vscode)
@@ -28,7 +30,6 @@
     minor enhancement: slight improvement in accuracy of script related logging output
     rearchitecture: typing is being supported more explicitly behind the scenes (not necessarily immediately obvious)
     change: scripts converted to new extension, .sltscript
-	bugfix: .esp change; marked the cell change detection actor as IsGhost and SimpleActor
 
 122
     Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)

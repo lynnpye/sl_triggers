@@ -54,6 +54,22 @@ if parameter 2 is "SetWeight" (parameter 3: <float, weight>): set actors weight
 
 
 
+### actor_display_name
+
+**Description**
+Set $$ to the actor displayName
+
+**Parameters**
+
+    actor: target Actor  
+
+
+**Example**
+
+    actor_display_name $actor  
+
+
+
 ### actor_doaction
 
 **Description**
@@ -631,22 +647,6 @@ Set $$ to the actor name
 
 
 
-### actor_name
-
-**Description**
-Set $$ to the actor displayName
-
-**Parameters**
-
-    actor: target Actor  
-
-
-**Example**
-
-    actor_display_name $actor  
-
-
-
 ### actor_playanim
 
 **Description**
@@ -1161,8 +1161,29 @@ TempClone
 
 **Example**
 
-    form_dogetter IsPlayable  
+    form_dogetter $formId IsPlayable  
     if $$ = 1 itwasplayable  
+
+
+
+### form_getbyid
+
+**Description**
+Performs a lookup for a Form and returns it if found; returns none otherwise
+Accepts FormID as: "modfile.esp:012345", "012345" (absolute ID), "anEditorId" (will attempt an editorId lookup)
+Note that if multiple mods introduce an object with the same editorId, the lookup would only return whichever one won
+
+**Parameters**
+
+    formID: FormID as: "modfile.esp:012345", "012345" (absolute ID), "anEditorId" (will attempt an editorId lookup)  
+
+
+**Example**
+
+    form_getbyid "Ale"  
+    form_dogetter $$ GetName  
+    msg_notify $$ "!! Yay!!"  
+    ; Ale!! Yay!!  
 
 
 
@@ -1847,6 +1868,29 @@ Remove specified perk from the targeted actor
 
 
 
+# SexLab
+
+### util_getrndactor
+
+**Description**
+Return a random actor within specified range of self
+
+**Parameters**
+
+    range: (0 - all | >0 - range in Skyrim units)  
+    option: (0 - all | 1 - not in SexLab scene | 2 - must be in SexLab scene) (optional: default 0 - all)  
+
+
+**Example**
+
+    util_getrndactor 500 2  
+    actor_isvalid $actor  
+    if $$ = 0 end  
+    msg_notify "Someone is watching you!"  
+    [end]  
+
+
+
 # Sound
 
 ### snd_play
@@ -1993,6 +2037,27 @@ Removes the specified SPEL by FormId from the targeted Actor, usually to remove 
 The light spell should no longer be in the actor's spellbook  
 
 
+# TopicInfo
+
+### topicinfo_getresponsetext
+
+**Description**
+Attempts to return a single response text associated with the provided TopicInfo (by editorID or FormID)
+Note: This is more beta than normal; it isn't obvious whether in some cases multiple strings should actually be returned.
+
+**Parameters**
+
+    topicinfo: <formID> or <editorID> for the desired TopicInfo (not Topic)  
+
+
+**Example**
+
+    topicinfo_getresponsetext "Skyrim.esm:0x00020954"  
+    msg_notify $$  
+    ; $$ would contain "I used to be an adventurer like you. Then I took an arrow in the knee..."  
+
+
+
 # Utility
 
 ### console
@@ -2018,8 +2083,8 @@ Both are the same
 ### deb_msg
 
 **Description**
-Joins all <msg> arguments together and adds the text to SKSE\Plugins\sl_triggers\debugmsg.log
-Text is always appended to the log, so if you use this, it will only grow in size until you truncate it.
+Joins all <msg> arguments together and logs to "<Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log"
+This file is truncated on game start.
 
 **Parameters**
 
@@ -2091,6 +2156,23 @@ Display the message in the standard notification area (top left of your screen b
     msg_notify "Hello world!"  
 
 Both are the same  
+
+
+### rnd_float
+
+**Description**
+Sets $$ to a random integer between min and max inclusive
+
+**Parameters**
+
+    min: number  
+    max: number  
+
+
+**Example**
+
+    rnd_float 1 100  
+
 
 
 ### rnd_int
@@ -2564,6 +2646,26 @@ Sets $$ to the current SexLab animation name
 
     sl_animname $self  
     msg_notify "Playing: " $$  
+
+
+
+### sl_disableorgasm
+
+**Description**
+
+
+**Parameters**
+
+    actor: target Actor  
+    disable: 1 to disable, 0 to enable  
+
+
+**Example**
+
+    sl_disableorgasm $system.player 1  
+    ; this disables orgasm for the player  
+    sl_disableorgasm $system.player 0  
+    ; this enables orgasm for the player  
 
 
 
