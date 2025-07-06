@@ -175,8 +175,17 @@ Function SLTReady()
 	endif
 
 	_keystates = PapyrusUtil.BoolArray(256, false)
+	ClearKeystates()
 	UpdateDAKStatus()
 	RefreshData()
+EndFunction
+
+Function ClearKeystates()
+	int i = 0
+	while i < _keystates.Length
+		_keystates[i] = false
+		i += 1
+	endwhile
 EndFunction
 
 Function RefreshData()
@@ -488,6 +497,7 @@ Function RefreshTriggerCache()
 	_keycodes_of_interest = PapyrusUtil.IntArray(0)
 	;_keycode_status = PapyrusUtil.BoolArray(0)
 	if triggerKeys_keyDown.Length > 0
+
 		i = 0
 
 		while i < triggerKeys_keyDown.Length
@@ -507,8 +517,10 @@ Function RefreshTriggerCache()
 			endif
 			i += 1
 		endwhile
-
 		;_keycode_status = PapyrusUtil.BoolArray(_keycodes_of_interest.Length)
+	endif
+	if SLT.Debug_Extension_Core_Keymapping
+		SLTDebugMsg("Core.RefreshTriggerCache: triggerKeys_keyDown.Length(" + triggerKeys_keyDown.Length + ")  _keycodes_of_interest.Length(" + _keycodes_of_interest.Length + ")")
 	endif
 EndFunction
 
@@ -567,6 +579,7 @@ Function RegisterEvents()
 		handlingTopOfTheHour = true
 	endif
 	
+	UnregisterForAllKeys()
 	if triggerKeys_keyDown.Length > 0
 		RegisterForKeyEvents()
 	endif
@@ -593,12 +606,24 @@ Function RegisterEvents()
 EndFunction
 
 Function RegisterForKeyEvents()
+	if SLT.Debug_Extension_Core_Keymapping
+		SLTDebugMsg("Core.RegisterForKeyEvents: Unregistering for all keys")
+	endif
 	UnregisterForAllKeys()
 	int i = 0
 	while i < _keycodes_of_interest.Length
 		RegisterForKey(_keycodes_of_interest[i])
+		if SLT.Debug_Extension_Core_Keymapping
+			SLTDebugMsg("Core.RegisterForKeyEvents: Registering for key:" + _keycodes_of_interest[i] + ":")
+		endif
 		i += 1
 	endwhile
+	if SLT.Debug_Extension_Core_Keymapping
+		SLTDebugMsg("Core.RegisterForKeyEvents: Done")
+		if _keycodes_of_interest.Length < 1
+			SLTDebugMsg("Core.RegisterForKeyEvents: No keycodes registered, shouldn't be catching anything")
+		endif
+	endif
 EndFunction
 
 Function HandleNewSession(int _newSessionId)
@@ -664,7 +689,7 @@ Function HandleTopOfTheHour()
 EndFunction
 
 Function HandleOnKeyDown()
-	if SLT.Debug_Extension_Core
+	if SLT.Debug_Extension_Core || SLT.Debug_Extension_Core_Keymapping
 		SLTDebugMsg("Core.HandleOnKeyDown")
 	endif
 
@@ -686,8 +711,16 @@ Function HandleOnKeyDown()
 
 		_triggerFile = FN_T(triggerKey)
 		
+		if SLT.Debug_Extension_Core_Keymapping
+			SLTDebugMsg("Core.HandleOnKeyDown: triggerKey(" + triggerKey + ") _triggerFile(" + _triggerFile + ")")
+		endif
+		
 		dakused = false
 		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+		
+		if SLT.Debug_Extension_Core_Keymapping
+			SLTDebugMsg("Core.HandleOnKeyDown: missing deleted attribute (allowed to run?)(" + doRun + ")")
+		endif
 		
 		if doRun
 			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_KEYMAPPING)
@@ -701,6 +734,10 @@ Function HandleOnKeyDown()
 				;doRun = _keycode_status[statusidx]
 				doRun = _keystates[ival]
 			endif
+		
+			if SLT.Debug_Extension_Core_Keymapping
+				SLTDebugMsg("Core.HandleOnKeyDown: has matching keystate(" + doRun + ")   ival(" + ival + ")  keystate[ival](" + _keystates[ival] + ")")
+			endif
 		endif
 		
 		; check dynamic activation key if in use and specified
@@ -711,6 +748,10 @@ Function HandleOnKeyDown()
 				; and doRun is determined by DAK status
 				dakused = true
 				doRun = DAKStatus.GetValue() as bool
+			endif
+		
+			if SLT.Debug_Extension_Core_Keymapping
+				SLTDebugMsg("Core.HandleOnKeyDown: dakavailable and usedak set; has matching keystate(" + doRun + ")   ival(" + DAKStatus.GetValue() as bool + ")")
 			endif
 		endif
 		
@@ -731,25 +772,42 @@ Function HandleOnKeyDown()
 					doRun = _keystates[ival]
 				endif
 			endif
+		
+			if SLT.Debug_Extension_Core_Keymapping
+				SLTDebugMsg("Core.HandleOnKeyDown: DAK not used, checking modifier key; has matching keystate(" + doRun + ")   ival(" + ival + ")  keystate[ival](" + _keystates[ival] + ")")
+			endif
 		endif
 		
 		if doRun
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
 			if command
+				if SLT.Debug_Extension_Core_Keymapping
+					SLTDebugMsg("Core.HandleOnKeyDown: do_1(" + command + ")")
+				endif
 				RequestCommand(PlayerRef, command)
 			endIf
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
 			if command
+				if SLT.Debug_Extension_Core_Keymapping
+					SLTDebugMsg("Core.HandleOnKeyDown: do_2(" + command + ")")
+				endif
 				RequestCommand(PlayerRef, command)
 			endIf
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
 			if command
+				if SLT.Debug_Extension_Core_Keymapping
+					SLTDebugMsg("Core.HandleOnKeyDown: do_3(" + command + ")")
+				endif
 				RequestCommand(PlayerRef, command)
 			endIf
 		endif
 		
 		i += 1
 	endwhile
+	
+	if SLT.Debug_Extension_Core_Keymapping
+		SLTDebugMsg("Core.HandleOnKeyDown: done")
+	endif
 EndFunction
 
 Function HandleOnPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Keyword playerLocationKeyword, bool playerWasInInterior)

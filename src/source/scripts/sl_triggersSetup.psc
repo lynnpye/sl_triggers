@@ -54,6 +54,18 @@ string[]	xoidattrnames
 ; closely that you can't miss it, hextun, ol' chap, ol' buddy, ol' pal.
 int			oidEnabled
 int			oidDebugMsg
+int 		oidDebug_Cmd
+int 		oidDebug_Cmd_Functions
+int 		oidDebug_Cmd_InternalResolve
+int 		oidDebug_Cmd_ResolveForm
+int 		oidDebug_Cmd_RunScript
+int 		oidDebug_Cmd_RunScript_Set
+int 		oidDebug_Extension
+int 		oidDebug_Extension_Core
+int 		oidDebug_Extension_Core_Keymapping
+int 		oidDebug_Extension_SexLab
+int 		oidDebug_Extension_CustomResolveScoped
+int 		oidDebug_Setup
 int			oidResetSLT
 int			oidCardinatePrevious
 int			oidCardinateNext
@@ -71,6 +83,18 @@ int[]		oidForcePageReset
 Function CallThisToResetTheOIDValuesHextun()
 	oidEnabled				= 0
 	oidDebugMsg				= 0
+	oidDebug_Cmd			= 0
+	oidDebug_Cmd_Functions			= 0
+	oidDebug_Cmd_InternalResolve			= 0
+	oidDebug_Cmd_ResolveForm			= 0
+	oidDebug_Cmd_RunScript			= 0
+	oidDebug_Cmd_RunScript_Set			= 0
+	oidDebug_Extension			= 0
+	oidDebug_Extension_Core			= 0
+	oidDebug_Extension_Core_Keymapping			= 0
+	oidDebug_Extension_SexLab			= 0
+	oidDebug_Extension_CustomResolveScoped			= 0
+	oidDebug_Setup			= 0
 	oidResetSLT				= 0
 	oidCardinatePrevious	= 0
 	oidCardinateNext		= 0
@@ -675,6 +699,15 @@ Event OnOptionDefault(int option)
 	endif
 EndEvent
 
+Function DoFlagAndSave(int option, bool value, string jkey)
+	SetToggleOptionValue(option, value)
+
+	JsonUtil.SetIntValue(FN_Settings(), jkey, value as int)
+	JsonUtil.Save(FN_Settings())
+
+	ForcePageReset()
+EndFunction
+
 ; Text (buttons?)
 ; Toggle
 Event OnOptionSelect(int option)
@@ -684,29 +717,59 @@ Event OnOptionSelect(int option)
 	If option == oidEnabled
 		; this should have ramifications
 		SLT.SetEnabled(!SLT.IsEnabled)
-		SetToggleOptionValue(option, SLT.IsEnabled)
-
-		int newval = 0
-		if SLT.IsEnabled
-			newval = 1
-		endif
-		JsonUtil.SetIntValue(FN_Settings(), "enabled", newval)
-		JsonUtil.Save(FN_Settings())
-		
-		ForcePageReset()
+		DoFlagAndSave(option, SLT.IsEnabled, "enabled")
 		return
 	elseIf option == oidDebugMsg
 		SLT.bDebugMsg = !SLT.bDebugMsg
-		SetToggleOptionValue(option, SLT.bDebugMsg)
-
-		int newval = 0
-		if SLT.IsEnabled
-			newval = 1
-		endif
-		JsonUtil.SetIntValue(FN_Settings(), "debugmsg", newval)
-		JsonUtil.Save(FN_Settings())
-		
-		ForcePageReset()
+		DoFlagAndSave(option, SLT.bDebugMsg, "debugmsg")
+		return
+	elseIf option == oidDebug_Cmd
+		SLT.Debug_Cmd = !SLT.Debug_Cmd
+		DoFlagAndSave(option, SLT.Debug_Cmd, "Debug_Cmd")
+		return
+	elseIf option == oidDebug_Cmd_Functions
+		SLT.Debug_Cmd_Functions = !SLT.Debug_Cmd_Functions
+		DoFlagAndSave(option, SLT.Debug_Cmd_Functions, "Debug_Cmd_Functions")
+		return
+	elseIf option == oidDebug_Cmd_InternalResolve
+		SLT.Debug_Cmd_InternalResolve = !SLT.Debug_Cmd_InternalResolve
+		DoFlagAndSave(option, SLT.Debug_Cmd_InternalResolve, "Debug_Cmd_InternalResolve")
+		return
+	elseIf option == oidDebug_Cmd_ResolveForm
+		SLT.Debug_Cmd_ResolveForm = !SLT.Debug_Cmd_ResolveForm
+		DoFlagAndSave(option, SLT.Debug_Cmd_ResolveForm, "Debug_Cmd_ResolveForm")
+		return
+	elseIf option == oidDebug_Cmd_RunScript
+		SLT.Debug_Cmd_RunScript = !SLT.Debug_Cmd_RunScript
+		DoFlagAndSave(option, SLT.Debug_Cmd_RunScript, "Debug_Cmd_RunScript")
+		return
+	elseIf option == oidDebug_Cmd_RunScript_Set
+		SLT.Debug_Cmd_RunScript_Set = !SLT.Debug_Cmd_RunScript_Set
+		DoFlagAndSave(option, SLT.Debug_Cmd_RunScript_Set, "Debug_Cmd_RunScript_Set")
+		return
+	elseIf option == oidDebug_Extension
+		SLT.Debug_Extension = !SLT.Debug_Extension
+		DoFlagAndSave(option, SLT.Debug_Extension, "Debug_Extension")
+		return
+	elseIf option == oidDebug_Extension_Core
+		SLT.Debug_Extension_Core = !SLT.Debug_Extension_Core
+		DoFlagAndSave(option, SLT.Debug_Extension_Core, "Debug_Extension_Core")
+		return
+	elseIf option == oidDebug_Extension_Core_Keymapping
+		SLT.Debug_Extension_Core_Keymapping = !SLT.Debug_Extension_Core_Keymapping
+		DoFlagAndSave(option, SLT.Debug_Extension_Core_Keymapping, "Debug_Extension_Core_Keymapping")
+		return
+	elseIf option == oidDebug_Extension_SexLab
+		SLT.Debug_Extension_SexLab = !SLT.Debug_Extension_SexLab
+		DoFlagAndSave(option, SLT.Debug_Extension_SexLab, "Debug_Extension_SexLab")
+		return
+	elseIf option == oidDebug_Extension_CustomResolveScoped
+		SLT.Debug_Extension_CustomResolveScoped = !SLT.Debug_Extension_CustomResolveScoped
+		DoFlagAndSave(option, SLT.Debug_Extension_CustomResolveScoped, "Debug_Extension_CustomResolveScoped")
+		return
+	elseIf option == oidDebug_Setup
+		SLT.Debug_Setup = !SLT.Debug_Setup
+		DoFlagAndSave(option, SLT.Debug_Setup, "Debug_Setup")
 		return
 	elseIf option == oidResetSLT
 		refreshOnClose = ShowMessage("$SLT_MSG_SOFT_DELETE_WARNING", true, "$Yes", "$No")
@@ -1199,6 +1262,18 @@ Function ShowHeaderPage()
 	AddHeaderOption("$SLT_LBL_GLOBAL_SETTINGS")
 	oidEnabled    = AddToggleOption("$SLT_LBL_ENABLED_QUESTION", SLT.IsEnabled)
 	oidDebugMsg   = AddToggleOption("$SLT_LBL_DEBUG_MESSAGES", SLT.bDebugMsg)
+	oidDebug_Cmd		= AddToggleOption("Debug_Cmd", SLT.Debug_Cmd)
+	oidDebug_Cmd_Functions		= AddToggleOption("Debug_Cmd_Functions", SLT.Debug_Cmd_Functions)
+	oidDebug_Cmd_InternalResolve		= AddToggleOption("Debug_Cmd_InternalResolve", SLT.Debug_Cmd_InternalResolve)
+	oidDebug_Cmd_ResolveForm		= AddToggleOption("Debug_Cmd_ResolveForm", SLT.Debug_Cmd_ResolveForm)
+	oidDebug_Cmd_RunScript		= AddToggleOption("Debug_Cmd_RunScript", SLT.Debug_Cmd_RunScript)
+	oidDebug_Cmd_RunScript_Set		= AddToggleOption("Debug_Cmd_RunScript_Set", SLT.Debug_Cmd_RunScript_Set)
+	oidDebug_Extension		= AddToggleOption("Debug_Extension", SLT.Debug_Extension)
+	oidDebug_Extension_Core		= AddToggleOption("Debug_Extension_Core", SLT.Debug_Extension_Core)
+	oidDebug_Extension_Core_Keymapping		= AddToggleOption("Debug_Extension_Core_Keymapping", SLT.Debug_Extension_Core_Keymapping)
+	oidDebug_Extension_SexLab		= AddToggleOption("Debug_Extension_SexLab", SLT.Debug_Extension_SexLab)
+	oidDebug_Extension_CustomResolveScoped		= AddToggleOption("Debug_Extension_CustomResolveScoped", SLT.Debug_Extension_CustomResolveScoped)
+	oidDebug_Setup		= AddToggleOption("Debug_Setup", SLT.Debug_Setup)
 	AddEmptyOption()
 	AddEmptyOption()
 	oidResetSLT		= AddTextOption("$SLT_BTN_RESET_SL_TRIGGERS", "")

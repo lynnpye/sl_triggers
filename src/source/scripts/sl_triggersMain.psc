@@ -56,6 +56,7 @@ bool Property Debug_Cmd_RunScript Auto Hidden
 bool Property Debug_Cmd_RunScript_Set Auto Hidden
 bool Property Debug_Extension Auto Hidden
 bool Property Debug_Extension_Core Auto Hidden
+bool Property Debug_Extension_Core_Keymapping Auto Hidden
 bool Property Debug_Extension_SexLab Auto Hidden
 bool Property Debug_Extension_CustomResolveScoped Auto Hidden
 bool Property Debug_Setup Auto Hidden
@@ -116,6 +117,12 @@ Function SetupDebugs()
 		Debug_Extension_Core = _userStoredFlag
 	endif
 	JsonUtil.SetIntValue(FN_Settings(), "Debug_Extension_Core", Debug_Extension_Core as int)
+
+	_userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "Debug_Extension_Core_Keymapping") as bool
+	if _userStoredFlag != Debug_Extension_Core_Keymapping
+		Debug_Extension_Core_Keymapping = _userStoredFlag
+	endif
+	JsonUtil.SetIntValue(FN_Settings(), "Debug_Extension_Core_Keymapping", Debug_Extension_Core_Keymapping as int)
 
 	_userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "Debug_Extension_SexLab") as bool
 	if _userStoredFlag != Debug_Extension_SexLab
