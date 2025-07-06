@@ -16,6 +16,8 @@ static std::vector<std::string> GetScriptsList(PAPYRUS_NATIVE_DECL);
 
 static SLTSessionId GetSessionId(PAPYRUS_NATIVE_DECL);
 
+static std::string GetTimestamp(PAPYRUS_NATIVE_DECL);
+
 static std::string GetTopicInfoResponse(PAPYRUS_NATIVE_DECL, RE::TESTopicInfo* topicInfo);
 
 static std::string GetTranslatedString(PAPYRUS_NATIVE_DECL, std::string_view input);
@@ -42,7 +44,7 @@ static bool SmartEquals(PAPYRUS_NATIVE_DECL, std::string_view a, std::string_vie
 
 //static std::vector<std::string> SplitFileContents(PAPYRUS_NATIVE_DECL, std::string_view filecontents);
 
-static std::vector<std::string> SplitScriptContents(PAPYRUS_NATIVE_DECL, std::string_view scriptfilename);
+//static std::vector<std::string> SplitScriptContents(PAPYRUS_NATIVE_DECL, std::string_view scriptfilename);
 
 static std::vector<std::string> SplitScriptContentsAndTokenize(PAPYRUS_NATIVE_DECL, std::string_view scriptfilename);
 
@@ -80,6 +82,10 @@ public:
         return SLT::SLTNativeFunctions::GetSessionId(PAPYRUS_FN_PARMS);
     }
 
+    static std::string GetTimestamp(PAPYRUS_STATIC_ARGS) {
+        return SLT::SLTNativeFunctions::GetTimestamp(PAPYRUS_FN_PARMS);
+    }
+
     static std::string GetTopicInfoResponse(PAPYRUS_STATIC_ARGS, RE::TESTopicInfo* topicInfo) {
         return SLT::SLTNativeFunctions::GetTopicInfoResponse(PAPYRUS_FN_PARMS, topicInfo);
     }
@@ -96,9 +102,9 @@ public:
         return SLT::SLTNativeFunctions::SmartEquals(PAPYRUS_FN_PARMS, a, b);
     }
 
-    static std::vector<std::string> SplitScriptContents(PAPYRUS_STATIC_ARGS, std::string_view scriptfilename) {
-        return SLT::SLTNativeFunctions::SplitScriptContents(PAPYRUS_FN_PARMS, scriptfilename);
-    }
+    //static std::vector<std::string> SplitScriptContents(PAPYRUS_STATIC_ARGS, std::string_view scriptfilename) {
+    //    return SLT::SLTNativeFunctions::SplitScriptContents(PAPYRUS_FN_PARMS, scriptfilename);
+    //}
 
     static std::vector<std::string> SplitScriptContentsAndTokenize(PAPYRUS_STATIC_ARGS, std::string_view scriptfilename) {
         return SLT::SLTNativeFunctions::SplitScriptContentsAndTokenize(PAPYRUS_FN_PARMS, scriptfilename);
@@ -127,11 +133,12 @@ public:
         reg.RegisterStatic("GetNumericLiteral", &SLTPapyrusFunctionProvider::GetNumericLiteral);
         reg.RegisterStatic("GetScriptsList", &SLTPapyrusFunctionProvider::GetScriptsList);
         reg.RegisterStatic("GetSessionId", &SLTPapyrusFunctionProvider::GetSessionId);
+        reg.RegisterStatic("GetTimestamp", &SLTPapyrusFunctionProvider::GetTimestamp);
         reg.RegisterStatic("GetTopicInfoResponse", &SLTPapyrusFunctionProvider::GetTopicInfoResponse);
         reg.RegisterStatic("GetTranslatedString", &SLTPapyrusFunctionProvider::GetTranslatedString);
         reg.RegisterStatic("NormalizeScriptfilename", &SLTPapyrusFunctionProvider::NormalizeScriptfilename);
         reg.RegisterStatic("SmartEquals", &SLTPapyrusFunctionProvider::SmartEquals);
-        reg.RegisterStatic("SplitScriptContents", &SLTPapyrusFunctionProvider::SplitScriptContents);
+        //reg.RegisterStatic("SplitScriptContents", &SLTPapyrusFunctionProvider::SplitScriptContents);
         reg.RegisterStatic("SplitScriptContentsAndTokenize", &SLTPapyrusFunctionProvider::SplitScriptContentsAndTokenize);
         reg.RegisterStatic("Tokenize", &SLTPapyrusFunctionProvider::Tokenize);
         reg.RegisterStatic("Tokenizev2", &SLTPapyrusFunctionProvider::Tokenizev2);

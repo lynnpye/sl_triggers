@@ -128,6 +128,21 @@ SLTSessionId SLTNativeFunctions::GetSessionId(PAPYRUS_NATIVE_DECL) {
     return SLT::GetSessionId();
 }
 
+std::string SLTNativeFunctions::GetTimestamp(PAPYRUS_NATIVE_DECL) {
+    using namespace std::chrono;
+    auto now = system_clock::now();
+    auto time_t = system_clock::to_time_t(now);
+    auto tm = *std::localtime(&time_t);
+    
+    return std::format("{:04d}{:02d}{:02d}{:02d}{:02d}{:02d}",
+                       tm.tm_year + 1900,
+                       tm.tm_mon + 1,
+                       tm.tm_mday,
+                       tm.tm_hour,
+                       tm.tm_min,
+                       tm.tm_sec);
+}
+
 std::string SLTNativeFunctions::GetTopicInfoResponse(PAPYRUS_NATIVE_DECL, RE::TESTopicInfo* topicInfo) {
     if (!topicInfo) {
         logger::error("GetTopicInfoResponses called but topicInfo was null");
@@ -356,6 +371,7 @@ std::vector<std::string> SLTNativeFunctions::SplitFileContents(PAPYRUS_NATIVE_DE
 }
 */
 
+/*
 std::vector<std::string> SLTNativeFunctions::SplitScriptContents(PAPYRUS_NATIVE_DECL, std::string_view scriptfilename) {
     std::vector<std::string> lines;
     fs::path filepath = GetScriptfilePath(scriptfilename);
@@ -373,6 +389,7 @@ std::vector<std::string> SLTNativeFunctions::SplitScriptContents(PAPYRUS_NATIVE_
 
     return lines;
 }
+*/
 
 /**
 ; returns string[]

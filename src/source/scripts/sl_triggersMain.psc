@@ -36,6 +36,9 @@ Perk Property SLTRContainerPerk Auto
 
 Keyword[] Property LocationKeywords Auto Hidden
 
+; this is a save-unique timestamp, specifically the timestamp at the time this save was created
+; (as each save gets it's own copy of the quest object, we simply store that timestamp during OnInit)
+string				Property SaveTimestamp Auto Hidden
 
 bool				Property IsResetting = false Auto Hidden
 bool				Property IsEnabled		= true	Auto Hidden
@@ -195,6 +198,8 @@ Event OnInit()
 	LocationKeywords[15] = LocTypeMine
 	LocationKeywords[16] = LocTypeInn
 	LocationKeywords[17] = LocTypeHold
+
+	SaveTimestamp = sl_triggers.GetTimestamp()
 
 	BootstrapSLTInit()
 EndEvent
