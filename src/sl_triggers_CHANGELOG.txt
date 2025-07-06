@@ -4,6 +4,7 @@
     bugfix: fixed sl_triggersCmd.CompleteOperationOnActor(): now correctly marks runOpPending = false before responding to SLTReset
 	bugfix: .esp change; marked the cell change detection actor as IsGhost and SimpleActor
     bugfix: 'cat' now properly concatenates all parameters
+    bugfix: SLTScripts comment to end of line ';' was being enforced too aggressively i.e. middle of string literals
     enhancement: .sltscript file extension (equivalent to .ini)
     enhancement: Notepad++ syntax highlighting (see extern/lang-support/notepad++)
     enhancement: VSCode syntax highlighting (see extern/lang-support/vscode)
