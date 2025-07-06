@@ -84,6 +84,7 @@ std::string SLTNativeFunctions::GetNumericLiteral(PAPYRUS_NATIVE_DECL, std::stri
 
 std::vector<std::string> SLTNativeFunctions::GetScriptsList(PAPYRUS_NATIVE_DECL) {
     std::vector<std::string> result;
+    std::unordered_set<std::string> seen;
 
     fs::path scriptsFolderPath = GetPluginPath() / "commands";
 
@@ -92,7 +93,17 @@ std::vector<std::string> SLTNativeFunctions::GetScriptsList(PAPYRUS_NATIVE_DECL)
             if (entry.is_regular_file()) {
                 auto scriptname = entry.path().filename().string();
                 if (scriptname.ends_with(".ini") || scriptname.ends_with(".sltscript") || scriptname.ends_with(".json")) {
-                    result.push_back(scriptname);
+                    auto stem = entry.path().filename().stem().string();
+                    
+                    // Convert to lowercase for case-insensitive comparison
+                    std::string lowerStem = stem;
+                    std::transform(lowerStem.begin(), lowerStem.end(), lowerStem.begin(), ::tolower);
+                    
+                    // Only add if we haven't seen this stem before (case-insensitive)
+                    if (seen.find(lowerStem) == seen.end()) {
+                        seen.insert(lowerStem);
+                        result.push_back(stem); // Keep original case
+                    }
                 }
             }
         }
@@ -101,8 +112,14 @@ std::vector<std::string> SLTNativeFunctions::GetScriptsList(PAPYRUS_NATIVE_DECL)
     }
 
     if (result.size() > 1) {
-        std::sort(result.begin(), result.end());
+        std::sort(result.begin(), result.end(), [](const std::string& a, const std::string& b) {
+            std::string lowerA = a, lowerB = b;
+            std::transform(lowerA.begin(), lowerA.end(), lowerA.begin(), ::tolower);
+            std::transform(lowerB.begin(), lowerB.end(), lowerB.begin(), ::tolower);
+            return lowerA < lowerB;
+        });
     }
+
     
     return result;
 }
