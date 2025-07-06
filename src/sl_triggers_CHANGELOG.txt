@@ -5,6 +5,8 @@
 	bugfix: .esp change; marked the cell change detection actor as IsGhost and SimpleActor
     bugfix: 'cat' now properly concatenates all parameters
     bugfix: SLTScripts comment to end of line ';' was being enforced too aggressively i.e. middle of string literals
+    bugfix: some string compares were not case insensitive
+    bugfix: some function library implementations were not calling CmdPrimary.Resolve*() functions before using parameters; this resulted in some values (string literals) remaining wrapped in double quotes
     enhancement: .sltscript file extension (equivalent to .ini)
     enhancement: Notepad++ syntax highlighting (see extern/lang-support/notepad++)
     enhancement: VSCode syntax highlighting (see extern/lang-support/vscode)
