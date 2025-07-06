@@ -79,6 +79,7 @@ string      Property command = "" auto hidden
 
 float       Property initialGameTime = 0.0 auto hidden
 
+int         Property RT_INVALID =   0 AutoReadOnly
 int         Property RT_STRING =    1 AutoReadOnly
 int         Property RT_BOOL =      2 AutoReadOnly
 int         Property RT_INT =       3 AutoReadOnly
@@ -364,6 +365,7 @@ Function RunOperationOnActor(string[] opCmdLine)
     endif
 
     runOpPending = true
+    MostRecentResultType = RT_INVALID
     bool success = sl_triggers_internal.RunOperationOnActor(CmdTargetActor, self, opCmdLine)
     if !success
         runOpPending = false
@@ -423,7 +425,7 @@ bool Function InternalResolve(string token)
         elseif RT_FORM == MostRecentResultType
             CustomResolveFormResult = MostRecentFormResult
         else
-            SLTErrMsg("Invalid MostRecentResultType value(" + MostRecentResultType + ")")
+            SFE("Invalid MostRecentResultType value(" + MostRecentResultType + "); likely due to using $$ after calling a function that has no return value")
         endif
         return true
     endif
@@ -741,7 +743,9 @@ int Function ResolveInt(string token)
         Return 0
     endif
 
-    SFW("Cmd.ResolveInt defaulted to casting token(" + token + ")")
+    if SLT.Debug_Cmd
+        SFW("Cmd.ResolveInt defaulted to casting token(" + token + ")")
+    endif
 
     return token as int
 EndFunction
@@ -768,7 +772,9 @@ float Function ResolveFloat(string token)
         Return 0.0
     endif
 
-    SFW("Cmd.ResolveFloat defaulted to casting token(" + token + ")")
+    if SLT.Debug_Cmd
+        SFW("Cmd.ResolveFloat defaulted to casting token(" + token + ")")
+    endif
 
     return token as float
 EndFunction
@@ -894,7 +900,7 @@ Function RunScript()
                                 string strparm4 = Resolve(cmdLine[4])
                                 float op1 = strparm2 as float
                                 float op2 = strparm4 as float
-                                string operat = cmdLine[3]
+                                string operat = Resolve(cmdLine[3])
                         
                                 string strresult
                         
@@ -1096,7 +1102,7 @@ Function RunScript()
                     currentLine += 1
                 elseIf command == "callarg"
                     if ParamLengthEQ(self, cmdLine.Length, 3)
-                        int argidx = cmdLine[1] as int
+                        int argidx = ResolveInt(cmdLine[1])
                         string arg = cmdLine[2]
                         string newval
 
@@ -1665,7 +1671,7 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
     endif
 
     lastKey = 0
-    MostRecentResultType = RT_STRING
+    MostRecentResultType = RT_INVALID
     _recentResultString = ""
     _recentResultBool = false
     _recentResultInt = 0

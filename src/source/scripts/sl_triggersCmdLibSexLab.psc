@@ -47,11 +47,11 @@ function sl_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
     Actor nextIterActor
 
     if ParamLengthLT(CmdPrimary, param.Length, 4)
-        Actor[] inCell = MiscUtil.ScanCellNPCs(CmdPrimary.PlayerRef, CmdPrimary.Resolve(param[1]) as float)
+        Actor[] inCell = MiscUtil.ScanCellNPCs(CmdPrimary.PlayerRef, CmdPrimary.ResolveFloat(param[1]))
         if inCell.Length
             int mode
             if param.Length > 2
-                mode = CmdPrimary.Resolve(param[2]) as int
+                mode = CmdPrimary.ResolveInt(param[2])
             endif
         
             Keyword ActorTypeNPC = GetForm_Skyrim_ActorTypeNPC() as Keyword
@@ -148,7 +148,7 @@ function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
     string nextResult = ""
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Actor _targetActor = CmdPrimary.resolveActor(param[1])
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
             string ss1
             if param.Length > 2
@@ -185,8 +185,6 @@ function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
     int nextResult = -1
 
 	if ParamLengthGT(CmdPrimary, param.Length, 1)
-        string ss
-        string ssx
         int cnt = param.length
         int idx
         int startidx = 1
@@ -200,8 +198,7 @@ function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
             
                 idx = startidx
                 while idx < cnt
-                    ss = CmdPrimary.Resolve(param[idx])
-                    scancode = ss as int
+                    scancode = CmdPrimary.ResolveInt(param[idx])
                     if scancode > 0
                         CmdPrimary.RegisterForKey(scanCode)
                     endIf
@@ -254,7 +251,7 @@ function sl_adjustenjoyment(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary,
             if tc
                 sslActorAlias talias = tc.ActorAlias(_targetActor)
                 if talias
-                    talias.AdjustEnjoyment(CmdPrimary.Resolve(param[2]) as int)
+                    talias.AdjustEnjoyment(CmdPrimary.ResolveInt(param[2]))
                 endif
             endif
         endIf
@@ -426,7 +423,7 @@ function sl_advance(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
             _targetActor = CmdPrimary.ResolveActor(param[2])
         endif
         sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
-        int ss = CmdPrimary.Resolve(param[1]) as int
+        int ss = CmdPrimary.ResolveInt(param[1])
         thread.AdvanceStage(ss < 0)
     endif
 
@@ -451,7 +448,7 @@ function sl_isinslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
         if _targetActor
             sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
             if thread
-                int slPosition = CmdPrimary.Resolve(param[2]) as int
+                int slPosition = CmdPrimary.ResolveInt(param[2])
                 if slPosition > 0 && slPosition < 5
                     int actorIdx = 0
                     while actorIdx < thread.Positions.Length
@@ -510,7 +507,7 @@ function slso_bonus_enjoyment(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimar
     if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
-            int enjoyment = CmdPrimary.Resolve(param[2]) as int
+            int enjoyment = CmdPrimary.ResolveInt(param[2])
 
             sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
             if thread
@@ -542,6 +539,8 @@ function df_resetall(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
         if dfMCM_form
             _DFlowMCM dfMCM = dfMCM_form as _DFlowMCM
             dfMCM.ResetQuests(true)
+        else
+            CmdPrimary.SFE("df_resetall: Unable to retrieve the DeviousFollowers MCM Form using (" + GetModFilename_DeviousFollowers_MCM() + ":" + GetRelativeFormID_DeviousFollowers_MCM() + ")")
         endif
     endif
 
@@ -565,7 +564,7 @@ function df_setdebt(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         if dfQuest_form
             QF__Gift_09000D62 dfQuest = dfQuest_form as QF__Gift_09000D62
             if dfQuest
-                int debt = param[1] as int
+                int debt = CmdPrimary.ResolveInt(param[1])
                 dfQuest.SetDebt(debt)
             endif
         endif
@@ -593,8 +592,8 @@ function dd_unlockslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         if ddlib
             Actor _targetActor = CmdPrimary.ResolveActor(param[1])
             if _targetActor
-                bool force = (param.Length > 3 && param[3] == "force")
-                int i = param[2] as int
+                bool force = (param.Length > 3 && CmdPrimary.Resolve(param[3]) == "force")
+                int i = CmdPrimary.ResolveInt(param[2])
 
                 Armor device = _targetActor.GetEquippedArmorInSlot(i)
                 if device
@@ -631,7 +630,7 @@ function dd_unlockall(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
         if ddlib
             Actor _targetActor = CmdPrimary.ResolveActor(param[1])
             if _targetActor
-                bool force = (param.Length > 2 && param[2] == "force")
+                bool force = (param.Length > 2 && CmdPrimary.Resolve(param[2]) == "force")
                 bool lockable
                 int i = 0
                 Armor device
@@ -763,7 +762,7 @@ function osla_modify_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary
     if ParamLengthGT(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
-            float value = CmdPrimary.Resolve(param[2]) as float
+            float value = CmdPrimary.ResolveFloat(param[2])
             string reason
             if param.Length > 3
                 reason = CmdPrimary.Resolve(param[3])
@@ -792,7 +791,7 @@ function osla_set_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
     if ParamLengthGT(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
-            float value = CmdPrimary.Resolve(param[2]) as float
+            float value = CmdPrimary.ResolveFloat(param[2])
             string reason
             if param.Length > 3
                 reason = CmdPrimary.Resolve(param[3])
@@ -821,7 +820,7 @@ function osla_modify_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect 
     if ParamLengthGT(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
-            float value = CmdPrimary.Resolve(param[2]) as float
+            float value = CmdPrimary.ResolveFloat(param[2])
             string reason
             if param.Length > 3
                 reason = CmdPrimary.Resolve(param[3])
@@ -850,7 +849,7 @@ function osla_set_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _Cm
     if ParamLengthGT(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
-            float value = CmdPrimary.Resolve(param[2]) as float
+            float value = CmdPrimary.ResolveFloat(param[2])
             string reason
             if param.Length > 3
                 reason = CmdPrimary.Resolve(param[3])

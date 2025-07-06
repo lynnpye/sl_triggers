@@ -162,8 +162,16 @@ Form Function GetForm_DeviousFollowers_dfQuest() global
 	return Game.GetFormFromFile(0xD62, "DeviousFollowers.esp")
 EndFunction
 
+int Function GetRelativeFormID_DeviousFollowers_MCM() global
+	return 0xC545
+EndFunction
+
+string Function GetModFilename_DeviousFollowers_MCM() global
+	return "DeviousFollowers.esp"
+EndFunction
+
 Form Function GetForm_DeviousFollowers_MCM() global
-	return Game.GetFormFromFile(0xC545, "DeviousFollowers.esp")
+	return Game.GetFormFromFile(GetRelativeFormID_DeviousFollowers_MCM(), GetModFilename_DeviousFollowers_MCM())
 EndFunction
 
 
