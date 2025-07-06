@@ -34,6 +34,10 @@ static void LogWarn(PAPYRUS_NATIVE_DECL, std::string_view logmsg);
 
 static std::int32_t NormalizeScriptfilename(PAPYRUS_NATIVE_DECL, std::string_view scriptfilename);
 
+static std::vector<std::int32_t> NormalizeTimestamp(PAPYRUS_NATIVE_DECL, std::string_view sourceTimestamp);
+
+static std::vector<std::int32_t> NormalizeTimestampComponents(PAPYRUS_NATIVE_DECL, std::vector<std::int32_t> optionalSourceTimestampComponents);
+
 static bool RunOperationOnActor(PAPYRUS_NATIVE_DECL, RE::Actor* cmdTarget, RE::ActiveEffect* cmdPrimary,
                                             std::vector<std::string> tokens);
 
@@ -82,10 +86,6 @@ public:
         return SLT::SLTNativeFunctions::GetSessionId(PAPYRUS_FN_PARMS);
     }
 
-    static std::string GetTimestamp(PAPYRUS_STATIC_ARGS) {
-        return SLT::SLTNativeFunctions::GetTimestamp(PAPYRUS_FN_PARMS);
-    }
-
     static std::string GetTopicInfoResponse(PAPYRUS_STATIC_ARGS, RE::TESTopicInfo* topicInfo) {
         return SLT::SLTNativeFunctions::GetTopicInfoResponse(PAPYRUS_FN_PARMS, topicInfo);
     }
@@ -96,6 +96,14 @@ public:
 
     static std::int32_t NormalizeScriptfilename(PAPYRUS_STATIC_ARGS, std::string_view scriptfilename) {
         return SLT::SLTNativeFunctions::NormalizeScriptfilename(PAPYRUS_FN_PARMS, scriptfilename);
+    }
+
+    static std::vector<std::int32_t> NormalizeTimestamp(PAPYRUS_STATIC_ARGS, std::string_view optionalSourceTimestamp) {
+        return SLT::SLTNativeFunctions::NormalizeTimestamp(PAPYRUS_FN_PARMS, optionalSourceTimestamp);
+    }
+
+    static std::vector<std::int32_t> NormalizeTimestampComponents(PAPYRUS_STATIC_ARGS, std::vector<std::int32_t> optionalSourceTimestampComponents) {
+        return SLT::SLTNativeFunctions::NormalizeTimestampComponents(PAPYRUS_FN_PARMS, optionalSourceTimestampComponents);
     }
 
     static bool SmartEquals(PAPYRUS_STATIC_ARGS, std::string_view a, std::string_view b) {
@@ -133,7 +141,6 @@ public:
         reg.RegisterStatic("GetNumericLiteral", &SLTPapyrusFunctionProvider::GetNumericLiteral);
         reg.RegisterStatic("GetScriptsList", &SLTPapyrusFunctionProvider::GetScriptsList);
         reg.RegisterStatic("GetSessionId", &SLTPapyrusFunctionProvider::GetSessionId);
-        reg.RegisterStatic("GetTimestamp", &SLTPapyrusFunctionProvider::GetTimestamp);
         reg.RegisterStatic("GetTopicInfoResponse", &SLTPapyrusFunctionProvider::GetTopicInfoResponse);
         reg.RegisterStatic("GetTranslatedString", &SLTPapyrusFunctionProvider::GetTranslatedString);
         reg.RegisterStatic("NormalizeScriptfilename", &SLTPapyrusFunctionProvider::NormalizeScriptfilename);

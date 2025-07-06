@@ -38,17 +38,15 @@ public:
 #pragma region Function Libraries declaration
 
 struct CaseInsensitiveHash {
-    std::size_t operator()(const std::string& key) const {
-        std::string lower_key = key;
-        std::transform(lower_key.begin(), lower_key.end(), lower_key.begin(), ::tolower);
+    std::size_t operator()(std::string_view key) const {
+        std::string lower_key = Util::String::ToLower(key);
         return std::hash<std::string>{}(lower_key);
     }
 };
 
 struct CaseInsensitiveEqual {
-    bool operator()(const std::string& lhs, const std::string& rhs) const {
-        return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
-            [](char a, char b) { return std::tolower(a) == std::tolower(b); });
+    bool operator()(std::string_view lhs, std::string_view rhs) const {
+        return Util::String::iEquals(lhs, rhs);
     }
 };
 

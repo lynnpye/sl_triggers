@@ -128,19 +128,134 @@ SLTSessionId SLTNativeFunctions::GetSessionId(PAPYRUS_NATIVE_DECL) {
     return SLT::GetSessionId();
 }
 
-std::string SLTNativeFunctions::GetTimestamp(PAPYRUS_NATIVE_DECL) {
-    using namespace std::chrono;
-    auto now = system_clock::now();
-    auto time_t = system_clock::to_time_t(now);
-    auto tm = *std::localtime(&time_t);
-    
-    return std::format("{:04d}{:02d}{:02d}{:02d}{:02d}{:02d}",
-                       tm.tm_year + 1900,
-                       tm.tm_mon + 1,
-                       tm.tm_mday,
-                       tm.tm_hour,
-                       tm.tm_min,
-                       tm.tm_sec);
+namespace {
+
+    namespace LocalTS {
+        std::vector<int> TimestampPartsOfNow() {
+            using namespace std::chrono;
+            auto now = system_clock::now();
+            auto time_t = system_clock::to_time_t(now);
+            auto tm = *std::localtime(&time_t);
+            return {
+                tm.tm_year + 1900,  // Convert back to actual year
+                tm.tm_mon + 1,      // Convert back to 1-12
+                tm.tm_mday,
+                tm.tm_hour,
+                tm.tm_min,
+                tm.tm_sec
+            };
+        }
+
+        // Raw extraction - no validation, just parse the numbers
+        std::vector<std::int32_t> RawParseTimestamp(std::string_view timestamp) {
+            // empty source string means get 'now'
+            if (timestamp.empty()) {
+                return TimestampPartsOfNow();
+            }
+
+            // Must be exactly 14 characters: YYYYMMDDhhmmss
+            if (timestamp.length() != 14) {
+                return {};
+            }
+            
+            // Check that all characters are digits
+            for (char c : timestamp) {
+                if (!std::isdigit(c)) {
+                    return {};
+                }
+            }
+            
+            // Extract components without any validation
+            auto extract = [&](size_t start, size_t length) -> std::int32_t {
+                std::int32_t result = 0;
+                for (size_t i = start; i < start + length; ++i) {
+                    result = result * 10 + (timestamp[i] - '0');
+                }
+                return result;
+            };
+            
+            std::int32_t year   = extract(0, 4);  // YYYY
+            std::int32_t month  = extract(4, 2);  // MM
+            std::int32_t day    = extract(6, 2);  // DD
+            std::int32_t hour   = extract(8, 2);  // hh
+            std::int32_t minute = extract(10, 2); // mm
+            std::int32_t second = extract(12, 2); // ss
+            
+            return {year, month, day, hour, minute, second};
+        }
+
+        // Normalization function - handles overflow/underflow and invalid dates
+        std::vector<std::int32_t> NormalizeTimestamp(std::int32_t year, std::int32_t month, std::int32_t day, std::int32_t hour, std::int32_t minute, std::int32_t second) {
+            // Use C standard library to handle the complex date math
+            std::tm tm = {};
+            tm.tm_year = year - 1900;  // tm_year is years since 1900
+            tm.tm_mon = month - 1;     // tm_mon is 0-11
+            tm.tm_mday = day;          // tm_mday is 1-31
+            tm.tm_hour = hour;         // tm_hour is 0-23
+            tm.tm_min = minute;        // tm_min is 0-59
+            tm.tm_sec = second;        // tm_sec is 0-59
+            
+            // mktime normalizes the values and handles overflow/underflow
+            std::time_t time = std::mktime(&tm);
+            
+            if (time == -1) {
+                // mktime failed - return empty vector
+                return {};
+            }
+            
+            // Convert back to normalized components
+            return {
+                tm.tm_year + 1900,  // Convert back to actual year
+                tm.tm_mon + 1,      // Convert back to 1-12
+                tm.tm_mday,
+                tm.tm_hour,
+                tm.tm_min,
+                tm.tm_sec
+            };
+        }
+
+        // Convenience overload that takes a vector
+        std::vector<std::int32_t> NormalizeTimestamp(const std::vector<std::int32_t>& components) {
+            if (components.size() != 6) {
+                return {};
+            }
+            return NormalizeTimestamp(components[0], components[1], components[2], 
+                                    components[3], components[4], components[5]);
+        }
+
+        std::vector<std::int32_t> NormalizeTimestamp(std::string_view sourceTimestamp) {
+            return NormalizeTimestamp(RawParseTimestamp(sourceTimestamp));
+        }
+
+
+        std::string TimestampPartsToString(std::int32_t year, std::int32_t month, std::int32_t day, std::int32_t hour, std::int32_t minute, std::int32_t second) {
+            return std::format("{:04d}{:02d}{:02d}{:02d}{:02d}{:02d}",
+                            year,
+                            month,
+                            day,
+                            hour,
+                            minute,
+                            second);
+        }
+
+        std::string TimestampPartsToString(const std::vector<std::int32_t>& components) {
+            if (components.size() != 6) {
+                return "";
+            }
+            return TimestampPartsToString(components[0], components[1], components[2], 
+                                    components[3], components[4], components[5]);
+        }
+
+    }
+
+}
+
+std::vector<std::int32_t> SLTNativeFunctions::NormalizeTimestamp(PAPYRUS_NATIVE_DECL, std::string_view optionalSourceTimestamp) {
+    return LocalTS::NormalizeTimestamp(optionalSourceTimestamp);
+}
+
+std::vector<std::int32_t> SLTNativeFunctions::NormalizeTimestampComponents(PAPYRUS_NATIVE_DECL, std::vector<std::int32_t> optionalSourceTimestampComponents) {
+    return LocalTS::NormalizeTimestamp(optionalSourceTimestampComponents);
 }
 
 std::string SLTNativeFunctions::GetTopicInfoResponse(PAPYRUS_NATIVE_DECL, RE::TESTopicInfo* topicInfo) {
@@ -322,7 +437,7 @@ bool SLTNativeFunctions::SmartEquals(PAPYRUS_NATIVE_DECL, std::string_view a, st
     if (aIsNum && bIsNum) {
         outcome = (std::fabs(aNum - bNum) < FLT_EPSILON);  // safe float comparison
     } else {
-        outcome = (a == b);
+        outcome = Util::String::iEquals(a, b);
     }
 
     return outcome;

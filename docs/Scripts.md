@@ -106,6 +106,35 @@ Data types are preserved and coerced, with `string` as a default fallback. Forms
 
 **All variables are ultimately strings.** SLTScript automatically handles conversion between string, int, float, and bool types as needed. While Papyrus supports `Form` types, these require special handling in SLTScript.
 
+#### FormID, Forms, and You
+For any function that expects a Form like thing (e.g. Actor, ObjectReference, Form, ActorBase), you can provide any of the following:
+
+- **Special Scoped Variables** `system` variables and perhaps variables in other scopes such as `request` may return Forms and can always be used where a Form is expected
+- **Variables** If you perform a function that returns a Form and set a variable to store that result, you should be able to trust that using that variable where a Form is expected will work. For example:
+```sltscript
+actor_name $system.player
+set $targetActor $$
+; anything that expects an Actor should work with $targetActor
+actor_isvalid $targetActor
+; $$ will either be true or false depending on the validity of $targetActor
+```
+- **FormID Strings** You can also directly provide a FormID string; likewise, setting a variable to such a FormID string will also allow it to be used; FormID strings can be provided in several formats:
+   - **<modfile>:<relative formid>** this is a commonly used format e.g. "skyrim.esm:0xf" or "skyrim.esm:15" for a septim (modfile: "skyrim.esm", formid: 0xf or 15)
+   - **<relative formid>|<modfile>** another commonly used format e.g. "0xf|skyrim.esm" or "15|skyrim.esm"
+   - **<absolute formid>** not so common but useful for local tinkering; note that absolute formids will change if your load order changes
+   - **accepts decimal or hexadecimal** formid values can be specified as either decimal or hexadecimal; hexadecimal requires a leading `0x`
+   - **<relative formid>** keep in mind the difference between an ESL flagged vs a non-ESL flagged mod; the ESL flagged mod has *only* (it's still a lot) 0xFFF room to work with, whereas other mods have the full 0xFFFFFF
+```sltscript
+; this is a relative FormID and 'Quick Start - SE.esp' is not ESL flagged, so we can safely assume the whole 0xFFFFFF is available
+; although the high order bits aren't specified, for sake of discussion, let's assume Quick Start is at 0x23
+set $quickstartchest = "0x003881|Quick Start - SE.esp"
+; this is one of the containers in the Quick Start mod
+form_dogetter $quickstartchest GetFormID
+;  $$ would now contain something like 587,217,025 (i.e. int value of '587217025'), which is base 10 for hex value of 0x23003881
+form_dogetter $quickstartchest GetName
+; $$ would now contain something like "Chest" or whatever the name is from the mod
+```
+
 ## Basic Operations
 
 ### Variable Assignment and Manipulation
