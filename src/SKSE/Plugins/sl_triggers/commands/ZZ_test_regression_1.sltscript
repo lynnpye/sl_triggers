@@ -73,7 +73,9 @@ inc $8000
 
 set $avalue "$this will still be hard"
 
-deb_msg ":" $avalue ":"
+if $avalue == "$this will still be hard" dollarprefixworked
+deb_msg "FAILED: string literal not working with dollar as first character"
+goto done
 
 
 

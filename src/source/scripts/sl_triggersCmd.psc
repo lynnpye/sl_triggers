@@ -941,31 +941,29 @@ Function RunScript()
                 elseIf command == "if"
                     if ParamLengthEQ(self, cmdLine.Length, 5)
                         ; ["if", "$$", "=", "0", "end"],
-                        p1 = Resolve(cmdLine[1])
-                        p2 = Resolve(cmdLine[3])
                         po = Resolve(cmdLine[2])
                         
                         if po
 
                             bool ifTrue = false
                             if po == "=" || po == "==" || po == "&="
-                                ifTrue = sl_triggers.SmartEquals(p1, p2)
+                                ifTrue = sl_triggers.SmartEquals(Resolve(cmdLine[1]), Resolve(cmdLine[3]))
                             elseIf po == "!=" || po == "&!="
-                                ifTrue = !sl_triggers.SmartEquals(p1, p2)
+                                ifTrue = !sl_triggers.SmartEquals(Resolve(cmdLine[1]), Resolve(cmdLine[3]))
                             elseIf po == ">"
-                                if (p1 as float) > (p2 as float)
+                                if ResolveFloat(cmdLine[1]) > ResolveFloat(cmdLine[3])
                                     ifTrue = true
                                 endif
                             elseIf po == ">="
-                                if (p1 as float) >= (p2 as float)
+                                if ResolveFloat(cmdLine[1]) >= ResolveFloat(cmdLine[3])
                                     ifTrue = true
                                 endif
                             elseIf po == "<"
-                                if (p1 as float) < (p2 as float)
+                                if ResolveFloat(cmdLine[1]) < ResolveFloat(cmdLine[3])
                                     ifTrue = true
                                 endif
                             elseIf po == "<="
-                                if (p1 as float) <= (p2 as float)
+                                if ResolveFloat(cmdLine[1]) <= ResolveFloat(cmdLine[3])
                                     ifTrue = true
                                 endif
                             else
@@ -994,8 +992,8 @@ Function RunScript()
                         float incrFloat = 1.0
                         bool isIncrInt = true
                         if cmdLine.Length > 2
-                            incrInt = Resolve(cmdLine[2]) as int
-                            incrFloat = Resolve(cmdLine[2]) as float
+                            incrInt = ResolveInt(cmdLine[2])
+                            incrFloat = ResolveFloat(cmdLine[2])
                             isIncrInt = (incrInt == incrFloat)
                         endif
                             
