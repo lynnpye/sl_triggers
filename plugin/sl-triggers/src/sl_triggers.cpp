@@ -535,8 +535,6 @@ std::vector<std::string> SLTNativeFunctions::SplitScriptContentsAndTokenize(PAPY
             while (std::getline(file, line)) {
                 lineno++;
 
-                line = Util::String::truncateAt(Util::String::trim(line), ';');
-
                 linetokens = Tokenizev2(PAPYRUS_FN_PARMS, line);
 
                 if (linetokens.size() < 1) {
