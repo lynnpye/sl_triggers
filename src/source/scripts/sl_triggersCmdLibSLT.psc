@@ -5559,7 +5559,7 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 endFunction
 
 ; sltname util_getrndactor
-; sltgrup SexLab
+; sltgrup Utility
 ; sltdesc Return a random actor within specified range of self
 ; sltargs range: (0 - all | >0 - range in Skyrim units)
 ; sltargs option: (0 - all | 1 - not in SexLab scene | 2 - must be in SexLab scene) (optional: default 0 - all)
