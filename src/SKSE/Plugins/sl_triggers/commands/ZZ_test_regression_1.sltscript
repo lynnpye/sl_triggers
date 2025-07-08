@@ -28,6 +28,41 @@ goto done
 [incworked]
 inc $8000 1
 
+
+set $boolval = true
+
+if $boolval t1yes
+deb_msg "FAILED: t1yes"
+goto done
+
+[t1yes]
+
+set $boolval = false
+if $boolval t2fail
+goto t2yes
+
+[t2fail]
+deb_msg "FAILED: t2fail"
+goto done
+
+[t2yes]
+
+if 12 > 8 t3yes
+deb_msg "FAILED: t3yes"
+goto done
+
+
+
+[t3yes]
+inc $8000 1
+
+
+
+
+
+[newifworked]
+inc $8000 1
+
 set $rnd100 -12.0
 
 if $rnd100 == -12.0 randosetworked

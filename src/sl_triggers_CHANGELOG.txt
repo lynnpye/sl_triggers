@@ -9,9 +9,28 @@
     bugfix: improved Actor resolution internally in some function implementations
     bugfix: jsonutil exists now appropriately returns a bool/false if the file does not exist
     bugfix: system.is_available.core should return a bool, not a string
-    enhancement: should catch attempts to assign to read-only scopes earlier in command handling
-    enhancement: set <var> = <var>
-    enhancement: set <var> = <command> [<arg1>, <arg2>...]
+    bugfix: should catch attempts to assign to read-only scopes earlier in command handling
+    enhancement: true and false are now keywords that return bool true and false
+    enhancement: new operators for set and if: '&&' and '||' for boolean AND and OR respectively
+    enhancement: if <var> <label> ; you can now test a variable for truthiness instead of requiring a comparison
+        example:
+            set $someval true
+            ; or maybe $someval is set from something like actor_dogetter IsSneaking
+            if $someval targetlabel
+            ; you should now be at [targetlabel]
+    enhancement: if-var-endif (when you do not include a label)
+        example:
+            set $someval true
+            if $someval ; note, no label is provided
+                set $anotherval 23
+            endif ; execution will skip to after this line if $someval evaluates to false
+    enhancement: if-var-op-var-endif (when you do not include a label)
+        example:
+            set $var1 12
+            set $var2 12
+            if $var1 > $var2 ; note, no label is provided
+                ; code that will be skipped because the values are actually equal
+            endif
 
 123
     Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)

@@ -50,7 +50,7 @@ Function echo_back_test(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
         endif
     endif
 
-    SLTDebugMsg("echo_back_test: finish param[1](" + param[1] + ") resolved to(" + arg1 + ") type(" + CmdPrimary.RT_ToString(CmdPrimary.MostRecentResultType) + ")")
+    SLTDebugMsg("echo_back_test: finish param[1](" + param[1] + ") resolved to(" + arg1 + ") type(" + CmdPrimary.SLT.RT_ToString(CmdPrimary.MostRecentResultType) + ")")
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction

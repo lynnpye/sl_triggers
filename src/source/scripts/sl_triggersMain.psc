@@ -48,6 +48,30 @@ int					Property nextInstanceId			Auto Hidden
 
 int					Property RunningScriptCount = 0 Auto Hidden
 
+
+; duplicated from sl_triggersCmd
+int         Property RT_INVALID =   0 AutoReadOnly
+int         Property RT_STRING =    1 AutoReadOnly
+int         Property RT_BOOL =      2 AutoReadOnly
+int         Property RT_INT =       3 AutoReadOnly
+int         Property RT_FLOAT =     4 AutoReadOnly
+int         Property RT_FORM =      5 AutoReadOnly
+
+string Function RT_ToString(int rt_type)
+    if RT_STRING == rt_type
+        return "RT_STRING"
+    elseif RT_INT == rt_type
+        return "RT_INT"
+    elseif RT_FLOAT == rt_type
+        return "RT_FLOAT"
+    elseif RT_BOOL == rt_type
+        return "RT_BOOL"
+    elseif RT_FORM == rt_type
+        return "RT_FORM"
+    endif
+    return "<invalid RT type: " + rt_type + ">"
+EndFunction
+
 bool Property Debug_Cmd Auto Hidden
 bool Property Debug_Cmd_Functions Auto Hidden
 bool Property Debug_Cmd_InternalResolve Auto Hidden
@@ -150,6 +174,7 @@ int			_registrationBeaconCount
 
 string[] global_var_keys
 string[] global_var_vals
+int[]    global_var_types
 
 Function SetEnabled(bool _newEnabledFlag)
 	if IsEnabled != _newEnabledFlag
@@ -242,6 +267,7 @@ Function BootstrapSLTInit()
 	if !global_var_keys || !global_var_vals
 		global_var_keys = PapyrusUtil.StringArray(0)
 		global_var_vals = PapyrusUtil.StringArray(0)
+		global_var_types = PapyrusUtil.IntArray(0)
 	endif
 
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_RESET(), "OnSLTReset")
@@ -493,6 +519,7 @@ Event OnSLTReset(string eventName, string strArg, float numArg, Form sender)
 	; Clear global context
 	global_var_keys = none
 	global_var_vals = none
+	global_var_types = none
 	
 	BootstrapSLTInit()
 EndEvent
@@ -599,7 +626,7 @@ bool Function HasGlobalVar(string _key)
 	return (global_var_keys.Find(_key, 0) > -1)
 EndFunction
 
-string Function GetGlobalVar(string _key, string missing)
+string Function GetGlobalVarString(string _key, string missing)
 	int i = global_var_keys.Find(_key, 0)
 	if i > -1
 		return global_var_vals[i]
@@ -607,18 +634,149 @@ string Function GetGlobalVar(string _key, string missing)
 	return missing
 EndFunction
 
-string Function SetGlobalVar(string _key, string value)
+bool Function GetGlobalVarBool(string _key, bool missing)
+	int i = global_var_keys.Find(_key, 0)
+	if i > -1
+        int rt = global_var_types[i]
+        if RT_BOOL == rt
+            return global_var_vals[i] as bool
+        elseif RT_INT == rt
+            return (global_var_vals[i] as int) != 0
+        elseif RT_FLOAT == rt
+            return (global_var_vals[i] as float) != 0
+        elseif RT_STRING == rt
+            return global_var_vals[i] != "false" && global_var_vals[i] != "" && global_var_vals[i] != "0"
+        elseIF RT_FORM == rt
+            return (global_var_vals[i] as int) != 0
+        endif
+        SLTErrMsg("GetGlobalVar: var found but not recognized type(" + RT_ToString(rt) + ")")
+	endif
+	return missing
+EndFunction
+
+int Function GetGlobalVarInt(string _key, int missing)
+	int i = global_var_keys.Find(_key, 0)
+	if i > -1
+        int rt = global_var_types[i]
+        if RT_BOOL == rt
+            return (global_var_vals[i] as bool) as int
+        elseif RT_INT == rt
+            return global_var_vals[i] as int
+        elseif RT_FLOAT == rt
+            return (global_var_vals[i] as float) as int
+        elseif RT_STRING == rt
+            return global_var_vals[i] as int
+        elseIf RT_FORM == rt
+            return global_var_vals[i] as int
+        endif
+        SLTErrMsg("GetGlobalVar: var found but not recognized type(" + RT_ToString(rt) + ")")
+	endif
+	return missing
+EndFunction
+
+float Function GetGlobalVarFloat(string _key, float missing)
+	int i = global_var_keys.Find(_key, 0)
+	if i > -1
+        int rt = global_var_types[i]
+        if RT_BOOL == rt
+            return (global_var_vals[i] as bool) as float
+        elseif RT_INT == rt
+            return global_var_vals[i] as int
+        elseif RT_FLOAT == rt
+            return global_var_vals[i] as float
+        elseif RT_STRING == rt
+            return global_var_vals[i] as int
+        elseIf RT_FORM == rt
+            return global_var_vals[i] as int
+        endif
+        SLTErrMsg("GetGlobalVar: var found but not recognized type(" + RT_ToString(rt) + ")")
+	endif
+	return missing
+EndFunction
+
+Form Function GetGlobalVarForm(string _key, Form missing)
+	int i = global_var_keys.Find(_key, 0)
+	if i > -1
+        int rt = global_var_types[i]
+        if RT_BOOL == rt
+            return none
+        elseif RT_INT == rt
+            return Game.GetForm(global_var_vals[i] as int)
+        elseif RT_FLOAT == rt
+            return Game.GetForm((global_var_vals[i] as float) as int)
+        elseif RT_STRING == rt
+            return sl_triggers.GetForm(global_var_vals[i])
+        elseIf RT_FORM == rt
+            return Game.GetForm(global_var_vals[i] as int)
+        endif
+        SLTErrMsg("GetGlobalVar: var found but not recognized type(" + RT_ToString(rt) + ")")
+	endif
+	return missing
+EndFunction
+
+string Function SetGlobalVarString(string _key, string value)
 	int i = global_var_keys.Find(_key, 0)
 	if i < 0
 		global_var_keys = PapyrusUtil.PushString(global_var_keys, _key)
-		global_var_vals = PapyrusUtil.ResizeStringArray(global_var_vals, global_var_keys.Length)
-		i = global_var_keys.Find(_key, 0)
-	endif
-	if i > -1
+		global_var_vals = PapyrusUtil.PushString(global_var_vals, value)
+		global_var_types = PapyrusUtil.PushInt(global_var_types, RT_STRING)
+	else
 		global_var_vals[i] = value
-		return value
+		global_var_types[i] = RT_STRING
 	endif
-	return ""
+	return value
+EndFunction
+
+bool Function SetGlobalVarBool(string _key, bool value)
+	int i = global_var_keys.Find(_key, 0)
+	if i < 0
+		global_var_keys = PapyrusUtil.PushString(global_var_keys, _key)
+        global_var_vals = PapyrusUtil.PushString(global_var_vals, value)
+        global_var_types = PapyrusUtil.PushInt(global_var_types, RT_BOOL)
+    else
+		global_var_vals[i] = value
+		global_var_types[i] = RT_BOOL
+	endif
+	return value
+EndFunction
+
+int Function SetGlobalVarInt(string _key, int value)
+	int i = global_var_keys.Find(_key, 0)
+	if i < 0
+		global_var_keys = PapyrusUtil.PushString(global_var_keys, _key)
+        global_var_vals = PapyrusUtil.PushString(global_var_vals, value)
+        global_var_types = PapyrusUtil.PushInt(global_var_types, RT_INT)
+    else
+		global_var_vals[i] = value
+		global_var_types[i] = RT_INT
+	endif
+	return value
+EndFunction
+
+float Function SetGlobalVarFloat(string _key, float value)
+	int i = global_var_keys.Find(_key, 0)
+	if i < 0
+		global_var_keys = PapyrusUtil.PushString(global_var_keys, _key)
+        global_var_vals = PapyrusUtil.PushString(global_var_vals, value)
+        global_var_types = PapyrusUtil.PushInt(global_var_types, RT_FLOAT)
+    else
+		global_var_vals[i] = value
+		global_var_types[i] = RT_FLOAT
+	endif
+	return value
+EndFunction
+
+Form Function SetGlobalVarForm(string _key, Form value)
+	int i = global_var_keys.Find(_key, 0)
+	if i < 0
+		global_var_keys = PapyrusUtil.PushString(global_var_keys, _key)
+        global_var_vals = PapyrusUtil.PushString(global_var_vals, value.GetFormID())
+        global_var_types = PapyrusUtil.PushInt(global_var_types, RT_FORM)
+    else
+		global_var_vals[i] = value
+		global_var_types[i] = RT_FORM
+	endif
+	return value
 EndFunction
 
 ; I blame the DayQuil
