@@ -197,12 +197,12 @@ EndFunction
 bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string scope, string token)
 	if scope == "core"
 		if token == "toh_elapsed"
-			CmdPrimary.CustomResolveResult = TohElapsedTime as string
+			CmdPrimary.CustomResolveFloatResult = TohElapsedTime
 			return true
 		endif
 	elseif scope == "system"
 		if token == "is_available.core"
-			CmdPrimary.CustomResolveResult = IsEnabled as int
+			CmdPrimary.CustomResolveBoolResult = IsEnabled
 			return true
 		endif
 	elseif scope == "request"
@@ -210,13 +210,13 @@ bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string scope, strin
 			CmdPrimary.CustomResolveFormResult = CmdPrimary.GetRequestForm(token)
 			return true
 		elseif token == "core.activatedContainer.is_corpse"
-			CmdPrimary.CustomResolveBoolResult = CmdPrimary.GetRequestVar(token) as int
+			CmdPrimary.CustomResolveBoolResult = CmdPrimary.GetRequestBool(token)
 			return true
 		elseif token == "core.activatedContainer.is_empty"
-			CmdPrimary.CustomResolveBoolResult = CmdPrimary.GetRequestVar(token) as int
+			CmdPrimary.CustomResolveBoolResult = CmdPrimary.GetRequestBool(token)
 			return true
 		elseif token == "core.activatedContainer.is_common"
-			CmdPrimary.CustomResolveBoolResult = CmdPrimary.GetRequestVar(token) as int
+			CmdPrimary.CustomResolveBoolResult = CmdPrimary.GetRequestBool(token)
 			return true
 		elseif token == "core.activatedContainer.count"
 			ObjectReference _acon = CmdPrimary.GetRequestForm("activatedContainer") as ObjectReference
@@ -226,26 +226,34 @@ bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string scope, strin
 			CmdPrimary.CustomResolveIntResult = _acon.GetNumItems()
 			return true
 		elseif token == "core.was_player.inside"
-			CmdPrimary.CustomResolveBoolResult = CmdPrimary.GetRequestVar(token) as int
+			CmdPrimary.CustomResolveBoolResult = CmdPrimary.GetRequestBool(token)
 			return true
 		elseif token == "core.was_player.outside"
-			CmdPrimary.CustomResolveBoolResult = CmdPrimary.GetRequestVar(token) as int
+			CmdPrimary.CustomResolveBoolResult = CmdPrimary.GetRequestBool(token)
 			return true
 		elseif token == "core.was_player.in_safe_area"
 			Keyword _pkwd = CmdPrimary.GetRequestForm("core.playerLocationKeyword") as Keyword
-			CmdPrimary.CustomResolveBoolResult = SLT.IsLocationKeywordSafe(_pkwd)
+			if _pkwd
+				CmdPrimary.CustomResolveBoolResult = SLT.IsLocationKeywordSafe(_pkwd)
+			endif
 			return true
 		elseif token == "core.was_player.in_city"
 			Keyword _pkwd = CmdPrimary.GetRequestForm("core.playerLocationKeyword") as Keyword
-			CmdPrimary.CustomResolveBoolResult = SLT.IsLocationKeywordCity(_pkwd)
+			if _pkwd
+				CmdPrimary.CustomResolveBoolResult = SLT.IsLocationKeywordCity(_pkwd)
+			endif
 			return true
 		elseif token == "core.was_player.in_wilderness"
 			Keyword _pkwd = CmdPrimary.GetRequestForm("core.playerLocationKeyword") as Keyword
-			CmdPrimary.CustomResolveBoolResult = SLT.IsLocationKeywordWilderness(_pkwd)
+			if _pkwd
+				CmdPrimary.CustomResolveBoolResult = SLT.IsLocationKeywordWilderness(_pkwd)
+			endif
 			return true
 		elseif token == "core.was_player.in_dungeon"
 			Keyword _pkwd = CmdPrimary.GetRequestForm("core.playerLocationKeyword") as Keyword
-			CmdPrimary.CustomResolveBoolResult = SLT.IsLocationKeywordDungeon(_pkwd)
+			if _pkwd
+				CmdPrimary.CustomResolveBoolResult = SLT.IsLocationKeywordDungeon(_pkwd)
+			endif
 			return true
 		endif
 	endif
@@ -445,20 +453,58 @@ Function SLTR_Internal_PlayerActivatedContainer(ObjectReference containerRef, bo
 EndFunction
 
 Function RefreshTheContainersWeKnowAndLove()
+	if SLT.Debug_Cmd
+		SLTDebugMsg("Core.RefreshTheContainersWeKnowAndLove: starting")
+	endif
+
 	TheContainersWeKnowAndLove.Revert()
 	Container containerToAdd
 	Int i = JsonUtil.StringListCount(FN_MoreContainersWeKnowAndLove(), "dt_additional")
+	string conFormStr
+	string[] conFormStrParts
+	Form conForm
+
 	While i
 		i -=1
-		Form conForm = sl_triggers.GetForm(JsonUtil.StringListGet(FN_MoreContainersWeKnowAndLove(), "dt_additional", i))
+		conFormStr = JsonUtil.StringListGet(FN_MoreContainersWeKnowAndLove(), "dt_additional", i)
+		conFormStrParts = PapyrusUtil.StringSplit(conFormStr, ":")
+		if conFormStrParts.Length == 2
+			int modindex = Game.GetModByName(conFormStrParts[0])
+			if 255 == modindex
+				; not present
+				SLTWarnMsg("Core.RefreshTheContainersWeKnowAndLove: mod unavailable(" + conFormStrParts[0] + "); skipping entry '" + conFormStr + "'")
+				conForm = none
+			else
+				conForm = sl_triggers.GetForm(conFormStr)
+			endif
+		else
+			conFormStrParts = PapyrusUtil.StringSplit(conFormStr, "|")
+			if conFormStrParts.Length == 2
+				int modindex = Game.GetModByName(conFormStrParts[1])
+				if 255 == modindex
+					; not present
+					SLTWarnMsg("Core.RefreshTheContainersWeKnowAndLove: mod unavailable(" + conFormStrParts[1] + "); skipping entry '" + conFormStr + "'")
+					conForm = none
+				else
+					conForm = sl_triggers.GetForm(conFormStr)
+				endif
+			else
+				conForm = sl_triggers.GetForm(conFormStr)
+			endif
+		endif
+
 		if conForm
 			TheContainersWeKnowAndLove.AddForm(conForm)
 		else
-			SLTErrMsg("Core.RefreshTheContainersWeKnowAndLove: unable to load form for " + i)
+			SLTWarnMsg("Core.RefreshTheContainersWeKnowAndLove: unable to load form for " + i)
 		endif
 	EndWhile
 
 	common_container_names = JsonUtil.StringListToArray(FN_MoreContainersWeKnowAndLove(), "dt_common")
+	
+	if SLT.Debug_Cmd
+		SLTDebugMsg("Core.RefreshTheContainersWeKnowAndLove: completed")
+	endif
 EndFunction
 
 Function RefreshTriggerCache()
@@ -913,8 +959,8 @@ int Function GetNextPlayerCellChangeRequestId(int requestTargetFormId, int cmdRe
 	if !cmdRequestId
 		cmdRequestId = SLT.GetNextInstanceId()
 
-		sl_triggersCmd.PrecacheRequestVar(SLT, requestTargetFormId, cmdRequestId, "core.was_player.inside", playerWasInInterior)
-		sl_triggersCmd.PrecacheRequestVar(SLT, requestTargetFormId, cmdRequestId, "core.was_player.outside", !playerWasInInterior)
+		sl_triggersCmd.PrecacheRequestBool(SLT, requestTargetFormId, cmdRequestId, "core.was_player.inside", playerWasInInterior)
+		sl_triggersCmd.PrecacheRequestBool(SLT, requestTargetFormId, cmdRequestId, "core.was_player.outside", !playerWasInInterior)
 		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.playerLocationKeyword", playerLocationKeyword)
 	endif
 	return cmdRequestId
@@ -1091,12 +1137,12 @@ int Function GetNextPlayerContainerActivationRequestId(int requestTargetFormId, 
 		cmdRequestId = SLT.GetNextInstanceId()
 
 		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.activatedContainer", containerRef)
-		sl_triggersCmd.PrecacheRequestVar(SLT, requestTargetFormId, cmdRequestId, "core.activatedContainer.is_corpse", container_is_corpse)
-		sl_triggersCmd.PrecacheRequestVar(SLT, requestTargetFormId, cmdRequestId, "core.activatedContainer.is_empty", container_is_empty)
-		sl_triggersCmd.PrecacheRequestVar(SLT, requestTargetFormId, cmdRequestId, "core.activatedContainer.is_common", container_is_common)
+		sl_triggersCmd.PrecacheRequestBool(SLT, requestTargetFormId, cmdRequestId, "core.activatedContainer.is_corpse", container_is_corpse)
+		sl_triggersCmd.PrecacheRequestBool(SLT, requestTargetFormId, cmdRequestId, "core.activatedContainer.is_empty", container_is_empty)
+		sl_triggersCmd.PrecacheRequestBool(SLT, requestTargetFormId, cmdRequestId, "core.activatedContainer.is_common", container_is_common)
 
-		sl_triggersCmd.PrecacheRequestVar(SLT, requestTargetFormId, cmdRequestId, "core.was_player.inside", playerWasInInterior)
-		sl_triggersCmd.PrecacheRequestVar(SLT, requestTargetFormId, cmdRequestId, "core.was_player.outside", !playerWasInInterior)
+		sl_triggersCmd.PrecacheRequestBool(SLT, requestTargetFormId, cmdRequestId, "core.was_player.inside", playerWasInInterior)
+		sl_triggersCmd.PrecacheRequestBool(SLT, requestTargetFormId, cmdRequestId, "core.was_player.outside", !playerWasInInterior)
 		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.playerLocationKeyword", playerLocationKeyword)
 	endif
 	return cmdRequestId

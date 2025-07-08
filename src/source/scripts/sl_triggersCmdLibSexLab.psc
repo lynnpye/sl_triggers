@@ -162,7 +162,7 @@ function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         endif
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentStringResult = nextResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -365,7 +365,7 @@ function sl_animname(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentStringResult = nextResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
@@ -400,7 +400,7 @@ function sl_getprop(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         endIf
     endif
 
-    CmdPrimary.MostRecentResult = nextResult
+    CmdPrimary.MostRecentStringResult = nextResult
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction

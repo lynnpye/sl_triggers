@@ -1,3 +1,18 @@
+124
+    bugfix: documentation: util_getrndactor should be grouped under Utility, not SexLab
+    bugfix: 'callarg' should not accept negative indices
+    bugfix: Core should not be so vocal during startup when dynamic mod lookups fail during container list setup; it's the whole point
+    bugfix: coercion from Form to float now works like Form to int, i.e. by returning GetFormID(), but now cast as a float
+    bugfix: $$ should more accurately return default values after a call is made to a function that does not return one
+    bugfix: several '$request' scoped variables were not returning correctly typed values
+    bugfix: in some situations, scopes were being inappropriately allowed to be written to
+    bugfix: improved Actor resolution internally in some function implementations
+    bugfix: jsonutil exists now appropriately returns a bool/false if the file does not exist
+    bugfix: system.is_available.core should return a bool, not a string
+    enhancement: should catch attempts to assign to read-only scopes earlier in command handling
+    enhancement: set <var> = <var>
+    enhancement: set <var> = <command> [<arg1>, <arg2>...]
+
 123
     Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)
     Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log (or whichever folder you have your SKSE logs directed to)

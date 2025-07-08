@@ -595,6 +595,10 @@ Event OnSLTDelayStartCommand(string eventName, string initialScriptName, float r
 	endif
 EndEvent
 
+bool Function HasGlobalVar(string _key)
+	return (global_var_keys.Find(_key, 0) > -1)
+EndFunction
+
 string Function GetGlobalVar(string _key, string missing)
 	int i = global_var_keys.Find(_key, 0)
 	if i > -1

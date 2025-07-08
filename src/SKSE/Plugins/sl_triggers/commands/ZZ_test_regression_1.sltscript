@@ -175,6 +175,31 @@ goto done
 
 [srfw2]
 
+set $bar2 ""
+
+set $bar3 "actor_display_name"
+
+set $bar2 resultfrom $bar3 $system.player
+
+if $bar1 &= $bar2 srfw2.5
+deb_msg "FAILED: set resultfrom/2.5 bar1:" $bar1 ":  bar2:" $bar2 ":"
+goto done
+
+
+[srfw2.5]
+set $bar2 ""
+
+set $bar2 resultfrom "actor_display_name" $system.player
+
+
+if $bar1 &= $bar2 srfw2.75
+deb_msg "FAILED: set resultfrom/2.75 bar1:" $bar1 ":  bar2:" $bar2 ":"
+goto done
+
+
+[srfw2.75]
+deb_msg "resultfrom/2.75 bar1:" $bar1 ":  bar2:" $bar2 ":"
+
 av_get $system.player Health
 set $foo1 $$
 
