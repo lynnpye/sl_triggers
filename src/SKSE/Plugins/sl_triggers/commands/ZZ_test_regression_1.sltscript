@@ -54,6 +54,56 @@ goto done
 
 
 [t3yes]
+
+set $intval = 22
+set $boolval = false
+
+if $boolval
+    set $intval = 33
+endif
+
+if $intval < 30 t3.5yes
+deb_msg "FAILED: t3.5yes"
+goto done
+
+
+[t3.5yes]
+
+set $intval = 22
+set $boolval = true
+
+if $boolval
+    set $intval = 33
+endif
+
+if $intval > 30 t4yes
+deb_msg "FAILED: t4yes"
+goto done
+
+
+
+
+[t4yes]
+set $intval = 22
+set $intval2 = 33
+
+set $outcome = false
+
+if $intval < $intval2
+    deb_msg "inside an if block"
+
+    set $outcome = true
+endif
+
+if $outcome t5yes
+deb_msg "FAILED: t5yes"
+goto done
+
+
+
+
+
+[t5yes]
 inc $8000 1
 
 

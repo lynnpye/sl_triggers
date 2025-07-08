@@ -213,7 +213,7 @@
     },
     "control-keywords": {
       "name": "keyword.control.sltscript",
-      "match": "\\b(?i:if|goto|gosub|call|set|inc|return|beginsub|endsub|callarg|cat)\\b"
+      "match": "\\b(?i:if|endif|where|endwhere|goto|gosub|call|set|inc|return|beginsub|endsub|callarg|cat)\\b"
     },
     "functions": {
       "patterns": [

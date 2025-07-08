@@ -1,4 +1,6 @@
 124
+    Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)
+    Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log (or whichever folder you have your SKSE logs directed to)
     bugfix: documentation: util_getrndactor should be grouped under Utility, not SexLab
     bugfix: 'callarg' should not accept negative indices
     bugfix: Core should not be so vocal during startup when dynamic mod lookups fail during container list setup; it's the whole point
@@ -10,6 +12,7 @@
     bugfix: jsonutil exists now appropriately returns a bool/false if the file does not exist
     bugfix: system.is_available.core should return a bool, not a string
     bugfix: should catch attempts to assign to read-only scopes earlier in command handling
+    bugfix: MannySauce was disappointed about the version number mismatch in the MCM; the disappointment has been addressed
     enhancement: true and false are now keywords that return bool true and false
     enhancement: new operators for set and if: '&&' and '||' for boolean AND and OR respectively
     enhancement: if <var> <label> ; you can now test a variable for truthiness instead of requiring a comparison
@@ -18,19 +21,23 @@
             ; or maybe $someval is set from something like actor_dogetter IsSneaking
             if $someval targetlabel
             ; you should now be at [targetlabel]
-    enhancement: if-var-endif (when you do not include a label)
+    enhancement: (IF/ENDIF BLOCK) if-var-endif (when you do not include a label)
         example:
             set $someval true
-            if $someval ; note, no label is provided
+            ; note, no label is provided
+            if $someval
                 set $anotherval 23
-            endif ; execution will skip to after this line if $someval evaluates to false
-    enhancement: if-var-op-var-endif (when you do not include a label)
+            endif
+            ; execution will skip to after this line if $someval evaluates to false
+    enhancement: (IF/ENDIF BLOCK) if-var-op-var-endif (when you do not include a label)
         example:
             set $var1 12
             set $var2 12
-            if $var1 > $var2 ; note, no label is provided
+            ; note, no label is provided
+            if $var1 > $var2
                 ; code that will be skipped because the values are actually equal
             endif
+            ; execution will skip to after this line if ($var1 > $var2) evaluates to false
 
 123
     Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)
