@@ -116,7 +116,7 @@ string Function CLRR_ToString(int _clrr)
     elseif CLRR_INVALID == _clrr
         return "CLRR_INVALID:" + _clrr
     endif
-    SFW("Truly unexpected value for _clrr(" + _clrr + "); not even CLRR_INVALID")
+    SFW("Truly unexpected value for CommandLineReturnResult(" + _clrr + "); not even CLRR_INVALID")
     return "CLRR_INVALID2:" + _clrr
 EndFunction
 
@@ -200,7 +200,7 @@ bool Function CRToBool()
     if SLT.RT_BOOL == CustomResolveType
         return CustomResolveBoolResult
     elseif SLT.RT_STRING == CustomResolveType
-        return CustomResolveStringResult != "false" && CustomResolveStringResult != "" && CustomResolveStringResult != "0"
+        return IsStringTruthy(CustomResolveStringResult)
     elseif SLT.RT_INT == CustomResolveType
         return CustomResolveIntResult != 0
     elseif SLT.RT_FLOAT == CustomResolveType
@@ -1407,6 +1407,11 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             __strVal = ResolveString(cmdLine[1])
             __intVal = slt_FindGoto(__strVal)
             if __intVal > -1
+                ; if we are in a gosub call or a while block, unset those since we are busting up the gang
+                while slt_PopGosubReturn() > -1
+                endwhile
+                while slt_PopWhileReturn() > -1
+                endwhile
                 currentLine = __intVal
             else
                 SFE("Unable to resolve goto label (" + cmdLine[1] + ") resolved to (" + __strVal + ")")
@@ -2543,7 +2548,7 @@ bool Function GetFrameVarBool(string _key, bool missing)
         elseif SLT.RT_FLOAT == rt
             return (localVarVals[i] as float) != 0
         elseif SLT.RT_STRING == rt
-            return localVarVals[i] != "false" && localVarVals[i] != "" && localVarVals[i] != "0"
+            return IsStringTruthy(localVarVals[i])
         elseIF SLT.RT_FORM == rt
             return (localVarVals[i] as int) != 0
         endif
@@ -2700,7 +2705,7 @@ bool Function GetThreadVarBool(string _key, bool missing)
         elseif SLT.RT_FLOAT == rt
             return (threadVarVals[i] as float) != 0
         elseif SLT.RT_STRING == rt
-            return threadVarVals[i] != "false" && threadVarVals[i] != "" && threadVarVals[i] != "0"
+            return IsStringTruthy(threadVarVals[i])
         elseIF SLT.RT_FORM == rt
             return (threadVarVals[i] as int) != 0
         endif

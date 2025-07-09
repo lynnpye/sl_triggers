@@ -166,9 +166,8 @@ Function SLTInit()
 	endif
 
 	; fetch and store some key properties dynamically
-	InitSettingsFile(FN_X_Settings(SLTExtensionKey))
-
-	bEnabled = JsonUtil.GetIntValue(FN_S, "enabled") as bool
+	bEnabled = SetupFlag(FN_X_Settings(SLTExtensionKey), "enabled", true)
+	JsonUtil.Save(FN_X_Settings(SLTExtensionKey))
 	SetEnabled(bEnabled)
 	
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_INTERNAL_READY_EVENT(), "OnSLTInternalReady")

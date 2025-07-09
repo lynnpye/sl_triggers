@@ -268,7 +268,8 @@ Function ShowExtensionSettings()
 
 	int _oid
 
-	InitSettingsFile(_dataFile)
+	SetupFlag(_dataFile, "enabled", true)
+	JsonUtil.Save(_dataFile)
 
 	; blank row
 	AddHeaderOption(currentSLTPage)
@@ -702,7 +703,7 @@ Event OnOptionDefault(int option)
 EndEvent
 
 bool Function DoSaveAndReset(int option, string jkey, bool value)
-	bool storedValue = SLT.UpdateFlag(jkey, value)
+	bool storedValue = UpdateFlag(FN_Settings(), jkey, value)
 
 	SetToggleOptionValue(option, storedValue)
 
@@ -721,10 +722,9 @@ Event OnOptionSelect(int option)
 	bool _boolVal
 	If option == oidEnabled
 		; this should have ramifications
-		bool nowEnabled = !SLT.IsEnabled
-		SLT.SetEnabled(nowEnabled)
-		SetToggleOptionValue(option, nowEnabled)
-		ForcePageReset()
+		_strVal = "enabled"
+		_boolVal = !SLT.IsEnabled
+		SLT.IsEnabled = DoSaveAndReset(option, _strVal, _boolVal)
 		return
 	elseIf option == oidDebugMsg
 		_strVal = "debugmsg"

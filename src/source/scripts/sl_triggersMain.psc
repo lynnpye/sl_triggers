@@ -41,7 +41,6 @@ Keyword[] Property LocationKeywords Auto Hidden
 string				Property SaveTimestamp Auto Hidden
 
 bool				Property IsResetting = false Auto Hidden
-bool				Property IsEnabled		= true	Auto Hidden
 bool				Property bDebugMsg		= false	Auto Hidden
 Form[]				Property Extensions				Auto Hidden
 int					Property nextInstanceId			Auto Hidden
@@ -86,75 +85,27 @@ bool Property Debug_Extension_SexLab Auto Hidden
 bool Property Debug_Extension_CustomResolveScoped Auto Hidden
 bool Property Debug_Setup Auto Hidden
 
-bool Function SetupFlag(string flagname)
-	bool storedFlag = false
-	if JsonUtil.HasIntValue(FN_Settings(), flagname)
-		storedFlag = JsonUtil.GetIntValue(FN_Settings(), flagname) != 0
-		JsonUtil.UnsetIntValue(FN_Settings(), flagname)
-
-		SLTInfoMsg("Main.SetupFlag: flagname(" + flagname + "): performing one-time migration from (int)->(string from bool)(" + storedFlag + ")")
-	elseif !JsonUtil.HasStringValue(FN_Settings(), flagname)
-		storedFlag = false
-		
-		SLTInfoMsg("Main.SetupFlag: flagname(" + flagname + "): performing one-time initialization to (" + false + ")")
-	else
-		storedFlag = JsonUtil.GetStringValue(FN_Settings(), flagname) as bool
-
-		SLTInfoMsg("Main.SetupFlag: set (" + flagname + ") to and returning => (" + storedFlag + "); also forcing value back out to JSON")
-	endif
-
-	JsonUtil.SetStringValue(FN_Settings(), flagname, storedFlag)
-	return storedFlag
-EndFunction
-
-bool Function UpdateFlag(string flagname, bool newValue)
-	if JsonUtil.HasIntValue(FN_Settings(), flagname)
-		JsonUtil.UnsetIntValue(FN_Settings(), flagname)
-		SLTInfoMsg("Main.UpdateFlag: flagname(" + flagname + "): deleting (int) value for(" + storedFlag + ")")
-	endif
-
-	bool storedFlag = false
-	if !JsonUtil.HasStringValue(FN_Settings(), flagname)
-		storedFlag = newValue
-		
-		JsonUtil.SetStringValue(FN_Settings(), flagname, storedFlag)
-		
-		SLTInfoMsg("Main.UpdateFlag: flagname(" + flagname + "): performing one-time initialization to (" + false + ")")
-	else
-		storedFlag = JsonUtil.GetStringValue(FN_Settings(), flagname) as bool
-
-		if (storedFlag != newValue)
-			; must change the stored value
-			storedFlag = newValue
-			JsonUtil.SetStringValue(FN_Settings(), flagname, storedFlag)
-
-			SLTInfoMsg("Main.UpdateFlag: set (" + flagname + ") to and returning => (" + storedFlag + "); also forcing value back out to JSON")
-		else
-			SLTInfoMsg("Main.UpdateFlag: (" + flagname + ") value(" + storedFlag + ") already matches newValue; no JsonUtil update to try to avoid unnecessary file updates")
-		endif
-	endif
-	
-	return storedFlag
-EndFunction
-
 Function SetupSettingsFlags()
 	bool flagValue
 
-	bDebugMsg							= SetupFlag("debugmsg")
+	IsEnabled							= SetupFlag(FN_Settings(), "enabled", true)
+	bDebugMsg							= SetupFlag(FN_Settings(), "debugmsg")
 
-	Debug_Cmd							= SetupFlag("Debug_Cmd")
-	Debug_Cmd_Functions					= SetupFlag("Debug_Cmd_Functions")
-	Debug_Cmd_InternalResolve			= SetupFlag("Debug_Cmd_InternalResolve")
-	Debug_Cmd_ResolveForm				= SetupFlag("Debug_Cmd_ResolveForm")
-	Debug_Cmd_RunScript 				= SetupFlag("Debug_Cmd_RunScript")
-	Debug_Cmd_RunScript_Blocks			= SetupFlag("Debug_Cmd_RunScript_Blocks")
-	Debug_Cmd_RunScript_Set				= SetupFlag("Debug_Cmd_RunScript_Set")
-	Debug_Extension						= SetupFlag("Debug_Extension")
-	Debug_Extension_Core				= SetupFlag("Debug_Extension_Core")
-	Debug_Extension_Core_Keymapping		= SetupFlag("Debug_Extension_Core_Keymapping")
-	Debug_Extension_SexLab				= SetupFlag("Debug_Extension_SexLab")
-	Debug_Extension_CustomResolveScoped	= SetupFlag("Debug_Extension_CustomResolveScoped")
-	Debug_Setup							= SetupFlag("Debug_Setup")
+	Debug_Cmd							= SetupFlag(FN_Settings(), "Debug_Cmd")
+	Debug_Cmd_Functions					= SetupFlag(FN_Settings(), "Debug_Cmd_Functions")
+	Debug_Cmd_InternalResolve			= SetupFlag(FN_Settings(), "Debug_Cmd_InternalResolve")
+	Debug_Cmd_ResolveForm				= SetupFlag(FN_Settings(), "Debug_Cmd_ResolveForm")
+	Debug_Cmd_RunScript 				= SetupFlag(FN_Settings(), "Debug_Cmd_RunScript")
+	Debug_Cmd_RunScript_Blocks			= SetupFlag(FN_Settings(), "Debug_Cmd_RunScript_Blocks")
+	Debug_Cmd_RunScript_Set				= SetupFlag(FN_Settings(), "Debug_Cmd_RunScript_Set")
+	Debug_Extension						= SetupFlag(FN_Settings(), "Debug_Extension")
+	Debug_Extension_Core				= SetupFlag(FN_Settings(), "Debug_Extension_Core")
+	Debug_Extension_Core_Keymapping		= SetupFlag(FN_Settings(), "Debug_Extension_Core_Keymapping")
+	Debug_Extension_SexLab				= SetupFlag(FN_Settings(), "Debug_Extension_SexLab")
+	Debug_Extension_CustomResolveScoped	= SetupFlag(FN_Settings(), "Debug_Extension_CustomResolveScoped")
+	Debug_Setup							= SetupFlag(FN_Settings(), "Debug_Setup")
+
+	JsonUtil.Save(FN_Settings())
 EndFunction
 
 ; Variables
@@ -165,29 +116,34 @@ string[] global_var_keys
 string[] global_var_vals
 int[]    global_var_types
 
-Function SetEnabled(bool _newEnabledFlag)
-	if IsEnabled != _newEnabledFlag
-		IsEnabled = _newEnabledFlag
-		JsonUtil.SetIntValue(FN_Settings(), "enabled", IsEnabled as int)
-	endif
+bool	__IsEnabled = true
+bool				Property IsEnabled Hidden
+	bool Function Get()
+		return __IsEnabled
+	EndFunction
+	Function Set(bool value)
+		if (value != __IsEnabled)
+			__IsEnabled = value
 
-	sl_triggersExtension ext
-	int i
-	while i < Extensions.Length
-		ext = Extensions[i] as sl_triggersExtension
-		if ext
-			ext.SetEnabled(ext.bEnabled)
+			sl_triggersExtension ext
+			int i = 0
+			while i < Extensions.Length
+				ext = Extensions[i] as sl_triggersExtension
+				if ext
+					ext.SetEnabled(ext.bEnabled)
+				endif
+				i += 1
+			endwhile
 		endif
-		i += 1
-	endwhile
-EndFunction
+	EndFunction
+EndProperty
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Events
 
 Event OnInit()
-	bDebugMsg = SetupFlag("debugmsg")
+	SetupSettingsFlags()
 
 	if bDebugMsg
 		SLTDebugMsg("Main.OnInit")
@@ -219,28 +175,26 @@ Event OnInit()
 
 	SaveTimestamp = sl_triggers.GetTimestamp()
 
-	BootstrapSLTInit()
+	BootstrapSLTInit(false)
 EndEvent
 
 Function DoPlayerLoadGame()
-	bool _userStoredFlag
+	SetupSettingsFlags()
 
-	bDebugMsg = SetupFlag("debugmsg")
 	if bDebugMsg
 		SLTDebugMsg("Main.DoPlayerLoadGame")
 	endif
+
 	if !self
 		return
 	endif
-	BootstrapSLTInit()
+	BootstrapSLTInit(false)
 EndFunction
 
-Function BootstrapSLTInit()
-	InitSettingsFile(FN_Settings())
-	SetupSettingsFlags()
-
-	bool _userStoredFlag = JsonUtil.GetIntValue(FN_Settings(), "enabled") as bool
-	SetEnabled(_userStoredFlag)
+Function BootstrapSLTInit(bool bSetupFlags)
+	if bSetupFlags
+		SetupSettingsFlags()
+	endif
 
 	if bDebugMsg
 		SLTDebugMsg("Main.BootstrapSLTInit")
@@ -502,7 +456,7 @@ Event OnSLTReset(string eventName, string strArg, float numArg, Form sender)
 	global_var_vals = none
 	global_var_types = none
 	
-	BootstrapSLTInit()
+	BootstrapSLTInit(true)
 EndEvent
 
 Function QueueUpdateLoop(float afDelay = 1.0)
@@ -626,7 +580,7 @@ bool Function GetGlobalVarBool(string _key, bool missing)
         elseif RT_FLOAT == rt
             return (global_var_vals[i] as float) != 0
         elseif RT_STRING == rt
-            return global_var_vals[i] != "false" && global_var_vals[i] != "" && global_var_vals[i] != "0"
+            return IsStringTruthy(global_var_vals[i])
         elseIF RT_FORM == rt
             return (global_var_vals[i] as int) != 0
         endif

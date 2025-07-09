@@ -13,6 +13,7 @@
     bugfix: system.is_available.core should return a bool, not a string
     bugfix: should catch attempts to assign to read-only scopes earlier in command handling
     bugfix: MannySauce was disappointed about the version number mismatch in the MCM; the disappointment has been addressed
+    change: bool flags in settings.json changed to string: "true"/"false"
     enhancement: true and false are now keywords that return bool true and false
     enhancement: new operators for set and if: '&&' and '||' for boolean AND and OR respectively
     enhancement: if <var> <label> ; you can now test a variable for truthiness instead of requiring a comparison
@@ -80,6 +81,8 @@
             endif
             ; this should cause it to skip leading, inner, and trailing code, as one would expect
     enhancement: caching of debug flags in AME objects (should offset the plethora of granular debug output flags)
+    change: 'goto' will unwind/reset all pending while/gosub calls in your local stack
+        if you use 'goto' to jump somewhere else in your code, this will now reset things so that encountering another endsub or endwhile will no longer have unexpected consequences
 
 123
     Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)
