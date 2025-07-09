@@ -374,7 +374,7 @@ int[]       gotoLines = none
 string[]    gosubLabels = none
 int[]       gosubLines = none 
 int[]       gosubReturns = none
-int[]       whereReturns = none
+int[]       whileReturns = none
 
 int[]       scriptlines
 int[]       tokencounts
@@ -386,6 +386,10 @@ string      initialScriptName = ""
 
 bool hasValidFrame
 bool IsResetRequested = false
+
+; should I make these counters, to aid with nested if/if/endif/endif or while/while/endwhile/endwhile?
+bool __searchingForEndIf = false
+bool __searchingForEndWhile = false
 
 ;/
 Event OnEffectFinish(Actor akTarget, Actor akCaster)
@@ -921,8 +925,6 @@ float Function ResolveFloat(string token)
     return token as float
 EndFunction
 
-bool __searchingForEndIf = false
-
 ; returns true if should increment currentLine, false otherwise
 int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool subCommand = true)
     if SLT.Debug_Cmd_RunScript
@@ -963,6 +965,8 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
         MostRecentStringResult = ""
         ;currentLine += 1
     elseIf __searchingForEndIf && command != "endif"
+        ; currentLine += 1
+    elseIf __searchingForEndWhile && command != "endwhile"
         ; currentLine += 1
     elseIf command == "set"
         if SLT.Debug_Cmd_RunScript
@@ -1107,16 +1111,72 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
         endif
         __searchingForEndIf = false
         ;currentLine += 1
-    elseIf command == "endwhere"
+    elseIf command == "endwhile"
         if subCommand
-            SFE("'endwhere' is not a valid subcommand")
+            SFE("'endwhile' is not a valid subcommand")
         elseif ParamLengthEQ(self, cmdLine.Length, 1)
-            __intVal = slt_PopWhereReturn()
-            if __intVal > -1
-                currentLine = __intVal
+            if __searchingForEndWhile
+                __searchingForEndWhile = false
+            else
+                __intVal = slt_PopWhileReturn()
+                if __intVal > -1
+                    currentLine = __intVal
+                endif
             endif
         endif
         ;currentLine += 1
+    elseIf command == "while"
+        if subCommand
+            SFE("'while' is not a valid subcommand")
+        else
+            if cmdLine.Length == 2
+                if ResolveBool(cmdLine[1])
+                    slt_PushWhileReturn(currentLine - 1)
+                else
+                    __searchingForEndWhile = true
+                endif
+            elseif cmdLine.Length == 4
+                __operator = Resolve(cmdLine[2])
+                
+                if __operator
+                    __bVal = false
+                    if __operator == "=" || __operator == "==" || __operator == "&="
+                        __bVal = sl_triggers.SmartEquals(Resolve(cmdLine[1]), Resolve(cmdLine[3]))
+                    elseIf __operator == "!=" || __operator == "&!="
+                        __bVal = !sl_triggers.SmartEquals(Resolve(cmdLine[1]), Resolve(cmdLine[3]))
+                    elseIf __operator == ">"
+                        if ResolveFloat(cmdLine[1]) > ResolveFloat(cmdLine[3])
+                            __bVal = true
+                        endif
+                    elseIf __operator == ">="
+                        if ResolveFloat(cmdLine[1]) >= ResolveFloat(cmdLine[3])
+                            __bVal = true
+                        endif
+                    elseIf __operator == "<"
+                        if ResolveFloat(cmdLine[1]) < ResolveFloat(cmdLine[3])
+                            __bVal = true
+                        endif
+                    elseIf __operator == "<="
+                        if ResolveFloat(cmdLine[1]) <= ResolveFloat(cmdLine[3])
+                            __bVal = true
+                        endif
+                    else
+                        SFE("unexpected operator, this is likely an error in the SLT script")
+                        __bVal = false
+                    endif
+
+                    if __bVal
+                        slt_PushWhileReturn(currentLine - 1)
+                    else
+                        __searchingForEndWhile = true
+                    endIf
+                else
+                    SFE("unable to resolve operator (" + cmdLine[2] + ") po(" + __operator + ")")
+                endif
+            else
+                SFE("'while': while <var> | while <var> <op> <var>, invalid number of arguments provided")
+            endif
+        endif
     elseIf command == "if"
         if subCommand
             SFE("'if' is not a valid subcommand")
@@ -1587,8 +1647,8 @@ int[]       frame_gosub_lines
 int[]       frame_gosub_return_count
 int[]       frame_gosub_returns
 
-int[]       frame_where_return_count
-int[]       frame_where_returns
+int[]       frame_while_return_count
+int[]       frame_while_returns
 
 int[]       frame_callargs_count
 string[]    frame_callargs
@@ -1830,29 +1890,29 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
 
         gosubReturns = PapyrusUtil.IntArray(0)
 
-        ; where block returns
-        varcount        = whereReturns.Length
-        varstoresize    = frame_where_returns.Length
-        if !frame_where_return_count
-            frame_where_return_count = new int[1]
-            frame_where_return_count[0] = varcount
-            frame_where_returns = PapyrusUtil.IntArray(varcount)
+        ; while block returns
+        varcount        = whileReturns.Length
+        varstoresize    = frame_while_returns.Length
+        if !frame_while_return_count
+            frame_while_return_count = new int[1]
+            frame_while_return_count[0] = varcount
+            frame_while_returns = PapyrusUtil.IntArray(varcount)
         else
-            frame_where_return_count = PapyrusUtil.PushInt(frame_where_return_count, varcount)
-            frame_where_returns = PapyrusUtil.ResizeIntArray(frame_where_returns, varstoresize + varcount)
+            frame_while_return_count = PapyrusUtil.PushInt(frame_while_return_count, varcount)
+            frame_while_returns = PapyrusUtil.ResizeIntArray(frame_while_returns, varstoresize + varcount)
         endif
 
         if varcount
             i = 0
             while i < varcount
                 j = i + varstoresize
-                frame_gosub_returns[j] = whereReturns[i]
+                frame_while_returns[j] = whileReturns[i]
 
                 i += 1
             endwhile
         endif
 
-        whereReturns = PapyrusUtil.IntArray(0)
+        whileReturns = PapyrusUtil.IntArray(0)
 
         ; callargs
         varcount        = callargs.Length
@@ -1944,7 +2004,7 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
         gosubLabels = PapyrusUtil.StringArray(0)
         gosubLines = PapyrusUtil.IntArray(0)
         gosubReturns = PapyrusUtil.IntArray(0)
-        whereReturns = PapyrusUtil.IntArray(0)
+        whileReturns = PapyrusUtil.IntArray(0)
 
         scriptlines = PapyrusUtil.IntArray(0)
         tokencounts = PapyrusUtil.IntArray(0)
@@ -2061,6 +2121,7 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
     hasValidFrame = true
 
     __searchingForEndIf = false
+    __searchingForEndWhile = false
 
     return true
 EndFunction
@@ -2200,24 +2261,24 @@ bool Function slt_Frame_Pop()
     frame_gosub_return_count = PapyrusUtil.ResizeIntArray(frame_gosub_return_count, frame_gosub_return_count.Length - 1)
     frame_gosub_returns = PapyrusUtil.ResizeIntArray(frame_gosub_returns, newvarstoresize)
 
-    ; where block returns
-    varcount        = frame_where_return_count[frame_where_return_count.Length - 1]
-    newvarstoresize = frame_where_returns.Length - varcount
+    ; while block returns
+    varcount        = frame_while_return_count[frame_while_return_count.Length - 1]
+    newvarstoresize = frame_while_returns.Length - varcount
 
-    whereReturns = PapyrusUtil.IntArray(varcount)
+    whileReturns = PapyrusUtil.IntArray(varcount)
 
     if varcount
         i = 0
         while i < varcount
             j = newvarstoresize + i
-            whereReturns[i] = frame_where_returns[j]
+            whileReturns[i] = frame_while_returns[j]
 
             i += 1
         endwhile
     endif
 
-    frame_where_return_count = PapyrusUtil.ResizeIntArray(frame_where_return_count, frame_where_return_count.Length - 1)
-    frame_where_returns = PapyrusUtil.ResizeIntArray(frame_where_returns, newvarstoresize)
+    frame_while_return_count = PapyrusUtil.ResizeIntArray(frame_while_return_count, frame_while_return_count.Length - 1)
+    frame_while_returns = PapyrusUtil.ResizeIntArray(frame_while_returns, newvarstoresize)
 
     ; callargs
     varcount        = frame_callargs_count[frame_callargs_count.Length - 1]
@@ -2283,6 +2344,7 @@ bool Function slt_Frame_Pop()
     frame_tokenoffsets = PapyrusUtil.ResizeIntArray(frame_tokenoffsets, newvarstoresize)
 
     __searchingForEndIf = false
+    __searchingForEndWhile = false
 
     return true
 EndFunction
@@ -2354,21 +2416,21 @@ int Function slt_PopGosubReturn()
     return r
 EndFunction
 
-Function slt_PushWhereReturn(int targetline)
-    if !whereReturns
-        whereReturns = new int[1]
-        whereReturns[0] = targetline
+Function slt_PushWhileReturn(int targetline)
+    if !whileReturns
+        whileReturns = new int[1]
+        whileReturns[0] = targetline
     else
-        whereReturns = PapyrusUtil.PushInt(whereReturns, targetline)
+        whileReturns = PapyrusUtil.PushInt(whileReturns, targetline)
     endif
 EndFunction
 
-int Function slt_PopWhereReturn()
-    if !whereReturns.Length
+int Function slt_PopWhileReturn()
+    if !whileReturns.Length
         return -1
     endif
-    int r = whereReturns[whereReturns.Length - 1]
-    whereReturns = PapyrusUtil.ResizeIntArray(whereReturns, whereReturns.Length - 1)
+    int r = whileReturns[whileReturns.Length - 1]
+    whileReturns = PapyrusUtil.ResizeIntArray(whileReturns, whileReturns.Length - 1)
     return r
 EndFunction
 

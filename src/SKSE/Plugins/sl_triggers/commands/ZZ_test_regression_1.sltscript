@@ -29,6 +29,37 @@ goto done
 inc $8000 1
 
 
+
+deb_msg "while loop test"
+set $whaccum 0
+set $flag true
+while $flag
+    inc $whaccum
+    set $result resultfrom rnd_int 1 10
+    if $result > 6
+        set $flag false
+    endif
+    deb_msg $"loop: {whaccum} flag: {flag} result: {result}"
+endwhile
+deb_msg "end while loop test"
+
+set $whicheck 0
+set $whacc 0
+
+while $whicheck < 4
+    inc $whicheck 1
+    set $whacc $whacc + 3
+    deb_msg $"whileloop looping whicheck({whicheck}) whacc({whacc})"
+endwhile
+
+if $whacc == 12 whileloopworked
+deb_msg $"FAILED: whileloopworked whicheck({whicheck}) whacc({whacc})"
+goto done
+
+
+[whileloopworked]
+inc $8000 1
+
 set $boolval = true
 
 if $boolval t1yes
@@ -105,6 +136,11 @@ goto done
 
 [t5yes]
 inc $8000 1
+
+
+
+
+
 
 
 
@@ -426,7 +462,9 @@ set $5 $$
 inc $accumulatedUtilWaitTime 5.5
 util_wait 5.5
 util_getrealtime
-set $6 $$ - $5
+set $arealtime $$
+deb_msg "arealtime(" $arealtime ")"
+set $6 $arealtime - $5
 
 if $6 > 5.0 waitpassone
 deb_msg "FAILED: util_wait/1 5.5 (" $6 ")"

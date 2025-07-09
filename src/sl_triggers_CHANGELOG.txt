@@ -38,6 +38,26 @@
                 ; code that will be skipped because the values are actually equal
             endif
             ; execution will skip to after this line if ($var1 > $var2) evaluates to false
+    enhancement: (WHILE/ENDWHILE BLOCK) while-var-endwhile and while-var-op-var-endwhile
+        example:
+            set $limit 10
+            set $index 0
+            while $index < $limit
+                ; this will loop 10 times
+                inc $index
+            endwhile
+            ; and start executing here as soon as $index >= $limit
+        example:
+            set $flag false
+            while $flag
+                ; this will 
+                set $result resultfrom rnd_int 1 10
+                if $result > 5
+                    set $flag true
+                endif
+            endwhile
+            ; the while loop will be iterated until the random number generator
+            ; generates a number larger than 5
 
 123
     Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)
