@@ -221,57 +221,39 @@ EndFunction
 
 ;;;;;;;;
 ; Utility functions
-bool Function SetupFlag(string filename, string flagname, bool defaultValue = false) global
-	bool storedFlag = false
+bool Function GetFlag(bool bDbgOut, string filename, string flagname, bool defaultValue = false) global
 	if JsonUtil.HasIntValue(filename, flagname)
-		storedFlag = JsonUtil.GetIntValue(filename, flagname) != 0
 		JsonUtil.UnsetIntValue(filename, flagname)
+		if bDbgOut
+			SLTInfoMsg("Main.GetFlag: filename(" + filename + ") flagname(" + flagname + "): deleting (int) value")
+		endif
+	endif
 
-		SLTInfoMsg("Main.SetupFlag: filename(" + filename + ") flagname(" + flagname + "): performing one-time migration from (int)->(string from bool)(" + storedFlag + ")")
-	elseif !JsonUtil.HasStringValue(filename, flagname)
-		storedFlag = defaultValue
-		
-		SLTInfoMsg("Main.SetupFlag: filename(" + filename + ") flagname(" + flagname + "): performing one-time initialization to (" + false + ")")
-	else
-		string curstr = JsonUtil.GetStringValue(filename, flagname)
+	bool storedFlag = IsStringTruthy(JsonUtil.GetStringValue(filename, flagname, defaultValue))
 
-		storedFlag = IsStringTruthy(curstr)
-
-		SLTInfoMsg("Main.SetupFlag: filename(" + filename + ") set (" + flagname + ") to and returning => (" + storedFlag + "); also forcing value back out to JSON")
+	if bDbgOut
+			SLTInfoMsg("Main.GetFlag: filename(" + filename + ") set (" + flagname + ") to and returning => (" + storedFlag + "); also forcing value back out to JSON")
 	endif
 
 	JsonUtil.SetStringValue(filename, flagname, storedFlag)
+	JsonUtil.Save(filename)
 	return storedFlag
 EndFunction
 
-bool Function UpdateFlag(string filename, string flagname, bool newValue) global
+bool Function UpdateFlag(bool bDbgOut, string filename, string flagname, bool newValue) global
 	if JsonUtil.HasIntValue(filename, flagname)
 		JsonUtil.UnsetIntValue(filename, flagname)
-		SLTInfoMsg("Main.UpdateFlag: filename(" + filename + ") flagname(" + flagname + "): deleting (int) value for(" + storedFlag + ")")
-	endif
-
-	bool storedFlag = false
-	if !JsonUtil.HasStringValue(filename, flagname)
-		storedFlag = newValue
-		
-		JsonUtil.SetStringValue(filename, flagname, storedFlag)
-		
-		SLTInfoMsg("Main.UpdateFlag: filename(" + filename + ") flagname(" + flagname + "): performing one-time initialization to (" + false + ")")
-	else
-		storedFlag = JsonUtil.GetStringValue(filename, flagname) as bool
-
-		if (storedFlag != newValue)
-			; must change the stored value
-			storedFlag = newValue
-			JsonUtil.SetStringValue(filename, flagname, storedFlag)
-
-			SLTInfoMsg("Main.UpdateFlag: filename(" + filename + ") set (" + flagname + ") to and returning => (" + storedFlag + "); also forcing value back out to JSON")
-		else
-			SLTInfoMsg("Main.UpdateFlag: filename(" + filename + ") (" + flagname + ") value(" + storedFlag + ") already matches newValue; no JsonUtil update to try to avoid unnecessary file updates")
+		if bDbgOut
+			SLTInfoMsg("Main.UpdateFlag: filename(" + filename + ") flagname(" + flagname + "): deleting (int) value")
 		endif
 	endif
-	
-	return storedFlag
+
+	JsonUtil.SetStringValue(filename, flagname, newValue)
+	JsonUtil.Save(filename)
+	if bDbgOut
+		SLTInfoMsg("Main.UpdateFlag: filename(" + filename + ") set (" + flagname + ") to and returning => (" + newValue + "); also forcing value back out to JSON")
+	endif
+	return newValue
 EndFunction
 
 int Function GlobalHexToInt(string _value) global
@@ -300,7 +282,7 @@ int Function GlobalHexToInt(string _value) global
 EndFunction
 
 bool Function IsStringTruthy(string _value) global
-	return ((_value != "") && (_value != "false") && ((_value as int) != 0))
+	return ((_value != "") && (_value != "false") && (_value != "0"))
 EndFunction
 
 Function SquawkFunctionError(sl_triggersCmd _cmdPrimary, string msg) global

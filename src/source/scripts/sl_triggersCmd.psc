@@ -985,6 +985,13 @@ float Function ResolveFloat(string token)
     return token as float
 EndFunction
 
+Function ResetBlockContext()
+    while slt_PopGosubReturn() > -1
+    endwhile
+    while slt_PopWhileReturn() > -1
+    endwhile
+EndFunction
+
 ; returns true if should increment currentLine, false otherwise
 int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool subCommand = true)
     if Debug_Cmd_RunScript
@@ -1280,6 +1287,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                 __strVal = ResolveString(cmdLine[2])
                 __intVal = slt_FindGoto(__strVal)
                 if __intVal > -1
+                    ResetBlockContext()
                     currentLine = __intVal
                 else
                     SFE("Unable to resolve goto label (" + cmdLine[2] + ") resolved to (" + __strVal + ")")
@@ -1355,6 +1363,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                     __strVal = ResolveString(cmdLine[4])
                     __intVal = slt_FindGoto(__strVal)
                     if __intVal > -1
+                        ResetBlockContext()
                         currentLine = __intVal
                     else
                         SFE("Unable to resolve goto label (" + cmdLine[4] + ") resolved to (" + __strVal + ")")
@@ -1408,10 +1417,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             __intVal = slt_FindGoto(__strVal)
             if __intVal > -1
                 ; if we are in a gosub call or a while block, unset those since we are busting up the gang
-                while slt_PopGosubReturn() > -1
-                endwhile
-                while slt_PopWhileReturn() > -1
-                endwhile
+                ResetBlockContext()
                 currentLine = __intVal
             else
                 SFE("Unable to resolve goto label (" + cmdLine[1] + ") resolved to (" + __strVal + ")")

@@ -268,14 +268,11 @@ Function ShowExtensionSettings()
 
 	int _oid
 
-	SetupFlag(_dataFile, "enabled", true)
-	JsonUtil.Save(_dataFile)
-
 	; blank row
 	AddHeaderOption(currentSLTPage)
 	bool _extensionEnabledInSettings = true
 	
-	_extensionEnabledInSettings = JsonUtil.GetIntValue(_dataFile, "enabled") as bool
+	_extensionEnabledInSettings = GetFlag(SLT.Debug_Setup || SLT.Debug_Extension, _dataFile, "enabled", true)
 	oidExtensionEnabled = AddToggleOption("$SLT_LBL_ENABLED_QUESTION", _extensionEnabledInSettings)
 
 	int widgetOptions = OPTION_FLAG_NONE
@@ -703,7 +700,7 @@ Event OnOptionDefault(int option)
 EndEvent
 
 bool Function DoSaveAndReset(int option, string jkey, bool value)
-	bool storedValue = UpdateFlag(FN_Settings(), jkey, value)
+	bool storedValue = UpdateFlag(SLT.Debug_Setup, FN_Settings(), jkey, value)
 
 	SetToggleOptionValue(option, storedValue)
 
@@ -833,15 +830,11 @@ Event OnOptionSelect(int option)
 	elseIf option == oidExtensionEnabled
 		; this should have ramifications
 		sl_triggersExtension ext = SLT.GetExtensionByKey(CurrentExtensionKey)
-		ext.SetEnabled(!ext.bEnabled)
-		SetToggleOptionValue(option, ext.bEnabled)
-
-		int newval = 0
-		if ext.bEnabled
-			newval = 1
+		if ext
+			ext.SetEnabled(!ext.bEnabled)
+			SetToggleOptionValue(option, ext.bEnabled)
+			JsonUtil.Save(ext.FN_S)
 		endif
-		JsonUtil.SetIntValue(ext.FN_S, "enabled", newval)
-		JsonUtil.Save(ext.FN_S)
 		
 		ForcePageReset()
 		return
@@ -888,7 +881,7 @@ Event OnOptionSelect(int option)
 	endif
 
 	;; else...
-
+	
 	int val = JsonUtil.GetIntValue(_dataFile, attrName)
 	if val == 0
 		val = 1

@@ -21,16 +21,17 @@ Keyword				Property ActorTypeUndead Auto Hidden ; will be populated on startup
 ; bool IsEnabled
 ; enabled status for this extension
 ; returns - true if BOTH sl_triggers AND this extension are enabled; false otherwise
-bool				Property IsEnabled = true Auto Hidden
+bool				Property IsEnabled Hidden
+	bool Function Get()
+		return SLT.IsEnabled && bEnabled
+	EndFunction
+EndProperty
 bool				Property bEnabled = true Auto Hidden ; enable/disable our extension
 
 Function SetEnabled(bool _newEnabledFlag)
-	if bEnabled != _newEnabledFlag
-		bEnabled = _newEnabledFlag
-		JsonUtil.SetIntValue(FN_S, "enabled", bEnabled as int)
-	endif
+	bEnabled = UpdateFlag(SLT.Debug_Setup || SLT.Debug_Extension, FN_S, "enabled", _newEnabledFlag)
+	;IsEnabled = SLT.IsEnabled && bEnabled
 	sl_triggers_internal.SetExtensionEnabled(SLTExtensionKey, bEnabled)
-	IsEnabled = SLT.IsEnabled && bEnabled
 EndFunction
 
 ; string[] TriggerKeys
@@ -154,6 +155,7 @@ EndEvent
 ; run into problems.
 Function SLTInit()
 	FN_S = FN_X_Settings(SLTExtensionKey)
+	bEnabled = GetFlag(SLT.Debug_Setup || SLT.Debug_Extension, FN_S, "enabled", true)
 
 	if !SLT
 		SLT = GetSLTMain()
@@ -164,11 +166,6 @@ Function SLTInit()
 	if !ActorTypeUndead
 		ActorTypeUndead = GetForm_Skyrim_ActorTypeUndead() as Keyword
 	endif
-
-	; fetch and store some key properties dynamically
-	bEnabled = SetupFlag(FN_X_Settings(SLTExtensionKey), "enabled", true)
-	JsonUtil.Save(FN_X_Settings(SLTExtensionKey))
-	SetEnabled(bEnabled)
 	
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_INTERNAL_READY_EVENT(), "OnSLTInternalReady")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTSettingsUpdated")

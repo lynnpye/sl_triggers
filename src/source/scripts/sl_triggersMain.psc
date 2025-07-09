@@ -88,24 +88,25 @@ bool Property Debug_Setup Auto Hidden
 Function SetupSettingsFlags()
 	bool flagValue
 
-	IsEnabled							= SetupFlag(FN_Settings(), "enabled", true)
-	bDebugMsg							= SetupFlag(FN_Settings(), "debugmsg")
+	string fns = FN_Settings()
 
-	Debug_Cmd							= SetupFlag(FN_Settings(), "Debug_Cmd")
-	Debug_Cmd_Functions					= SetupFlag(FN_Settings(), "Debug_Cmd_Functions")
-	Debug_Cmd_InternalResolve			= SetupFlag(FN_Settings(), "Debug_Cmd_InternalResolve")
-	Debug_Cmd_ResolveForm				= SetupFlag(FN_Settings(), "Debug_Cmd_ResolveForm")
-	Debug_Cmd_RunScript 				= SetupFlag(FN_Settings(), "Debug_Cmd_RunScript")
-	Debug_Cmd_RunScript_Blocks			= SetupFlag(FN_Settings(), "Debug_Cmd_RunScript_Blocks")
-	Debug_Cmd_RunScript_Set				= SetupFlag(FN_Settings(), "Debug_Cmd_RunScript_Set")
-	Debug_Extension						= SetupFlag(FN_Settings(), "Debug_Extension")
-	Debug_Extension_Core				= SetupFlag(FN_Settings(), "Debug_Extension_Core")
-	Debug_Extension_Core_Keymapping		= SetupFlag(FN_Settings(), "Debug_Extension_Core_Keymapping")
-	Debug_Extension_SexLab				= SetupFlag(FN_Settings(), "Debug_Extension_SexLab")
-	Debug_Extension_CustomResolveScoped	= SetupFlag(FN_Settings(), "Debug_Extension_CustomResolveScoped")
-	Debug_Setup							= SetupFlag(FN_Settings(), "Debug_Setup")
+	Debug_Setup							= GetFlag(Debug_Setup, fns, "Debug_Setup")
+	
+	IsEnabled							= GetFlag(Debug_Setup, fns, "enabled", true)
+	bDebugMsg							= GetFlag(Debug_Setup, fns, "debugmsg")
 
-	JsonUtil.Save(FN_Settings())
+	Debug_Cmd							= GetFlag(Debug_Setup, fns, "Debug_Cmd")
+	Debug_Cmd_Functions					= GetFlag(Debug_Setup, fns, "Debug_Cmd_Functions")
+	Debug_Cmd_InternalResolve			= GetFlag(Debug_Setup, fns, "Debug_Cmd_InternalResolve")
+	Debug_Cmd_ResolveForm				= GetFlag(Debug_Setup, fns, "Debug_Cmd_ResolveForm")
+	Debug_Cmd_RunScript 				= GetFlag(Debug_Setup, fns, "Debug_Cmd_RunScript")
+	Debug_Cmd_RunScript_Blocks			= GetFlag(Debug_Setup, fns, "Debug_Cmd_RunScript_Blocks")
+	Debug_Cmd_RunScript_Set				= GetFlag(Debug_Setup, fns, "Debug_Cmd_RunScript_Set")
+	Debug_Extension						= GetFlag(Debug_Setup, fns, "Debug_Extension")
+	Debug_Extension_Core				= GetFlag(Debug_Setup, fns, "Debug_Extension_Core")
+	Debug_Extension_Core_Keymapping		= GetFlag(Debug_Setup, fns, "Debug_Extension_Core_Keymapping")
+	Debug_Extension_SexLab				= GetFlag(Debug_Setup, fns, "Debug_Extension_SexLab")
+	Debug_Extension_CustomResolveScoped	= GetFlag(Debug_Setup, fns, "Debug_Extension_CustomResolveScoped")
 EndFunction
 
 ; Variables

@@ -153,7 +153,6 @@ bool Function PopulateSentinel()
 	bool playerIs3dLoaded = hasPlayer && PlayerRef.Is3DLoaded()
 
 	if !hasPlayer
-		SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : PopulateSentinel : PlayerRef is still none; a missing reference that should, at most, take place super early, early enough I wouldn't expect this message to be quite honest. But here we are. Though probably not for long. Bye now. (though if you keep seeing me for long after launch, that's a bad thing and you should report a bug to me)")
 		if SLT.Debug_Extension_Core
 			SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : PopulateSentinel : PlayerRef is still none; a missing reference that should, at most, take place super early, early enough I wouldn't expect this message to be quite honest. But here we are. Though probably not for long. Bye now. (though if you keep seeing me for long after launch, that's a bad thing and you should report a bug to me)")
 		endif
@@ -164,7 +163,6 @@ bool Function PopulateSentinel()
 	if hasSentinel
 		bool wasghost = pkSentinel.IsGhost()
 		bool wasteam = pkSentinel.IsPlayerTeammate()
-		SLTInfoMsg("Setting sentinel parameters: SetDontMove(true) SetGhost(true) SetPlayerTeammate(false, false) SetNotShowOnStealthMeter(true) previously: IsGhost(" + wasghost + ") IsPlayerTeammate(" + wasteam + ")")
 		if SLT.Debug_Extension_Core
 			SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : PopulateSentinel : Setting sentinel parameters: SetDontMove(true) SetGhost(true) SetPlayerTeammate(false, false) SetNotShowOnStealthMeter(true) previously: IsGhost(" + wasghost + ") IsPlayerTeammate(" + wasteam + ")")
 		endif
