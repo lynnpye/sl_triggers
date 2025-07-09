@@ -140,7 +140,7 @@ string	gameLoadedEvent
 string 	internalReadyEvent
 
 
-Event _slt_OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
+Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
 	SLTReady()
 	SLTSettingsUpdated()
 EndEvent
@@ -171,8 +171,8 @@ Function SLTInit()
 	bEnabled = JsonUtil.GetIntValue(FN_S, "enabled") as bool
 	SetEnabled(bEnabled)
 	
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_INTERNAL_READY_EVENT(), "_slt_OnSLTInternalReady")
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "_slt_OnSLTSettingsUpdated")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_INTERNAL_READY_EVENT(), "OnSLTInternalReady")
+	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTSettingsUpdated")
 	
 	_slt_RefreshTriggers()
 
@@ -192,7 +192,7 @@ bool Function RequestCommandWithThreadId(Actor _theActor, string _theScript, int
 	return SLT.StartCommandWithThreadId(_theActor, _theScript, _requestId, _threadid)
 EndFunction
 
-Event _slt_OnSLTInternalReady(string eventName, string strArg, float numArg, Form sender)
+Event OnSLTInternalReady(string eventName, string strArg, float numArg, Form sender)
 	if !self
 		return
 	endif

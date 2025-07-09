@@ -59,6 +59,7 @@ int 		oidDebug_Cmd_Functions
 int 		oidDebug_Cmd_InternalResolve
 int 		oidDebug_Cmd_ResolveForm
 int 		oidDebug_Cmd_RunScript
+int			oidDebug_Cmd_RunScript_Blocks
 int 		oidDebug_Cmd_RunScript_Set
 int 		oidDebug_Extension
 int 		oidDebug_Extension_Core
@@ -81,32 +82,33 @@ int[]		oidForcePageReset
 ;
 ; I wonder....
 Function CallThisToResetTheOIDValuesHextun()
-	oidEnabled				= 0
-	oidDebugMsg				= 0
-	oidDebug_Cmd			= 0
-	oidDebug_Cmd_Functions			= 0
+	oidEnabled								= 0
+	oidDebugMsg								= 0
+	oidDebug_Cmd							= 0
+	oidDebug_Cmd_Functions					= 0
 	oidDebug_Cmd_InternalResolve			= 0
-	oidDebug_Cmd_ResolveForm			= 0
-	oidDebug_Cmd_RunScript			= 0
-	oidDebug_Cmd_RunScript_Set			= 0
-	oidDebug_Extension			= 0
-	oidDebug_Extension_Core			= 0
-	oidDebug_Extension_Core_Keymapping			= 0
-	oidDebug_Extension_SexLab			= 0
-	oidDebug_Extension_CustomResolveScoped			= 0
-	oidDebug_Setup			= 0
-	oidResetSLT				= 0
-	oidCardinatePrevious	= 0
-	oidCardinateNext		= 0
-	oidAddTop				= 0
-	oidAddBottom			= 0
-	oidExtensionSettings	= 0
-	oidExtensionBack		= 0
-	oidExtensionEnabled		= 0
-	oidForcePageReset		= PapyrusUtil.IntArray(0)
-	xoidlist				= PapyrusUtil.IntArray(0)
-	xoidtriggerkeys			= PapyrusUtil.StringArray(0)
-	xoidattrnames			= PapyrusUtil.StringArray(0)
+	oidDebug_Cmd_ResolveForm				= 0
+	oidDebug_Cmd_RunScript					= 0
+	oidDebug_Cmd_RunScript_Blocks			= 0
+	oidDebug_Cmd_RunScript_Set				= 0
+	oidDebug_Extension						= 0
+	oidDebug_Extension_Core					= 0
+	oidDebug_Extension_Core_Keymapping		= 0
+	oidDebug_Extension_SexLab				= 0
+	oidDebug_Extension_CustomResolveScoped	= 0
+	oidDebug_Setup							= 0
+	oidResetSLT								= 0
+	oidCardinatePrevious					= 0
+	oidCardinateNext						= 0
+	oidAddTop								= 0
+	oidAddBottom							= 0
+	oidExtensionSettings					= 0
+	oidExtensionBack						= 0
+	oidExtensionEnabled						= 0
+	oidForcePageReset						= PapyrusUtil.IntArray(0)
+	xoidlist								= PapyrusUtil.IntArray(0)
+	xoidtriggerkeys							= PapyrusUtil.StringArray(0)
+	xoidattrnames							= PapyrusUtil.StringArray(0)
 EndFunction
 
 int Function GetVersion()
@@ -699,13 +701,14 @@ Event OnOptionDefault(int option)
 	endif
 EndEvent
 
-Function DoFlagAndSave(int option, bool value, string jkey)
-	SetToggleOptionValue(option, value)
+bool Function DoSaveAndReset(int option, string jkey, bool value)
+	bool storedValue = SLT.UpdateFlag(jkey, value)
 
-	JsonUtil.SetIntValue(FN_Settings(), jkey, value as int)
-	JsonUtil.Save(FN_Settings())
+	SetToggleOptionValue(option, storedValue)
 
 	ForcePageReset()
+
+	return storedValue
 EndFunction
 
 ; Text (buttons?)
@@ -714,62 +717,84 @@ Event OnOptionSelect(int option)
 	if !option
 		Return
 	endif
+	string _strVal
+	bool _boolVal
 	If option == oidEnabled
 		; this should have ramifications
-		SLT.SetEnabled(!SLT.IsEnabled)
-		DoFlagAndSave(option, SLT.IsEnabled, "enabled")
+		bool nowEnabled = !SLT.IsEnabled
+		SLT.SetEnabled(nowEnabled)
+		SetToggleOptionValue(option, nowEnabled)
+		ForcePageReset()
 		return
 	elseIf option == oidDebugMsg
-		SLT.bDebugMsg = !SLT.bDebugMsg
-		DoFlagAndSave(option, SLT.bDebugMsg, "debugmsg")
+		_strVal = "debugmsg"
+		_boolVal = !SLT.bDebugMsg
+		SLT.bDebugMsg = DoSaveAndReset(option, _strVal, _boolVal)
 		return
 	elseIf option == oidDebug_Cmd
-		SLT.Debug_Cmd = !SLT.Debug_Cmd
-		DoFlagAndSave(option, SLT.Debug_Cmd, "Debug_Cmd")
+		_strVal = "Debug_Cmd"
+		_boolVal = !SLT.Debug_Cmd
+		SLT.Debug_Cmd = DoSaveAndReset(option, _strVal, _boolVal)
 		return
 	elseIf option == oidDebug_Cmd_Functions
-		SLT.Debug_Cmd_Functions = !SLT.Debug_Cmd_Functions
-		DoFlagAndSave(option, SLT.Debug_Cmd_Functions, "Debug_Cmd_Functions")
+		_strVal = "Debug_Cmd_Functions"
+		_boolVal = !SLT.Debug_Cmd_Functions
+		SLT.Debug_Cmd_Functions = DoSaveAndReset(option, _strVal, _boolVal)
 		return
 	elseIf option == oidDebug_Cmd_InternalResolve
-		SLT.Debug_Cmd_InternalResolve = !SLT.Debug_Cmd_InternalResolve
-		DoFlagAndSave(option, SLT.Debug_Cmd_InternalResolve, "Debug_Cmd_InternalResolve")
+		_strVal = "Debug_Cmd_InternalResolve"
+		_boolVal = !SLT.Debug_Cmd_InternalResolve
+		SLT.Debug_Cmd_InternalResolve = DoSaveAndReset(option, _strVal, _boolVal)
 		return
 	elseIf option == oidDebug_Cmd_ResolveForm
-		SLT.Debug_Cmd_ResolveForm = !SLT.Debug_Cmd_ResolveForm
-		DoFlagAndSave(option, SLT.Debug_Cmd_ResolveForm, "Debug_Cmd_ResolveForm")
+		_strVal = "Debug_Cmd_ResolveForm"
+		_boolVal = !SLT.Debug_Cmd_ResolveForm
+		SLT.Debug_Cmd_ResolveForm = DoSaveAndReset(option, _strVal, _boolVal)
 		return
 	elseIf option == oidDebug_Cmd_RunScript
-		SLT.Debug_Cmd_RunScript = !SLT.Debug_Cmd_RunScript
-		DoFlagAndSave(option, SLT.Debug_Cmd_RunScript, "Debug_Cmd_RunScript")
+		_strVal = "Debug_Cmd_RunScript"
+		_boolVal = !SLT.Debug_Cmd_RunScript
+		SLT.Debug_Cmd_RunScript = DoSaveAndReset(option, _strVal, _boolVal)
+		return
+	elseIf option == oidDebug_Cmd_RunScript_Blocks
+		_strVal = "Debug_Cmd_RunScript_Blocks"
+		_boolVal = !SLT.Debug_Cmd_RunScript_Blocks
+		SLT.Debug_Cmd_RunScript_Blocks = DoSaveAndReset(option, _strVal, _boolVal)
 		return
 	elseIf option == oidDebug_Cmd_RunScript_Set
-		SLT.Debug_Cmd_RunScript_Set = !SLT.Debug_Cmd_RunScript_Set
-		DoFlagAndSave(option, SLT.Debug_Cmd_RunScript_Set, "Debug_Cmd_RunScript_Set")
+		_strVal = "Debug_Cmd_RunScript_Set"
+		_boolVal = !SLT.Debug_Cmd_RunScript_Set
+		SLT.Debug_Cmd_RunScript_Set = DoSaveAndReset(option, _strVal, _boolVal)
 		return
 	elseIf option == oidDebug_Extension
-		SLT.Debug_Extension = !SLT.Debug_Extension
-		DoFlagAndSave(option, SLT.Debug_Extension, "Debug_Extension")
+		_strVal = "Debug_Extension"
+		_boolVal = !SLT.Debug_Extension
+		SLT.Debug_Extension = DoSaveAndReset(option, _strVal, _boolVal)
 		return
 	elseIf option == oidDebug_Extension_Core
-		SLT.Debug_Extension_Core = !SLT.Debug_Extension_Core
-		DoFlagAndSave(option, SLT.Debug_Extension_Core, "Debug_Extension_Core")
+		_strVal = "Debug_Extension_Core"
+		_boolVal = !SLT.Debug_Extension_Core
+		SLT.Debug_Extension_Core = DoSaveAndReset(option, _strVal, _boolVal)
 		return
 	elseIf option == oidDebug_Extension_Core_Keymapping
-		SLT.Debug_Extension_Core_Keymapping = !SLT.Debug_Extension_Core_Keymapping
-		DoFlagAndSave(option, SLT.Debug_Extension_Core_Keymapping, "Debug_Extension_Core_Keymapping")
+		_strVal = "Debug_Extension_Core_Keymapping"
+		_boolVal = !SLT.Debug_Extension_Core_Keymapping
+		SLT.Debug_Extension_Core_Keymapping = DoSaveAndReset(option, _strVal, _boolVal)
 		return
 	elseIf option == oidDebug_Extension_SexLab
-		SLT.Debug_Extension_SexLab = !SLT.Debug_Extension_SexLab
-		DoFlagAndSave(option, SLT.Debug_Extension_SexLab, "Debug_Extension_SexLab")
+		_strVal = "Debug_Extension_SexLab"
+		_boolVal = !SLT.Debug_Extension_SexLab
+		SLT.Debug_Extension_SexLab = DoSaveAndReset(option, _strVal, _boolVal)
 		return
 	elseIf option == oidDebug_Extension_CustomResolveScoped
-		SLT.Debug_Extension_CustomResolveScoped = !SLT.Debug_Extension_CustomResolveScoped
-		DoFlagAndSave(option, SLT.Debug_Extension_CustomResolveScoped, "Debug_Extension_CustomResolveScoped")
+		_strVal = "Debug_Extension_CustomResolveScoped"
+		_boolVal = !SLT.Debug_Extension_CustomResolveScoped
+		SLT.Debug_Extension_CustomResolveScoped = DoSaveAndReset(option, _strVal, _boolVal)
 		return
 	elseIf option == oidDebug_Setup
-		SLT.Debug_Setup = !SLT.Debug_Setup
-		DoFlagAndSave(option, SLT.Debug_Setup, "Debug_Setup")
+		_strVal = "Debug_Setup"
+		_boolVal = !SLT.Debug_Setup
+		SLT.Debug_Setup = DoSaveAndReset(option, _strVal, _boolVal)
 		return
 	elseIf option == oidResetSLT
 		refreshOnClose = ShowMessage("$SLT_MSG_SOFT_DELETE_WARNING", true, "$Yes", "$No")
@@ -1260,20 +1285,24 @@ Function ShowHeaderPage()
 	AddHeaderOption("(" + sl_triggers.GetTranslatedString("$SLT_LBL_VERSION") + " " + (ver as string) + ")")
 	
 	AddHeaderOption("$SLT_LBL_GLOBAL_SETTINGS")
-	oidEnabled    = AddToggleOption("$SLT_LBL_ENABLED_QUESTION", SLT.IsEnabled)
-	oidDebugMsg   = AddToggleOption("$SLT_LBL_DEBUG_MESSAGES", SLT.bDebugMsg)
-	oidDebug_Cmd		= AddToggleOption("Debug_Cmd", SLT.Debug_Cmd)
-	oidDebug_Cmd_Functions		= AddToggleOption("Debug_Cmd_Functions", SLT.Debug_Cmd_Functions)
-	oidDebug_Cmd_InternalResolve		= AddToggleOption("Debug_Cmd_InternalResolve", SLT.Debug_Cmd_InternalResolve)
-	oidDebug_Cmd_ResolveForm		= AddToggleOption("Debug_Cmd_ResolveForm", SLT.Debug_Cmd_ResolveForm)
-	oidDebug_Cmd_RunScript		= AddToggleOption("Debug_Cmd_RunScript", SLT.Debug_Cmd_RunScript)
-	oidDebug_Cmd_RunScript_Set		= AddToggleOption("Debug_Cmd_RunScript_Set", SLT.Debug_Cmd_RunScript_Set)
-	oidDebug_Extension		= AddToggleOption("Debug_Extension", SLT.Debug_Extension)
-	oidDebug_Extension_Core		= AddToggleOption("Debug_Extension_Core", SLT.Debug_Extension_Core)
-	oidDebug_Extension_Core_Keymapping		= AddToggleOption("Debug_Extension_Core_Keymapping", SLT.Debug_Extension_Core_Keymapping)
-	oidDebug_Extension_SexLab		= AddToggleOption("Debug_Extension_SexLab", SLT.Debug_Extension_SexLab)
-	oidDebug_Extension_CustomResolveScoped		= AddToggleOption("Debug_Extension_CustomResolveScoped", SLT.Debug_Extension_CustomResolveScoped)
-	oidDebug_Setup		= AddToggleOption("Debug_Setup", SLT.Debug_Setup)
+	AddEmptyOption()
+	oidEnabled    							= AddToggleOption("$SLT_LBL_ENABLED_QUESTION", 				SLT.IsEnabled)
+	oidDebugMsg   							= AddToggleOption("$SLT_LBL_DEBUG_MESSAGES", 				SLT.bDebugMsg)
+	AddEmptyOption()
+	AddHeaderOption("$SLT_LBL_DEBUG_FLAGS")
+	oidDebug_Cmd							= AddToggleOption("Debug_Cmd", 								SLT.Debug_Cmd)
+	oidDebug_Cmd_Functions					= AddToggleOption("Debug_Cmd_Functions", 					SLT.Debug_Cmd_Functions)
+	oidDebug_Cmd_InternalResolve			= AddToggleOption("Debug_Cmd_InternalResolve", 				SLT.Debug_Cmd_InternalResolve)
+	oidDebug_Cmd_ResolveForm				= AddToggleOption("Debug_Cmd_ResolveForm", 					SLT.Debug_Cmd_ResolveForm)
+	oidDebug_Cmd_RunScript					= AddToggleOption("Debug_Cmd_RunScript", 					SLT.Debug_Cmd_RunScript)
+	oidDebug_Cmd_RunScript_Blocks 			= AddToggleOption("Debug_Cmd_RunScript_Blocks", 			SLT.Debug_Cmd_RunScript_Blocks)
+	oidDebug_Cmd_RunScript_Set				= AddToggleOption("Debug_Cmd_RunScript_Set", 				SLT.Debug_Cmd_RunScript_Set)
+	oidDebug_Extension						= AddToggleOption("Debug_Extension", 						SLT.Debug_Extension)
+	oidDebug_Extension_Core					= AddToggleOption("Debug_Extension_Core", 					SLT.Debug_Extension_Core)
+	oidDebug_Extension_Core_Keymapping		= AddToggleOption("Debug_Extension_Core_Keymapping",		SLT.Debug_Extension_Core_Keymapping)
+	oidDebug_Extension_SexLab				= AddToggleOption("Debug_Extension_SexLab", 				SLT.Debug_Extension_SexLab)
+	oidDebug_Extension_CustomResolveScoped	= AddToggleOption("Debug_Extension_CustomResolveScoped",	SLT.Debug_Extension_CustomResolveScoped)
+	oidDebug_Setup							= AddToggleOption("Debug_Setup",							SLT.Debug_Setup)
 	AddEmptyOption()
 	AddEmptyOption()
 	oidResetSLT		= AddTextOption("$SLT_BTN_RESET_SL_TRIGGERS", "")

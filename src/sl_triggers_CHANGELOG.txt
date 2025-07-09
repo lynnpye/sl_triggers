@@ -58,6 +58,28 @@
             endwhile
             ; the while loop will be iterated until the random number generator
             ; generates a number larger than 5
+    Note: as part of the if-block/while-block/beginsub-block implementation, the parser should now attempt nested block skipping
+        Previously, for example, if you had a code sequence that went something like:
+            beginsub something
+            ; code
+            beginsub innersub
+            ; more code
+            endsub 
+            ; more code
+            endsub
+        Reaching "beginsub something" would iterate until it reach the first "endsub", not the second as one might expect
+        That said, embedded sub routines is hardly a common use case. So the same should also now apply for if and while blocks, newly introduced.
+        Meaning you should be able to nest them:
+            set $flag1 false
+            if $flag1
+                ; leading code
+                if $flag2
+                    ; inner code
+                endif
+                ; trailing code
+            endif
+            ; this should cause it to skip leading, inner, and trailing code, as one would expect
+    enhancement: caching of debug flags in AME objects (should offset the plethora of granular debug output flags)
 
 123
     Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)

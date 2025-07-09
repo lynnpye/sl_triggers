@@ -27,7 +27,7 @@ Function echo_back_test(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
     string arg1 = param[1]
 
     if ParamLengthGT(CmdPrimary, param.Length, 1)
-        arg1 = CmdPrimary.Resolve(param[1])
+        arg1 = CmdPrimary.ResolveString(param[1])
 
         if arg1 == "true"
             CmdPrimary.MostRecentBoolResult = true
@@ -129,7 +129,7 @@ Function deb_msg(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
         darr[0] = "DebMsg> "
         int i = 1
         while i < darr.Length
-            darr[i] = CmdPrimary.Resolve(param[i])
+            darr[i] = CmdPrimary.ResolveString(param[i])
             i += 1
         endwhile
         string dmsg = PapyrusUtil.StringJoin(darr, "")
@@ -153,7 +153,7 @@ function msg_notify(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         string[] darr = PapyrusUtil.StringArray(param.Length)
         int i = 1
         while i < darr.Length
-            darr[i] = CmdPrimary.Resolve(param[i])
+            darr[i] = CmdPrimary.ResolveString(param[i])
             i += 1
         endwhile
         string msg = PapyrusUtil.StringJoin(darr, "")
@@ -203,7 +203,7 @@ function av_restore(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
     if ParamLengthEQ(CmdPrimary, param.Length, 4)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
-            _targetActor.RestoreActorValue(CmdPrimary.Resolve(param[2]), CmdPrimary.ResolveFloat(param[3]))
+            _targetActor.RestoreActorValue(CmdPrimary.ResolveString(param[2]), CmdPrimary.ResolveFloat(param[3]))
         endif
     endif
 
@@ -225,7 +225,7 @@ function av_damage(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
     if ParamLengthEQ(CmdPrimary, param.Length, 4)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
-            _targetActor.DamageActorValue(CmdPrimary.Resolve(param[2]), CmdPrimary.ResolveFloat(param[3]))
+            _targetActor.DamageActorValue(CmdPrimary.ResolveString(param[2]), CmdPrimary.ResolveFloat(param[3]))
         endif
     endif
 
@@ -247,7 +247,7 @@ function av_mod(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] pa
     if ParamLengthEQ(CmdPrimary, param.Length, 4)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
-            _targetActor.ModActorValue(CmdPrimary.Resolve(param[2]), CmdPrimary.ResolveFloat(param[3]))
+            _targetActor.ModActorValue(CmdPrimary.ResolveString(param[2]), CmdPrimary.ResolveFloat(param[3]))
         endif
     endif
 
@@ -269,7 +269,7 @@ function av_set(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] pa
     if ParamLengthEQ(CmdPrimary, param.Length, 4)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
-            _targetActor.SetActorValue(CmdPrimary.Resolve(param[2]), CmdPrimary.ResolveFloat(param[3]))
+            _targetActor.SetActorValue(CmdPrimary.ResolveString(param[2]), CmdPrimary.ResolveFloat(param[3]))
         endif
     endif
 
@@ -292,7 +292,7 @@ function av_getbase(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
 
         if _targetActor
-            nextResult = _targetActor.GetBaseActorValue(CmdPrimary.Resolve(param[2]))
+            nextResult = _targetActor.GetBaseActorValue(CmdPrimary.ResolveString(param[2]))
         endif
     endif
 
@@ -317,7 +317,7 @@ function av_get(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] pa
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
 
         if _targetActor
-            nextResult = _targetActor.GetActorValue(CmdPrimary.Resolve(param[2]))
+            nextResult = _targetActor.GetActorValue(CmdPrimary.ResolveString(param[2]))
         endif
     endif
 
@@ -342,7 +342,7 @@ function av_getmax(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
 
         if _targetActor
-            nextResult = _targetActor.GetActorValueMax(CmdPrimary.Resolve(param[2]))
+            nextResult = _targetActor.GetActorValueMax(CmdPrimary.ResolveString(param[2]))
         endif
     endif
 
@@ -366,7 +366,7 @@ function av_getpercent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
-            nextResult = (_targetActor.GetActorValuePercentage(CmdPrimary.Resolve(param[2])) * 100.0)
+            nextResult = (_targetActor.GetActorValuePercentage(CmdPrimary.ResolveString(param[2])) * 100.0)
         endif
     endif
 
@@ -845,7 +845,7 @@ function msg_console(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
         string[] darr = PapyrusUtil.StringArray(param.Length)
         int i = 1
         while i < darr.Length
-            darr[i] = CmdPrimary.Resolve(param[i])
+            darr[i] = CmdPrimary.ResolveString(param[i])
             i += 1
         endwhile
         string msg = PapyrusUtil.StringJoin(darr, "")
@@ -868,7 +868,7 @@ function rnd_list(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
 
     if ParamLengthGT(CmdPrimary, param.Length, 1)
         int idx = Utility.RandomInt(1, param.Length - 1)
-        nextResult = CmdPrimary.Resolve(param[idx])
+        nextResult = CmdPrimary.ResolveString(param[idx])
     endif
 
     CmdPrimary.MostRecentStringResult = nextResult
@@ -1070,7 +1070,7 @@ function actor_advskill(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
     if ParamLengthEQ(CmdPrimary, param.Length, 4)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
-            string skillName = CmdPrimary.Resolve(param[2])
+            string skillName = CmdPrimary.ResolveString(param[2])
             if skillName
                 Game.AdvanceSkill(skillName, CmdPrimary.ResolveInt(param[3]))
             else
@@ -1098,7 +1098,7 @@ function actor_incskill(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
     if ParamLengthEQ(CmdPrimary, param.Length, 4)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
-            string skillName = CmdPrimary.Resolve(param[2])
+            string skillName = CmdPrimary.ResolveString(param[2])
             if skillName
                 if _targetActor == CmdPrimary.PlayerRef
                     Game.IncrementSkillBy(skillName, CmdPrimary.ResolveInt(param[3]))
@@ -1137,7 +1137,7 @@ function actor_isvalid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         if _targetActor && _targetActor.isEnabled() && !_targetActor.isDead() && !_targetActor.isInCombat() && !_targetActor.IsUnconscious() && _targetActor.Is3DLoaded() && cc == _targetActor.getParentCell()
             nextResult = 1
         else
-            If (CmdPrimary.SLT.Debug_Cmd_Functions)
+            If (CmdPrimary.Debug_Cmd_Functions)
                 string actor_isvalid_problems = ""
 
                 if !_targetActor
@@ -1405,7 +1405,7 @@ function actor_haskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
     bool nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Keyword keyw = Keyword.GetKeyword(CmdPrimary.Resolve(param[2]))
+        Keyword keyw = Keyword.GetKeyword(CmdPrimary.ResolveString(param[2]))
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if keyw && _targetActor && _targetActor.HasKeyword(keyw)
             nextResult = true
@@ -1521,7 +1521,7 @@ function actor_wornhaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimar
     bool nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Keyword keyw = Keyword.GetKeyword(CmdPrimary.Resolve(param[2]))
+        Keyword keyw = Keyword.GetKeyword(CmdPrimary.ResolveString(param[2]))
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         
         if keyw && _targetActor && _targetActor.WornHasKeyword(keyw)
@@ -1547,7 +1547,7 @@ function actor_lochaskeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary
     bool nextResult
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Keyword keyw = Keyword.GetKeyword(CmdPrimary.Resolve(param[2]))
+        Keyword keyw = Keyword.GetKeyword(CmdPrimary.ResolveString(param[2]))
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         
         if keyw && _targetActor && _targetActor.GetCurrentLocation().HasKeyword(keyw)
@@ -1713,7 +1713,7 @@ function actor_isaffectedby(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary,
             int spelidx
             int numeffs
             while idx < param.Length && nextResult < -1
-                string pstr = CmdPrimary.Resolve(param[idx])
+                string pstr = CmdPrimary.ResolveString(param[idx])
                 if idx == 2 && "ALL" == pstr
                     needAll = true
                     idx += 1
@@ -1793,7 +1793,7 @@ function actor_playanim(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        Debug.SendAnimationEvent(CmdPrimary.ResolveActor(param[1]), CmdPrimary.Resolve(param[2]))
+        Debug.SendAnimationEvent(CmdPrimary.ResolveActor(param[1]), CmdPrimary.ResolveString(param[2]))
     endif
 
 	CmdPrimary.CompleteOperationOnActor()
@@ -1813,10 +1813,10 @@ function actor_sendmodevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary,
     if ParamLengthGT(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
-            string ss1 = CmdPrimary.Resolve(param[2])
+            string ss1 = CmdPrimary.ResolveString(param[2])
             string ss2
             if param.Length > 3
-                ss2 = CmdPrimary.Resolve(param[3])
+                ss2 = CmdPrimary.ResolveString(param[3])
             endif
             float  p3
             if param.Length > 4
@@ -1850,7 +1850,7 @@ function actor_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 
     if ParamLengthGT(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
-        string ss1 = CmdPrimary.Resolve(param[2])
+        string ss1 = CmdPrimary.ResolveString(param[2])
         
         if _targetActor 
             if ss1 == "GetCombatState"
@@ -1896,7 +1896,7 @@ function actor_body(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 
     if ParamLengthGT(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
-        string ss1 = CmdPrimary.Resolve(param[2])
+        string ss1 = CmdPrimary.ResolveString(param[2])
         
         if _targetActor 
             if ss1 == "ClearExtraArrows"
@@ -1947,7 +1947,7 @@ function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         
         if _targetActor
-            string ss1 = CmdPrimary.Resolve(param[2])
+            string ss1 = CmdPrimary.ResolveString(param[2])
             if !ss1
                 nextResult = _targetActor.GetRace().GetName()
             endIf
@@ -2157,7 +2157,7 @@ function form_doaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Form _target = CmdPrimary.ResolveForm(param[1])
         if _target
-            string _theAction = CmdPrimary.Resolve(param[2])
+            string _theAction = CmdPrimary.ResolveString(param[2])
 
             if _theAction
                 if !_slt_form_doaction(CmdPrimary, _target, _theAction)
@@ -2195,7 +2195,7 @@ function objectreference_doaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPr
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         ObjectReference _target = CmdPrimary.ResolveForm(param[1]) as ObjectReference
         if _target
-            string _theAction = CmdPrimary.Resolve(param[2])
+            string _theAction = CmdPrimary.ResolveString(param[2])
 
             if _theAction
                 if !_slt_objectreference_doaction(CmdPrimary, _target, _theAction)
@@ -2246,7 +2246,7 @@ function actor_doaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _target = CmdPrimary.ResolveActor(param[1])
         if _target
-            string _theAction = CmdPrimary.Resolve(param[2])
+            string _theAction = CmdPrimary.ResolveString(param[2])
 
             if _theAction
                 if !_slt_actor_doaction(CmdPrimary, _target, _theAction)
@@ -2565,7 +2565,7 @@ function form_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         Form _target = CmdPrimary.ResolveForm(param[1])
         
         if _target
-            string _theAction = CmdPrimary.Resolve(param[2])
+            string _theAction = CmdPrimary.ResolveString(param[2])
 
             if _theAction
                 if !_slt_form_dogetter(CmdPrimary, _target, _theAction)
@@ -2646,7 +2646,7 @@ function objectreference_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPr
         ObjectReference _target = CmdPrimary.ResolveForm(param[1]) as ObjectReference
         
         if _target
-            string _theAction = CmdPrimary.Resolve(param[2])
+            string _theAction = CmdPrimary.ResolveString(param[2])
 
             if _theAction
                 if !_slt_objectreference_dogetter(CmdPrimary, _target, _theAction)
@@ -2739,7 +2739,7 @@ function actor_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
         Actor _target = CmdPrimary.ResolveActor(param[1])
         
         if _target
-            string _theAction = CmdPrimary.Resolve(param[2])
+            string _theAction = CmdPrimary.ResolveString(param[2])
 
             if _theAction
                 if !_slt_actor_dogetter(CmdPrimary, _target, _theAction)
@@ -2761,11 +2761,11 @@ bool function _slt_form_doconsumer(sl_triggersCmd CmdPrimary, Form _target, stri
             endif
         elseif _theAction == "SetWorldModelPath"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                _target.SetWorldModelPath(CmdPrimary.Resolve(param[3]))
+                _target.SetWorldModelPath(CmdPrimary.ResolveString(param[3]))
             endif
         elseif _theAction == "SetName"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                _target.SetName(CmdPrimary.Resolve(param[3]))
+                _target.SetName(CmdPrimary.ResolveString(param[3]))
             endif
         elseif _theAction == "SetWeight"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -2777,11 +2777,11 @@ bool function _slt_form_doconsumer(sl_triggersCmd CmdPrimary, Form _target, stri
             endif
         elseif _theAction == "SendModEvent"
             if ParamLengthGT(CmdPrimary, param.Length, 3)
-                string _eventname = CmdPrimary.Resolve(param[3])
+                string _eventname = CmdPrimary.ResolveString(param[3])
                 string _strarg
                 float _fltarg
                 if param.Length > 4
-                    _strarg = CmdPrimary.Resolve(param[4])
+                    _strarg = CmdPrimary.ResolveString(param[4])
                     if param.Length > 5
                         _fltarg = CmdPrimary.ResolveFloat(param[5])
                     endif
@@ -2928,12 +2928,12 @@ bool function _slt_objectreference_doconsumer(sl_triggersCmd CmdPrimary, ObjectR
             if ParamLengthEQ(CmdPrimary, param.Length, 5)
                 ObjectReference _akTarget = CmdPrimary.ResolveForm(param[3]) as ObjectReference
                 if _akTarget
-                    _target.MoveToNode(_akTarget, CmdPrimary.Resolve(param[4]))
+                    _target.MoveToNode(_akTarget, CmdPrimary.ResolveString(param[4]))
                 endif
             endif
         elseif _theAction == "PlayTerrainEffect"
             if ParamLengthEQ(CmdPrimary, param.Length, 5)
-                _target.PlayTerrainEffect(CmdPrimary.Resolve(param[3]), CmdPrimary.Resolve(param[4]))
+                _target.PlayTerrainEffect(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveString(param[4]))
             endif
         elseif _theAction == "ProcessTrapHit"
             if ParamLengthEQ(CmdPrimary, param.Length, 14)
@@ -3008,15 +3008,15 @@ bool function _slt_objectreference_doconsumer(sl_triggersCmd CmdPrimary, ObjectR
             endif
         elseif _theAction == "SetAnimationVariableBool"
             if ParamLengthEQ(CmdPrimary, param.Length, 5)
-                _target.SetAnimationVariableBool(CmdPrimary.Resolve(param[3]), CmdPrimary.ResolveBool(param[4]))
+                _target.SetAnimationVariableBool(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveBool(param[4]))
             endif
         elseif _theAction == "SetAnimationVariableFloat"
             if ParamLengthEQ(CmdPrimary, param.Length, 5)
-                _target.SetAnimationVariableFloat(CmdPrimary.Resolve(param[3]), CmdPrimary.ResolveFloat(param[4]))
+                _target.SetAnimationVariableFloat(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
             endif
         elseif _theAction == "SetAnimationVariableInt"
             if ParamLengthEQ(CmdPrimary, param.Length, 5)
-                _target.SetAnimationVariableInt(CmdPrimary.Resolve(param[3]), CmdPrimary.ResolveInt(param[4]))
+                _target.SetAnimationVariableInt(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveInt(param[4]))
             endif
         elseif _theAction == "SetDestroyed"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -3159,11 +3159,11 @@ bool function _slt_actor_doconsumer(sl_triggersCmd CmdPrimary, Actor _target, st
 			endif
 		elseif _theAction == "DamageActorValue"
 			if ParamLengthEQ(CmdPrimary, param.Length, 5)
-				_target.DamageActorValue(CmdPrimary.Resolve(param[3]), CmdPrimary.ResolveFloat(param[4]))
+				_target.DamageActorValue(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
 			endif
 		elseif _theAction == "DamageAV"
 			if ParamLengthEQ(CmdPrimary, param.Length, 5)
-				_target.DamageAV(CmdPrimary.Resolve(param[3]), CmdPrimary.ResolveFloat(param[4]))
+				_target.DamageAV(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
 			endif
 		elseif _theAction == "DoCombatSpellApply"
 			if ParamLengthEQ(CmdPrimary, param.Length, 5)
@@ -3200,11 +3200,11 @@ bool function _slt_actor_doconsumer(sl_triggersCmd CmdPrimary, Actor _target, st
 			endif
 		elseif _theAction == "ForceActorValue"
 			if ParamLengthEQ(CmdPrimary, param.Length, 5)
-                _target.ForceActorValue(CmdPrimary.Resolve(param[3]), CmdPrimary.ResolveFloat(param[4]))
+                _target.ForceActorValue(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
 			endif
 		elseif _theAction == "ForceAV"
 			if ParamLengthEQ(CmdPrimary, param.Length, 5)
-                _target.ForceAV(CmdPrimary.Resolve(param[3]), CmdPrimary.ResolveFloat(param[4]))
+                _target.ForceAV(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
 			endif
 		elseif _theAction == "KeepOffsetFromActor"
 			if ParamLengthEQ(CmdPrimary, param.Length, 11)
@@ -3236,11 +3236,11 @@ bool function _slt_actor_doconsumer(sl_triggersCmd CmdPrimary, Actor _target, st
 			endif
 		elseif _theAction == "ModActorValue"
 			if ParamLengthEQ(CmdPrimary, param.Length, 5)
-                _target.ModActorValue(CmdPrimary.Resolve(param[3]), CmdPrimary.ResolveFloat(param[4]))
+                _target.ModActorValue(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
 			endif
 		elseif _theAction == "ModAV"
 			if ParamLengthEQ(CmdPrimary, param.Length, 5)
-                _target.ModAV(CmdPrimary.Resolve(param[3]), CmdPrimary.ResolveFloat(param[4]))
+                _target.ModAV(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
 			endif
 		elseif _theAction == "ModFactionRank"
 			if ParamLengthEQ(CmdPrimary, param.Length, 5)
@@ -3255,7 +3255,7 @@ bool function _slt_actor_doconsumer(sl_triggersCmd CmdPrimary, Actor _target, st
 			endif
 		elseif _theAction == "PlaySubGraphAnimation"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-				_target.PlaySubGraphAnimation(CmdPrimary.Resolve(param[3]))
+				_target.PlaySubGraphAnimation(CmdPrimary.ResolveString(param[3]))
 			endif
 		elseif _theAction == "RemoveFromFaction"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -3273,11 +3273,11 @@ bool function _slt_actor_doconsumer(sl_triggersCmd CmdPrimary, Actor _target, st
 			endif
 		elseif _theAction == "RestoreActorValue"
 			if ParamLengthEQ(CmdPrimary, param.Length, 5)
-                _target.RestoreActorValue(CmdPrimary.Resolve(param[3]), CmdPrimary.ResolveFloat(param[4]))
+                _target.RestoreActorValue(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
 			endif
 		elseif _theAction == "RestoreAV"
 			if ParamLengthEQ(CmdPrimary, param.Length, 5)
-                _target.RestoreAV(CmdPrimary.Resolve(param[3]), CmdPrimary.ResolveFloat(param[4]))
+                _target.RestoreAV(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
 			endif
 		elseif _theAction == "SendTrespassAlarm"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -3288,7 +3288,7 @@ bool function _slt_actor_doconsumer(sl_triggersCmd CmdPrimary, Actor _target, st
 			endif
 		elseif _theAction == "SetActorValue"
 			if ParamLengthEQ(CmdPrimary, param.Length, 5)
-                _target.SetActorValue(CmdPrimary.Resolve(param[3]), CmdPrimary.ResolveFloat(param[4]))
+                _target.SetActorValue(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
 			endif
 		elseif _theAction == "SetAlert"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -3312,7 +3312,7 @@ bool function _slt_actor_doconsumer(sl_triggersCmd CmdPrimary, Actor _target, st
 			endif
 		elseif _theAction == "SetAV"
 			if ParamLengthEQ(CmdPrimary, param.Length, 5)
-                _target.SetAV(CmdPrimary.Resolve(param[3]), CmdPrimary.ResolveFloat(param[4]))
+                _target.SetAV(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
 			endif
 		elseif _theAction == "SetBribed"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -3630,7 +3630,7 @@ function form_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
         Form _target = CmdPrimary.ResolveForm(param[1])
         
         if _target
-            string _theAction = CmdPrimary.Resolve(param[2])
+            string _theAction = CmdPrimary.ResolveString(param[2])
 
             if _theAction
                 if !_slt_form_doconsumer(CmdPrimary, _target, _theAction, param)
@@ -3718,7 +3718,7 @@ function objectreference_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _Cmd
         ObjectReference _target = CmdPrimary.ResolveActor(param[1]) as ObjectReference
         
         if _target
-            string _theAction = CmdPrimary.Resolve(param[2])
+            string _theAction = CmdPrimary.ResolveString(param[2])
 
             if _theAction
                 if !_slt_objectreference_doconsumer(CmdPrimary, _target, _theAction, param)
@@ -3822,7 +3822,7 @@ function actor_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         Actor _target = CmdPrimary.ResolveActor(param[1])
         
         if _target
-            string _theAction = CmdPrimary.Resolve(param[2])
+            string _theAction = CmdPrimary.ResolveString(param[2])
 
             if _theAction
                 if !_slt_actor_doconsumer(CmdPrimary, _target, _theAction, param)
@@ -3839,7 +3839,7 @@ bool Function _slt_form_dofunction(sl_triggersCmd CmdPrimary, Form _target, stri
     if _target && _theAction
         if _theAction == "HasKeywordString"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-				CmdPrimary.MostRecentBoolResult = _target.HasKeywordString(CmdPrimary.Resolve(param[3]))
+				CmdPrimary.MostRecentBoolResult = _target.HasKeywordString(CmdPrimary.ResolveString(param[3]))
 			endif
         elseif _theAction == "HasKeyword"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -3886,15 +3886,15 @@ bool Function _slt_objectreference_dofunction(sl_triggersCmd CmdPrimary, ObjectR
             endif
 		elseif _theAction == "GetAnimationVariableBool"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                CmdPrimary.MostRecentBoolResult = _target.GetAnimationVariableBool(CmdPrimary.Resolve(param[3]))
+                CmdPrimary.MostRecentBoolResult = _target.GetAnimationVariableBool(CmdPrimary.ResolveString(param[3]))
             endif
 		elseif _theAction == "GetAnimationVariableFloat"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                CmdPrimary.MostRecentFloatResult = _target.GetAnimationVariableFloat(CmdPrimary.Resolve(param[3]))
+                CmdPrimary.MostRecentFloatResult = _target.GetAnimationVariableFloat(CmdPrimary.ResolveString(param[3]))
             endif
 		elseif _theAction == "GetAnimationVariableInt"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                CmdPrimary.MostRecentIntResult = _target.GetAnimationVariableInt(CmdPrimary.Resolve(param[3]))
+                CmdPrimary.MostRecentIntResult = _target.GetAnimationVariableInt(CmdPrimary.ResolveString(param[3]))
             endif
 		elseif _theAction == "GetDistance"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -3926,7 +3926,7 @@ bool Function _slt_objectreference_dofunction(sl_triggersCmd CmdPrimary, ObjectR
             endif
 		elseif _theAction == "HasNode"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                CmdPrimary.MostRecentBoolResult = _target.HasNode(CmdPrimary.Resolve(param[3]))
+                CmdPrimary.MostRecentBoolResult = _target.HasNode(CmdPrimary.ResolveString(param[3]))
             endif
 		elseif _theAction == "HasRefType"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -3966,35 +3966,35 @@ bool Function _slt_objectreference_dofunction(sl_triggersCmd CmdPrimary, ObjectR
             endif
 		elseif _theAction == "PlayAnimation"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                CmdPrimary.MostRecentBoolResult = _target.PlayAnimation(CmdPrimary.Resolve(param[3]))
+                CmdPrimary.MostRecentBoolResult = _target.PlayAnimation(CmdPrimary.ResolveString(param[3]))
             endif
 		elseif _theAction == "PlayAnimationAndWait"
             if ParamLengthEQ(CmdPrimary, param.Length, 5)
-                CmdPrimary.MostRecentBoolResult = _target.PlayAnimationAndWait(CmdPrimary.Resolve(param[3]), CmdPrimary.Resolve(param[4]))
+                CmdPrimary.MostRecentBoolResult = _target.PlayAnimationAndWait(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveString(param[4]))
             endif
 		elseif _theAction == "PlayGamebryoAnimation"
             if ParamLengthEQ(CmdPrimary, param.Length, 6)
-                CmdPrimary.MostRecentBoolResult = _target.PlayGamebryoAnimation(CmdPrimary.Resolve(param[3]), CmdPrimary.ResolveBool(param[4]), CmdPrimary.ResolveFloat(param[5]))
+                CmdPrimary.MostRecentBoolResult = _target.PlayGamebryoAnimation(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveBool(param[4]), CmdPrimary.ResolveFloat(param[5]))
             endif
 		elseif _theAction == "PlayImpactEffect"
             if ParamLengthEQ(CmdPrimary, param.Length, 11)
                 ImpactDataSet _obj = CmdPrimary.ResolveForm(param[3]) as ImpactDataSet
                 if _obj
-                    CmdPrimary.MostRecentBoolResult = _target.PlayImpactEffect(_obj, CmdPrimary.Resolve(param[4]), CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveFloat(param[6]), CmdPrimary.ResolveFloat(param[7]), CmdPrimary.ResolveFloat(param[8]), CmdPrimary.ResolveBool(param[9]), CmdPrimary.ResolveBool(param[10]))
+                    CmdPrimary.MostRecentBoolResult = _target.PlayImpactEffect(_obj, CmdPrimary.ResolveString(param[4]), CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveFloat(param[6]), CmdPrimary.ResolveFloat(param[7]), CmdPrimary.ResolveFloat(param[8]), CmdPrimary.ResolveBool(param[9]), CmdPrimary.ResolveBool(param[10]))
                 endif
             endif
 		elseif _theAction == "PlaySyncedAnimationAndWaitSS"
             if ParamLengthEQ(CmdPrimary, param.Length, 8)
                 ObjectReference _obj = CmdPrimary.ResolveForm(param[5]) as ObjectReference
                 if _obj
-                    CmdPrimary.MostRecentBoolResult = _target.PlaySyncedAnimationAndWaitSS(CmdPrimary.Resolve(param[3]), CmdPrimary.Resolve(param[4]), _obj, CmdPrimary.Resolve(param[6]), CmdPrimary.Resolve(param[7]))
+                    CmdPrimary.MostRecentBoolResult = _target.PlaySyncedAnimationAndWaitSS(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveString(param[4]), _obj, CmdPrimary.ResolveString(param[6]), CmdPrimary.ResolveString(param[7]))
                 endif
             endif
 		elseif _theAction == "PlaySyncedAnimationSS"
             if ParamLengthEQ(CmdPrimary, param.Length, 6)
                 ObjectReference _obj = CmdPrimary.ResolveForm(param[4]) as ObjectReference
                 if _obj
-                    CmdPrimary.MostRecentBoolResult = _target.PlaySyncedAnimationSS(CmdPrimary.Resolve(param[3]), _obj, CmdPrimary.Resolve(param[5]))
+                    CmdPrimary.MostRecentBoolResult = _target.PlaySyncedAnimationSS(CmdPrimary.ResolveString(param[3]), _obj, CmdPrimary.ResolveString(param[5]))
                 endif
             endif
 		elseif _theAction == "RampRumble"
@@ -4003,7 +4003,7 @@ bool Function _slt_objectreference_dofunction(sl_triggersCmd CmdPrimary, ObjectR
             endif
 		elseif _theAction == "WaitForAnimationEvent"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                CmdPrimary.MostRecentBoolResult = _target.WaitForAnimationEvent(CmdPrimary.Resolve(param[3]))
+                CmdPrimary.MostRecentBoolResult = _target.WaitForAnimationEvent(CmdPrimary.ResolveString(param[3]))
             endif
 		elseif _theAction == "SetDisplayName"
             if ParamLengthGT(CmdPrimary, param.Length, 3)
@@ -4011,7 +4011,7 @@ bool Function _slt_objectreference_dofunction(sl_triggersCmd CmdPrimary, ObjectR
                 if param.Length > 4
                     force = CmdPrimary.ResolveBool(param[4])
                 endif
-                CmdPrimary.MostRecentBoolResult = _target.SetDisplayName(CmdPrimary.Resolve(param[3]), force)
+                CmdPrimary.MostRecentBoolResult = _target.SetDisplayName(CmdPrimary.ResolveString(param[3]), force)
             endif
 		elseif _theAction == "GetNthForm"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -4112,27 +4112,27 @@ bool Function _slt_actor_dofunction(sl_triggersCmd CmdPrimary, Actor _target, st
 			endif
 		elseif _theAction == "GetActorValue"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-				CmdPrimary.MostRecentFloatResult = _target.GetActorValue(CmdPrimary.Resolve(param[3]))
+				CmdPrimary.MostRecentFloatResult = _target.GetActorValue(CmdPrimary.ResolveString(param[3]))
 			endif
 		elseif _theAction == "GetActorValuePercentage"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-				CmdPrimary.MostRecentFloatResult = _target.GetActorValuePercentage(CmdPrimary.Resolve(param[3]))
+				CmdPrimary.MostRecentFloatResult = _target.GetActorValuePercentage(CmdPrimary.ResolveString(param[3]))
 			endif
 		elseif _theAction == "GetAV"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-				CmdPrimary.MostRecentFloatResult = _target.GetAV(CmdPrimary.Resolve(param[3]))
+				CmdPrimary.MostRecentFloatResult = _target.GetAV(CmdPrimary.ResolveString(param[3]))
 			endif
 		elseif _theAction == "GetAVPercentage"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-				CmdPrimary.MostRecentFloatResult = _target.GetAVPercentage(CmdPrimary.Resolve(param[3]))
+				CmdPrimary.MostRecentFloatResult = _target.GetAVPercentage(CmdPrimary.ResolveString(param[3]))
 			endif
 		elseif _theAction == "GetBaseActorValue"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-				CmdPrimary.MostRecentFloatResult = _target.GetBaseActorValue(CmdPrimary.Resolve(param[3]))
+				CmdPrimary.MostRecentFloatResult = _target.GetBaseActorValue(CmdPrimary.ResolveString(param[3]))
 			endif
 		elseif _theAction == "GetBaseAV"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-				CmdPrimary.MostRecentFloatResult = _target.GetBaseAV(CmdPrimary.Resolve(param[3]))
+				CmdPrimary.MostRecentFloatResult = _target.GetBaseAV(CmdPrimary.ResolveString(param[3]))
 			endif
 		elseif _theAction == "GetEquippedItemType"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -4300,11 +4300,11 @@ bool Function _slt_actor_dofunction(sl_triggersCmd CmdPrimary, Actor _target, st
 			endif
 		elseif _theAction == "GetActorValueMax"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-				CmdPrimary.MostRecentFloatResult = _target.GetActorValueMax(CmdPrimary.Resolve(param[3]))
+				CmdPrimary.MostRecentFloatResult = _target.GetActorValueMax(CmdPrimary.ResolveString(param[3]))
 			endif
 		elseif _theAction == "GetAVMax"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-				CmdPrimary.MostRecentFloatResult = _target.GetAVMax(CmdPrimary.Resolve(param[3]))
+				CmdPrimary.MostRecentFloatResult = _target.GetAVMax(CmdPrimary.ResolveString(param[3]))
 			endif
 		elseif _theAction == "GetEquippedItemId"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -4380,7 +4380,7 @@ function form_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
     if ParamLengthGT(CmdPrimary, param.Length, 3)
         Form _target = CmdPrimary.ResolveForm(param[1])
         if _target
-            string _theAction = CmdPrimary.Resolve(param[2])
+            string _theAction = CmdPrimary.ResolveString(param[2])
 
             if _theAction
                 if !_slt_form_dofunction(CmdPrimary, _target, _theAction, param)
@@ -4439,7 +4439,7 @@ function objectreference_dofunction(Actor CmdTargetActor, ActiveMagicEffect _Cmd
     if ParamLengthGT(CmdPrimary, param.Length, 3)
         ObjectReference _target = CmdPrimary.ResolveForm(param[1]) as ObjectReference
         if _target
-            string _theAction = CmdPrimary.Resolve(param[2])
+            string _theAction = CmdPrimary.ResolveString(param[2])
 
             if _theAction
                 if !_slt_objectreference_dofunction(CmdPrimary, _target, _theAction, param)
@@ -4508,7 +4508,7 @@ function actor_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
     if ParamLengthGT(CmdPrimary, param.Length, 3)
         Actor _target = CmdPrimary.ResolveActor(param[1])
         if _target
-            string _theAction = CmdPrimary.Resolve(param[2])
+            string _theAction = CmdPrimary.ResolveString(param[2])
 
             if _theAction
                 if !_slt_actor_dofunction(CmdPrimary, _target, _theAction, param)
@@ -4573,10 +4573,10 @@ function util_sendmodevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, 
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthGT(CmdPrimary, param.Length, 1)
-        string ss1 = CmdPrimary.Resolve(param[1])
+        string ss1 = CmdPrimary.ResolveString(param[1])
         string ss2
         if param.Length > 2
-            ss2 = CmdPrimary.Resolve(param[2])
+            ss2 = CmdPrimary.ResolveString(param[2])
         endif
         float  p3
         if param.Length > 3
@@ -4604,7 +4604,7 @@ function util_sendevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
     if ParamLengthGT(CmdPrimary, param.Length, 1)
-        string eventName = CmdPrimary.Resolve(param[1])
+        string eventName = CmdPrimary.ResolveString(param[1])
         if eventName
             int eid = ModEvent.Create(eventName)
             
@@ -4613,7 +4613,7 @@ function util_sendevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
                 
                 int idxArg = 2 
                 while idxArg + 1 < param.Length
-                    typeId = CmdPrimary.Resolve(param[idxArg])
+                    typeId = CmdPrimary.ResolveString(param[idxArg])
 
                     if typeId == "bool"
                         ModEvent.PushBool(eid, CmdPrimary.ResolveBool(param[idxArg + 1]))
@@ -4622,7 +4622,7 @@ function util_sendevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
                     elseif typeId == "float"
                         ModEvent.PushFloat(eid, CmdPrimary.ResolveFloat(param[idxArg + 1]))
                     elseif typeId == "string"
-                        ModEvent.PushString(eid, CmdPrimary.Resolve(param[idxArg + 1]))
+                        ModEvent.PushString(eid, CmdPrimary.ResolveString(param[idxArg + 1]))
                     elseif typeId == "form"
                         ModEvent.PushForm(eid, CmdPrimary.ResolveActor(param[idxArg + 1]))
                     else
@@ -4667,7 +4667,7 @@ endFunction
 function util_getrealtime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if CmdPrimary.SLT.Debug_Cmd_Functions
+    if CmdPrimary.Debug_Cmd_Functions
         SLTDebugMsg("util_getrealtime: starting")
     endif
 
@@ -4675,13 +4675,13 @@ function util_getrealtime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         float realTime = Utility.GetCurrentRealTime()
         realTime = Math.Floor(realTime * 100.0) / 100.0
 
-        if CmdPrimary.SLT.Debug_Cmd_Functions
+        if CmdPrimary.Debug_Cmd_Functions
             SLTDebugMsg("util_getrealtime: realtime(" + realtime + ")")
         endif
         CmdPrimary.MostRecentFloatResult = realTime
     endif
 
-    if CmdPrimary.SLT.Debug_Cmd_Functions
+    if CmdPrimary.Debug_Cmd_Functions
         SLTDebugMsg("util_getrealtime: returning")
     endif
 	CmdPrimary.CompleteOperationOnActor()
@@ -4720,16 +4720,16 @@ function util_game(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
     if ParamLengthGT(CmdPrimary, param.Length, 2)
-        string p1 = CmdPrimary.Resolve(param[1])
+        string p1 = CmdPrimary.ResolveString(param[1])
         
         if "IncrementStat" == p1
             int iModAmount
             if param.Length > 3
                 iModAmount = CmdPrimary.ResolveInt(param[3])
             endif
-            Game.IncrementStat(CmdPrimary.Resolve(param[2]), iModAmount)
+            Game.IncrementStat(CmdPrimary.ResolveString(param[2]), iModAmount)
         elseIf "QueryStat" == p1
-            CmdPrimary.MostRecentIntResult = Game.QueryStat(CmdPrimary.Resolve(param[2]))
+            CmdPrimary.MostRecentIntResult = Game.QueryStat(CmdPrimary.ResolveString(param[2]))
         endIf
     endif
 
@@ -4819,7 +4819,7 @@ function console(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
             string ss
             string ssx
             while idx < cnt
-                ss = CmdPrimary.Resolve(param[idx])
+                ss = CmdPrimary.ResolveString(param[idx])
                 ssx += ss
                 idx += 1
             endWhile
@@ -4954,9 +4954,9 @@ function json_getvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
     string nextResult
 	
     if ParamLengthGT(CmdPrimary, param.Length, 3)
-        string pname = CmdPrimary.Resolve(param[1])
-        string ptype = CmdPrimary.Resolve(param[2])
-        string pkey  = CmdPrimary.Resolve(param[3])
+        string pname = CmdPrimary.ResolveString(param[1])
+        string ptype = CmdPrimary.ResolveString(param[2])
+        string pkey  = CmdPrimary.ResolveString(param[3])
         
         if pname && ptype && pkey
             if ptype == "int"
@@ -4966,7 +4966,7 @@ function json_getvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
             elseif ptype == "form"
                 CmdPrimary.MostRecentFormResult = JsonUtil.GetFormValue(pname, pkey, CmdPrimary.ResolveForm(param[4]))
             else
-                CmdPrimary.MostRecentStringResult = JsonUtil.GetStringValue(pname, pkey, CmdPrimary.Resolve(param[4]))
+                CmdPrimary.MostRecentStringResult = JsonUtil.GetStringValue(pname, pkey, CmdPrimary.ResolveString(param[4]))
             endIf
         else
             if !pname
@@ -4997,9 +4997,9 @@ function json_setvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
     if ParamLengthEQ(CmdPrimary, param.Length, 5)
-        string pname = CmdPrimary.Resolve(param[1])
-        string ptype = CmdPrimary.Resolve(param[2])
-        string pkey  = CmdPrimary.Resolve(param[3])
+        string pname = CmdPrimary.ResolveString(param[1])
+        string ptype = CmdPrimary.ResolveString(param[2])
+        string pkey  = CmdPrimary.ResolveString(param[3])
     
         if pname && ptype && pkey
             if ptype == "int"
@@ -5007,7 +5007,7 @@ function json_setvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
             elseif ptype == "float"
                 JsonUtil.SetFloatValue(pname, pkey, CmdPrimary.ResolveFloat(param[4]))
             elseif ptype == "string"
-                JsonUtil.SetStringValue(pname, pkey, CmdPrimary.Resolve(param[4]))
+                JsonUtil.SetStringValue(pname, pkey, CmdPrimary.ResolveString(param[4]))
             else
                 SquawkFunctionError(CmdPrimary, "json_setvalue: unexpected type '" + ptype +  "'")
             endIf
@@ -5036,7 +5036,7 @@ function json_save(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
     if ParamLengthEQ(CmdPrimary, param.Length, 2)
-        string pname = CmdPrimary.Resolve(param[1])
+        string pname = CmdPrimary.ResolveString(param[1])
         if pname
             JsonUtil.Save(pname)
         endif
@@ -5086,8 +5086,8 @@ function jsonutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
     if ParamLengthGT(CmdPrimary, param.Length, 2)
-        string func = CmdPrimary.Resolve(param[1])
-        string jfile = CmdPrimary.Resolve(param[2])
+        string func = CmdPrimary.ResolveString(param[1])
+        string jfile = CmdPrimary.ResolveString(param[2])
 
         if JsonUtil.JsonExists(jfile)
 
@@ -5115,8 +5115,8 @@ function jsonutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
                 endif
                 CmdPrimary.MostRecentBoolResult = JsonUtil.Unload(jfile, saveChanges, minify)
             elseif ParamLengthGT(CmdPrimary, param.Length, 4)
-                string jkey = CmdPrimary.Resolve(param[3])
-                string jtype = getValidJSONType(CmdPrimary, CmdPrimary.Resolve(param[4]))
+                string jkey = CmdPrimary.ResolveString(param[3])
+                string jtype = getValidJSONType(CmdPrimary, CmdPrimary.ResolveString(param[4]))
 
                 if jtype
                     if "unset" == func
@@ -5165,16 +5165,16 @@ function jsonutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
                         elseif "float" == jtype
                             CmdPrimary.MostRecentFloatResult = JsonUtil.GetFloatValue(jfile, jkey, CmdPrimary.ResolveFloat(param[5]))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentStringResult = JsonUtil.GetStringValue(jfile, jkey, CmdPrimary.Resolve(param[5]))
+                            CmdPrimary.MostRecentStringResult = JsonUtil.GetStringValue(jfile, jkey, CmdPrimary.ResolveString(param[5]))
                         elseif "form" == jtype
                             CmdPrimary.MostRecentFormResult = JsonUtil.GetFormValue(jfile, jkey, CmdPrimary.ResolveForm(param[5]))
                         endif
 
                     elseif ParamLengthGT(CmdPrimary, param.Length, 5)
-                        string parm5 = CmdPrimary.Resolve(param[5])
+                        string parm5 = CmdPrimary.ResolveString(param[5])
                         string parm6
                         if param.Length > 6
-                            parm6 = CmdPrimary.Resolve(param[6])
+                            parm6 = CmdPrimary.ResolveString(param[6])
                         endif
 
                         if "set" == func
@@ -5336,7 +5336,7 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
     if ParamLengthGT(CmdPrimary, param.Length, 2)
-        string func = CmdPrimary.Resolve(param[1])
+        string func = CmdPrimary.ResolveString(param[1])
 
         Form suform
         if param[2]
@@ -5344,8 +5344,8 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
         endif
 
         if ParamLengthGT(CmdPrimary, param.Length, 4)
-            string jkey = CmdPrimary.Resolve(param[3])
-            string jtype = getValidJSONType(CmdPrimary, CmdPrimary.Resolve(param[4]))
+            string jkey = CmdPrimary.ResolveString(param[3])
+            string jtype = getValidJSONType(CmdPrimary, CmdPrimary.ResolveString(param[4]))
 
             if jtype
                 if "unset" == func
@@ -5407,7 +5407,7 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
                 elseif "get" == func
                     string dval
                     if param.Length > 5
-                        dval = CmdPrimary.Resolve(param[5])
+                        dval = CmdPrimary.ResolveString(param[5])
                     endif
                     if "int" == jtype
                         CmdPrimary.MostRecentIntResult = StorageUtil.GetIntValue(suform, jkey, dval as int)
@@ -5419,7 +5419,7 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
                 elseif "pluck" == func
                     string dval
                     if param.Length > 5
-                        dval = CmdPrimary.Resolve(param[5])
+                        dval = CmdPrimary.ResolveString(param[5])
                     endif
                     if "int" == jtype
                         CmdPrimary.MostRecentIntResult = StorageUtil.PluckIntValue(suform, jkey, dval as int)
@@ -5430,10 +5430,10 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
                     endif
 
                 elseif ParamLengthGT(CmdPrimary, param.Length, 5)
-                    string parm5 = CmdPrimary.Resolve(param[5])
+                    string parm5 = CmdPrimary.ResolveString(param[5])
                     string parm6
                     if param.Length > 6
-                        parm6 = CmdPrimary.Resolve(param[6])
+                        parm6 = CmdPrimary.ResolveString(param[6])
                     endif
 
                     if "set" == func
@@ -5637,7 +5637,7 @@ function weather_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
     if ParamLengthEQ(CmdPrimary, param.Length, 2)
-        string ss1 = CmdPrimary.Resolve(param[1])
+        string ss1 = CmdPrimary.ResolveString(param[1])
         
         if ss1 == "GetClassification"
             Weather curr = Weather.GetCurrentWeather()
@@ -5665,7 +5665,7 @@ function Math(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] para
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
     if ParamLengthGT(CmdPrimary, param.Length, 2)
-        string subcode = CmdPrimary.Resolve(param[1])
+        string subcode = CmdPrimary.ResolveString(param[1])
         
         if      subcode == "asint"
             CmdPrimary.MostRecentIntResult = CmdPrimary.ResolveInt(param[2])

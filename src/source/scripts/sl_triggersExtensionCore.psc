@@ -70,7 +70,18 @@ int Property CS_DEFAULT 		= 0 AutoReadOnly Hidden
 int Property CS_SLTINIT		 	= 1 AutoReadOnly Hidden
 int Property CS_POLLING 		= 2 AutoReadOnly Hidden
 
-int CS_STATE
+int CoreCurrentState
+
+string Function CS_ToString(int csstate)
+	if CS_POLLING == csstate
+		return "CS_POLLING"
+	elseif CS_SLTINIT == csstate
+		return "CS_SLTINIT"
+	elseif CS_DEFAULT == csstate
+		return "CS_DEFAULT"
+	endif
+	return "CS: invalid(" + csstate + ")"
+EndFunction
 
 Function QueueUpdateLoop(float afDelay = 1.0)
 	if !self
@@ -91,25 +102,41 @@ Event OnInit()
 	playerCellChangeHandlingReady = false
 
 	; REQUIRED CALL
-	CS_STATE = CS_SLTINIT
+	CoreCurrentState = CS_SLTINIT
+	if SLT.Debug_Extension_Core
+		SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : should be SLTInit")
+	endif
 	UnregisterForUpdate()
 	QueueUpdateLoop(0.01)
 EndEvent
 
 Event OnUpdate()
-	if CS_SLTINIT == CS_STATE
+	if CS_SLTINIT == CoreCurrentState
 		SLTInit()
 		
-		CS_STATE = CS_POLLING
+		CoreCurrentState = CS_POLLING
+		if SLT.Debug_Extension_Core
+			SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : should be Polling")
+		endif
 		QueueUpdateLoop(0.01)
 		return
-	elseif CS_POLLING == CS_STATE
+	elseif CS_POLLING == CoreCurrentState
 		if PopulateSentinel()
+			CoreCurrentState = CS_DEFAULT
+			if SLT.Debug_Extension_Core
+				SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : should be back to Default after PopulateSentinel()")
+			endif
 			return
 		elseif !PlayerRef
+			if SLT.Debug_Extension_Core
+				SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : polling for sentinel; player not loaded")
+			endif
 			QueueUpdateLoop()
 			return
 		elseif PlayerRef && PlayerRef.Is3DLoaded()
+			if SLT.Debug_Extension_Core
+				SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : polling for sentinel; player not 3dloaded")
+			endif
 			QueueUpdateLoop(0.1)
 			return
 		endif
@@ -117,27 +144,81 @@ Event OnUpdate()
 EndEvent
 
 bool Function PopulateSentinel()
-	if pkSentinel
+	if SLT.Debug_Extension_Core
+		SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : PopulateSentinel")
+	endif
+	
+	bool hasSentinel = pkSentinel != none
+	bool hasPlayer = PlayerRef != none
+	bool playerIs3dLoaded = hasPlayer && PlayerRef.Is3DLoaded()
+
+	if !hasPlayer
+		SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : PopulateSentinel : PlayerRef is still none; a missing reference that should, at most, take place super early, early enough I wouldn't expect this message to be quite honest. But here we are. Though probably not for long. Bye now. (though if you keep seeing me for long after launch, that's a bad thing and you should report a bug to me)")
+		if SLT.Debug_Extension_Core
+			SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : PopulateSentinel : PlayerRef is still none; a missing reference that should, at most, take place super early, early enough I wouldn't expect this message to be quite honest. But here we are. Though probably not for long. Bye now. (though if you keep seeing me for long after launch, that's a bad thing and you should report a bug to me)")
+		endif
+		;SLTDebugMsg("Core.OnUpdate: pollingForSentinel requested, PlayerRef is not filled, polling 1 second")
+		return false
+	endif
+
+	if hasSentinel
+		bool wasghost = pkSentinel.IsGhost()
+		bool wasteam = pkSentinel.IsPlayerTeammate()
+		SLTInfoMsg("Setting sentinel parameters: SetDontMove(true) SetGhost(true) SetPlayerTeammate(false, false) SetNotShowOnStealthMeter(true) previously: IsGhost(" + wasghost + ") IsPlayerTeammate(" + wasteam + ")")
+		if SLT.Debug_Extension_Core
+			SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : PopulateSentinel : Setting sentinel parameters: SetDontMove(true) SetGhost(true) SetPlayerTeammate(false, false) SetNotShowOnStealthMeter(true) previously: IsGhost(" + wasghost + ") IsPlayerTeammate(" + wasteam + ")")
+		endif
+
+		pkSentinel.SetDontMove(true)
+		pkSentinel.SetGhost(true)
+		pkSentinel.SetPlayerTeammate(false, false)
+		pkSentinel.SetNotShowOnStealthMeter(true)
 		; got filled at some point when we weren't looking, huzzah!
 		RelocatePlayerLoadingScreenSentinel()
 		playerCellChangeHandlingReady = true
 		return true
-	elseif !PlayerRef
-		;SLTDebugMsg("Core.OnUpdate: pollingForSentinel requested, PlayerRef is not filled, polling 1 second")
-		return false
-	elseif PlayerRef.Is3DLoaded()
+	endif
+
+	if playerIs3dLoaded
 		pkSentinel = PlayerRef.PlaceActorAtMe(pkSentinelBase)
+			if SLT.Debug_Extension_Core
+				SLTInfoMsg("Core.PopulateSentinel: PlayerRef:(" + PlayerRef + ").Is3DLoaded() == " + playerIs3dLoaded + "; PlayerRef.PlaceActorAtMe(" + pkSentinelBase + ") produced (" + pkSentinel + ")")
+			endif
 
 		if pkSentinel
 			;SLTDebugMsg("Core.OnUpdate: pollingForSentinel requested, PlayerRef.Is3DLoaded, pkSentinel is (" + pkSentinel + ")")
+			bool wasghost = pkSentinel.IsGhost()
+			bool wasteam = pkSentinel.IsPlayerTeammate()
+			
+			if SLT.Debug_Extension_Core
+				SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : PopulateSentinel : Initializing sentinel parameters: SetDontMove(true) SetGhost(true) SetPlayerTeammate(false, false) SetNotShowOnStealthMeter(true) previously: IsGhost(" + wasghost + ") IsPlayerTeammate(" + wasteam + ")")
+			endif
+			pkSentinel.SetDontMove(true)
+			pkSentinel.SetGhost(true)
+			pkSentinel.SetPlayerTeammate(false, false)
+			pkSentinel.SetNotShowOnStealthMeter(true)
 			RelocatePlayerLoadingScreenSentinel()
 			playerCellChangeHandlingReady = true
+			return true
+			
+		else
+			if SLT.Debug_Extension_Core
+				SLTErrMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : PopulateSentinel : Have I told you about my favorite cousin, 'else'?; if you are here, we were missing pkSentinel and had a PlayerRef with is3DLoaded(true); we called PlayerRef.PlaceAtMe(pkSentinelBase), which should have worked, but pkSentinel is still none; This? This is actually quite not good")
+			endif
+			SLTErrMsg("Core.PopulateSentinel: PlayerRef:(" + PlayerRef + ").Is3DLoaded() == " + playerIs3dLoaded + "; PlayerRef.PlaceActorAtMe(" + pkSentinelBase + ") produced (" + pkSentinel + ") ; which is to say none or null; this is an error though not one I would expect, as it suggests the engine just refused; please report the bug; in the meantime, giving up polling and returning true")
 			return true
 		;else
 			; keep checking until satisfied?
 			;SLTDebugMsg("Core.OnUpdate: pollingForSentinel requested, waiting 1 second to check for pkSentinel and player 3d loaded; this isn't actually good... it means placeactoratme failed even when PlayerRef.Is3dLoaded()")
 		endif
 	endif
+
+	; if you are here, hasPlayer is TRUE, hasSentinel is FALSE, playerIs3dLoaded is FALSE
+	; still waiting for the 3d virtual space to open up, please wait
+	if SLT.Debug_Extension_Core
+		SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : PopulateSentinel : Ah.. my favorite.. 'else'; if you are here, we are still missing pkSentinel, and we have a PlayerRef, but the PlayerRef is still not 3dloaded; just give it another moment, I'll take a quick sip of coffee and wait with you")
+	endif
+	;SLTDebugMsg("Core.OnUpdate: pollingForSentinel requested, PlayerRef is filled but not 3d loaded, polling 1 second")
 	return false
 EndFunction
 
@@ -168,8 +249,11 @@ Function SLTReady()
 	endif
 
 	PopulatePerk()
-	if CS_POLLING != CS_STATE && !pkSentinel
-		CS_STATE = CS_POLLING
+	if SLT.Debug_Extension_Core
+		SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ")")
+	endif
+	if CS_POLLING != CoreCurrentState
+		CoreCurrentState = CS_POLLING
 		UnregisterForUpdate()
 		QueueUpdateLoop(0.01)
 	endif
@@ -283,7 +367,7 @@ Event OnUpdateGameTime()
 	EndIf
 EndEvent
 
-Event OnNewSession(int _newSessionId)
+Event OnSLTNewSession(int _newSessionId)
 	if !self
 		Return
 	endif
@@ -614,7 +698,7 @@ Function RegisterEvents()
 
 	UnregisterForModEvent(EVENT_SLT_ON_NEW_SESSION())
 	if triggerKeys_newSession.Length > 0
-		SafeRegisterForModEvent_Quest(self, EVENT_SLT_ON_NEW_SESSION(), "OnNewSession")
+		SafeRegisterForModEvent_Quest(self, EVENT_SLT_ON_NEW_SESSION(), "OnSLTNewSession")
 	endif
 
 	UnregisterForModEvent(EVENT_TOP_OF_THE_HOUR)

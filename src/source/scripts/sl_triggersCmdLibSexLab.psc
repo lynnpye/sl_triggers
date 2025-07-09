@@ -152,7 +152,7 @@ function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         if _targetActor
             string ss1
             if param.Length > 2
-                ss1 = CmdPrimary.Resolve(param[2])
+                ss1 = CmdPrimary.ResolveString(param[2])
             endif
             if !ss1 || !slExtension.IsEnabled
                 nextResult = _targetActor.GetRace().GetName()
@@ -305,7 +305,7 @@ function sl_hastag(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
         endif
         sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
         if thread
-            string ss = CmdPrimary.Resolve(param[1])
+            string ss = CmdPrimary.ResolveString(param[1])
             if thread.Animation.HasTag(ss)
                 nextResult = true
             endIf
@@ -391,7 +391,7 @@ function sl_getprop(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         endif
         sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
         if thread
-            string ss = CmdPrimary.Resolve(param[1])
+            string ss = CmdPrimary.ResolveString(param[1])
             if ss == "Stage"
                 nextResult = thread.Stage as string
             elseif ss == "ActorCount"
@@ -592,7 +592,7 @@ function dd_unlockslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         if ddlib
             Actor _targetActor = CmdPrimary.ResolveActor(param[1])
             if _targetActor
-                bool force = (param.Length > 3 && CmdPrimary.Resolve(param[3]) == "force")
+                bool force = (param.Length > 3 && CmdPrimary.ResolveString(param[3]) == "force")
                 int i = CmdPrimary.ResolveInt(param[2])
 
                 Armor device = _targetActor.GetEquippedArmorInSlot(i)
@@ -630,7 +630,7 @@ function dd_unlockall(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
         if ddlib
             Actor _targetActor = CmdPrimary.ResolveActor(param[1])
             if _targetActor
-                bool force = (param.Length > 2 && CmdPrimary.Resolve(param[2]) == "force")
+                bool force = (param.Length > 2 && CmdPrimary.ResolveString(param[2]) == "force")
                 bool lockable
                 int i = 0
                 Armor device
@@ -765,7 +765,7 @@ function osla_modify_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary
             float value = CmdPrimary.ResolveFloat(param[2])
             string reason
             if param.Length > 3
-                reason = CmdPrimary.Resolve(param[3])
+                reason = CmdPrimary.ResolveString(param[3])
             endif
             newResult = sl_triggersAdapterOSLA.ModifyArousal(_targetActor, value, reason)
         endif
@@ -794,7 +794,7 @@ function osla_set_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
             float value = CmdPrimary.ResolveFloat(param[2])
             string reason
             if param.Length > 3
-                reason = CmdPrimary.Resolve(param[3])
+                reason = CmdPrimary.ResolveString(param[3])
             endif
             newResult = sl_triggersAdapterOSLA.SetArousal(_targetActor, value, reason)
         endif
@@ -823,7 +823,7 @@ function osla_modify_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect 
             float value = CmdPrimary.ResolveFloat(param[2])
             string reason
             if param.Length > 3
-                reason = CmdPrimary.Resolve(param[3])
+                reason = CmdPrimary.ResolveString(param[3])
             endif
             newResult = sl_triggersAdapterOSLA.ModifyArousalMultiplier(_targetActor, value, reason)
         endif
@@ -852,7 +852,7 @@ function osla_set_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _Cm
             float value = CmdPrimary.ResolveFloat(param[2])
             string reason
             if param.Length > 3
-                reason = CmdPrimary.Resolve(param[3])
+                reason = CmdPrimary.ResolveString(param[3])
             endif
             newResult = sl_triggersAdapterOSLA.SetArousalMultiplier(_targetActor, value, reason)
         endif

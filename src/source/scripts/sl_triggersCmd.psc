@@ -60,6 +60,26 @@ int         Property CmdRequestId Hidden
     EndFunction
 EndProperty
 
+; local cache to speed up access
+bool Debug_Cmd
+bool Property Debug_Cmd_Functions Auto Hidden
+bool Debug_Cmd_InternalResolve
+bool Debug_Cmd_ResolveForm
+bool Debug_Cmd_RunScript 
+bool Debug_Cmd_RunScript_Blocks
+bool Debug_Cmd_RunScript_Set 
+bool Debug_Extension 
+
+Function RefreshDebugFlagsFromSLT()
+    Debug_Cmd                   = SLT.Debug_Cmd
+    Debug_Cmd_Functions         = SLT.Debug_Cmd_Functions
+    Debug_Cmd_InternalResolve   = SLT.Debug_Cmd_InternalResolve
+    Debug_Cmd_ResolveForm       = SLT.Debug_Cmd_ResolveForm
+    Debug_Cmd_RunScript         = SLT.Debug_Cmd_RunScript
+    Debug_Cmd_RunScript_Blocks  = SLT.Debug_Cmd_RunScript_Blocks
+    Debug_Cmd_RunScript_Set     = SLT.Debug_Cmd_RunScript_Set
+    Debug_Extension             = SLT.Debug_Extension
+EndFunction
 
 
 bool        Property runOpPending = false auto hidden
@@ -223,34 +243,34 @@ EndFunction
 
 Form Function CRToForm()
     if SLT.RT_FORM == CustomResolveType
-        if SLT.Debug_Cmd_ResolveForm
+        if Debug_Cmd_ResolveForm
             SFD("CRToForm: had Form, returning Form")
         endif
         return CustomResolveFormResult
     elseif SLT.RT_STRING == CustomResolveType
-        if SLT.Debug_Cmd_ResolveForm
+        if Debug_Cmd_ResolveForm
             SFD("CRToForm: had string, returning GetFormById(\"" + CustomResolveStringResult + "\")")
         endif
         return GetFormById(CustomResolveStringResult)
     elseif SLT.RT_INT == CustomResolveType
-        if SLT.Debug_Cmd_ResolveForm
+        if Debug_Cmd_ResolveForm
             SFD("CRToForm: had int, returning GetFormById(" + CustomResolveIntResult + ")")
         endif
         return GetFormById(CustomResolveIntResult)
     elseif SLT.RT_FLOAT == CustomResolveType
-        if SLT.Debug_Cmd_ResolveForm
+        if Debug_Cmd_ResolveForm
             SFD("CRToForm: had float (" + CustomResolveFloatResult + "), returning GetFormById(" + (CustomResolveFloatResult as int) + ")")
         endif
         return GetFormById(CRToInt())
     elseif SLT.RT_BOOL == CustomResolveType
-        if SLT.Debug_Cmd_ResolveForm
+        if Debug_Cmd_ResolveForm
             SFW("CRToForm: no auto-conversion exists except RT_STRING, RT_INT (interpreted as FormID), and RT_FLOAT (cast to int and interpted as FormID) (from: " + SLT.RT_ToString(CustomResolveType) + ")")
         endif
         ; no auto-conversion from float or bool
         return none
     endif
 
-    if SLT.Debug_Cmd_ResolveForm
+    if Debug_Cmd_ResolveForm
         SFW("CRToForm: no auto-conversion exists except RT_STRING, RT_INT (interpreted as FormID), and RT_FLOAT (cast to int and interpted as FormID) (from: (" + CustomResolveType + ") [" + SLT.RT_ToString(CustomResolveType) + "]); note: if this does not indicate invalid, please report a bug")
     endif
     ; no auto-conversion from float or bool
@@ -387,9 +407,40 @@ string      initialScriptName = ""
 bool hasValidFrame
 bool IsResetRequested = false
 
-; should I make these counters, to aid with nested if/if/endif/endif or while/while/endwhile/endwhile?
-bool __searchingForEndIf = false
-bool __searchingForEndWhile = false
+int Property BE_NONE        = 0 AutoReadOnly Hidden
+int Property BE_IF          = 1 AutoReadOnly Hidden
+int Property BE_BEGINSUB    = 2 AutoReadOnly Hidden
+int Property BE_WHILE       = 3 AutoReadOnly Hidden
+
+string __be_starter = ""
+string __be_ender = ""
+int __be_needed = 0
+
+Function SetBlockEndTarget(int betype)
+    if BE_IF == betype
+        __be_starter = "if"
+        __be_ender = "endif"
+        __be_needed = 1
+    elseif BE_BEGINSUB == betype
+        __be_starter = "beginsub"
+        __be_ender = "endsub"
+        __be_needed = 1
+    elseif BE_WHILE == betype
+        __be_starter = "while"
+        __be_ender = "endwhile"
+        __be_needed = 1
+    else
+        __be_starter = ""
+        __be_ender = ""
+        __be_needed = 0
+    endif
+EndFunction
+
+Function ResetBlockEndTarget()
+    __be_needed = 0
+    __be_starter = ""
+    __be_ender = ""
+EndFunction
 
 ;/
 Event OnEffectFinish(Actor akTarget, Actor akCaster)
@@ -402,8 +453,14 @@ Event OnSLTReset(string eventName, string strArg, float numArg, Form sender)
     CleanupAndRemove()
 EndEvent
 
+Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
+    RefreshDebugFlagsFromSLT()
+EndEvent
+
 Event OnEffectStart(Actor akTarget, Actor akCaster)
-    if SLT.Debug_Cmd
+    RefreshDebugFlagsFromSLT()
+
+    if Debug_Cmd
         SLTDebugMsg("Cmd.OnEffectStart")
     endif
 
@@ -419,6 +476,8 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
 EndEvent
 
 Event OnPlayerLoadGame()
+    RefreshDebugFlagsFromSLT()
+
     DoStartup()
 EndEvent
 
@@ -430,6 +489,7 @@ Function DoStartup()
     endif
 
 	SafeRegisterForModEvent_AME(self, EVENT_SLT_RESET(), "OnSLTReset")
+    SafeRegisterForModEvent_AME(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTSettingsUpdated")
     
     if !threadid
         ; need to determine our threadid
@@ -485,12 +545,12 @@ Event OnUpdate()
     isExecuting = true
 
     SLT.RunningScriptCount += 1
-    if SLT.Debug_Cmd
+    if Debug_Cmd
         SFD("Cmd.OnUpdate: starting threadid(" + threadid + ") RunningScriptCount is :" + SLT.RunningScriptCount)
     endif
     RunScript()
     SLT.RunningScriptCount -= 1
-    if SLT.Debug_Cmd
+    if Debug_Cmd
         SFD("Cmd.OnUpdate: ending threadid(" + threadid + ") RunningScriptCount is :" + SLT.RunningScriptCount)
     endif
     
@@ -633,7 +693,7 @@ bool Function InternalResolve(string token)
 
             j = 0
             while j < vartoks.Length
-                vartoks[j] = Resolve(vartoks[j])
+                vartoks[j] = ResolveString(vartoks[j])
                 ;/
                 if InternalResolve(vartoks[j])
                     vartoks[j] = CustomResolveResult
@@ -659,7 +719,7 @@ bool Function InternalResolve(string token)
         string scope = varscopestringlist[0]
         string vname = varscopestringlist[1]
 
-        if SLT.Debug_Cmd_InternalResolve
+        if Debug_Cmd_InternalResolve
             SLTDebugMsg("Cmd.InternalResolve: varscope<" + PapyrusUtil.StringJoin(varscopestringlist, ">,<") + ">")
         endif
 
@@ -746,7 +806,7 @@ bool Function InternalResolve(string token)
 
     ; last chance, checking for literal int or float values (we already checked for literal bools above)
     string literalNumeric = sl_triggers.GetNumericLiteral(token)
-    if SLT.Debug_Cmd_InternalResolve
+    if Debug_Cmd_InternalResolve
         SFD("Literal numeric lookup returned (" + literalNumeric + ") for token(" + token + ")")
     endif
     if "invalid" != literalNumeric
@@ -756,14 +816,14 @@ bool Function InternalResolve(string token)
         elseif numlitinfo[0] == "int"
             IsCRLiteral = true
             CustomResolveIntResult = numlitinfo[1] as int
-            if SLT.Debug_Cmd_InternalResolve
+            if Debug_Cmd_InternalResolve
                 SFD("Literal numeric lookup returning int(" + numlitinfo[1] + ")")
             endif
             return true
         elseif numlitinfo[0] == "float"
             IsCRLiteral = true
             CustomResolveFloatResult = numlitinfo[1] as float
-            if SLT.Debug_Cmd_InternalResolve
+            if Debug_Cmd_InternalResolve
                 SFD("Literal numeric lookup returning float(" + numlitinfo[1] + ")")
             endif
             return true
@@ -771,14 +831,14 @@ bool Function InternalResolve(string token)
             SFE("This state should not happen (" + PapyrusUtil.StringJoin(numlitinfo, "),(") + ")")
         endif
     else
-        if SLT.Debug_Cmd_InternalResolve
+        if Debug_Cmd_InternalResolve
             if (token as int) || (token as float)
                 SFD("Cmd.InternalResolve: literalNumeric check failed for (" + token + ")")
             endif
         endif
     endif
 
-    if SLT.Debug_Cmd_InternalResolve
+    if Debug_Cmd_InternalResolve
         SFI("InternalResolve: returning actual token for token(" + token + "); what was I supposed to do with this?")
     endif
 
@@ -787,10 +847,10 @@ bool Function InternalResolve(string token)
     return false
 EndFunction
 
-; Resolve
+; ResolveString
 ; string token - a variable to retrieve the value of e.g. $$, $global.foo, $g3
 ; returns: the value as a string; token if unable to resolve
-string Function Resolve(string token)
+string Function ResolveString(string token)
     if InternalResolve(token)
         if IsCustomResolveValid()
             return CRToString()
@@ -837,7 +897,7 @@ EndFunction
 Form Function ResolveForm(string token)
     CustomResolveFormResult = none
 
-    if SLT.Debug_Cmd_ResolveForm
+    if Debug_Cmd_ResolveForm
         SFD("ResolveForm: token(" + token + ")")
     endif
 
@@ -857,7 +917,7 @@ Form Function ResolveForm(string token)
         Return none
     endif
 
-    if SLT.Debug_Cmd_ResolveForm || SLT.Debug_Cmd
+    if Debug_Cmd_ResolveForm || Debug_Cmd
         SFD("Cmd.ResolveForm: falling back to GetFormById(\"" + token + "\")")
     endif
     return GetFormById(token)
@@ -896,7 +956,7 @@ int Function ResolveInt(string token)
         Return 0
     endif
 
-    if SLT.Debug_Cmd
+    if Debug_Cmd
         SFW("Cmd.ResolveInt defaulted to casting token(" + token + ")")
     endif
 
@@ -918,7 +978,7 @@ float Function ResolveFloat(string token)
         Return 0.0
     endif
 
-    if SLT.Debug_Cmd
+    if Debug_Cmd
         SFW("Cmd.ResolveFloat defaulted to casting token(" + token + ")")
     endif
 
@@ -927,12 +987,12 @@ EndFunction
 
 ; returns true if should increment currentLine, false otherwise
 int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool subCommand = true)
-    if SLT.Debug_Cmd_RunScript
+    if Debug_Cmd_RunScript
         SFD("Cmd.RunCommandLine")
     endif
 
     if !cmdLine.Length
-        if SLT.Debug_Cmd_RunScript
+        if Debug_Cmd_RunScript
             SFD("cmdLine.Length == 0; advancing empty line")
         endif
         return CLRR_ADVANCE
@@ -952,43 +1012,76 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
     string      __strVal2
     string[]    __strListVal
 
-    command = Resolve(cmdLine[0])
-    if SLT.Debug_Cmd_RunScript
+    command = ResolveString(cmdLine[0])
+    if Debug_Cmd_RunScript
         SFD("Cmd.RunScript: Resolve(" + cmdLine[0] + ") => [" + command + "]")
     endif
     cmdLine[0] = command
 
     If !command
-        if SLT.Debug_Cmd_RunScript
+        if Debug_Cmd_RunScript
             SFD("Cmd.RunScript: empty command")
         endif
         MostRecentStringResult = ""
         ;currentLine += 1
-    elseIf __searchingForEndIf && command != "endif"
-        ; currentLine += 1
-    elseIf __searchingForEndWhile && command != "endwhile"
+    elseIf __be_needed > 0
+        ; intercept all rows until __blockendsneeded is satisfied, i.e. <= 0
+        ; but let's have a little hygiene and validate we really are looking for something and correct things if things have gotten weird
+
+        if Debug_Cmd_RunScript_Blocks
+            SLTInfoMsg("__blockendsneeded(" + __be_needed + ") __blockendstarter(" + __be_starter + ") __blockendtarget(" + __be_ender + "): these should have values")
+        endif
+
+        if subCommand
+            __be_needed = 0
+            __be_starter = ""
+            __be_ender = ""
+            SFE("subcommand processing should not be encountered during block skipping; please report your script as an indication of SLTR script engine failure")
+        elseif !__be_starter || !__be_ender
+            ; this isn't right, we bail after resetting __be_needed
+            __be_needed = 0
+            __be_starter = ""
+            __be_ender = ""
+            if Debug_Cmd_RunScript_Blocks
+                SFW("__be_needed was [" + __be_needed + "], but either __be_starter() or __be_ender were empty (\"\"); resetting __be_needed to 0 and both __be_starter and __be_ender to \"\"")
+            endif
+        else
+            if command == __be_starter
+                __be_needed += 1
+            elseif command == __be_ender
+                __be_needed -= 1
+                ; this might bring us below 0, i.e. no longer needing to blockskip
+                ; which means we need to allow block end handling now
+                if __be_needed <= 0
+                    __be_starter = ""
+                    __be_ender = ""
+                    __CLRR = CLRR_NOADVANCE
+                endif
+            endif
+        endif
+
         ; currentLine += 1
     elseIf command == "set"
-        if SLT.Debug_Cmd_RunScript
+        if Debug_Cmd_RunScript
             SFD("Cmd.RunScript: set")
         endif
         if subCommand
             SFE("'set' is not a valid subcommand")
         elseif ParamLengthGT(self, cmdLine.Length, 2)
-            if SLT.Debug_Cmd_RunScript_Set
+            if Debug_Cmd_RunScript_Set
                 SFD("Cmd.RunScript: set: pre var scope, varscopestringlist<" + PapyrusUtil.StringJoin(varscopestringlist, ">|<") + ">")
             endif
 
             GetVarScope2(cmdLine[1], varscopestringlist, true)
 
-            if SLT.Debug_Cmd_RunScript_Set
+            if Debug_Cmd_RunScript_Set
                 SFD("Cmd.RunScript: set: post var scope, varscopestringlist<" + PapyrusUtil.StringJoin(varscopestringlist, ">|<") + ">")
             endif
             
             if varscopestringlist[0]
 
                 if cmdLine.Length == 3
-                    if SLT.Debug_Cmd_RunScript_Set
+                    if Debug_Cmd_RunScript_Set
                         SFD("Cmd.RunScript: set/3 <target> <source>")
                     endif
 
@@ -996,11 +1089,11 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                     SetVarFromCustomResult(varscopestringlist[0], varscopestringlist[1])
                     ;SetVarString2(varscopestringlist[0], varscopestringlist[1], Resolve(cmdLine[2]))
                 else
-                    __operator = Resolve(cmdLine[2])
+                    __operator = ResolveString(cmdLine[2])
 
                     if cmdLine.Length > 3 && __operator == "resultfrom"
                     
-                        if SLT.Debug_Cmd_RunScript_Set
+                        if Debug_Cmd_RunScript_Set
                             SFD("Cmd.RunScript: set>3/w/resultfrom <target> resultfrom <stuff...>")
                         endif
 
@@ -1008,8 +1101,8 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                         
                         InvalidateMostRecentResult()
                         RunCommandLine(__strListVal, startidx + 3, endidx)
-                        if SLT.Debug_Cmd_RunScript_Set
-                            __outresult = Resolve("$$")
+                        if Debug_Cmd_RunScript_Set
+                            __outresult = ResolveString("$$")
                             SFD("set: resultfrom: MostRecentResultType(" + SLT.RT_ToString(MostRecentResultType) + ") and outresult is (" + __outresult + ")")
                             SetVarFromCustomResult(varscopestringlist[0], varscopestringlist[1])
                             ;SetVarString2(varscopestringlist[0], varscopestringlist[1], __outresult)
@@ -1019,12 +1112,12 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                             ;SetVarString2(varscopestringlist[0], varscopestringlist[1], Resolve("$$"))
                         endif
                     elseif cmdLine.length == 4 && __operator == "="
-                        if SLT.Debug_Cmd_RunScript_Set
+                        if Debug_Cmd_RunScript_Set
                             SFD("Cmd.RunScript: set/4/w/= <target> = <source>")
                         endif
 
-                        if SLT.Debug_Cmd_RunScript_Set
-                            string sourceStringValue = Resolve(cmdLine[3])
+                        if Debug_Cmd_RunScript_Set
+                            string sourceStringValue = ResolveString(cmdLine[3])
 
                             ;SetVarString2(varscopestringlist[0], varscopestringlist[1], sourceStringValue)
                             SetVarFromCustomResult(varscopestringlist[0], varscopestringlist[1])
@@ -1038,10 +1131,10 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                             ;SetVarString2(varscopestringlist[0], varscopestringlist[1], Resolve(cmdLine[3]))
                         endif
                     elseif cmdLine.length == 5
-                        if SLT.Debug_Cmd_RunScript_Set
+                        if Debug_Cmd_RunScript_Set
                             SFD("Cmd.RunScript: set/5 <target> = <source> <op> <source>")
                         endif
-                        __operator = Resolve(cmdLine[3])
+                        __operator = ResolveString(cmdLine[3])
                 
                         ; this is sloppy, imprecise
                         if __operator == "+"
@@ -1081,7 +1174,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                                 SetVarFloat(varscopestringlist[0], varscopestringlist[1], __floatVal)
                             endif
                         elseIf __operator == "&"
-                            SetVarString2(varscopestringlist[0], varscopestringlist[1], Resolve(cmdLine[2]) + Resolve(cmdLine[4]))
+                            SetVarString2(varscopestringlist[0], varscopestringlist[1], ResolveString(cmdLine[2]) + ResolveString(cmdLine[4]))
                         elseIf __operator == "&&"
                             SetVarBool(varscopestringlist[0], varscopestringlist[1], ResolveBool(cmdLine[2]) && ResolveBool(cmdLine[4]))
                         elseIf __operator == "||"
@@ -1090,13 +1183,13 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                             SFE("unexpected operator for 'set' (" + __operator + ")")
                         endif
                     else
-                        if SLT.Debug_Cmd_RunScript_Set
+                        if Debug_Cmd_RunScript_Set
                             SFD("Cmd.RunScript: set/unhandled\n\tcmdLine<" + PapyrusUtil.StringJoin(cmdLine, ">,<") + "> varscopestringlist<" + PapyrusUtil.StringJoin(varscopestringlist, ">,<") + ">")
                         endif
                     endif
                 endif
             else
-                if SLT.Debug_Cmd_RunScript_Set
+                if Debug_Cmd_RunScript_Set
                     SFD("Cmd.RunScript: set/unhandled\n\tcmdLine<" + PapyrusUtil.StringJoin(cmdLine, ">,<") + "> varscopestringlist<" + PapyrusUtil.StringJoin(varscopestringlist, ">,<") + ">")
                 endif
                 SFE("invalid variable name, not resolvable (" + cmdLine[1] + ")")
@@ -1109,20 +1202,15 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
         if subCommand
             SFE("'endif' is not a valid subcommand")
         endif
-        __searchingForEndIf = false
         ;currentLine += 1
     elseIf command == "endwhile"
         if subCommand
             SFE("'endwhile' is not a valid subcommand")
-        elseif ParamLengthEQ(self, cmdLine.Length, 1)
-            if __searchingForEndWhile
-                __searchingForEndWhile = false
-            else
-                __intVal = slt_PopWhileReturn()
-                if __intVal > -1
-                    currentLine = __intVal
-                endif
-            endif
+        endif
+        __intVal = slt_PopWhileReturn()
+        if __intVal > -1
+            currentLine = __intVal
+            __CLRR = CLRR_NOADVANCE
         endif
         ;currentLine += 1
     elseIf command == "while"
@@ -1131,19 +1219,19 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
         else
             if cmdLine.Length == 2
                 if ResolveBool(cmdLine[1])
-                    slt_PushWhileReturn(currentLine - 1)
+                    slt_PushWhileReturn(currentLine)
                 else
-                    __searchingForEndWhile = true
+                    SetBlockEndTarget(BE_WHILE)
                 endif
             elseif cmdLine.Length == 4
-                __operator = Resolve(cmdLine[2])
+                __operator = ResolveString(cmdLine[2])
                 
                 if __operator
                     __bVal = false
                     if __operator == "=" || __operator == "==" || __operator == "&="
-                        __bVal = sl_triggers.SmartEquals(Resolve(cmdLine[1]), Resolve(cmdLine[3]))
+                        __bVal = sl_triggers.SmartEquals(ResolveString(cmdLine[1]), ResolveString(cmdLine[3]))
                     elseIf __operator == "!=" || __operator == "&!="
-                        __bVal = !sl_triggers.SmartEquals(Resolve(cmdLine[1]), Resolve(cmdLine[3]))
+                        __bVal = !sl_triggers.SmartEquals(ResolveString(cmdLine[1]), ResolveString(cmdLine[3]))
                     elseIf __operator == ">"
                         if ResolveFloat(cmdLine[1]) > ResolveFloat(cmdLine[3])
                             __bVal = true
@@ -1166,9 +1254,9 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                     endif
 
                     if __bVal
-                        slt_PushWhileReturn(currentLine - 1)
+                        slt_PushWhileReturn(currentLine)
                     else
-                        __searchingForEndWhile = true
+                        SetBlockEndTarget(BE_WHILE)
                     endIf
                 else
                     SFE("unable to resolve operator (" + cmdLine[2] + ") po(" + __operator + ")")
@@ -1184,12 +1272,12 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             ; if <boolval> ; treat like start of if-block and search for endif
             if !ResolveBool(cmdLine[1])
                 ; find the matching endif
-                __searchingForEndIf = true
+                SetBlockEndTarget(BE_IF)
             endif
         elseif cmdLine.Length == 3
             ; if <boolval> <label> ;
             if ResolveBool(cmdLine[1])
-                __strVal = Resolve(cmdLine[2])
+                __strVal = ResolveString(cmdLine[2])
                 __intVal = slt_FindGoto(__strVal)
                 if __intVal > -1
                     currentLine = __intVal
@@ -1199,14 +1287,14 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             endif
         elseif cmdLine.Length == 4
             ; if <var1> <op> <var2> ; treat like start of if-block and search for endif
-            __operator = Resolve(cmdLine[2])
+            __operator = ResolveString(cmdLine[2])
 
             __bVal = false
             
             if __operator == "=" || __operator == "==" || __operator == "&="
-                __bVal = sl_triggers.SmartEquals(Resolve(cmdLine[1]), Resolve(cmdLine[3]))
+                __bVal = sl_triggers.SmartEquals(ResolveString(cmdLine[1]), ResolveString(cmdLine[3]))
             elseIf __operator == "!=" || __operator == "&!="
-                __bVal = !sl_triggers.SmartEquals(Resolve(cmdLine[1]), Resolve(cmdLine[3]))
+                __bVal = !sl_triggers.SmartEquals(ResolveString(cmdLine[1]), ResolveString(cmdLine[3]))
             elseIf __operator == ">"
                 if ResolveFloat(cmdLine[1]) > ResolveFloat(cmdLine[3])
                     __bVal = true
@@ -1229,19 +1317,19 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             endif
 
             if !__bVal
-                __searchingForEndIf = true
+                SetBlockEndTarget(BE_IF)
             endIf
         elseif cmdLine.Length == 5
             ; if <var1> <op> <var2> <label>
-            __operator = Resolve(cmdLine[2])
+            __operator = ResolveString(cmdLine[2])
             
             if __operator
 
                 __bVal = false
                 if __operator == "=" || __operator == "==" || __operator == "&="
-                    __bVal = sl_triggers.SmartEquals(Resolve(cmdLine[1]), Resolve(cmdLine[3]))
+                    __bVal = sl_triggers.SmartEquals(ResolveString(cmdLine[1]), ResolveString(cmdLine[3]))
                 elseIf __operator == "!=" || __operator == "&!="
-                    __bVal = !sl_triggers.SmartEquals(Resolve(cmdLine[1]), Resolve(cmdLine[3]))
+                    __bVal = !sl_triggers.SmartEquals(ResolveString(cmdLine[1]), ResolveString(cmdLine[3]))
                 elseIf __operator == ">"
                     if ResolveFloat(cmdLine[1]) > ResolveFloat(cmdLine[3])
                         __bVal = true
@@ -1264,7 +1352,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                 endif
 
                 if __bVal
-                    __strVal = Resolve(cmdLine[4])
+                    __strVal = ResolveString(cmdLine[4])
                     __intVal = slt_FindGoto(__strVal)
                     if __intVal > -1
                         currentLine = __intVal
@@ -1310,13 +1398,13 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
         endif
         ;currentLine += 1
     elseIf command == "goto"
-        if SLT.Debug_Cmd_RunScript
+        if Debug_Cmd_RunScript
             SFD("Cmd.RunScript: goto")
         endif
         if subCommand
             SFE("'goto' is not a valid subcommand")
         elseif ParamLengthEQ(self, cmdLine.Length, 2)
-            __strVal = Resolve(cmdLine[1])
+            __strVal = ResolveString(cmdLine[1])
             __intVal = slt_FindGoto(__strVal)
             if __intVal > -1
                 currentLine = __intVal
@@ -1336,7 +1424,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                 __intVal = 2
                 __strVal2 = GetVarString2(varscopestringlist[0], varscopestringlist[1], "")
                 while __intVal < cmdLine.Length
-                    __strVal2 = __strVal2 + Resolve(cmdLine[__intVal])
+                    __strVal2 = __strVal2 + ResolveString(cmdLine[__intVal])
                     __intVal += 1
                 endwhile
                 SetVarString2(varscopestringlist[0], varscopestringlist[1], __strVal2)
@@ -1349,7 +1437,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
         if subCommand
             SFE("'gosub' is not a valid subcommand")
         elseif ParamLengthEQ(self, cmdLine.Length, 2)
-            __strVal = Resolve(cmdLine[1])
+            __strVal = ResolveString(cmdLine[1])
             __intVal = slt_FindGosub(__strVal)
             if __intVal > -1
                 slt_PushGosubReturn(currentLine)
@@ -1363,14 +1451,14 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
         if subCommand
             SFE("'call' is not a valid subcommand")
         elseif ParamLengthGT(self, cmdLine.Length, 1)
-            __strVal = Resolve(cmdLine[1])
+            __strVal = ResolveString(cmdLine[1])
 
             __strListVal = none
             if cmdLine.Length > 2
                 __strListVal = PapyrusUtil.SliceStringArray(cmdLine, 2)
                 __intVal = 0
                 while __intVal < __strListVal.Length
-                    __strListVal[__intVal] = Resolve(__strListVal[__intVal])
+                    __strListVal[__intVal] = ResolveString(__strListVal[__intVal])
                     __intVal += 1
                 endwhile
             endif
@@ -1399,7 +1487,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             SFE("set is not a valid subcommand")
         else
             if ParamLengthEQ(self, cmdLine.Length, 2)
-                slt_AddGosub(Resolve(cmdLine[1]), currentLine)
+                slt_AddGosub(ResolveString(cmdLine[1]), currentLine)
             endif
             ; still try to go through with finding the end
             __intVal = currentLine
@@ -1451,13 +1539,13 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             if subCommand
                 SFE("cannot define label as a subcommand")
             else
-                if SLT.Debug_Cmd_RunScript
+                if Debug_Cmd_RunScript
                     SFD("Cmd.RunScript: [might be label]")
                 endif
                 slt_AddGoto(_slt_mightBeLabel, currentLine)
             endif
         else
-            if SLT.Debug_Cmd_RunScript
+            if Debug_Cmd_RunScript
                 SFD("Cmd.RunScript: RunOperationOnActor(" + PapyrusUtil.StringJoin(cmdLine, "),(") + ")")
             endif
             RunOperationOnActor(cmdLine)
@@ -1470,7 +1558,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
 EndFunction
 
 Function RunScript()
-    if SLT.Debug_Cmd || SLT.Debug_Cmd_RunScript
+    if Debug_Cmd || Debug_Cmd_RunScript
         SFD("Cmd.RunScript")
     endif
 
@@ -1478,7 +1566,7 @@ Function RunScript()
     int commandLineRunResult
 
     while isExecuting && hasValidFrame
-        if SLT.Debug_Cmd_RunScript
+        if Debug_Cmd_RunScript
             SFD("Cmd.RunScript: isExecuting and hasValidFrame")
         endif
         if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
@@ -1493,7 +1581,7 @@ Function RunScript()
             int endidx = tokencounts[currentLine] + startidx - 1
             cmdLine = PapyrusUtil.SliceStringArray(tokens, startidx, endidx)
             
-            if SLT.Debug_Cmd_RunScript
+            if Debug_Cmd_RunScript
                 SFD("Cmd.RunScript: lineNum(" + lineNum + ") startidx(" + startidx + ") endidx(" + endidx + ") currentScriptName(" + currentScriptName + ") initialScriptName(" + initialScriptName + ") cmdLine(" + PapyrusUtil.StringJoin(cmdLine, "), (") + ")")
             endif
             
@@ -1504,30 +1592,30 @@ Function RunScript()
             endif
             
             if cmdLine.Length
-                if SLT.Debug_Cmd_RunScript
+                if Debug_Cmd_RunScript
                     SFI("RunCommandLine values before: for cmdLine(" + PapyrusUtil.StringJoin(cmdLine, "), (") + ")" + ": currentLine(" + currentLine + ") totalLines(" + totalLines + ") currentScriptName(" + currentScriptName + ") initialScriptName(" + initialScriptName + ")")
                 endif
                 commandLineRunResult = RunCommandLine(cmdLine, startidx, endidx, false)
-                if SLT.Debug_Cmd_RunScript
+                if Debug_Cmd_RunScript
                     SFI("RunCommandLine result: (" + CLRR_ToString(commandLineRunResult) + ") for cmdLine(" + PapyrusUtil.StringJoin(cmdLine, "), (") + ")" + ": currentLine(" + currentLine + ") totalLines(" + totalLines + ") currentScriptName(" + currentScriptName + ") initialScriptName(" + initialScriptName + ")")
                 endif
 
                 if CLRR_RETURN == commandLineRunResult
-                    if SLT.Debug_Cmd_RunScript
+                    if Debug_Cmd_RunScript
                         SFD("CLRR_RETURN; returning")
                     endif
                     return
                 endif
 
                 if CLRR_ADVANCE == commandLineRunResult
-                    if SLT.Debug_Cmd_RunScript
+                    if Debug_Cmd_RunScript
                         SFD("CLRR_ADVANCE; incrementing currentLine")
                     endif
                     currentLine += 1
                 endif
 
                 if CLRR_NOADVANCE == commandLineRunResult
-                    if SLT.Debug_Cmd_RunScript
+                    if Debug_Cmd_RunScript
                         SFD("CLRR_NOADVANCE; thus, not advancing")
                     endif
                 endif
@@ -1536,7 +1624,7 @@ Function RunScript()
             endif
         endwhile
 
-        if SLT.Debug_Cmd_RunScript
+        if Debug_Cmd_RunScript
             SFI("Cmd.RunScript: Left while loop; currentLine(" + currentLine + ") totalLines(" + totalLines + ") currentScriptName(" + currentScriptName + ") initialScriptName(" + initialScriptName + ")")
         endif
 
@@ -1554,7 +1642,7 @@ string Function _slt_IsLabel(string[] _tokens = none)
         int _labelLen = StringUtil.GetLength(_tokens[0])
 
         if _labelLen > 2 && StringUtil.GetNthChar(_tokens[0], 0) == "[" && StringUtil.GetNthChar(_tokens[0], _labelLen - 1) == "]"
-            isLabel = Resolve(StringUtil.Substring(_tokens[0], 1, _labelLen - 2))
+            isLabel = ResolveString(StringUtil.Substring(_tokens[0], 1, _labelLen - 2))
         endif
     endif
 
@@ -2114,14 +2202,13 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
 
     totalLines = scriptlines.Length
 
-    if SLT.Debug_Cmd
+    if Debug_Cmd
         SLTDebugMsg("Cmd.slt_Frame_Push: scriptname:" + currentScriptName + ": totalLines:" + totalLines + ":")
     endif
 
     hasValidFrame = true
 
-    __searchingForEndIf = false
-    __searchingForEndWhile = false
+    ResetBlockEndTarget()
 
     return true
 EndFunction
@@ -2343,8 +2430,7 @@ bool Function slt_Frame_Pop()
     frame_tokencounts = PapyrusUtil.ResizeIntArray(frame_tokencounts, newvarstoresize)
     frame_tokenoffsets = PapyrusUtil.ResizeIntArray(frame_tokenoffsets, newvarstoresize)
 
-    __searchingForEndIf = false
-    __searchingForEndWhile = false
+    ResetBlockEndTarget()
 
     return true
 EndFunction
@@ -2816,28 +2902,28 @@ EndFunction
 ;; Support
 bool Function IsAssignableScope(string varscope)
     if "local" == varscope
-        if SLT.Debug_Cmd
+        if Debug_Cmd
             SFD("Cmd.IsAssignableScope: scope(" + varscope + ") is considered assignable: LOCAL")
         endif
         return true
     elseif "thread" == varscope
-        if SLT.Debug_Cmd
+        if Debug_Cmd
             SFD("Cmd.IsAssignableScope: scope(" + varscope + ") is considered assignable: THREAD")
         endif
         return true
     elseif "target" == varscope
-        if SLT.Debug_Cmd
+        if Debug_Cmd
             SFD("Cmd.IsAssignableScope: scope(" + varscope + ") is considered assignable: TARGET")
         endif
         return true
     elseif "global" == varscope
-        if SLT.Debug_Cmd
+        if Debug_Cmd
             SFD("Cmd.IsAssignableScope: scope(" + varscope + ") is considered assignable: GLOBAL")
         endif
         return true
     endif
 
-    if SLT.Debug_Cmd
+    if Debug_Cmd
         SFD("Cmd.IsAssignableScope: scope(" + varscope + ") is not considered assignable")
     endif
     return false
@@ -2859,7 +2945,7 @@ function GetVarScope2(string varname, string[] varscope, bool forAssignment = fa
                 varscope[0] = StringUtil.Substring(varname, 1, dotindex - 1)
                 if forAssignment
                     bool scopeAssignable = IsAssignableScope(varscope[0])
-                    if SLT.Debug_Cmd
+                    if Debug_Cmd
                         SFD("varscope[0](" + varscope[0] + ") scopeAssignable(" + scopeAssignable + ")")
                     endif
 
