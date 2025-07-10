@@ -1186,6 +1186,8 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                             SetVarBool(varscopestringlist[0], varscopestringlist[1], ResolveBool(cmdLine[2]) && ResolveBool(cmdLine[4]))
                         elseIf __operator == "||"
                             SetVarBool(varscopestringlist[0], varscopestringlist[1], ResolveBool(cmdLine[2]) || ResolveBool(cmdLine[4]))
+                        elseIf __operator == "=="
+                            SetVarBool(varscopestringlist[0], varscopestringlist[1], ResolveBool(cmdLine[2]) == ResolveBool(cmdLine[4]))
                         else
                             SFE("unexpected operator for 'set' (" + __operator + ")")
                         endif
