@@ -13,7 +13,16 @@
     bugfix: system.is_available.core should return a bool, not a string
     bugfix: should catch attempts to assign to read-only scopes earlier in command handling
     bugfix: MannySauce was disappointed about the version number mismatch in the MCM; the disappointment has been addressed
+    bugfix: plugin should now properly disable function libraries for disabled extensions
+    bugfix: empty string literals erroneously reporting as '"'
     change: bool flags in settings.json changed to string: "true"/"false"
+    change: label notation can be used as the target for goto/if as well as the source for set
+        example:
+            [target label]
+            goto [target label]
+            if $var1 > $var2 [target label]
+            set $targetLabel [target label]
+            goto $targetLabel
     enhancement: true and false are now keywords that return bool true and false
     enhancement: new operators for set and if: '&&' and '||' for boolean AND and OR respectively
     enhancement: if <var> <label> ; you can now test a variable for truthiness instead of requiring a comparison

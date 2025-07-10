@@ -131,18 +131,21 @@ void FunctionLibrary::GetFunctionLibraries() {
     }
 }
 
-bool FunctionLibrary::PrecacheLibraries() {
-    logger::info("PrecacheLibraries starting");
-    FunctionLibrary::GetFunctionLibraries();
+void FunctionLibrary::RefreshFunctionLibraryCache() {
     if (g_FunctionLibraries.empty()) {
-        logger::info("PrecacheLibraries: libraries was empty");
-        return false;
+        logger::info("RefreshFunctionLibraryCache: libraries was empty");
+        return;
     } else {
         logger::info("{} libraries available, processing", g_FunctionLibraries.size());
     }
+
+    functionScriptCache.clear();
+
     auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
     RE::BSTSmartPointer<RE::BSScript::ObjectTypeInfo> typeinfoptr;
     for (const auto& scriptlib : g_FunctionLibraries) {
+        if (!scriptlib->enabled) continue;
+
         std::string& _scriptname = scriptlib->functionFile;
 
         bool success = false;
@@ -153,7 +156,7 @@ bool FunctionLibrary::PrecacheLibraries() {
         }
 
         if (!success) {
-            logger::info("PrecacheLibraries: ObjectTypeInfo unavailable");
+            logger::info("RefreshFunctionLibraryCache: ObjectTypeInfo unavailable");
             continue;
         }
 
@@ -204,6 +207,13 @@ bool FunctionLibrary::PrecacheLibraries() {
             functionScriptCache[std::string(libfuncName)] = std::string(_scriptname.c_str());
         }
     }
+}
+
+bool FunctionLibrary::PrecacheLibraries() {
+    logger::info("PrecacheLibraries starting");
+    FunctionLibrary::GetFunctionLibraries();
+
+    FunctionLibrary::RefreshFunctionLibraryCache();
 
     logger::info("PrecacheLibraries completed");
     return true;

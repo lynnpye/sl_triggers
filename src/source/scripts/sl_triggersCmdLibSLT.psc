@@ -1137,7 +1137,7 @@ function actor_isvalid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         if _targetActor && _targetActor.isEnabled() && !_targetActor.isDead() && !_targetActor.isInCombat() && !_targetActor.IsUnconscious() && _targetActor.Is3DLoaded() && cc == _targetActor.getParentCell()
             nextResult = 1
         else
-            If (CmdPrimary.Debug_Cmd_Functions)
+            If (CmdPrimary.SLT.Debug_Cmd_Functions)
                 string actor_isvalid_problems = ""
 
                 if !_targetActor
@@ -1941,19 +1941,48 @@ endFunction
 function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
+    if CmdPrimary.SLT.Debug_Cmd_Functions
+        CmdPrimary.SFD("Base.actor_race params/" + PapyrusUtil.StringJoin(param, "/") + "/")
+    endif
+
     string nextResult
 
-    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+    if param.Length == 2
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        
+        if _targetActor
+            if CmdPrimary.SLT.Debug_Cmd_Functions
+                Race tr = _targetActor.GetRace()
+                string nm = tr.GetName()
+                CmdPrimary.SFD("Base.actor_race: _targetActor(" + _targetActor + ") race(" + tr + ") name(" + nm + ")")
+            endif
+            nextResult = _targetActor.GetRace().GetName()
+        else
+            CmdPrimary.SFW("actor_race: Unable to resolve actor token(" + param[1] + ")")
+        endIf
+    elseif param.Length == 3
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         
         if _targetActor
             string ss1 = CmdPrimary.ResolveString(param[2])
+            if CmdPrimary.SLT.Debug_Cmd_Functions
+                Race tr = _targetActor.GetRace()
+                string nm = tr.GetName()
+                CmdPrimary.SFD("Base.actor_race: ss1(" + ss1 + ") _targetActor(" + _targetActor + ") race(" + tr + ") name(" + nm + ")")
+            endif
             if !ss1
                 nextResult = _targetActor.GetRace().GetName()
             endIf
+        else
+            CmdPrimary.SFW("actor_race: Unable to resolve actor token(" + param[1] + ")")
         endIf
+    else
+        CmdPrimary.SFE("actor_race: invalid parameter count")
     endif
 
+    if CmdPrimary.SLT.Debug_Cmd_Functions
+        CmdPrimary.SFD("Base.actor_race supposed to return(" + nextResult + ")")
+    endif
     CmdPrimary.MostRecentStringResult = nextResult
 
 	CmdPrimary.CompleteOperationOnActor()
@@ -4583,6 +4612,9 @@ function util_sendmodevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, 
             p3 = CmdPrimary.ResolveFloat(param[3])
         endif
         
+        if CmdPrimary.SLT.Debug_Cmd_Functions
+            CmdPrimary.SFD("\tutil_sendmodevent: eventName(" + ss1 + ") strArg(" + ss2 + ") numArg(" + p3 + ")")
+        endif
         CmdTargetActor.SendModEvent(ss1, ss2, p3)
     endif
 
@@ -4667,7 +4699,7 @@ endFunction
 function util_getrealtime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if CmdPrimary.Debug_Cmd_Functions
+    if CmdPrimary.SLT.Debug_Cmd_Functions
         SLTDebugMsg("util_getrealtime: starting")
     endif
 
@@ -4675,13 +4707,13 @@ function util_getrealtime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         float realTime = Utility.GetCurrentRealTime()
         realTime = Math.Floor(realTime * 100.0) / 100.0
 
-        if CmdPrimary.Debug_Cmd_Functions
+        if CmdPrimary.SLT.Debug_Cmd_Functions
             SLTDebugMsg("util_getrealtime: realtime(" + realtime + ")")
         endif
         CmdPrimary.MostRecentFloatResult = realTime
     endif
 
-    if CmdPrimary.Debug_Cmd_Functions
+    if CmdPrimary.SLT.Debug_Cmd_Functions
         SLTDebugMsg("util_getrealtime: returning")
     endif
 	CmdPrimary.CompleteOperationOnActor()

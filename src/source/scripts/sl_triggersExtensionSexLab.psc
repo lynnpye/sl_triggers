@@ -42,6 +42,7 @@ Event OnInit()
 	if !self
 		return
 	endif
+	UpdateSexLabStatus()
 	; REQUIRED CALL
 	UnregisterForUpdate()
 	RegisterForSingleUpdate(0.01)

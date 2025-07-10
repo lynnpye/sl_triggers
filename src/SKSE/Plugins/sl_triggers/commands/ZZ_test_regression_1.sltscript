@@ -1,33 +1,85 @@
 deb_msg "SLT Test Script: Begin"
 util_getrealtime
-set $9001 $$
-deb_msg "Start realtime: " $9001
-set $8000 0
+set $regressionTestStartTime $$
+deb_msg "Start realtime: " $regressionTestStartTime
+set $testsPassed 0
 
 set $accumulatedUtilWaitTime 0
 
-if $8000 != 0 setdidfail
+if $testsPassed != 0 setdidfail
 goto begintestpath
 [setdidfail]
-deb_msg "Set failed, $8000 should be 0 but it is not:"
-deb_msg $8000
+deb_msg "Set failed, $testsPassed should be 0 but it is not:"
+deb_msg $testsPassed
 deb_msg ": going to done"
 goto done
 
 
 [begintestpath]
-set $34 29
+set $var1 29
+; check some equality
+if $var1 > 29
+    deb_msg "FAILED: optest/int gt lit int"
+    goto done
+endif
 
-inc $34 1
+if $var1 > 29.3
+    deb_msg "FAILED: optest/int gt lit float"
+    goto done
+endif
 
-if $34 = 30 incworked
+if $var1 == ""
+    deb_msg "FAILED: optest/int eq """""
+    goto done
+endif
+
+if $var1 &= ""
+    deb_msg "FAILED: optest/int &= """""
+    goto done
+endif
+
+set $waseq true
+if $var1 &!= ""
+    set $waseq false
+endif
+if $waseq
+    deb_msg "FAILED: optest/int &!= """""
+    goto done
+endif
+
+if "" &!= ""
+    deb_msg "FAILED: """" &!= """""
+    goto done
+endif
+
+set $wasneq true
+if "" &= ""
+    set $wasneq false
+endif
+if $waseq
+    deb_msg "FAILED: """" &= """""
+    goto done
+endif
+
+inc $var1 1
+
+if $var1 == 30 incworked
 deb_msg "FAILED: inc"
 goto done
 
 
 [incworked]
-inc $8000 1
+inc $testsPassed 1
 
+
+set $targetlabel "valid target label"
+
+goto $targetlabel
+deb_msg "FAILED: var subbed labels/1"
+goto done
+
+[valid target label]
+inc $testsPassed 1
 
 
 deb_msg "while loop test"
@@ -58,7 +110,7 @@ goto done
 
 
 [whileloopworked]
-inc $8000 1
+inc $testsPassed 1
 
 set $boolval = true
 
@@ -135,7 +187,7 @@ goto done
 
 
 [t5yes]
-inc $8000 1
+inc $testsPassed 1
 
 
 
@@ -147,7 +199,7 @@ inc $8000 1
 
 
 [newifworked]
-inc $8000 1
+inc $testsPassed 1
 
 set $rnd100 -12.0
 
@@ -174,7 +226,7 @@ goto done
 deb_msg $"INFO:  random.100:{system.random.100} inside:{system.is_player.inside}  outside:{system.is_player.outside}  realtime:{system.realtime}  gametime:{system.gametime}   player:{system.player}  sessionid:{system.sessionid}  initialScriptName:{system.initialScriptName}  initialGameTime:{system.initialGameTime}"
 
 [randoworked]
-inc $8000 1
+inc $testsPassed 1
 
 
 set $anEditorId "Ale"
@@ -189,7 +241,7 @@ goto done
 
 
 [editoridlookupworked]
-inc $8000
+inc $testsPassed
 
 
 set $avalue "$this will still be hard"
@@ -201,7 +253,7 @@ goto done
 
 
 [dollarprefixworked]
-inc $8000
+inc $testsPassed
 
 
 ; test goto
@@ -237,7 +289,7 @@ deb_msg "FAILED: == or new eq/3"
 goto done
 
 [new_eq_worked]
-inc $8000
+inc $testsPassed
 
 ; test set
 set $1 40
@@ -248,7 +300,7 @@ deb_msg "FAILED: set or if"
 goto done
 
 [setworked]
-inc $8000
+inc $testsPassed
 
 actor_dogetter $system.player IsSneaking
 set $isSneaking $$
@@ -272,7 +324,7 @@ goto done
 
 
 [ckapiworked]
-inc $8000
+inc $testsPassed
 
 
 
@@ -341,7 +393,7 @@ goto done
 
 
 [setresultfromworked]
-inc $8000
+inc $testsPassed
 
 actor_display_name $system.player
 set $playerDisplayName $$
@@ -355,33 +407,33 @@ goto done
 
 
 [actor_dogetterworked]
-inc $8000 1
+inc $testsPassed 1
 set $2 50
 if $1 < $2 ltworked
 deb_msg "FAILED: lt"
 goto done
 
 [ltworked]
-inc $8000 1
+inc $testsPassed 1
 if $2 > $1 gtworked
 deb_msg "FAILED: gt"
 goto done
 
 [gtworked]
-inc $8000 1
+inc $testsPassed 1
 if $1 != $2 neqworked
 deb_msg "FAILED: neq"
 goto done
 
 [neqworked]
-inc $8000 1
+inc $testsPassed 1
 gosub set1to90
 if $1 = 90 gosubworked
 deb_msg "FAILED: gosub"
 goto done
 
 [gosubworked]
-inc $8000 1
+inc $testsPassed 1
 set $1 0
 av_get $system.player Health
 set $1 $$
@@ -391,7 +443,7 @@ goto done
 
 
 [avgetworked]
-inc $8000 1
+inc $testsPassed 1
 
 
 
@@ -409,7 +461,7 @@ goto done
 
 
 [rndintworked]
-inc $8000 1
+inc $testsPassed 1
 
 
 
@@ -423,9 +475,9 @@ goto done
 
 [gotone]
 [gottwo]
-inc $8000 1
+inc $testsPassed 1
 
-deb_msg "Just prior to call, test pass count: " $8000
+deb_msg "Just prior to call, test pass count: " $testsPassed
 
 set $global.testvar "One bad day"
 
@@ -448,7 +500,7 @@ deb_msg "FAILED: call (" $global.randomvariable ")"
 goto done
 
 [callworked]
-inc $8000 1
+inc $testsPassed 1
 
 deb_msg "Call working makes me very happy"
 
@@ -466,7 +518,7 @@ set $arealtime $$
 deb_msg "arealtime(" $arealtime ")"
 set $6 $arealtime - $5
 
-if $6 > 5.0 waitpassone
+if $6 > 4.0 waitpassone
 deb_msg "FAILED: util_wait/1 5.5 (" $6 ")"
 goto done
 
@@ -477,13 +529,13 @@ goto done
 
 
 [waitworked]
-inc $8000 1
+inc $testsPassed 1
 
 
 
 set $global.randomvariable ""
 msg_notify "ABOUT TO SEND MODEVENT FOR GOSUBEXAMPLE SO EXPECT TO SEE IT COME UP AGAIN"
-util_sendmodevent "sl_triggers_SLTRequestCommand" "GosubExample" 0
+util_sendmodevent "OnSLTRequestCommand" "GosubExample" 0
 
 inc $accumulatedUtilWaitTime 7.0
 util_wait 7.0
@@ -499,7 +551,7 @@ goto done
 
 
 [sendmodeventworked]
-inc $8000 1
+inc $testsPassed 1
 
 
 util_getrandomactor 10000
@@ -520,7 +572,7 @@ goto done
 
 
 [getrandomactorworked]
-inc $8000 1
+inc $testsPassed 1
 
 
 
@@ -532,7 +584,7 @@ inc $8000 1
 goto done
 
 [gotoworked]
-inc $8000 1
+inc $testsPassed 1
 goto doactualtests
 
 beginsub set1to90
@@ -542,11 +594,11 @@ endsub
 [done]
 deb_msg "SLT Test Script: End"
 util_getrealtime
-set $9002 $$
-deb_msg "Ending realtime: " $9002
-set $9003 $9002 - $9001
-deb_msg "Elapsed realtime: " + $9003
+set $regressionTestEndTime $$
+deb_msg "Ending realtime: " $regressionTestEndTime
+set $regressionTestElapsedTime $regressionTestEndTime - $regressionTestStartTime
+deb_msg "Elapsed realtime: " + $regressionTestElapsedTime
 deb_msg $"Manually counted: util_wait: {accumulatedUtilWaitTime} seconds mandated by tests"
-set $actualElapsedRealtime $9003 - $accumulatedUtilWaitTime
+set $actualElapsedRealtime $regressionTestElapsedTime - $accumulatedUtilWaitTime
 deb_msg $"Actual elapsed realtime (minus util_wait): {actualElapsedRealtime}"
-deb_msg $"Passed {8000} tests."
+deb_msg $"Passed {testsPassed} tests."

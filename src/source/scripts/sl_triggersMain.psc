@@ -49,12 +49,13 @@ int					Property RunningScriptCount = 0 Auto Hidden
 
 
 ; duplicated from sl_triggersCmd
-int         Property RT_INVALID =   0 AutoReadOnly
-int         Property RT_STRING =    1 AutoReadOnly
-int         Property RT_BOOL =      2 AutoReadOnly
-int         Property RT_INT =       3 AutoReadOnly
-int         Property RT_FLOAT =     4 AutoReadOnly
-int         Property RT_FORM =      5 AutoReadOnly
+int     Property RT_INVALID =   	0 AutoReadOnly
+int     Property RT_STRING =    	1 AutoReadOnly
+int     Property RT_BOOL =      	2 AutoReadOnly
+int     Property RT_INT =       	3 AutoReadOnly
+int     Property RT_FLOAT =     	4 AutoReadOnly
+int     Property RT_FORM =      	5 AutoReadOnly
+int		Property RT_LABEL =			6 AutoReadOnly
 
 string Function RT_ToString(int rt_type)
     if RT_STRING == rt_type
@@ -67,6 +68,8 @@ string Function RT_ToString(int rt_type)
         return "RT_BOOL"
     elseif RT_FORM == rt_type
         return "RT_FORM"
+	elseif RT_LABEL == rt_type
+		return "RT_LABEL"
     endif
     return "<invalid RT type: " + rt_type + ">"
 EndFunction
@@ -74,9 +77,12 @@ EndFunction
 bool Property Debug_Cmd Auto Hidden
 bool Property Debug_Cmd_Functions Auto Hidden
 bool Property Debug_Cmd_InternalResolve Auto Hidden
+bool Property Debug_Cmd_InternalResolve_Literals Auto Hidden
 bool Property Debug_Cmd_ResolveForm Auto Hidden
 bool Property Debug_Cmd_RunScript Auto Hidden
 bool Property Debug_Cmd_RunScript_Blocks Auto Hidden
+bool Property Debug_Cmd_RunScript_If Auto Hidden
+bool Property Debug_Cmd_RunScript_Labels Auto Hidden
 bool Property Debug_Cmd_RunScript_Set Auto Hidden
 bool Property Debug_Extension Auto Hidden
 bool Property Debug_Extension_Core Auto Hidden
@@ -98,9 +104,12 @@ Function SetupSettingsFlags()
 	Debug_Cmd							= GetFlag(Debug_Setup, fns, "Debug_Cmd")
 	Debug_Cmd_Functions					= GetFlag(Debug_Setup, fns, "Debug_Cmd_Functions")
 	Debug_Cmd_InternalResolve			= GetFlag(Debug_Setup, fns, "Debug_Cmd_InternalResolve")
+	Debug_Cmd_InternalResolve_Literals	= GetFlag(Debug_Setup, fns, "Debug_Cmd_InternalResolve_Literals")
 	Debug_Cmd_ResolveForm				= GetFlag(Debug_Setup, fns, "Debug_Cmd_ResolveForm")
 	Debug_Cmd_RunScript 				= GetFlag(Debug_Setup, fns, "Debug_Cmd_RunScript")
 	Debug_Cmd_RunScript_Blocks			= GetFlag(Debug_Setup, fns, "Debug_Cmd_RunScript_Blocks")
+	Debug_Cmd_RunScript_If				= GetFlag(Debug_Setup, fns, "Debug_Cmd_RunScript_If")
+	Debug_Cmd_RunScript_Labels			= GetFlag(Debug_Setup, fns, "Debug_Cmd_RunScript_Labels")
 	Debug_Cmd_RunScript_Set				= GetFlag(Debug_Setup, fns, "Debug_Cmd_RunScript_Set")
 	Debug_Extension						= GetFlag(Debug_Setup, fns, "Debug_Extension")
 	Debug_Extension_Core				= GetFlag(Debug_Setup, fns, "Debug_Extension_Core")
@@ -562,7 +571,23 @@ bool Function HasGlobalVar(string _key)
 	return (global_var_keys.Find(_key, 0) > -1)
 EndFunction
 
+int Function GetGlobalVarType(string _key)
+	int i = global_var_keys.Find(_key, 0)
+	if i > -1
+		return global_var_types[i]
+	endif
+    return RT_INVALID
+EndFunction
+
 string Function GetGlobalVarString(string _key, string missing)
+	int i = global_var_keys.Find(_key, 0)
+	if i > -1
+		return global_var_vals[i]
+	endif
+	return missing
+EndFunction
+
+string Function GetGlobalVarLabel(string _key, string missing)
 	int i = global_var_keys.Find(_key, 0)
 	if i > -1
 		return global_var_vals[i]
@@ -575,7 +600,7 @@ bool Function GetGlobalVarBool(string _key, bool missing)
 	if i > -1
         int rt = global_var_types[i]
         if RT_BOOL == rt
-            return global_var_vals[i] as bool
+            return IsStringTruthy(global_var_vals[i])
         elseif RT_INT == rt
             return (global_var_vals[i] as int) != 0
         elseif RT_FLOAT == rt
@@ -659,6 +684,19 @@ string Function SetGlobalVarString(string _key, string value)
 	else
 		global_var_vals[i] = value
 		global_var_types[i] = RT_STRING
+	endif
+	return value
+EndFunction
+
+string Function SetGlobalVarLabel(string _key, string value)
+	int i = global_var_keys.Find(_key, 0)
+	if i < 0
+		global_var_keys = PapyrusUtil.PushString(global_var_keys, _key)
+		global_var_vals = PapyrusUtil.PushString(global_var_vals, value)
+		global_var_types = PapyrusUtil.PushInt(global_var_types, RT_LABEL)
+	else
+		global_var_vals[i] = value
+		global_var_types[i] = RT_LABEL
 	endif
 	return value
 EndFunction

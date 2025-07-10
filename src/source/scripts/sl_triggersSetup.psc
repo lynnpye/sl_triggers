@@ -57,9 +57,12 @@ int			oidDebugMsg
 int 		oidDebug_Cmd
 int 		oidDebug_Cmd_Functions
 int 		oidDebug_Cmd_InternalResolve
+int 		oidDebug_Cmd_InternalResolve_Literals
 int 		oidDebug_Cmd_ResolveForm
 int 		oidDebug_Cmd_RunScript
 int			oidDebug_Cmd_RunScript_Blocks
+int			oidDebug_Cmd_RunScript_If
+int			oidDebug_Cmd_RunScript_Labels
 int 		oidDebug_Cmd_RunScript_Set
 int 		oidDebug_Extension
 int 		oidDebug_Extension_Core
@@ -87,9 +90,12 @@ Function CallThisToResetTheOIDValuesHextun()
 	oidDebug_Cmd							= 0
 	oidDebug_Cmd_Functions					= 0
 	oidDebug_Cmd_InternalResolve			= 0
+	oidDebug_Cmd_InternalResolve_Literals	= 0
 	oidDebug_Cmd_ResolveForm				= 0
 	oidDebug_Cmd_RunScript					= 0
 	oidDebug_Cmd_RunScript_Blocks			= 0
+	oidDebug_Cmd_RunScript_If				= 0
+	oidDebug_Cmd_RunScript_Labels			= 0
 	oidDebug_Cmd_RunScript_Set				= 0
 	oidDebug_Extension						= 0
 	oidDebug_Extension_Core					= 0
@@ -743,6 +749,11 @@ Event OnOptionSelect(int option)
 		_boolVal = !SLT.Debug_Cmd_InternalResolve
 		SLT.Debug_Cmd_InternalResolve = DoSaveAndReset(option, _strVal, _boolVal)
 		return
+	elseIf option == oidDebug_Cmd_InternalResolve_Literals
+		_strVal = "Debug_Cmd_InternalResolve_Literals"
+		_boolVal = !SLT.Debug_Cmd_InternalResolve_Literals
+		SLT.Debug_Cmd_InternalResolve_Literals = DoSaveAndReset(option, _strVal, _boolVal)
+		return
 	elseIf option == oidDebug_Cmd_ResolveForm
 		_strVal = "Debug_Cmd_ResolveForm"
 		_boolVal = !SLT.Debug_Cmd_ResolveForm
@@ -757,6 +768,16 @@ Event OnOptionSelect(int option)
 		_strVal = "Debug_Cmd_RunScript_Blocks"
 		_boolVal = !SLT.Debug_Cmd_RunScript_Blocks
 		SLT.Debug_Cmd_RunScript_Blocks = DoSaveAndReset(option, _strVal, _boolVal)
+		return
+	elseIf option == oidDebug_Cmd_RunScript_If
+		_strVal = "Debug_Cmd_RunScript_If"
+		_boolVal = !SLT.Debug_Cmd_RunScript_If
+		SLT.Debug_Cmd_RunScript_If = DoSaveAndReset(option, _strVal, _boolVal)
+		return
+	elseIf option == oidDebug_Cmd_RunScript_Labels
+		_strVal = "Debug_Cmd_RunScript_Labels"
+		_boolVal = !SLT.Debug_Cmd_RunScript_Labels
+		SLT.Debug_Cmd_RunScript_Labels = DoSaveAndReset(option, _strVal, _boolVal)
 		return
 	elseIf option == oidDebug_Cmd_RunScript_Set
 		_strVal = "Debug_Cmd_RunScript_Set"

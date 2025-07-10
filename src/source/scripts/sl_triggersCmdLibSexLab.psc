@@ -145,26 +145,53 @@ function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 
     sl_triggersExtensionSexLab slExtension = GetExtension()
 
-    string nextResult = ""
+    if CmdPrimary.SLT.Debug_Cmd_Functions
+        CmdPrimary.SFD("SexLab.actor_race")
+    endif
 
-    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+    string nextResult
+
+    if param.Length == 2
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        
         if _targetActor
-            string ss1
-            if param.Length > 2
-                ss1 = CmdPrimary.ResolveString(param[2])
+            if CmdPrimary.SLT.Debug_Cmd_Functions
+                Race tr = _targetActor.GetRace()
+                string nm = tr.GetName()
+                CmdPrimary.SFD("SexLab.actor_race: _targetActor(" + _targetActor + ") race(" + tr + ") name(" + nm + ")")
+            endif
+            nextResult = _targetActor.GetRace().GetName()
+        else
+            CmdPrimary.SFW("actor_race: Unable to resolve actor token(" + param[1] + ")")
+        endIf
+    elseif param.Length == 3
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        
+        if _targetActor
+            string ss1 = CmdPrimary.ResolveString(param[2])
+            if CmdPrimary.SLT.Debug_Cmd_Functions
+                Race tr = _targetActor.GetRace()
+                string nm = tr.GetName()
+                CmdPrimary.SFD("SexLab.actor_race: ss1(" + ss1 + ") _targetActor(" + _targetActor + ") race(" + tr + ") name(" + nm + ")")
             endif
             if !ss1 || !slExtension.IsEnabled
                 nextResult = _targetActor.GetRace().GetName()
-            elseIf "SL" == ss1 && slExtension.IsEnabled
+            elseif "SL" == ss1 && slExtension.IsEnabled
                 nextResult = sslCreatureAnimationSlots.GetRaceKey(_targetActor.GetRace())
             endIf
-        endif
+        else
+            CmdPrimary.SFW("actor_race: Unable to resolve actor token(" + param[1] + ")")
+        endIf
+    else
+        CmdPrimary.SFE("actor_race: invalid parameter count")
     endif
 
+    if CmdPrimary.SLT.Debug_Cmd_Functions
+        CmdPrimary.SFD("SexLab.actor_race supposed to return(" + nextResult + ")")
+    endif
     CmdPrimary.MostRecentStringResult = nextResult
 
-    CmdPrimary.CompleteOperationOnActor()
+	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
 ; sltname util_waitforkbd

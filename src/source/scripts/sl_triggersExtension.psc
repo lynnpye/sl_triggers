@@ -28,8 +28,16 @@ bool				Property IsEnabled Hidden
 EndProperty
 bool				Property bEnabled = true Auto Hidden ; enable/disable our extension
 
+; optional override for additional real-time enabled requirements
+bool Function _slt_AdditionalRequirementsSatisfied()
+	return true
+EndFunction
+
 Function SetEnabled(bool _newEnabledFlag)
-	bEnabled = UpdateFlag(SLT.Debug_Setup || SLT.Debug_Extension, FN_S, "enabled", _newEnabledFlag)
+	bEnabled = UpdateFlag(SLT.Debug_Setup || SLT.Debug_Extension, FN_S, "enabled", _newEnabledFlag) && _slt_AdditionalRequirementsSatisfied()
+	if SLT.Debug_Extension_SexLab
+		SLTDebugMsg("SexLab.SetEnabled => (" + IsEnabled + ") vs bEnabled(" + bEnabled + ")")
+	endif
 	;IsEnabled = SLT.IsEnabled && bEnabled
 	sl_triggers_internal.SetExtensionEnabled(SLTExtensionKey, bEnabled)
 EndFunction
@@ -155,7 +163,11 @@ EndEvent
 ; run into problems.
 Function SLTInit()
 	FN_S = FN_X_Settings(SLTExtensionKey)
-	bEnabled = GetFlag(SLT.Debug_Setup || SLT.Debug_Extension, FN_S, "enabled", true)
+	bEnabled = GetFlag(SLT.Debug_Setup || SLT.Debug_Extension, FN_S, "enabled", true)  && _slt_AdditionalRequirementsSatisfied()
+	if SLT.Debug_Extension_SexLab
+		SLTDebugMsg("SexLab.IsEnabled => (" + IsEnabled + ") vs bEnabled(" + bEnabled + ")")
+	endif
+	sl_triggers_internal.SetExtensionEnabled(SLTExtensionKey, bEnabled)
 
 	if !SLT
 		SLT = GetSLTMain()

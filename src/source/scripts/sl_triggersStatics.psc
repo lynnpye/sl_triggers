@@ -285,6 +285,7 @@ bool Function IsStringTruthy(string _value) global
 	return ((_value != "") && (_value != "false") && (_value != "0"))
 EndFunction
 
+
 Function SquawkFunctionError(sl_triggersCmd _cmdPrimary, string msg) global
 	sl_triggers_internal.LogError("SLTR:(" + _cmdPrimary.currentScriptName + ")[" + _cmdPrimary.lineNum + "]: " + msg)
 EndFunction

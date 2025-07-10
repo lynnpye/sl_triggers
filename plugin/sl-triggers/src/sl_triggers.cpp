@@ -413,6 +413,8 @@ void SLTNativeFunctions::SetExtensionEnabled(PAPYRUS_NATIVE_DECL, std::string_vi
     //SLTStackAnalyzer::Walk(stackId);
     if (funlib) {
         funlib->enabled = enabledState;
+        logger::debug("SetExtensionEnabled: functionLibrary->extensionKey({}) ->enabled({})", funlib->extensionKey, funlib->enabled);
+        FunctionLibrary::RefreshFunctionLibraryCache();
     } else {
         logger::error("Unable to find function library for extensionKey '{}' to set enabled to '{}'", extensionKey, enabledState);
     }

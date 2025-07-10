@@ -68,6 +68,7 @@ struct FunctionLibrary {
 
     static FunctionLibrary* ByExtensionKey(std::string_view _extensionKey);
     static void GetFunctionLibraries();
+    static void RefreshFunctionLibraryCache();
     static bool PrecacheLibraries();
 };
 #pragma endregion
