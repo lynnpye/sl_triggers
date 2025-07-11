@@ -14,6 +14,7 @@ As a result, some functions will appear twice. If it is in the SexLab section it
 ### actor_advskill
 
 **Description**
+
 Advance targeted actor's skill by specified amount. Only works on Player.
 
 **Parameters**
@@ -34,6 +35,7 @@ Note: Currently only works on PC/Player
 ### actor_body
 
 **Description**
+
 Alters or queries information about the actor's body, based on sub-function
 
 **Parameters**
@@ -42,10 +44,10 @@ Alters or queries information about the actor's body, based on sub-function
     sub-function: sub-function  
     third argument: varies by sub-function  
 
-if parameter 2 is "ClearExtraArrows": clear extra arrows  
-if parameter 2 is "RegenerateHead": regenerate head  
-if parameter 2 is "GetWeight": get actors weight (0-100)  
-if parameter 2 is "SetWeight" (parameter 3: <float, weight>): set actors weight  
+    if parameter 2 is "ClearExtraArrows": clear extra arrows  
+    if parameter 2 is "RegenerateHead": regenerate head  
+    if parameter 2 is "GetWeight": get actors weight (0-100)  
+    if parameter 2 is "SetWeight" (parameter 3: <float, weight>): set actors weight  
 
 
 **Example**
@@ -57,6 +59,7 @@ if parameter 2 is "SetWeight" (parameter 3: <float, weight>): set actors weight
 ### actor_display_name
 
 **Description**
+
 Set $$ to the actor displayName
 
 **Parameters**
@@ -73,52 +76,54 @@ Set $$ to the actor displayName
 ### actor_doaction
 
 **Description**
+
 For the targeted Actor, perform the associated function based on the specified action
 'Action' in this case specifically refers to functions that take no parameters and return no values
 https://ck.uesp.net/wiki/Actor_Script
 
 **Parameters**
 
-    actor: target Actor  (accepts special variable names ($self, $player) and both relative "Skyrim.esm:0f" and absolute "0f" values)  
+    actor: target Actor  
     action: action name  
 
-;;;; These are from Actor  
-ClearArrested  
-ClearExpressionOverride  
-ClearExtraArrows  
-ClearForcedLandingMarker  
-ClearKeepOffsetFromActor  
-ClearLookAt  
-DispelAllSpells  
-DrawWeapon  
-EndDeferredKill  
-EvaluatePackage  
-MakePlayerFriend  
-MoveToPackageLocation  
-RemoveFromAllFactions  
-ResetHealthAndLimbs  
-Resurrect  
-SendAssaultAlarm  
-SetPlayerResistingArrest  
-ShowBarterMenu  
-StartDeferredKill  
-StartSneaking  
-StopCombat  
-StopCombatAlarm  
-UnequipAll  
-UnlockOwnedDoorsInCell  
-;;;; will call objectreference_doaction if no matches are found  
+    ;;;; These are from Actor  
+    ClearArrested  
+    ClearExpressionOverride  
+    ClearExtraArrows  
+    ClearForcedLandingMarker  
+    ClearKeepOffsetFromActor  
+    ClearLookAt  
+    DispelAllSpells  
+    DrawWeapon  
+    EndDeferredKill  
+    EvaluatePackage  
+    MakePlayerFriend  
+    MoveToPackageLocation  
+    RemoveFromAllFactions  
+    ResetHealthAndLimbs  
+    Resurrect  
+    SendAssaultAlarm  
+    SetPlayerResistingArrest  
+    ShowBarterMenu  
+    StartDeferredKill  
+    StartSneaking  
+    StopCombat  
+    StopCombatAlarm  
+    UnequipAll  
+    UnlockOwnedDoorsInCell  
+    ;;;; will call objectreference_doaction if no matches are found  
 
 
 **Example**
 
-    actor_doaction $self StopCombat  
+    actor_doaction $system.self StopCombat  
 
 
 
 ### actor_doconsumer
 
 **Description**
+
 For the specified Actor, perform the requested consumer, provided the appropriate additional parameters
 'Consumer' in this case specifically refers to functions that take parameters but return no result
 https://ck.uesp.net/wiki/Actor_Script
@@ -128,93 +133,94 @@ https://ck.uesp.net/wiki/Actor_Script
     actor: target Actor (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)  
     consumer: consumer name  
 
-AddPerk  
-AddToFaction  
-AllowBleedoutDialogue  
-AllowPCDialogue  
-AttachAshPile  
-DamageActorValue  
-DamageAV  
-DoCombatSpellApply  
-EnableAI  
-EquipItem  
-EquipShout  
-EquipSpell  
-ForceActorValue  
-ForceAV  
-KeepOffsetFromActor  
-Kill  
-KillEssential  
-KillSilent  
-ModActorValue  
-ModAV  
-ModFactionRank  
-OpenInventory  
-PlaySubGraphAnimation  
-RemoveFromFaction  
-RemovePerk  
-RestoreActorValue  
-RestoreAV  
-SendTrespassAlarm  
-SetActorValue  
-SetAlert  
-SetAllowFlying  
-SetAllowFlyingEx  
-SetAlpha  
-SetAttackActorOnSight  
-SetAV  
-SetBribed  
-SetCrimeFaction  
-SetCriticalStage  
-SetDoingFavor  
-SetDontMove  
-SetExpressionOverride  
-SetEyeTexture  
-SetFactionRank  
-SetForcedLandingMarker  
-SetGhost  
-SetHeadTracking  
-SetIntimidated  
-SetLookAt  
-SetNoBleedoutRecovery  
-SetNotShowOnStealthMeter  
-SetOutfit  
-SetPlayerControls  
-SetPlayerTeammate  
-SetRace  
-SetRelationshipRank  
-SetRestrained  
-SetSubGraphFloatVariable  
-SetUnconscious  
-SetVehicle  
-SetVoiceRecoveryTime  
-StartCannibal  
-StartCombat  
-StartVampireFeed  
-UnequipItem  
-UnequipItemSlot  
-UnequipShout  
-UnequipSpell  
-SendLycanthropyStateChanged  
-SendVampirismStateChanged  
-EquipItemEx  
-EquipItemById  
-UnequipItemEx  
-ChangeHeadPart  
-ReplaceHeadPart  
-UpdateWeight  
+    AddPerk  
+    AddToFaction  
+    AllowBleedoutDialogue  
+    AllowPCDialogue  
+    AttachAshPile  
+    DamageActorValue  
+    DamageAV  
+    DoCombatSpellApply  
+    EnableAI  
+    EquipItem  
+    EquipShout  
+    EquipSpell  
+    ForceActorValue  
+    ForceAV  
+    KeepOffsetFromActor  
+    Kill  
+    KillEssential  
+    KillSilent  
+    ModActorValue  
+    ModAV  
+    ModFactionRank  
+    OpenInventory  
+    PlaySubGraphAnimation  
+    RemoveFromFaction  
+    RemovePerk  
+    RestoreActorValue  
+    RestoreAV  
+    SendTrespassAlarm  
+    SetActorValue  
+    SetAlert  
+    SetAllowFlying  
+    SetAllowFlyingEx  
+    SetAlpha  
+    SetAttackActorOnSight  
+    SetAV  
+    SetBribed  
+    SetCrimeFaction  
+    SetCriticalStage  
+    SetDoingFavor  
+    SetDontMove  
+    SetExpressionOverride  
+    SetEyeTexture  
+    SetFactionRank  
+    SetForcedLandingMarker  
+    SetGhost  
+    SetHeadTracking  
+    SetIntimidated  
+    SetLookAt  
+    SetNoBleedoutRecovery  
+    SetNotShowOnStealthMeter  
+    SetOutfit  
+    SetPlayerControls  
+    SetPlayerTeammate  
+    SetRace  
+    SetRelationshipRank  
+    SetRestrained  
+    SetSubGraphFloatVariable  
+    SetUnconscious  
+    SetVehicle  
+    SetVoiceRecoveryTime  
+    StartCannibal  
+    StartCombat  
+    StartVampireFeed  
+    UnequipItem  
+    UnequipItemSlot  
+    UnequipShout  
+    UnequipSpell  
+    SendLycanthropyStateChanged  
+    SendVampirismStateChanged  
+    EquipItemEx  
+    EquipItemById  
+    UnequipItemEx  
+    ChangeHeadPart  
+    ReplaceHeadPart  
+    UpdateWeight  
 
 
 **Example**
 
     set $newGhostStatus 1  
-    actor_doconsumer $self SetGhost $newGhostStatus  
+    actor_doconsumer $system.self SetGhost $newGhostStatus  
 
 
 
 ### actor_dofunction
 
 **Description**
+
 For the targeted Actor, set $$ to the result of the specified Function
 'Function' in this case specifically refers to functions that take one or more parameters and return a value
 https://ck.uesp.net/wiki/Actor_Script
@@ -224,58 +230,60 @@ https://ck.uesp.net/wiki/Actor_Script
     actor: target Actor  (accepts special variable names ($self, $player) and both relative "Skyrim.esm:0f" and absolute "0f" values)  
     function: function name  
 
-AddShout  
-AddSpell  
-DispelSpell  
-GetActorValue  
-GetActorValuePercentage  
-GetAV  
-GetAVPercentage  
-GetBaseActorValue  
-GetBaseAV  
-GetEquippedItemType  
-GetFactionRank  
-GetFactionReaction  
-GetRelationshipRank  
-HasAssociation  
-HasFamilyRelationship  
-HasLOS  
-HasMagicEffect  
-HasMagicEffectWithKeyword  
-HasParentRelationship  
-HasPerk  
-HasSpell  
-IsDetectedBy  
-IsEquipped  
-IsHostileToActor  
-IsInFaction  
-PathToReference  
-PlayIdle  
-PlayIdleWithTarget  
-RemoveShout  
-RemoveSpell  
-TrapSoul  
-WornHasKeyword  
-GetActorValueMax  
-GetAVMax  
-GetEquippedItemId  
-GetEquippedSpell  
-GetEquippedWeapon  
-GetEquippedArmorInSlot  
-GetWornForm  
-GetEquippedObject  
-GetNthSpell  
+    AddShout  
+    AddSpell  
+    DispelSpell  
+    GetActorValue  
+    GetActorValuePercentage  
+    GetAV  
+    GetAVPercentage  
+    GetBaseActorValue  
+    GetBaseAV  
+    GetEquippedItemType  
+    GetFactionRank  
+    GetFactionReaction  
+    GetRelationshipRank  
+    HasAssociation  
+    HasFamilyRelationship  
+    HasLOS  
+    HasMagicEffect  
+    HasMagicEffectWithKeyword  
+    HasParentRelationship  
+    HasPerk  
+    HasSpell  
+    IsDetectedBy  
+    IsEquipped  
+    IsHostileToActor  
+    IsInFaction  
+    PathToReference  
+    PlayIdle  
+    PlayIdleWithTarget  
+    RemoveShout  
+    RemoveSpell  
+    TrapSoul  
+    WornHasKeyword  
+    GetActorValueMax  
+    GetAVMax  
+    GetEquippedItemId  
+    GetEquippedSpell  
+    GetEquippedWeapon  
+    GetEquippedArmorInSlot  
+    GetWornForm  
+    GetEquippedObject  
+    GetNthSpell  
 
 
 **Example**
 
-      
+    actor_dofunction $system.self GetBaseAV "Health"  
+    ; $$ should contain a float value with the base "Health" Actor Value  
 
 
 
 ### actor_dogetter
 
 **Description**
+
 For the targeted Actor, set $$ to the result of the specified getter
 'Getter' in this case specifically refers to functions that take no parameters but return a value
 https://ck.uesp.net/wiki/Actor_Script
@@ -285,74 +293,74 @@ https://ck.uesp.net/wiki/Actor_Script
     actor: target Actor  (accepts special variable names ($self, $player) and both relative "Skyrim.esm:0f" and absolute "0f" values)  
     getter: getter name  
 
-;;;; These are from Actor  
-CanFlyHere  
-Dismount  
-GetActorBase  
-GetBribeAmount  
-GetCrimeFaction  
-GetCombatState  
-GetCombatTarget  
-GetCurrentPackage  
-GetDialogueTarget  
-GetEquippedShield  
-GetEquippedShout  
-GetFlyingState  
-GetForcedLandingMarker  
-GetGoldAmount  
-GetHighestRelationshipRank  
-GetKiller  
-GetLevel  
-GetLeveledActorBase  
-GetLightLevel  
-GetLowestRelationshipRank  
-GetNoBleedoutRecovery  
-GetPlayerControls  
-GetRace  
-GetSitState  
-GetSleepState  
-GetVoiceRecoveryTime  
-IsAlarmed  
-IsAlerted  
-IsAllowedToFly  
-IsArrested  
-IsArrestingTarget  
-IsBeingRidden - not a SexLab setting  
-IsBleedingOut  
-IsBribed  
-IsChild  
-IsCommandedActor  
-IsDead  
-IsDoingFavor  
-IsEssential  
-IsFlying  
-IsGhost  
-IsGuard  
-IsInCombat  
-IsInKillMove  
-IsIntimidated  
-IsOnMount - see IsBeingRidden  
-IsPlayersLastRiddenHorse - I don't even need to comment now, do I?  
-IsPlayerTeammate  
-IsRunning  
-IsSneaking  
-IsSprinting  
-IsTrespassing  
-IsUnconscious  
-IsWeaponDrawn  
-;;;; These are from SKSE  
-GetSpellCount  
-IsAIEnabled  
-IsSwimming  
-;;;; These are Special Edition exclusive  
-WillIntimidateSucceed  
-IsOverEncumbered  
-GetWarmthRating  
+    ;;;; These are from Actor  
+    CanFlyHere  
+    Dismount  
+    GetActorBase  
+    GetBribeAmount  
+    GetCrimeFaction  
+    GetCombatState  
+    GetCombatTarget  
+    GetCurrentPackage  
+    GetDialogueTarget  
+    GetEquippedShield  
+    GetEquippedShout  
+    GetFlyingState  
+    GetForcedLandingMarker  
+    GetGoldAmount  
+    GetHighestRelationshipRank  
+    GetKiller  
+    GetLevel  
+    GetLeveledActorBase  
+    GetLightLevel  
+    GetLowestRelationshipRank  
+    GetNoBleedoutRecovery  
+    GetPlayerControls  
+    GetRace  
+    GetSitState  
+    GetSleepState  
+    GetVoiceRecoveryTime  
+    IsAlarmed  
+    IsAlerted  
+    IsAllowedToFly  
+    IsArrested  
+    IsArrestingTarget  
+    IsBeingRidden - not a SexLab setting  
+    IsBleedingOut  
+    IsBribed  
+    IsChild  
+    IsCommandedActor  
+    IsDead  
+    IsDoingFavor  
+    IsEssential  
+    IsFlying  
+    IsGhost  
+    IsGuard  
+    IsInCombat  
+    IsInKillMove  
+    IsIntimidated  
+    IsOnMount - see IsBeingRidden  
+    IsPlayersLastRiddenHorse - I don't even need to comment now, do I?  
+    IsPlayerTeammate  
+    IsRunning  
+    IsSneaking  
+    IsSprinting  
+    IsTrespassing  
+    IsUnconscious  
+    IsWeaponDrawn  
+    ;;;; These are from SKSE  
+    GetSpellCount  
+    IsAIEnabled  
+    IsSwimming  
+    ;;;; These are Special Edition exclusive  
+    WillIntimidateSucceed  
+    IsOverEncumbered  
+    GetWarmthRating  
 
 
 **Example**
 
-    actor_dogetter CanFlyHere  
+    actor_dogetter $system.self CanFlyHere  
     if $$ = 1 ICanFlyAroundHere  
     if $$ = 0 IAmGroundedLikeAlways  
 
@@ -361,6 +369,7 @@ GetWarmthRating
 ### actor_getfactionrank
 
 **Description**
+
 Sets $$ to the actor's rank in the faction indicated by the FormId
 
 **Parameters**
@@ -378,6 +387,7 @@ Sets $$ to the actor's rank in the faction indicated by the FormId
 ### actor_getgender
 
 **Description**
+
 Sets $$ to the actor's gender, 0 - male, 1 - female, 2 - creature, "" otherwise
 
 **Parameters**
@@ -394,6 +404,7 @@ Sets $$ to the actor's gender, 0 - male, 1 - female, 2 - creature, "" otherwise
 ### actor_getrelation
 
 **Description**
+
 Set $$ to the relationship rank between the two actors
 
 **Parameters**
@@ -420,6 +431,7 @@ Set $$ to the relationship rank between the two actors
 ### actor_getscale
 
 **Description**
+
 Sets $$ to the 'scale' value of the specified Actor
 Note: this is properly a function of ObjectReference, so may get pushed to a different group at some point
 
@@ -438,6 +450,7 @@ Note: this is properly a function of ObjectReference, so may get pushed to a dif
 ### actor_haskeyword
 
 **Description**
+
 Sets $$ to 1 if actor has the keyword, 0 otherwise.
 
 **Parameters**
@@ -455,6 +468,7 @@ Sets $$ to 1 if actor has the keyword, 0 otherwise.
 ### actor_haslos
 
 **Description**
+
 Set $$ to 1 if first actor can see second actor, 0 if not.
 
 **Parameters**
@@ -473,6 +487,7 @@ Set $$ to 1 if first actor can see second actor, 0 if not.
 ### actor_incskill
 
 **Description**
+
 Increase targeted actor's skill by specified amount
 
 **Parameters**
@@ -492,6 +507,7 @@ Boost Alteration by 1 point
 ### actor_infaction
 
 **Description**
+
 Sets $$ to 1 if actor is in the faction indicated by the FormId, 0 otherwise
 
 **Parameters**
@@ -510,6 +526,7 @@ $$ will be 1 if $actor is a follower (CurrentFollowerFaction)
 ### actor_isaffectedby
 
 **Description**
+
 Sets $$ to 1 if the specified actor is currently affected by the MGEF or SPEL indicated by FormID (accepts either)
 
 **Parameters**
@@ -530,6 +547,7 @@ Sets $$ to 1 if the specified actor is currently affected by the MGEF or SPEL in
 ### actor_isguard
 
 **Description**
+
 Sets $$ to 1 if actor is guard, 0 otherwise.
 
 **Parameters**
@@ -546,6 +564,7 @@ Sets $$ to 1 if actor is guard, 0 otherwise.
 ### actor_isplayer
 
 **Description**
+
 Sets $$ to 1 if actor is the player, 0 otherwise.
 
 **Parameters**
@@ -562,6 +581,7 @@ Sets $$ to 1 if actor is the player, 0 otherwise.
 ### actor_isvalid
 
 **Description**
+
 Set $$ to 1 if actor is valid, 0 if not.
 
 **Parameters**
@@ -582,6 +602,7 @@ Jump to the end if actor is not valid
 ### actor_iswearing
 
 **Description**
+
 Sets $$ to 1 if actor is wearing the armor indicated by the FormId, 0 otherwise.
 
 **Parameters**
@@ -599,6 +620,7 @@ Sets $$ to 1 if actor is wearing the armor indicated by the FormId, 0 otherwise.
 ### actor_lochaskeyword
 
 **Description**
+
 Sets $$ to 1 if actor's current location has the indicated keyword, 0 otherwise.
 
 **Parameters**
@@ -617,6 +639,7 @@ In a bar, inn, or tavern
 ### actor_modcrimegold
 
 **Description**
+
 Specified actor reports player, increasing bounty by specified amount.
 
 **Parameters**
@@ -634,6 +657,7 @@ Specified actor reports player, increasing bounty by specified amount.
 ### actor_name
 
 **Description**
+
 Set $$ to the actor name
 
 **Parameters**
@@ -650,6 +674,7 @@ Set $$ to the actor name
 ### actor_playanim
 
 **Description**
+
 Causes the actor to play the specified animation
 
 **Parameters**
@@ -667,6 +692,7 @@ Causes the actor to play the specified animation
 ### actor_qnnu
 
 **Description**
+
 Repaints actor (calls QueueNiNodeUpdate)
 
 **Parameters**
@@ -684,6 +710,7 @@ Note: Do not call this too frequently as the rapid refreshes can causes crashes 
 ### actor_race
 
 **Description**
+
 Sets $$ to the race name based on sub-function. Blank, empty sub-function returns Vanilla racenames. e.g. "SL" can return SexLab race keynames.
 
 **Parameters**
@@ -691,7 +718,7 @@ Sets $$ to the race name based on sub-function. Blank, empty sub-function return
     actor: target Actor  
     sub-function: sub-function  
 
-if parameter 2 is "": return actors race name. Skyrims, original name. Like: "Nord", "Breton"  
+    if parameter 2 is "": return actors race name. Skyrims, original name. Like: "Nord", "Breton"  
 
 
 **Example**
@@ -703,6 +730,7 @@ if parameter 2 is "": return actors race name. Skyrims, original name. Like: "No
 ### actor_removefaction
 
 **Description**
+
 Removes the actor from the specified faction
 
 **Parameters**
@@ -720,6 +748,7 @@ Removes the actor from the specified faction
 ### actor_say
 
 **Description**
+
 Causes the actor to 'say' the topic indicated by FormId; not usable on the Player
 
 **Parameters**
@@ -737,6 +766,7 @@ Causes the actor to 'say' the topic indicated by FormId; not usable on the Playe
 ### actor_sendmodevent
 
 **Description**
+
 Causes the actor to send the mod event with the provided arguments
 
 **Parameters**
@@ -756,6 +786,7 @@ Causes the actor to send the mod event with the provided arguments
 ### actor_setalpha
 
 **Description**
+
 Set the Actor's alpha value (inverse of transparency, 1.0 is fully visible) (has no effect if IsGhost() returns true)
 
 **Parameters**
@@ -775,6 +806,7 @@ $self will fade to new alpha of 0.5, not instantly
 ### actor_setfactionrank
 
 **Description**
+
 Sets the actor's rank in the faction indicated by the FormId to the indicated rank
 
 **Parameters**
@@ -793,6 +825,7 @@ Sets the actor's rank in the faction indicated by the FormId to the indicated ra
 ### actor_setrelation
 
 **Description**
+
 Set relationship rank between the two actors to the indicated value
 
 **Parameters**
@@ -812,6 +845,7 @@ See actor_getrelation for ranks
 ### actor_setscale
 
 **Description**
+
 Sets the actor's scale to the specified value
 Note: this is properly a function of ObjectReference, so may get pushed to a different group at some point
 
@@ -830,6 +864,7 @@ Note: this is properly a function of ObjectReference, so may get pushed to a dif
 ### actor_state
 
 **Description**
+
 Returns the state of the actor for a given sub-function
 
 **Parameters**
@@ -838,14 +873,14 @@ Returns the state of the actor for a given sub-function
     sub-function: sub-function  
     third argument: varies by sub-function  
 
-if parameter 2 is "GetCombatState": return actors combatstate. 0-no combat, 1-combat, 2-searching  
-if parameter 2 is "GetLevel": return actors level  
-if parameter 2 is "GetSleepState": return actors sleep mode. 0-not, 1-not, but wants to, 2-sleeping, 3-sleeping, but wants to wake up  
-if parameter 2 is "IsAlerted": is actor alerted  
-if parameter 2 is "IsAlarmed": is actor alerted  
-if parameter 2 is "IsPlayerTeammate": is actor PC team member  
-if parameter 2 is "SetPlayerTeammate" (parameter 3: <bool true to set, false to unset>): set actor as PC team member  
-if parameter 2 is "SendAssaultAlarm": actor will send out alarm  
+    if parameter 2 is "GetCombatState": return actors combatstate. 0-no combat, 1-combat, 2-searching  
+    if parameter 2 is "GetLevel": return actors level  
+    if parameter 2 is "GetSleepState": return actors sleep mode. 0-not, 1-not, but wants to, 2-sleeping, 3-sleeping, but wants to wake up  
+    if parameter 2 is "IsAlerted": is actor alerted  
+    if parameter 2 is "IsAlarmed": is actor alerted  
+    if parameter 2 is "IsPlayerTeammate": is actor PC team member  
+    if parameter 2 is "SetPlayerTeammate" (parameter 3: <bool true to set, false to unset>): set actor as PC team member  
+    if parameter 2 is "SendAssaultAlarm": actor will send out alarm  
 
 
 **Example**
@@ -857,6 +892,7 @@ if parameter 2 is "SendAssaultAlarm": actor will send out alarm
 ### actor_wornhaskeyword
 
 **Description**
+
 Sets $$ to 1 if actor is wearing any armor with indicated keyword, 0 otherwise.
 
 **Parameters**
@@ -874,6 +910,7 @@ Sets $$ to 1 if actor is wearing any armor with indicated keyword, 0 otherwise.
 ### actor_worninslot
 
 **Description**
+
 Sets $$ to 1 if actor is wearing armor in the indicated slotId, 0 otherwise.
 
 **Parameters**
@@ -893,6 +930,7 @@ Sets $$ to 1 if actor is wearing armor in the indicated slotId, 0 otherwise.
 ### av_damage
 
 **Description**
+
 Damage actor value
 
 **Parameters**
@@ -913,6 +951,7 @@ Damages Health by 100. This can result in death.
 ### av_get
 
 **Description**
+
 Set $$ to the actor's current value for the specified Actor Value
 
 **Parameters**
@@ -931,6 +970,7 @@ Sets the actor's current Health into $$
 ### av_getbase
 
 **Description**
+
 Sets $$ to the actor's base value for the specified Actor Value
 
 **Parameters**
@@ -949,6 +989,7 @@ Sets the actor's base Health into $$
 ### av_getmax
 
 **Description**
+
 Set $$ to the actor's max value for the specified Actor Value
 
 **Parameters**
@@ -967,6 +1008,7 @@ Sets the actor's max Health into $$
 ### av_getpercentage
 
 **Description**
+
 Set $$ to the actor's value as a percentage of max for the specified Actor Value
 
 **Parameters**
@@ -985,6 +1027,7 @@ Sets the actor's percentage of Health remaining into $$
 ### av_mod
 
 **Description**
+
 Modify actor value
 
 **Parameters**
@@ -1005,6 +1048,7 @@ Changes the max value of the actor value. Not the same as restore/damage.
 ### av_restore
 
 **Description**
+
 Restore actor value
 
 **Parameters**
@@ -1025,6 +1069,7 @@ Restores Health by 100 e.g. healing
 ### av_set
 
 **Description**
+
 Set actor value
 
 **Parameters**
@@ -1044,37 +1089,10 @@ Sets the value of the actor value.
 
 # Form
 
-### form_consumer
-
-**Description**
-For the specified Form, perform the requested consumer, provided the appropriate additional parameters
-'Consumer' in this case specifically refers to functions that take parameters but return no result
-https://ck.uesp.net/wiki/Form_Script
-
-**Parameters**
-
-    form: target Form (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)  
-    consumer: consumer name  
-
-SetPlayerKnows  
-SetWorldModelPath  
-SetName  
-SetWeight  
-SetGoldValue  
-SendModEvent  
-
-
-**Example**
-
-    actor_dogetter GetEquippedShield  
-    set $shieldFormID $$  
-    form_consumer $shieldFormID SetWeight 0.1 ; featherweight shield  
-
-
-
 ### form_doaction
 
 **Description**
+
 For the targeted Form, perform the associated function based on the specified action
 'Action' in this case specifically refers to functions that take no parameters and return no values
 https://ck.uesp.net/wiki/Form_Script
@@ -1084,36 +1102,66 @@ https://ck.uesp.net/wiki/Form_Script
     form: target Form (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)  
     action: action name  
 
-;;;; These are from Form  
-RegisterForSleep  
-RegisterForTrackedStatsEvent  
-StartObjectProfiling  
-StopObjectProfiling  
-UnregisterForSleep  
-UnregisterForTrackedStatsEvent  
-UnregisterForUpdate  
-UnregisterForUpdateGameTime  
-;;;; These are from SKSE  
-UnregisterForAllKeys  
-UnregisterForAllControls  
-UnregisterForAllMenus  
-RegisterForCameraState  
-UnregisterForCameraState  
-RegisterForCrosshairRef  
-UnregisterForCrosshairRef  
-RegisterForNiNodeUpdate  
-UnregisterForNiNodeUpdate  
+    ;;;; These are from Form  
+    RegisterForSleep  
+    RegisterForTrackedStatsEvent  
+    StartObjectProfiling  
+    StopObjectProfiling  
+    UnregisterForSleep  
+    UnregisterForTrackedStatsEvent  
+    UnregisterForUpdate  
+    UnregisterForUpdateGameTime  
+    ;;;; These are from SKSE  
+    UnregisterForAllKeys  
+    UnregisterForAllControls  
+    UnregisterForAllMenus  
+    RegisterForCameraState  
+    UnregisterForCameraState  
+    RegisterForCrosshairRef  
+    UnregisterForCrosshairRef  
+    RegisterForNiNodeUpdate  
+    UnregisterForNiNodeUpdate  
 
 
 **Example**
 
-    form_doaction $self StopCombat  
+    form_doaction $system.self StopCombat  
+
+
+
+### form_doconsumer
+
+**Description**
+
+For the specified Form, perform the requested consumer, provided the appropriate additional parameters
+'Consumer' in this case specifically refers to functions that take parameters but return no result
+https://ck.uesp.net/wiki/Form_Script
+
+**Parameters**
+
+    form: target Form (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)  
+    consumer: consumer name  
+
+    SetPlayerKnows  
+    SetWorldModelPath  
+    SetName  
+    SetWeight  
+    SetGoldValue  
+    SendModEvent  
+
+
+**Example**
+
+    actor_dogetter $system.player GetEquippedShield  
+    set $shieldFormID $$  
+    form_doconsumer $shieldFormID SetWeight 0.1 ; featherweight shield  
 
 
 
 ### form_dofunction
 
 **Description**
+
 For the targeted Form, set $$ to the result of the specified function
 'Function' in this case specifically refers to functions that take one or more parameters and return a value
 https://ck.uesp.net/wiki/Form_Script
@@ -1123,17 +1171,23 @@ https://ck.uesp.net/wiki/Form_Script
     actor: target Form  (accepts special variable names ($self, $player) and both relative "Skyrim.esm:0f" and absolute "0f" values)  
     function: function name  
 
-HasKeywordString  
-HasKeyword  
-GetNthKeyword  
-GetWorldModelNthTextureSet  
+    HasKeywordString  
+    HasKeyword  
+    GetNthKeyword  
+    GetWorldModelNthTextureSet  
 
+
+**Example**
+
+    form_dofunction $system.self HasKeywordString "ActorTypeNPC"  
+    ; $$ should contain true/false based on whether self has the indicated keyword  
 
 
 
 ### form_dogetter
 
 **Description**
+
 For the targeted Actor, set $$ to the result of the specified getter
 'Getter' in this case specifically refers to functions that take no parameters but return a value
 https://ck.uesp.net/wiki/Form_Script
@@ -1143,25 +1197,25 @@ https://ck.uesp.net/wiki/Form_Script
     form: target Form (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)  
     getter: getter name  
 
-;;;; T79686hese are from Form  
-GetFormID  
-GetGoldValue  
-PlayerKnows  
-;;;; These are from SKSE  
-GetType  
-GetName  
-GetWeight  
-GetNumKeywords  
-IsPlayable  
-HasWorldModel  
-GetWorldModelPath  
-GetWorldModelNumTextureSets  
-TempClone  
+    ;;;; T79686hese are from Form  
+    GetFormID  
+    GetGoldValue  
+    PlayerKnows  
+    ;;;; These are from SKSE  
+    GetType  
+    GetName  
+    GetWeight  
+    GetNumKeywords  
+    IsPlayable  
+    HasWorldModel  
+    GetWorldModelPath  
+    GetWorldModelNumTextureSets  
+    TempClone  
 
 
 **Example**
 
-    form_dogetter $formId IsPlayable  
+    form_dogetter $system.self IsPlayable  
     if $$ = 1 itwasplayable  
 
 
@@ -1169,6 +1223,7 @@ TempClone
 ### form_getbyid
 
 **Description**
+
 Performs a lookup for a Form and returns it if found; returns none otherwise
 Accepts FormID as: "modfile.esp:012345", "012345" (absolute ID), "anEditorId" (will attempt an editorId lookup)
 Note that if multiple mods introduce an object with the same editorId, the lookup would only return whichever one won
@@ -1192,6 +1247,7 @@ Note that if multiple mods introduce an object with the same editorId, the looku
 ### ism_applyfade
 
 **Description**
+
 Apply imagespace modifier - per original author, check CreationKit, SpecialEffects\Imagespace Modifier
 
 **Parameters**
@@ -1209,6 +1265,7 @@ Apply imagespace modifier - per original author, check CreationKit, SpecialEffec
 ### ism_removefade
 
 **Description**
+
 Remove imagespace modifier - per original author, check CreationKit, SpecialEffects\Imagespace Modifier
 
 **Parameters**
@@ -1228,6 +1285,7 @@ Remove imagespace modifier - per original author, check CreationKit, SpecialEffe
 ### item_add
 
 **Description**
+
 Adds the item to the actor's inventory.
 
 **Parameters**
@@ -1248,6 +1306,7 @@ Adds 10 gold to the actor, displaying the notification
 ### item_addex
 
 **Description**
+
 Adds the item to the actor's inventory, but check if some armor was re-equipped (if NPC)
 
 **Parameters**
@@ -1267,6 +1326,7 @@ Adds the item to the actor's inventory, but check if some armor was re-equipped 
 ### item_adduse
 
 **Description**
+
 Add item (like item_add) and then use the added item. Useful for potions, food, and other consumables.
 
 **Parameters**
@@ -1287,6 +1347,7 @@ Add and drink some booze
 ### item_equip
 
 **Description**
+
 Equip item ("vanilla" version)
 
 **Parameters**
@@ -1308,6 +1369,7 @@ Equip the ZaZ armor on $self, silently, with no removal allowed (uses whatever s
 ### item_equipex
 
 **Description**
+
 Equip item (SKSE version)
 
 **Parameters**
@@ -1330,6 +1392,7 @@ Equips item directly, Workaround for "NPCs re-equip all armor, if they get an it
 ### item_getcount
 
 **Description**
+
 Set $$ to how many of a specified item an actor has
 
 **Parameters**
@@ -1347,6 +1410,7 @@ Set $$ to how many of a specified item an actor has
 ### item_remove
 
 **Description**
+
 Remove the item from the actor's inventory
 
 **Parameters**
@@ -1367,6 +1431,7 @@ Removes up to 10 gold from the actor
 ### item_unequipex
 
 **Description**
+
 Unequip item
 
 **Parameters**
@@ -1388,6 +1453,7 @@ Unequips the ZaZ armor from slot 32 on $self
 ### json_getvalue
 
 **Description**
+
 Sets $$ to value from JSON file (uses PapyrusUtil/JsonUtil)
 
 **Parameters**
@@ -1408,6 +1474,7 @@ JsonUtil automatically appends .json when not given a file extension
 ### json_save
 
 **Description**
+
 Tells JsonUtil to immediately save the specified file from cache
 
 **Parameters**
@@ -1424,6 +1491,7 @@ Tells JsonUtil to immediately save the specified file from cache
 ### json_setvalue
 
 **Description**
+
 Sets a value in a JSON file (uses PapyrusUtil/JsonUtil)
 
 **Parameters**
@@ -1446,6 +1514,7 @@ JsonUtil automatically appends .json when not given a file extension
 ### mfg_getphonememodifier
 
 **Description**
+
 Return facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecialedition/mods/11669)
 
 **Parameters**
@@ -1464,6 +1533,7 @@ Return facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecia
 ### mfg_reset
 
 **Description**
+
 Resets facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecialedition/mods/11669)
 
 **Parameters**
@@ -1480,6 +1550,7 @@ Resets facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecia
 ### mfg_setphonememodifier
 
 **Description**
+
 Set facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecialedition/mods/11669)
 
 **Parameters**
@@ -1502,6 +1573,7 @@ Set facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecialed
 ### objectreference_doaction
 
 **Description**
+
 For the targeted ObjectReference, perform the associated function based on the specified action
 'Action' in this case specifically refers to functions that take no parameters and return no values
 https://ck.uesp.net/wiki/ObjectReference_Script
@@ -1511,30 +1583,31 @@ https://ck.uesp.net/wiki/ObjectReference_Script
     objectreference: target ObjectReference  (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)  
     action: action name  
 
-;;;; These are from ObjectReference  
-ClearDestruction  
-Delete  
-DeleteWhenAble  
-ForceAddRagdollToWorld  
-ForceRemoveRagdollFromWorld  
-InterruptCast  
-MoveToMyEditorLocation  
-RemoveAllInventoryEventFilters  
-StopTranslation  
-;;;; These are from SKSE  
-ResetInventory  
-;;;; will call form_doaction if no matches are found  
+    ;;;; These are from ObjectReference  
+    ClearDestruction  
+    Delete  
+    DeleteWhenAble  
+    ForceAddRagdollToWorld  
+    ForceRemoveRagdollFromWorld  
+    InterruptCast  
+    MoveToMyEditorLocation  
+    RemoveAllInventoryEventFilters  
+    StopTranslation  
+    ;;;; These are from SKSE  
+    ResetInventory  
+    ;;;; will call form_doaction if no matches are found  
 
 
 **Example**
 
-    objectreference_doaction $self StopCombat  
+    objectreference_doaction $system.self StopCombat  
 
 
 
 ### objectreference_doconsumer
 
 **Description**
+
 For the specified ObjectReference, perform the requested consumer, provided the appropriate additional parameters
 'Consumer' in this case specifically refers to functions that take parameters but return no result
 https://ck.uesp.net/wiki/ObjectReference_Script
@@ -1544,69 +1617,69 @@ https://ck.uesp.net/wiki/ObjectReference_Script
     objectreference: target ObjectReference (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)  
     consumer: consumer name  
 
-Activate  
-AddInventoryEventFilter  
-AddItem  
-AddKeyIfNeeded  
-AddToMap  
-ApplyHavokImpulse  
-BlockActivation  
-CreateDetectionEvent  
-DamageObject  
-Disable  
-DisableLinkChain  
-DisableNoWait  
-DropObject  
-Enable  
-EnableFastTravel  
-EnableLinkChain  
-EnableNoWait  
-IgnoreFriendlyHits  
-KnockAreaEffect  
-Lock  
-MoveTo  
-MoveToInteractionLocation  
-MoveToNode  
-PlayTerrainEffect  
-ProcessTrapHit  
-PushActorAway  
-RemoveAllItems  
-RemoveInventoryEventFilter  
-RemoveItem  
-Reset  
-Say  
-SendStealAlarm  
-SetActorCause  
-SetActorOwner  
-SetAngle  
-SetAnimationVariableBool  
-SetAnimationVariableFloat  
-SetAnimationVariableInt  
-SetDestroyed  
-SetFactionOwner  
-SetLockLevel  
-SetMotionType  
-SetNoFavorAllowed  
-SetOpen  
-SetPosition  
-SetScale  
-SplineTranslateTo  
-SplineTranslateToRef  
-SplineTranslateToRefNode  
-TetherToHorse  
-TranslateTo  
-TranslateToRef  
-SetHarvested  
-SetItemHealthPercent  
-SetItemMaxCharge  
-SetItemCharge  
-SetEnchantment  
-CreateEnchantment  
+    Activate  
+    AddInventoryEventFilter  
+    AddItem  
+    AddKeyIfNeeded  
+    AddToMap  
+    ApplyHavokImpulse  
+    BlockActivation  
+    CreateDetectionEvent  
+    DamageObject  
+    Disable  
+    DisableLinkChain  
+    DisableNoWait  
+    DropObject  
+    Enable  
+    EnableFastTravel  
+    EnableLinkChain  
+    EnableNoWait  
+    IgnoreFriendlyHits  
+    KnockAreaEffect  
+    Lock  
+    MoveTo  
+    MoveToInteractionLocation  
+    MoveToNode  
+    PlayTerrainEffect  
+    ProcessTrapHit  
+    PushActorAway  
+    RemoveAllItems  
+    RemoveInventoryEventFilter  
+    RemoveItem  
+    Reset  
+    Say  
+    SendStealAlarm  
+    SetActorCause  
+    SetActorOwner  
+    SetAngle  
+    SetAnimationVariableBool  
+    SetAnimationVariableFloat  
+    SetAnimationVariableInt  
+    SetDestroyed  
+    SetFactionOwner  
+    SetLockLevel  
+    SetMotionType  
+    SetNoFavorAllowed  
+    SetOpen  
+    SetPosition  
+    SetScale  
+    SplineTranslateTo  
+    SplineTranslateToRef  
+    SplineTranslateToRefNode  
+    TetherToHorse  
+    TranslateTo  
+    TranslateToRef  
+    SetHarvested  
+    SetItemHealthPercent  
+    SetItemMaxCharge  
+    SetItemCharge  
+    SetEnchantment  
+    CreateEnchantment  
 
 
 **Example**
 
-    actor_dogetter GetEquippedShield  
+    actor_dogetter $system.player GetEquippedShield  
     set $shieldFormID $$  
     objectreference_doconsumer $shieldFormID CreateEnchantment 200.0 "Skyrim.esm:form-id-for-MGEF" 20.0 0.0 30.0  
 
@@ -1615,6 +1688,7 @@ CreateEnchantment
 ### objectreference_dofunction
 
 **Description**
+
 For the targeted ObjectReference, set $$ to the result of the specified function
 'Function' in this case specifically refers to functions that take one or more parameters and return a value
 https://ck.uesp.net/wiki/ObjectReference_Script
@@ -1624,43 +1698,50 @@ https://ck.uesp.net/wiki/ObjectReference_Script
     actor: target ObjectReference  (accepts special variable names ($self, $player) and both relative "Skyrim.esm:0f" and absolute "0f" values)  
     function: function name  
 
-CalculateEncounterLevel  
-CountLinkedRefChain  
-GetAnimationVariableBool  
-GetAnimationVariableFloat  
-GetAnimationVariableInt  
-GetDistance  
-GetHeadingAngle  
-GetItemCount  
-HasEffectKeyword  
-HasNode  
-HasRefType  
-IsActivateChild  
-IsFurnitureInUse  
-IsFurnitureMarkerInUse  
-IsInLocation  
-MoveToIfUnloaded  
-PlayAnimation  
-PlayAnimationAndWait  
-PlayGamebryoAnimation  
-PlayImpactEffect  
-PlaySyncedAnimationAndWaitSS  
-PlaySyncedAnimationSS  
-RampRumble  
-WaitForAnimationEvent  
-SetDisplayName  
-GetNthForm  
-PlaceActorAtMe  
-PlaceAtMe  
-GetLinkedRef  
-GetNthLinkedRef  
+    CalculateEncounterLevel  
+    CountLinkedRefChain  
+    GetAnimationVariableBool  
+    GetAnimationVariableFloat  
+    GetAnimationVariableInt  
+    GetDistance  
+    GetHeadingAngle  
+    GetItemCount  
+    HasEffectKeyword  
+    HasNode  
+    HasRefType  
+    IsActivateChild  
+    IsFurnitureInUse  
+    IsFurnitureMarkerInUse  
+    IsInLocation  
+    MoveToIfUnloaded  
+    PlayAnimation  
+    PlayAnimationAndWait  
+    PlayGamebryoAnimation  
+    PlayImpactEffect  
+    PlaySyncedAnimationAndWaitSS  
+    PlaySyncedAnimationSS  
+    RampRumble  
+    WaitForAnimationEvent  
+    SetDisplayName  
+    GetNthForm  
+    PlaceActorAtMe  
+    PlaceAtMe  
+    GetLinkedRef  
+    GetNthLinkedRef  
 
+
+**Example**
+
+    set $containerFormID "AContainerEditorIDForExample"  
+    objectreference_dofunction $system.self GetItemCount $containerFormID  
+    ; $$ should contain an int value with the number of items in the container  
 
 
 
 ### objectreference_dogetter
 
 **Description**
+
 For the targeted ObjectReference, set $$ to the result of the specified getter
 'Getter' in this case specifically refers to functions that take no parameters but return a value
 https://ck.uesp.net/wiki/ObjectReference_Script
@@ -1670,62 +1751,62 @@ https://ck.uesp.net/wiki/ObjectReference_Script
     objectreference: target ObjectReference  (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)  
     getter: getter name  
 
-;;;; These are from ObjectReference  
-CanFastTravelToMarker  
-GetActorOwner  
-GetAngleX  
-GetAngleY  
-GetAngleZ  
-GetBaseObject  
-GetCurrentDestructionStage  
-GetCurrentLocation  
-GetCurrentScene  
-GetEditorLocation  
-GetFactionOwner  
-GetHeight  
-GetItemHealthPercent  
-GetKey  
-GetLength  
-GetLockLevel  
-GetMass  
-GetOpenState  
-GetParentCell  
-GetPositionX  
-GetPositionY  
-GetPositionZ  
-GetScale  
-GetTriggerObjectCount  
-GetVoiceType  
-GetWidth  
-GetWorldSpace  
-IsActivationBlocked  
-Is3DLoaded  
-IsDeleted  
-IsDisabled  
-IsEnabled  
-IsIgnoringFriendlyHits  
-IsInDialogueWithPlayer  
-IsInInterior  
-IsLocked  
-IsMapMarkerVisible  
-IsNearPlayer  
-;;;; These are from SKSE  
-GetNumItems  
-GetTotalItemWeight  
-GetTotalArmorWeight  
-IsHarvested  
-GetItemMaxCharge  
-GetItemCharge  
-IsOffLimits  
-GetDisplayName  
-GetEnableParent  
-GetEnchantment  
-GetNumReferenceAliases  
+    ;;;; These are from ObjectReference  
+    CanFastTravelToMarker  
+    GetActorOwner  
+    GetAngleX  
+    GetAngleY  
+    GetAngleZ  
+    GetBaseObject  
+    GetCurrentDestructionStage  
+    GetCurrentLocation  
+    GetCurrentScene  
+    GetEditorLocation  
+    GetFactionOwner  
+    GetHeight  
+    GetItemHealthPercent  
+    GetKey  
+    GetLength  
+    GetLockLevel  
+    GetMass  
+    GetOpenState  
+    GetParentCell  
+    GetPositionX  
+    GetPositionY  
+    GetPositionZ  
+    GetScale  
+    GetTriggerObjectCount  
+    GetVoiceType  
+    GetWidth  
+    GetWorldSpace  
+    IsActivationBlocked  
+    Is3DLoaded  
+    IsDeleted  
+    IsDisabled  
+    IsEnabled  
+    IsIgnoringFriendlyHits  
+    IsInDialogueWithPlayer  
+    IsInInterior  
+    IsLocked  
+    IsMapMarkerVisible  
+    IsNearPlayer  
+    ;;;; These are from SKSE  
+    GetNumItems  
+    GetTotalItemWeight  
+    GetTotalArmorWeight  
+    IsHarvested  
+    GetItemMaxCharge  
+    GetItemCharge  
+    IsOffLimits  
+    GetDisplayName  
+    GetEnableParent  
+    GetEnchantment  
+    GetNumReferenceAliases  
 
 
 **Example**
 
-    actor_dogetter CanFlyHere  
+    objectreference_dogetter $system.self CanFlyHere  
     if $$ = 1 ICanFlyAroundHere  
     if $$ = 0 IAmGroundedLikeAlways  
 
@@ -1736,6 +1817,7 @@ GetNumReferenceAliases
 ### jsonutil
 
 **Description**
+
 Wrapper around most JsonUtil functions
 
 **Parameters**
@@ -1743,37 +1825,124 @@ Wrapper around most JsonUtil functions
     <sub-function> - JsonUtil functionality to perform  
     <filename> - JSON file to interact with  
 
-Valid sub-functions are:  
-load              : <filename>  
-save              : <filename>  
-ispendingsave     : <filename>  
-isgood            : <filename>  
-geterrors         : <filename>  
-exists            : <filename>  
-unload            : <filename> [saveChanges: 0 - false | 1 - true] [minify: 0 - false | 1 - true]  
-set               : <filename> <key> <type: int | float | string> <value>  
-get               : <filename> <key> <type: int | float | string> [<default value>]  
-unset             : <filename> <key> <type: int | float | string>  
-has               : <filename> <key> <type: int | float | string>  
-adjust            : <filename> <key> <type: int | float>          <amount>  
-listadd           : <filename> <key> <type: int | float | string> <value>  
-listget           : <filename> <key> <type: int | float | string> <index>  
-listset           : <filename> <key> <type: int | float | string> <index> <value>  
-listremoveat      : <filename> <key> <type: int | float | string> <index>  
-listinsertat      : <filename> <key> <type: int | float | string> <index> <value>  
-listclear         : <filename> <key> <type: int | float | string>  
-listcount         : <filename> <key> <type: int | float | string>  
-listcountvalue    : <filename> <key> <type: int | float | string> <value> [<exclude: 0 - false | 1 - true>]  
-listfind          : <filename> <key> <type: int | float | string> <value>  
-listhas           : <filename> <key> <type: int | float | string> <value>  
-listresize        : <filename> <key> <type: int | float | string> <toLength> [<filler value>]  
+    Valid sub-functions are:  
+    load              : <filename>  
+    save              : <filename>  
+    ispendingsave     : <filename>  
+    isgood            : <filename>  
+    geterrors         : <filename>  
+    exists            : <filename>  
+    unload            : <filename> [saveChanges: 0 - false | 1 - true] [minify: 0 - false | 1 - true]  
+    set               : <filename> <key> <type: int | float | string> <value>  
+    get               : <filename> <key> <type: int | float | string> [<default value>]  
+    unset             : <filename> <key> <type: int | float | string>  
+    has               : <filename> <key> <type: int | float | string>  
+    adjust            : <filename> <key> <type: int | float>          <amount>  
+    listadd           : <filename> <key> <type: int | float | string> <value>  
+    listget           : <filename> <key> <type: int | float | string> <index>  
+    listset           : <filename> <key> <type: int | float | string> <index> <value>  
+    listremoveat      : <filename> <key> <type: int | float | string> <index>  
+    listinsertat      : <filename> <key> <type: int | float | string> <index> <value>  
+    listclear         : <filename> <key> <type: int | float | string>  
+    listcount         : <filename> <key> <type: int | float | string>  
+    listcountvalue    : <filename> <key> <type: int | float | string> <value> [<exclude: 0 - false | 1 - true>]  
+    listfind          : <filename> <key> <type: int | float | string> <value>  
+    listhas           : <filename> <key> <type: int | float | string> <value>  
+    listresize        : <filename> <key> <type: int | float | string> <toLength> [<filler value>]  
 
+
+**Example**
+
+    Example from the regression test script:  
+    set $testfile "../sl_triggers/commandstore/jsonutil_function_test"  
+      
+    inc $thread.testCount  
+    set $flag resultfrom jsonutil exists $testfile  
+    if $flag  
+    inc $thread.passCount  
+    deb_msg $"PASS: jsonutil exists ({flag})"  
+    else  
+    deb_msg $"FAIL: jsonutil exists ({flag})"  
+    endif  
+      
+    inc $thread.testCount  
+    set $avalue resultfrom jsonutil set $testfile "key1" "string" "avalue"  
+    if $avalue == "avalue"  
+    inc $thread.passCount  
+    deb_msg $"PASS: jsonutil set ({avalue})"  
+    else  
+    deb_msg $"FAIL: jsonutil set ({avalue})"  
+    endif  
+      
+    inc $thread.testCount  
+    set $hasworks resultfrom jsonutil has $testfile "key1" "string"  
+    if $hasworks  
+    inc $thread.passCount  
+    deb_msg $"PASS: jsonutil has ({hasworks})"  
+    else  
+    deb_msg $"FAIL: jsonutil has ({hasworks})"  
+    endif  
+      
+    inc $thread.testCount  
+    set $unsetworks resultfrom jsonutil unset $testfile "key1" "string"  
+    if $unsetworks  
+    inc $thread.passCount  
+    deb_msg $"PASS: jsonutil unset ({unsetworks})"  
+    else  
+    deb_msg $"FAIL: jsonutil unset ({unsetworks})"  
+    endif  
+      
+    inc $thread.testCount  
+    set $hasalsoworks resultfrom jsonutil has $testfile "key1" "string"  
+    if $hasalsoworks  
+    deb_msg $"FAIL: jsonutil unset or has is failing ({hasalsoworks})"  
+    else  
+    inc $thread.passCount  
+    deb_msg $"PASS: jsonutil unset/has ({hasalsoworks})"  
+    endif  
+      
+    inc $thread.testCount  
+    set $setfloatworks resultfrom jsonutil set $testfile "key1" "float" "87"  
+    if $setfloatworks == 87  
+    inc $thread.passCount  
+    deb_msg $"PASS: jsonutil set with float ({setfloatworks})"  
+    else  
+    deb_msg $"FAIL: jsonutil set with float ({setfloatworks})"  
+    endif  
+      
+    inc $thread.testCount  
+    set $checktypes resultfrom jsonutil has $testfile "key1" "string"  
+    if $checktypes  
+    deb_msg $"FAIL: has failed, crossed the streams float and string? ({setfloatworks})"  
+    else  
+    inc $thread.passCount  
+    deb_msg $"PASS: has success ({setfloatworks})"  
+    endif  
+      
+    inc $thread.testCount  
+    jsonutil listclear $testfile  "somelist" "int"  
+      
+    jsonutil listadd $testfile  "somelist"  "int"  1  
+    jsonutil listadd $testfile  "somelist"  "int"  2  
+    jsonutil listadd $testfile  "somelist"  "int"  3  
+    jsonutil listadd $testfile  "somelist"  "int"  1  
+      
+    set $listcount resultfrom jsonutil listcount $testfile "somelist" "int"  
+    if $listcount == 4  
+    inc $thread.passCount  
+    deb_msg $"PASS: listclear/listadd/listcount ({setfloatworks})"  
+    else  
+    deb_msg $"FAIL: listclear/listadd/listcount; one has failed ({setfloatworks})"  
+    endif  
+      
+    jsonutil save $testfile  
 
 
 
 ### storageutil
 
 **Description**
+
 Wrapper around most StorageUtil functions
 
 **Parameters**
@@ -1781,38 +1950,113 @@ Wrapper around most StorageUtil functions
     <sub-function> - StorageUtil functionality to perform  
     <form identifier> - object to interact with; see below for details  
 
-<form identifier> - represents the object you want StorageUtil activity keyed to  
-StorageUtil accepts 'none' (null) to represent "global" StorageUtil space  
-For SLTScript purposes, any identifier that will resolve to a Form object can be used  
-Or you may specify the empty string ("") for the global space  
-For example, any of the following might be valid:  
-$self, $player, $actor   ; these all resolve to Actor  
-"sl_triggers.esp:3426"   ; the FormID for the main Quest object for sl_triggers  
-Read more about StorageUtil for more details  
-Valid sub-functions are:  
-set               : <form identifier> <key> <type: int | float | string> <value>  
-get               : <form identifier> <key> <type: int | float | string> [<default value>]  
-pluck             : <form identifier> <key> <type: int | float | string> [<default value>]  
-unset             : <form identifier> <key> <type: int | float | string>  
-has               : <form identifier> <key> <type: int | float | string>  
-adjust            : <form identifier> <key> <type: int | float>          <amount>  
-listadd           : <form identifier> <key> <type: int | float | string> <value>  
-listget           : <form identifier> <key> <type: int | float | string> <index>  
-listpluck         : <form identifier> <key> <type: int | float | string> <index> <default value>  
-listset           : <form identifier> <key> <type: int | float | string> <index> <value>  
-listremoveat      : <form identifier> <key> <type: int | float | string> <index>  
-listinsertat      : <form identifier> <key> <type: int | float | string> <index> <value>  
-listadjust        : <form identifier> <key> <type: int | float | string> <index> <amount>  
-listclear         : <form identifier> <key> <type: int | float | string>  
-listpop           : <form identifier> <key> <type: int | float | string>  
-listshift         : <form identifier> <key> <type: int | float | string>  
-listsort          : <form identifier> <key> <type: int | float | string>  
-listcount         : <form identifier> <key> <type: int | float | string>  
-listcountvalue    : <form identifier> <key> <type: int | float | string> <value> [<exclude: 0 - false | 1 - true>]  
-listfind          : <form identifier> <key> <type: int | float | string> <value>  
-listhas           : <form identifier> <key> <type: int | float | string> <value>  
-listresize        : <form identifier> <key> <type: int | float | string> <toLength> [<filler value>]  
+    <form identifier> - represents the object you want StorageUtil activity keyed to  
+    StorageUtil accepts 'none' (null) to represent "global" StorageUtil space  
+    For SLTScript purposes, any identifier that will resolve to a Form object can be used  
+    Or you may specify the empty string ("") for the global space  
+    For example, any of the following might be valid:  
+    $self, $player, $actor   ; these all resolve to Actor  
+    "sl_triggers.esp:3426"   ; the FormID for the main Quest object for sl_triggers  
+    Read more about StorageUtil for more details  
+    Valid sub-functions are:  
+    set               : <form identifier> <key> <type: int | float | string> <value>  
+    get               : <form identifier> <key> <type: int | float | string> [<default value>]  
+    pluck             : <form identifier> <key> <type: int | float | string> [<default value>]  
+    unset             : <form identifier> <key> <type: int | float | string>  
+    has               : <form identifier> <key> <type: int | float | string>  
+    adjust            : <form identifier> <key> <type: int | float>          <amount>  
+    listadd           : <form identifier> <key> <type: int | float | string> <value>  
+    listget           : <form identifier> <key> <type: int | float | string> <index>  
+    listpluck         : <form identifier> <key> <type: int | float | string> <index> <default value>  
+    listset           : <form identifier> <key> <type: int | float | string> <index> <value>  
+    listremoveat      : <form identifier> <key> <type: int | float | string> <index>  
+    listinsertat      : <form identifier> <key> <type: int | float | string> <index> <value>  
+    listadjust        : <form identifier> <key> <type: int | float | string> <index> <amount>  
+    listclear         : <form identifier> <key> <type: int | float | string>  
+    listpop           : <form identifier> <key> <type: int | float | string>  
+    listshift         : <form identifier> <key> <type: int | float | string>  
+    listsort          : <form identifier> <key> <type: int | float | string>  
+    listcount         : <form identifier> <key> <type: int | float | string>  
+    listcountvalue    : <form identifier> <key> <type: int | float | string> <value> [<exclude: 0 - false | 1 - true>]  
+    listfind          : <form identifier> <key> <type: int | float | string> <value>  
+    listhas           : <form identifier> <key> <type: int | float | string> <value>  
+    listresize        : <form identifier> <key> <type: int | float | string> <toLength> [<filler value>]  
 
+
+**Example**
+
+    Example usage from the regression tests  
+    set $suhost $system.player  
+      
+    inc $thread.testCount  
+    set $result resultfrom storageutil set $suhost "key1" "string" "avalue"  
+    if $result == "avalue"  
+    inc $thread.passCount  
+    deb_msg $"PASS: storageutil set ({result})"  
+    else  
+    deb_msg $"FAIL: storageutil set ({result})"  
+    endif  
+      
+    inc $thread.testCount  
+    set $result resultfrom storageutil has $suhost "key1" "string"  
+    if $result  
+    inc $thread.passCount  
+    deb_msg $"PASS: storageutil has ({result})"  
+    else  
+    deb_msg $"FAIL: storageutil has ({result})"  
+    endif  
+      
+    inc $thread.testCount  
+    set $result resultfrom storageutil unset $suhost "key1" "string"  
+    if $result  
+    inc $thread.passCount  
+    deb_msg $"PASS: storageutil unset ({result})"  
+    else  
+    deb_msg $"FAIL: storageutil unset ({result})"  
+    endif  
+      
+    inc $thread.testCount  
+    set $result resultfrom storageutil has $suhost "key1" "string"  
+    if $result  
+    deb_msg $"FAIL: storageutil unset ({result})"  
+    else  
+    inc $thread.passCount  
+    deb_msg $"PASS: storageutil unset ({result})"  
+    endif  
+      
+    inc $thread.testCount  
+    set $result resultfrom storageutil set $suhost "key1" "float" "87"  
+    if $result == 87  
+    inc $thread.passCount  
+    deb_msg $"PASS: storageutil set float ({result})"  
+    else  
+    deb_msg $"FAIL: storageutil set float ({result})"  
+    endif  
+      
+    inc $thread.testCount  
+    set $result resultfrom storageutil has $suhost "key1" "string"  
+    if $result  
+    deb_msg $"FAIL: storageutil unset/has ({result})"  
+    else  
+    inc $thread.passCount  
+    deb_msg $"PASS: storageutil unset/has ({result})"  
+    endif  
+      
+    inc $thread.testCount  
+    storageutil listclear $suhost  "somelist" "int"  
+      
+    storageutil listadd $suhost  "somelist"  "int"  1  
+    storageutil listadd $suhost  "somelist"  "int"  2  
+    storageutil listadd $suhost  "somelist"  "int"  3  
+    storageutil listadd $suhost  "somelist"  "int"  1  
+      
+    set $result resultfrom storageutil listcount $suhost "somelist" "int"  
+    if $result == 4  
+    inc $thread.passCount  
+    deb_msg $"PASS: storageutil listclear/listadd/listcount ({result})"  
+    else  
+    deb_msg $"FAIL: storageutil listclear/listadd/listcount ({result})"  
+    endif  
 
 
 
@@ -1821,6 +2065,7 @@ listresize        : <form identifier> <key> <type: int | float | string> <toLeng
 ### perk_add
 
 **Description**
+
 Add specified perk to the targeted actor
 
 **Parameters**
@@ -1838,6 +2083,7 @@ Add specified perk to the targeted actor
 ### perk_addpoints
 
 **Description**
+
 Add specified number of perk points to player
 
 **Parameters**
@@ -1854,6 +2100,7 @@ Add specified number of perk points to player
 ### perk_remove
 
 **Description**
+
 Remove specified perk from the targeted actor
 
 **Parameters**
@@ -1868,34 +2115,12 @@ Remove specified perk from the targeted actor
 
 
 
-# SexLab
-
-### util_getrndactor
-
-**Description**
-Return a random actor within specified range of self
-
-**Parameters**
-
-    range: (0 - all | >0 - range in Skyrim units)  
-    option: (0 - all | 1 - not in SexLab scene | 2 - must be in SexLab scene) (optional: default 0 - all)  
-
-
-**Example**
-
-    util_getrndactor 500 2  
-    actor_isvalid $actor  
-    if $$ = 0 end  
-    msg_notify "Someone is watching you!"  
-    [end]  
-
-
-
 # Sound
 
 ### snd_play
 
 **Description**
+
 Return the sound instance handle from playing the specified audio from the specified actor
 
 **Parameters**
@@ -1913,6 +2138,7 @@ Return the sound instance handle from playing the specified audio from the speci
 ### snd_setvolume
 
 **Description**
+
 Set the sound volume using the specified sound instance handle (from snd_play)
 
 **Parameters**
@@ -1932,6 +2158,7 @@ Set the volume of the audio sound playing with handle stored in $1 to 50%
 ### snd_stop
 
 **Description**
+
 Stops the audio specified by the sound instance handle (from snd_play)
 
 **Parameters**
@@ -1950,6 +2177,7 @@ Stops the audio specified by the sound instance handle (from snd_play)
 ### spell_add
 
 **Description**
+
 Adds the specified SPEL by FormId to the targeted Actor, usually to add as an available power or spell in the spellbook.
 
 **Parameters**
@@ -1968,6 +2196,7 @@ The light spell is now in the actor's spellbook
 ### spell_cast
 
 **Description**
+
 Cast spell at target
 
 **Parameters**
@@ -1986,6 +2215,7 @@ Casts light spell on self
 ### spell_dcsa
 
 **Description**
+
 Casts spell with DoCombatSpellApply Papyrus function. It is usually used for spells that
 are part of a melee attack (like animals that also carry poison or disease).
 
@@ -2004,6 +2234,7 @@ are part of a melee attack (like animals that also carry poison or disease).
 ### spell_dispel
 
 **Description**
+
 Dispels specified SPEL by FormId from targeted Actor
 
 **Parameters**
@@ -2022,6 +2253,7 @@ If light was currently on $self, it would now be dispelled
 ### spell_remove
 
 **Description**
+
 Removes the specified SPEL by FormId from the targeted Actor, usually to remove as an available power or spell in the spellbook.
 
 **Parameters**
@@ -2042,6 +2274,7 @@ The light spell should no longer be in the actor's spellbook
 ### topicinfo_getresponsetext
 
 **Description**
+
 Attempts to return a single response text associated with the provided TopicInfo (by editorID or FormID)
 Note: This is more beta than normal; it isn't obvious whether in some cases multiple strings should actually be returned.
 
@@ -2063,6 +2296,7 @@ Note: This is more beta than normal; it isn't obvious whether in some cases mult
 ### console
 
 **Description**
+
 Executes the console command (requires a ConsoleUtil variant installed
 Recommend ConsoleUtil-Extended https://www.nexusmods.com/skyrimspecialedition/mods/133569)
 
@@ -2083,6 +2317,7 @@ Both are the same
 ### deb_msg
 
 **Description**
+
 Joins all <msg> arguments together and logs to "<Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log"
 This file is truncated on game start.
 
@@ -2102,6 +2337,7 @@ Both do the same thing
 ### math
 
 **Description**
+
 Return values from math operations based on sub-function
 
 **Parameters**
@@ -2109,11 +2345,11 @@ Return values from math operations based on sub-function
     sub-function: sub-function  
     variable: variable 3 varies by sub-function  
 
-if parameter 2 1s "asint": return parameter 3 as integer  
-if parameter 2 1s "floor": return parameter 3 the largest integer less than or equal to the value  
-if parameter 2 1s "ceiling": return parameter 3 the smallest integer greater than or equal to the value  
-if parameter 2 1s "abs": return parameter 3 as absolute value of the passed in value - N for N, and N for (-N)  
-if parameter 2 1s "toint": return parameter 3 as integer. Parameter 3 can be in dec or hex. If it starts with 0, its converted as hex value  
+    if parameter 2 1s "asint": return parameter 3 as integer  
+    if parameter 2 1s "floor": return parameter 3 the largest integer less than or equal to the value  
+    if parameter 2 1s "ceiling": return parameter 3 the smallest integer greater than or equal to the value  
+    if parameter 2 1s "abs": return parameter 3 as absolute value of the passed in value - N for N, and N for (-N)  
+    if parameter 2 1s "toint": return parameter 3 as integer. Parameter 3 can be in dec or hex. If it starts with 0, its converted as hex value  
 
 
 **Example**
@@ -2125,6 +2361,7 @@ if parameter 2 1s "toint": return parameter 3 as integer. Parameter 3 can be in 
 ### msg_console
 
 **Description**
+
 Display the message in the console
 
 **Parameters**
@@ -2143,6 +2380,7 @@ Both are the same
 ### msg_notify
 
 **Description**
+
 Display the message in the standard notification area (top left of your screen by default)
 
 **Parameters**
@@ -2161,6 +2399,7 @@ Both are the same
 ### rnd_float
 
 **Description**
+
 Sets $$ to a random integer between min and max inclusive
 
 **Parameters**
@@ -2178,6 +2417,7 @@ Sets $$ to a random integer between min and max inclusive
 ### rnd_int
 
 **Description**
+
 Sets $$ to a random integer between min and max inclusive
 
 **Parameters**
@@ -2195,6 +2435,7 @@ Sets $$ to a random integer between min and max inclusive
 ### rnd_list
 
 **Description**
+
 Sets $$ to one of the arguments at random
 
 **Parameters**
@@ -2212,6 +2453,7 @@ $$ will be one of the values. $2 will be resolved to it's value before populatin
 ### util_game
 
 **Description**
+
 Perform game related functions based on sub-function
 
 **Parameters**
@@ -2219,8 +2461,8 @@ Perform game related functions based on sub-function
     sub-function: sub-function  
     parameter: varies by sub-function  
 
-if sub-function is "IncrementStat", (parameter 3, <stat name>, parameter 4, <amount>), see https://ck.uesp.net/wiki/IncrementStat_-_Game  
-if sub-function is "QueryStat", (parameter 3, <stat name>), returns the value  
+    if sub-function is "IncrementStat", (parameter 3, <stat name>, parameter 4, <amount>), see https://ck.uesp.net/wiki/IncrementStat_-_Game  
+    if sub-function is "QueryStat", (parameter 3, <stat name>), returns the value  
 
 
 **Example**
@@ -2232,6 +2474,7 @@ if sub-function is "QueryStat", (parameter 3, <stat name>), returns the value
 ### util_getgametime
 
 **Description**
+
 Sets $$ to the value of Utility.GetCurrentGameTime() (a float value representing the number of days in game time; mid-day day 2 is 1.5)
 
 
@@ -2244,6 +2487,7 @@ Sets $$ to the value of Utility.GetCurrentGameTime() (a float value representing
 ### util_getgametime
 
 **Description**
+
 Sets $$ to the in-game hour (i.e. 2:30 AM returns 2)
 
 
@@ -2256,6 +2500,7 @@ Sets $$ to the in-game hour (i.e. 2:30 AM returns 2)
 ### util_getrandomactor
 
 **Description**
+
 Sets $iterActor to a random actor within specified range of self
 
 **Parameters**
@@ -2272,6 +2517,7 @@ Sets $iterActor to a random actor within specified range of self
 ### util_getrealtime
 
 **Description**
+
 Sets $$ to the value of Utility.GetCurrentRealTime() (a float value representing the number of seconds since Skyrim.exe was launched this session)
 
 
@@ -2281,9 +2527,32 @@ Sets $$ to the value of Utility.GetCurrentRealTime() (a float value representing
 
 
 
+### util_getrndactor
+
+**Description**
+
+Return a random actor within specified range of self
+
+**Parameters**
+
+    range: (0 - all | >0 - range in Skyrim units)  
+    option: (0 - all | 1 - not in SexLab scene | 2 - must be in SexLab scene) (optional: default 0 - all)  
+
+
+**Example**
+
+    util_getrndactor 500 2  
+    actor_isvalid $actor  
+    if $$ = 0 end  
+    msg_notify "Someone is watching you!"  
+    [end]  
+
+
+
 ### util_sendevent
 
 **Description**
+
 Send SKSE custom event, with each type/value pair being an argument to the custom event
 
 **Parameters**
@@ -2294,7 +2563,7 @@ Send SKSE custom event, with each type/value pair being an argument to the custo
     param value: value of parameter  
     [type/value, type/value ...]  
 
-<type> can be any of [bool, int, float, string, form]  
+    <type> can be any of [bool, int, float, string, form]  
 
 
 **Example**
@@ -2307,6 +2576,7 @@ The "slaUpdateExposure" event will be sent with $self, and the float value of 33
 ### util_sendmodevent
 
 **Description**
+
 Shorthand for actor_sendmodevent $player <event name> <string argument> <float argument>
 
 **Parameters**
@@ -2325,6 +2595,7 @@ Shorthand for actor_sendmodevent $player <event name> <string argument> <float a
 ### util_wait
 
 **Description**
+
 Wait specified number of seconds i.e. Utility.Wait()
 
 **Parameters**
@@ -2342,6 +2613,7 @@ The script will pause processing for 2.5 seconds
 ### util_waitforkbd
 
 **Description**
+
 Sets $$ to the keycode pressed after waiting for user to press any of the specified keys
 
 **Parameters**
@@ -2358,6 +2630,7 @@ Sets $$ to the keycode pressed after waiting for user to press any of the specif
 ### weather_state
 
 **Description**
+
 Weather related functions based on sub-function
 
 **Parameters**
@@ -2384,6 +2657,7 @@ Weather related functions based on sub-function
 ### actor_race
 
 **Description**
+
 Returns the race name based on sub-function. Blank, empty sub-function returns Vanilla racenames. e.g. "SL" can return SexLab race keynames.
 
 **Parameters**
@@ -2391,8 +2665,8 @@ Returns the race name based on sub-function. Blank, empty sub-function returns V
     actor: target Actor  
     sub-function: sub-function  
 
-if parameter 2 is "": return actors race name. Skyrims, original name. Like: "Nord", "Breton"  
-if parameter 2 is "SL": return actors Sexlab frameworks race key name. Like: "dogs", "bears", etc. Note: will return "" if actor is humanoid  
+    if parameter 2 is "": return actors race name. Skyrims, original name. Like: "Nord", "Breton"  
+    if parameter 2 is "SL": return actors Sexlab frameworks race key name. Like: "dogs", "bears", etc. Note: will return "" if actor is humanoid  
 
 
 **Example**
@@ -2407,6 +2681,7 @@ if parameter 2 is "SL": return actors Sexlab frameworks race key name. Like: "do
 ### dd_unlockall
 
 **Description**
+
 Attempts to unlock all devices locked on the actor
 
 **Parameters**
@@ -2425,6 +2700,7 @@ Will attempt to (forcibly if necessary, e.g. quest locked items) unlock all lock
 ### dd_unlockslot
 
 **Description**
+
 Attempts to unlock any device in the specified slot
 
 **Parameters**
@@ -2446,6 +2722,7 @@ Should remove anything in body slot e.g. corset, harness, etc., and forced, so i
 ### df_resetall
 
 **Description**
+
 Resets all Devious Followers values (i.e. quest states, deal states, boredom, debt)
 back to values as if having just started out.
 
@@ -2460,6 +2737,7 @@ Should be free of all debts, deals, and rules
 ### df_setdebt
 
 **Description**
+
 Sets current debt to the specified amount
 
 **Parameters**
@@ -2479,6 +2757,7 @@ We all know what you are going to use it for
 ### osla_get_actor_days_since_last_orgasm
 
 **Description**
+
 Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
 
 **Parameters**
@@ -2496,6 +2775,7 @@ Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
 ### osla_get_arousal
 
 **Description**
+
 Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
 
 **Parameters**
@@ -2513,6 +2793,7 @@ Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
 ### osla_get_arousal_multiplier
 
 **Description**
+
 Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
 
 **Parameters**
@@ -2530,6 +2811,7 @@ Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
 ### osla_get_exposure
 
 **Description**
+
 Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
 
 **Parameters**
@@ -2547,6 +2829,7 @@ Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
 ### osla_modify_arousal
 
 **Description**
+
 Sets $$ to the result of OSLAroused_ModInterface.ModifyArousal(Actor, float, string)
 
 **Parameters**
@@ -2565,6 +2848,7 @@ Sets $$ to the result of OSLAroused_ModInterface.ModifyArousal(Actor, float, str
 ### osla_modify_arousal_multiplier
 
 **Description**
+
 Sets $$ to the result of OSLAroused_ModInterface.ModifyArousalMultiplier(Actor, float, string)
 
 **Parameters**
@@ -2583,6 +2867,7 @@ Sets $$ to the result of OSLAroused_ModInterface.ModifyArousalMultiplier(Actor, 
 ### osla_set_arousal
 
 **Description**
+
 Sets $$ to the result of OSLAroused_ModInterface.SetArousal(Actor, float, string)
 
 **Parameters**
@@ -2601,6 +2886,7 @@ Sets $$ to the result of OSLAroused_ModInterface.SetArousal(Actor, float, string
 ### osla_set_arousal_multiplier
 
 **Description**
+
 Sets $$ to the result of OSLAroused_ModInterface.SetArousalMultiplier(Actor, float, string)
 
 **Parameters**
@@ -2621,6 +2907,7 @@ Sets $$ to the result of OSLAroused_ModInterface.SetArousalMultiplier(Actor, flo
 ### sl_advance
 
 **Description**
+
 Changes the stage of the current SexLab scene, for the target Actor; advances a single stage if positive, reverses a single stage if negative
 
 **Parameters**
@@ -2639,6 +2926,7 @@ Only goes back one stage
 ### sl_animname
 
 **Description**
+
 Sets $$ to the current SexLab animation name
 
 
@@ -2652,6 +2940,7 @@ Sets $$ to the current SexLab animation name
 ### sl_disableorgasm
 
 **Description**
+
 
 
 **Parameters**
@@ -2672,6 +2961,7 @@ Sets $$ to the current SexLab animation name
 ### sl_getprop
 
 **Description**
+
 Sets $$ to the value of the requested property
 
 **Parameters**
@@ -2690,6 +2980,7 @@ Sets $$ to the value of the requested property
 ### sl_getrndactor
 
 **Description**
+
 Return a random actor within specified range of self
 
 **Parameters**
@@ -2711,6 +3002,7 @@ Return a random actor within specified range of self
 ### sl_hastag
 
 **Description**
+
 Sets $$ to 1 if the SexLab scene has the specified tag, 0 otherwise
 
 **Parameters**
@@ -2729,6 +3021,7 @@ Sets $$ to 1 if the SexLab scene has the specified tag, 0 otherwise
 ### sl_isin
 
 **Description**
+
 Sets $$ to 1 if the specified actor is in a SexLab scene, 0 otherwise
 
 **Parameters**
@@ -2745,6 +3038,7 @@ Sets $$ to 1 if the specified actor is in a SexLab scene, 0 otherwise
 ### sl_isinslot
 
 **Description**
+
 Sets $$ to 1 if the specified actor is in the specified SexLab scene slot, 0 otherwise
 
 **Parameters**
@@ -2762,6 +3056,7 @@ Sets $$ to 1 if the specified actor is in the specified SexLab scene slot, 0 oth
 ### sl_orgasm
 
 **Description**
+
 Immediately forces the specified actor to have a SexLab orgasm.
 
 **Parameters**
@@ -2780,6 +3075,7 @@ Simultaneous orgasms
 ### util_waitforend
 
 **Description**
+
 Wait until specified actor is not in SexLab scene
 
 **Parameters**
@@ -2799,6 +3095,7 @@ Wait until the scene ends
 ### slso_bonus_enjoyment
 
 **Description**
+
 Applies BonusEnjoyment to the specified actor
 
 **Parameters**
@@ -2818,6 +3115,7 @@ Applies BonusEnjoyment to the specified actor
 ### util_waitforkbd
 
 **Description**
+
 Returns the keycode pressed after waiting for user to press any of the specified keys or for the end of the SexLab scene
 
 **Parameters**
@@ -2849,6 +3147,7 @@ Wait for Num-, Num+, Num/, or Num*, or animation expired, and then do something 
 ### toh_elapsed_time
 
 **Description**
+
 Returns the actual game time passed at the time of the last "Top of the Hour"
 For example, if you slept from 1:30 to 4:00, you would get a Top of the Hour event at 4 with a value of 2.5
 

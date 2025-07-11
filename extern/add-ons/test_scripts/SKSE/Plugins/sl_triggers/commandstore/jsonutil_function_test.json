@@ -1,0 +1,25 @@
+{
+	"float" : 
+	{
+		"key1" : 87.0
+	},
+	"int" : 
+	{
+		"value1" : 23
+	},
+	"intList" : 
+	{
+		"somelist" : 
+		[
+			1,
+			2,
+			3,
+			1
+		]
+	},
+	"string" : 
+	{
+		"value1" : "this is a text string",
+		"value2" : "48"
+	}
+}

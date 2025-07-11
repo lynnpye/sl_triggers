@@ -5114,6 +5114,89 @@ endfunction
 ; sltargsmore listfind          : <filename> <key> <type: int | float | string> <value>
 ; sltargsmore listhas           : <filename> <key> <type: int | float | string> <value>
 ; sltargsmore listresize        : <filename> <key> <type: int | float | string> <toLength> [<filler value>]
+; sltsamp Example from the regression test script:
+; sltsamp set $testfile "../sl_triggers/commandstore/jsonutil_function_test"
+; sltsamp 
+; sltsamp inc $thread.testCount
+; sltsamp set $flag resultfrom jsonutil exists $testfile
+; sltsamp if $flag
+; sltsamp     inc $thread.passCount
+; sltsamp     deb_msg $"PASS: jsonutil exists ({flag})"
+; sltsamp else
+; sltsamp     deb_msg $"FAIL: jsonutil exists ({flag})"
+; sltsamp endif
+; sltsamp 
+; sltsamp inc $thread.testCount
+; sltsamp set $avalue resultfrom jsonutil set $testfile "key1" "string" "avalue"
+; sltsamp if $avalue == "avalue"
+; sltsamp     inc $thread.passCount
+; sltsamp     deb_msg $"PASS: jsonutil set ({avalue})"
+; sltsamp else
+; sltsamp     deb_msg $"FAIL: jsonutil set ({avalue})"
+; sltsamp endif
+; sltsamp 
+; sltsamp inc $thread.testCount
+; sltsamp set $hasworks resultfrom jsonutil has $testfile "key1" "string"
+; sltsamp if $hasworks
+; sltsamp     inc $thread.passCount
+; sltsamp     deb_msg $"PASS: jsonutil has ({hasworks})"
+; sltsamp else
+; sltsamp     deb_msg $"FAIL: jsonutil has ({hasworks})"
+; sltsamp endif
+; sltsamp 
+; sltsamp inc $thread.testCount
+; sltsamp set $unsetworks resultfrom jsonutil unset $testfile "key1" "string"
+; sltsamp if $unsetworks
+; sltsamp     inc $thread.passCount
+; sltsamp     deb_msg $"PASS: jsonutil unset ({unsetworks})"
+; sltsamp else
+; sltsamp     deb_msg $"FAIL: jsonutil unset ({unsetworks})"
+; sltsamp endif
+; sltsamp 
+; sltsamp inc $thread.testCount
+; sltsamp set $hasalsoworks resultfrom jsonutil has $testfile "key1" "string"
+; sltsamp if $hasalsoworks
+; sltsamp     deb_msg $"FAIL: jsonutil unset or has is failing ({hasalsoworks})"
+; sltsamp else
+; sltsamp     inc $thread.passCount
+; sltsamp     deb_msg $"PASS: jsonutil unset/has ({hasalsoworks})"
+; sltsamp endif
+; sltsamp 
+; sltsamp inc $thread.testCount
+; sltsamp set $setfloatworks resultfrom jsonutil set $testfile "key1" "float" "87"
+; sltsamp if $setfloatworks == 87
+; sltsamp     inc $thread.passCount
+; sltsamp     deb_msg $"PASS: jsonutil set with float ({setfloatworks})"
+; sltsamp else
+; sltsamp     deb_msg $"FAIL: jsonutil set with float ({setfloatworks})"
+; sltsamp endif
+; sltsamp 
+; sltsamp inc $thread.testCount
+; sltsamp set $checktypes resultfrom jsonutil has $testfile "key1" "string"
+; sltsamp if $checktypes
+; sltsamp     deb_msg $"FAIL: has failed, crossed the streams float and string? ({setfloatworks})"
+; sltsamp else
+; sltsamp     inc $thread.passCount
+; sltsamp     deb_msg $"PASS: has success ({setfloatworks})"
+; sltsamp endif
+; sltsamp 
+; sltsamp inc $thread.testCount
+; sltsamp jsonutil listclear $testfile  "somelist" "int"
+; sltsamp 
+; sltsamp jsonutil listadd $testfile  "somelist"  "int"  1
+; sltsamp jsonutil listadd $testfile  "somelist"  "int"  2
+; sltsamp jsonutil listadd $testfile  "somelist"  "int"  3
+; sltsamp jsonutil listadd $testfile  "somelist"  "int"  1
+; sltsamp 
+; sltsamp set $listcount resultfrom jsonutil listcount $testfile "somelist" "int"
+; sltsamp if $listcount == 4
+; sltsamp     inc $thread.passCount
+; sltsamp     deb_msg $"PASS: listclear/listadd/listcount ({setfloatworks})"
+; sltsamp else
+; sltsamp     deb_msg $"FAIL: listclear/listadd/listcount; one has failed ({setfloatworks})"
+; sltsamp endif
+; sltsamp 
+; sltsamp jsonutil save $testfile
 function jsonutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
@@ -5364,6 +5447,78 @@ endFunction
 ; sltargsmore listfind          : <form identifier> <key> <type: int | float | string> <value>
 ; sltargsmore listhas           : <form identifier> <key> <type: int | float | string> <value>
 ; sltargsmore listresize        : <form identifier> <key> <type: int | float | string> <toLength> [<filler value>]
+; sltsamp Example usage from the regression tests
+; sltsamp set $suhost $system.player
+; sltsamp 
+; sltsamp inc $thread.testCount
+; sltsamp set $result resultfrom storageutil set $suhost "key1" "string" "avalue"
+; sltsamp if $result == "avalue"
+; sltsamp     inc $thread.passCount
+; sltsamp     deb_msg $"PASS: storageutil set ({result})"
+; sltsamp else
+; sltsamp     deb_msg $"FAIL: storageutil set ({result})"
+; sltsamp endif
+; sltsamp 
+; sltsamp inc $thread.testCount
+; sltsamp set $result resultfrom storageutil has $suhost "key1" "string"
+; sltsamp if $result
+; sltsamp     inc $thread.passCount
+; sltsamp     deb_msg $"PASS: storageutil has ({result})"
+; sltsamp else
+; sltsamp     deb_msg $"FAIL: storageutil has ({result})"
+; sltsamp endif
+; sltsamp 
+; sltsamp inc $thread.testCount
+; sltsamp set $result resultfrom storageutil unset $suhost "key1" "string"
+; sltsamp if $result
+; sltsamp     inc $thread.passCount
+; sltsamp     deb_msg $"PASS: storageutil unset ({result})"
+; sltsamp else
+; sltsamp     deb_msg $"FAIL: storageutil unset ({result})"
+; sltsamp endif
+; sltsamp 
+; sltsamp inc $thread.testCount
+; sltsamp set $result resultfrom storageutil has $suhost "key1" "string"
+; sltsamp if $result
+; sltsamp     deb_msg $"FAIL: storageutil unset ({result})"
+; sltsamp else
+; sltsamp     inc $thread.passCount
+; sltsamp     deb_msg $"PASS: storageutil unset ({result})"
+; sltsamp endif
+; sltsamp 
+; sltsamp inc $thread.testCount
+; sltsamp set $result resultfrom storageutil set $suhost "key1" "float" "87"
+; sltsamp if $result == 87
+; sltsamp     inc $thread.passCount
+; sltsamp     deb_msg $"PASS: storageutil set float ({result})"
+; sltsamp else
+; sltsamp     deb_msg $"FAIL: storageutil set float ({result})"
+; sltsamp endif
+; sltsamp 
+; sltsamp inc $thread.testCount
+; sltsamp set $result resultfrom storageutil has $suhost "key1" "string"
+; sltsamp if $result
+; sltsamp     deb_msg $"FAIL: storageutil unset/has ({result})"
+; sltsamp else
+; sltsamp     inc $thread.passCount
+; sltsamp     deb_msg $"PASS: storageutil unset/has ({result})"
+; sltsamp endif
+; sltsamp 
+; sltsamp inc $thread.testCount
+; sltsamp storageutil listclear $suhost  "somelist" "int"
+; sltsamp 
+; sltsamp storageutil listadd $suhost  "somelist"  "int"  1
+; sltsamp storageutil listadd $suhost  "somelist"  "int"  2
+; sltsamp storageutil listadd $suhost  "somelist"  "int"  3
+; sltsamp storageutil listadd $suhost  "somelist"  "int"  1
+; sltsamp 
+; sltsamp set $result resultfrom storageutil listcount $suhost "somelist" "int"
+; sltsamp if $result == 4
+; sltsamp     inc $thread.passCount
+; sltsamp     deb_msg $"PASS: storageutil listclear/listadd/listcount ({result})"
+; sltsamp else
+; sltsamp     deb_msg $"FAIL: storageutil listclear/listadd/listcount ({result})"
+; sltsamp endif
 function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	

@@ -221,7 +221,7 @@ public class SltParser {
 
         sb.append("### ").append(section.name).append("\n\n");
         if (section.desc.size() > 0) {
-            sb.append("**Description**\n");
+            sb.append("**Description**\n\n");
             for (String d : section.desc) {
                 sb.append(d).append("\n");
             }
@@ -235,7 +235,7 @@ public class SltParser {
             sb.append("\n");
             if (section.argsmore.size() > 0) {
                 for (String am : section.argsmore) {
-                    sb.append(am).append("  \n");
+                    sb.append("    ").append(am).append("  \n");
                 }
                 sb.append("\n");
             }
