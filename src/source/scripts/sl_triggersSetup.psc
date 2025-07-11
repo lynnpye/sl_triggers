@@ -64,6 +64,7 @@ int			oidDebug_Cmd_RunScript_Blocks
 int			oidDebug_Cmd_RunScript_If
 int			oidDebug_Cmd_RunScript_Labels
 int 		oidDebug_Cmd_RunScript_Set
+int 		oidDebug_Cmd_RunScript_While
 int 		oidDebug_Extension
 int 		oidDebug_Extension_Core
 int 		oidDebug_Extension_Core_Keymapping
@@ -97,6 +98,7 @@ Function CallThisToResetTheOIDValuesHextun()
 	oidDebug_Cmd_RunScript_If				= 0
 	oidDebug_Cmd_RunScript_Labels			= 0
 	oidDebug_Cmd_RunScript_Set				= 0
+	oidDebug_Cmd_RunScript_While			= 0
 	oidDebug_Extension						= 0
 	oidDebug_Extension_Core					= 0
 	oidDebug_Extension_Core_Keymapping		= 0
@@ -784,6 +786,11 @@ Event OnOptionSelect(int option)
 		_boolVal = !SLT.Debug_Cmd_RunScript_Set
 		SLT.Debug_Cmd_RunScript_Set = DoSaveAndReset(option, _strVal, _boolVal)
 		return
+	elseIf option == oidDebug_Cmd_RunScript_While
+		_strVal = "Debug_Cmd_RunScript_While"
+		_boolVal = !SLT.Debug_Cmd_RunScript_While
+		SLT.Debug_Cmd_RunScript_While = DoSaveAndReset(option, _strVal, _boolVal)
+		return
 	elseIf option == oidDebug_Extension
 		_strVal = "Debug_Extension"
 		_boolVal = !SLT.Debug_Extension
@@ -1311,6 +1318,7 @@ Function ShowHeaderPage()
 	oidDebug_Cmd_RunScript					= AddToggleOption("Debug_Cmd_RunScript", 					SLT.Debug_Cmd_RunScript)
 	oidDebug_Cmd_RunScript_Blocks 			= AddToggleOption("Debug_Cmd_RunScript_Blocks", 			SLT.Debug_Cmd_RunScript_Blocks)
 	oidDebug_Cmd_RunScript_Set				= AddToggleOption("Debug_Cmd_RunScript_Set", 				SLT.Debug_Cmd_RunScript_Set)
+	oidDebug_Cmd_RunScript_While			= AddToggleOption("Debug_Cmd_RunScript_While",				SLT.Debug_Cmd_RunScript_While)
 	oidDebug_Extension						= AddToggleOption("Debug_Extension", 						SLT.Debug_Extension)
 	oidDebug_Extension_Core					= AddToggleOption("Debug_Extension_Core", 					SLT.Debug_Extension_Core)
 	oidDebug_Extension_Core_Keymapping		= AddToggleOption("Debug_Extension_Core_Keymapping",		SLT.Debug_Extension_Core_Keymapping)

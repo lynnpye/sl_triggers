@@ -1,0 +1,485 @@
+; Simple goto
+inc $thread.testCount
+goto [begin]
+deb_msg "FAIL: goto; you should immediately exit the script. If you continue to see output, stop the script manually; something low-level has gone wrong."
+return
+deb_msg "FAIL: return; this is pretty low-level indeed and considered a significant engine failure. Please stop the script and investigate."
+
+[begin]
+inc $thread.passCount
+deb_msg "PASS: Simple goto"
+
+; Assignment, Comparison, If
+inc $thread.testCount 
+inc $thread.testCount 
+inc $thread.testCount 
+inc $thread.testCount
+
+set $testvar 23
+
+if $testvar == 23
+    goto [jumpOutOfIfBlock]
+    deb_msg "FAIL: goto inside if-block"
+    return
+    deb_msg "FAIL: return inside if-block"
+endif
+deb_msg "FAIL: goto jump out of if-block not skipping post-endif code"
+return
+
+[jumpOutOfIfBlock]
+inc $thread.passCount
+inc $thread.passCount
+inc $thread.passCount
+inc $thread.passCount
+deb_msg "PASS: if '==' (numeric equality) test"
+deb_msg "PASS: inc"
+deb_msg "PASS: $thread-scope variable, read and write"
+deb_msg "PASS: goto out of if-block"
+
+; test if/else/elseif
+inc $thread.testCount 
+set $testvar 5
+if $testvar > 6
+    deb_msg "FAIL: if with '>' operator failed"
+    return
+else
+    set $testvar 6
+    deb_msg "PASS: else caught if block"
+    inc $thread.passCount
+endif
+inc $thread.testCount 
+if $testvar == 6
+    deb_msg "PASS: endif ended the if-block (this block not overlooked)"
+    inc $thread.passCount
+endif
+
+inc $thread.testCount
+if $testvar == 7
+    deb_msg "FAIL: equality failed to notice difference"
+elseif $testvar > 8
+    deb_msg "FAIL: 'elseif $testvar > 8' but $testvar is :" $testvar ":"
+elseif $testvar < 4
+    deb_msg "FAIL: 'elseif $testvar < 4' but $testvar is :" $testvar ":"
+else
+    deb_msg "PASS: multiple elseif branches with closing else"
+    inc $thread.passCount
+endif
+
+inc $thread.testCount
+if $testvar <= 5
+    deb_msg "FAIL: 'if $testvar <= 5'"
+elseif $testvar == 6
+    deb_msg "PASS: valid elseif on if"
+    inc $thread.passCount
+elseif $testvar == 6
+    deb_msg "FAIL: 'elseif'/1 should be skipped if if-block satisfied"
+elseif $testvar > 10
+    deb_msg "FAIL: 'elseif'/2 should be skipped if if-block satisfied"
+else
+    deb_msg "FAIL: 'else' should be skipped if if-block satisfied"
+endif
+
+inc $thread.testCount
+if $testvar < 5
+    deb_msg "FAIL: 'if $testvar <= 5'"
+else
+    deb_msg "PASS: simple else"
+    inc $thread.passCount
+elseif $testvar == 6
+    deb_msg "FAIL: 'else' should already have caught the if-block end skipped all remaining sub-blocks"
+    set $testvar = 22
+endif
+
+inc $thread.testCount
+if $testvar == 22
+    deb_msg "FAIL: elseif was not skipped after else match"
+else
+    inc $thread.passCount
+endif
+
+; comparison logic
+inc $thread.testCount
+if 5 > 4
+    inc $thread.passCount
+    deb_msg "PASS: int > int"
+else
+    deb_msg "FAIL: int > int"
+endif
+inc $thread.testCount
+if 4 < 5
+    inc $thread.passCount
+    deb_msg "PASS: int < int"
+else
+    deb_msg "FAIL: int < int"
+endif
+inc $thread.testCount
+if -2 < 2
+    inc $thread.passCount
+    deb_msg "PASS: neg int < int"
+else
+    deb_msg "FAIL: neg int < int"
+endif
+inc $thread.testCount
+if -4 < -2
+    inc $thread.passCount
+    deb_msg "PASS: neg int < neg int"
+else
+    deb_msg "FAIL: neg int < neg int"
+endif
+inc $thread.testCount
+if -4 > -6
+    inc $thread.passCount
+    deb_msg "PASS: neg int > neg int"
+else
+    deb_msg "FAIL: neg int > neg int"
+endif
+inc $thread.testCount
+if 4.5 > 4.4
+    inc $thread.passCount
+    deb_msg "PASS: float > float"
+else
+    deb_msg "FAIL: float > float"
+endif
+inc $thread.testCount
+if 0xf < 100
+    inc $thread.passCount
+    deb_msg "PASS: hex < dec"
+else
+    deb_msg "FAIL: hex < dec"
+endif
+inc $thread.testCount
+if 0xf > -2
+    inc $thread.passCount
+    deb_msg "PASS: hex > negative dec"
+else
+    deb_msg "FAIL: hex > negative dec"
+endif
+inc $thread.testCount
+if 15 == 0xf
+    inc $thread.passCount
+    deb_msg "PASS: base 10 == base 16"
+else
+    deb_msg "FAIL: base 10 == base 16"
+endif
+inc $thread.testCount
+if false != true
+    inc $thread.passCount
+    deb_msg "PASS: false != true"
+else
+    deb_msg "FAIL: false != true"
+endif
+inc $thread.testCount
+if false || true
+    inc $thread.passCount
+    deb_msg "PASS: false || true"
+else
+    deb_msg "FAIL: false || true"
+endif
+inc $thread.testCount
+if false && true
+    deb_msg "FAIL: false && true"
+else
+    inc $thread.passCount
+    deb_msg "PASS: false && true"
+endif
+inc $thread.testCount
+if false || "valid"
+    inc $thread.passCount
+    deb_msg "PASS: false || non-empty string"
+else
+    deb_msg "FAIL: false || non-empty string"
+endif
+inc $thread.testCount
+if false || 23
+    inc $thread.passCount
+    deb_msg "PASS: false || non-zero int"
+else
+    deb_msg "FAIL: false || non-zero int"
+endif
+inc $thread.testCount
+if false || -23
+    inc $thread.passCount
+    deb_msg "PASS: false || negative int"
+else
+    deb_msg "FAIL: false || negative int"
+endif
+inc $thread.testCount
+if false || 2.34
+    inc $thread.passCount
+    deb_msg "PASS: false || non-zero float"
+else
+    deb_msg "FAIL: false || non-zero float"
+endif
+inc $thread.testCount
+if false || ""
+    deb_msg "FAIL: false || empty string"
+else
+    inc $thread.passCount
+    deb_msg "PASS: false || empty string"
+endif
+inc $thread.testCount
+if false || 0
+    deb_msg "FAIL: false || zero int"
+else
+    inc $thread.passCount
+    deb_msg "PASS: false || zero int"
+endif
+inc $thread.testCount
+if false || 0x0
+    deb_msg "FAIL: false || zero hex int"
+else
+    inc $thread.passCount
+    deb_msg "PASS: false || zero hex int"
+endif
+inc $thread.testCount
+if false || 0.0
+    deb_msg "FAIL: false || zero float"
+else
+    inc $thread.passCount
+    deb_msg "PASS: false || zero float"
+endif
+inc $thread.testCount
+if "this" != "that"
+    inc $thread.passCount
+    deb_msg "PASS: string != string"
+else
+    deb_msg "FAIL: string != string"
+endif
+inc $thread.testCount
+if "this" == "that"
+    deb_msg "FAIL: string == string mismatch"
+else
+    inc $thread.passCount
+    deb_msg "PASS: string == string mismatch"
+endif
+inc $thread.testCount
+if "this" == "this"
+    inc $thread.passCount
+    deb_msg "PASS: string == string"
+else
+    deb_msg "FAIL: string == string"
+endif
+inc $thread.testCount
+if "this" == ""
+    deb_msg "FAIL: string == empty string"
+else
+    inc $thread.passCount
+    deb_msg "PASS: string == empty string"
+endif
+inc $thread.testCount
+if "45" == 45
+    inc $thread.passCount
+    deb_msg "PASS: int string == int"
+else
+    deb_msg "FAIL: int string == int"
+endif
+inc $thread.testCount
+if "46" == 45
+    deb_msg "FAIL: int string == int mismatch"
+else
+    inc $thread.passCount
+    deb_msg "PASS: int string == int mismatch"
+endif
+inc $thread.testCount
+if "45.5" == 45.5
+    inc $thread.passCount
+    deb_msg "PASS: float string == float"
+else
+    deb_msg "FAIL: float string == float"
+endif
+inc $thread.testCount
+if "45.6" == 45.5
+    deb_msg "FAIL: float string == float mismatch"
+else
+    inc $thread.passCount
+    deb_msg "PASS: float string == float mismatch"
+endif
+inc $thread.testCount
+if "045.50" == 45.500000
+    inc $thread.passCount
+    deb_msg "PASS: float string with padded zeroes == float"
+else
+    deb_msg "FAIL: float string with padded zeroes == float"
+endif
+inc $thread.testCount
+if "045.460" == 45.500000
+    deb_msg "FAIL: float string with padded zeroes == float mismatch"
+else
+    inc $thread.passCount
+    deb_msg "PASS: float string with padded zeroes == float mismatch"
+endif
+inc $thread.testCount
+if "0xf" == 15
+    inc $thread.passCount
+    deb_msg "PASS: hex string == int"
+else
+    deb_msg "FAIL: hex string == int"
+endif
+inc $thread.testCount
+if "0xf" == 14
+    deb_msg "FAIL: hex string == int mismatch"
+else
+    inc $thread.passCount
+    deb_msg "PASS: hex string == int mismatch"
+endif
+
+set $testvar 5
+inc $thread.testCount
+if $"{testvar}" == "5"
+    inc $thread.passCount
+    deb_msg "PASS: interp string == string"
+else
+    deb_msg "FAIL: interp string == string"
+endif
+inc $thread.testCount
+if $"{testvar}" == "6"
+    deb_msg "FAIL: interp string == string mismatch"
+else
+    inc $thread.passCount
+    deb_msg "PASS: interp string == string mismatch"
+endif
+inc $thread.testCount
+set $testvar 5.5
+if $"{testvar}" == "5.5"
+    inc $thread.passCount
+    deb_msg "PASS: float interpolation"
+else
+    deb_msg "FAIL: float interpolation"
+endif
+
+set $testvar 5
+inc $thread.testCount
+if $testvar < 6
+    inc $thread.passCount
+    deb_msg "PASS: int var < int literal"
+else
+    deb_msg "FAIL: int var < int literal"
+endif
+inc $thread.testCount
+if $testvar > 4
+    inc $thread.passCount
+    deb_msg "PASS: int var > int literal"
+else
+    deb_msg "FAIL: int var > int literal"
+endif
+inc $thread.testCount
+if $testvar >= 5
+    inc $thread.passCount
+    deb_msg "PASS: int var >= int literal"
+else
+    deb_msg "FAIL: int var >= int literal"
+endif
+inc $thread.testCount
+if $testvar <= 5
+    inc $thread.passCount
+    deb_msg "PASS: int var <= int literal"
+else
+    deb_msg "FAIL: int var <= int literal"
+endif
+inc $thread.testCount
+if $testvar != 8
+    inc $thread.passCount
+    deb_msg "PASS: int var != int literal"
+else
+    deb_msg "FAIL: int var != int literal"
+endif
+inc $thread.testCount
+if 6 > $testvar
+    inc $thread.passCount
+    deb_msg "PASS: int literal < int var"
+else
+    deb_msg "FAIL: int literal < int var"
+endif
+
+inc $thread.testCount
+set $testvar 5.5
+if $testvar > 5.4
+    inc $thread.passCount
+    deb_msg "PASS: float var > float literal"
+else
+    deb_msg "FAIL: float var > float literal"
+endif
+inc $thread.testCount
+if $testvar < 5.6
+    inc $thread.passCount
+    deb_msg "PASS: float var < float literal"
+else
+    deb_msg "FAIL: float var < float literal"
+endif
+inc $thread.testCount
+if $testvar >= 5.5
+    inc $thread.passCount
+    deb_msg "PASS: float var >= float literal"
+else
+    deb_msg "FAIL: float var >= float literal"
+endif
+inc $thread.testCount
+if $testvar <= 5.5
+    inc $thread.passCount
+    deb_msg "PASS: float var <= float literal"
+else
+    deb_msg "FAIL: float var <= float literal"
+endif
+inc $thread.testCount
+if $testvar != 5.4
+    inc $thread.passCount
+    deb_msg "PASS: float var != float literal"
+else
+    deb_msg "FAIL: float var != float literal"
+endif
+
+; form stuff
+inc $thread.testCount
+set $formvar $system.player
+set $intvar 0x14
+if $intvar == $formvar
+    inc $thread.passCount
+    deb_msg "PASS: form == int (as formid)"
+else
+    deb_msg "FAIL: form == int (as formid)"
+endif
+
+
+inc $thread.testCount
+if 4 == 4 gotolabel1
+deb_msg "FAIL: if <val> <op> <val> <label>"
+goto gotolabel1fail
+
+[gotolabel1]
+deb_msg "PASS: if <val> <op> <val> <label>"
+inc $thread.passCount
+
+[gotolabel1fail]
+
+inc $thread.testCount
+if true gotolabel2
+deb_msg "FAIL: if <val> <label>"
+goto gotolabel2fail
+
+[gotolabel2]
+deb_msg "PASS: if <val> <label>"
+inc $thread.passCount
+
+[gotolabel2fail]
+
+inc $thread.testCount
+if 4 == 4 [uselabel literal]
+deb_msg "FAIL: [label] literal as if target"
+goto labelliteralfail
+
+[uselabel literal]
+deb_msg "PASS: [label] literal as if target"
+inc $thread.passCount
+
+[labelliteralfail]
+
+inc $thread.testCount
+goto [goto label literal]
+deb_msg "FAIL: [label] literal as goto target"
+goto gotolabelliteralfail
+
+[goto label literal]
+deb_msg "PASS: [label] literal as goto target"
+inc $thread.passCount
+
+[gotolabelliteralfail]

@@ -1,0 +1,50 @@
+inc $thread.testCount
+set $counter 0
+while $counter < 5
+    inc $counter
+endwhile
+
+if $counter == 5
+    inc $thread.passCount
+    deb_msg $"PASS: while loop incremented counter to {counter}/should be 5"
+else
+    deb_msg $"FAIL: while loop incremented counter to {counter}/should be 5"
+endif
+
+inc $thread.testCount
+set $flag true
+while $flag
+    inc $counter
+    if $counter >= 10
+        set $flag false
+    endif
+endwhile
+
+if $counter == 10
+    inc $thread.passCount
+    deb_msg $"PASS: while loop incremented counter to {counter}/should be 10"
+else
+    deb_msg $"FAIL: while loop incremented counter to {counter}/should be 10"
+endif
+
+; nesting
+inc $thread.testCount
+set $counter 0
+set $innerCounter 0
+set $total 0
+
+while $counter < 5
+    while $innerCounter < 5
+        inc $total
+        inc $innerCounter
+    endwhile
+    set $innerCounter 0
+    inc $counter
+endwhile
+
+if $total == 25
+    inc $thread.passCount
+    deb_msg $"PASS: while loop incremented counter to {total}/should be 25"
+else
+    deb_msg $"FAIL: while loop incremented counter to {total}/should be 25"
+endif

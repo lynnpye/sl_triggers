@@ -84,6 +84,7 @@ bool Property Debug_Cmd_RunScript_Blocks Auto Hidden
 bool Property Debug_Cmd_RunScript_If Auto Hidden
 bool Property Debug_Cmd_RunScript_Labels Auto Hidden
 bool Property Debug_Cmd_RunScript_Set Auto Hidden
+bool Property Debug_Cmd_RunScript_While Auto Hidden
 bool Property Debug_Extension Auto Hidden
 bool Property Debug_Extension_Core Auto Hidden
 bool Property Debug_Extension_Core_Keymapping Auto Hidden
@@ -111,6 +112,7 @@ Function SetupSettingsFlags()
 	Debug_Cmd_RunScript_If				= GetFlag(Debug_Setup, fns, "Debug_Cmd_RunScript_If")
 	Debug_Cmd_RunScript_Labels			= GetFlag(Debug_Setup, fns, "Debug_Cmd_RunScript_Labels")
 	Debug_Cmd_RunScript_Set				= GetFlag(Debug_Setup, fns, "Debug_Cmd_RunScript_Set")
+	Debug_Cmd_RunScript_While			= GetFlag(Debug_Setup, fns, "Debug_Cmd_RunScript_While")
 	Debug_Extension						= GetFlag(Debug_Setup, fns, "Debug_Extension")
 	Debug_Extension_Core				= GetFlag(Debug_Setup, fns, "Debug_Extension_Core")
 	Debug_Extension_Core_Keymapping		= GetFlag(Debug_Setup, fns, "Debug_Extension_Core_Keymapping")

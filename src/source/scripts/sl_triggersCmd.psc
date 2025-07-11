@@ -911,6 +911,9 @@ bool Function InternalResolve(string token)
             elseif "currentScriptName" == vname
                 CustomResolveStringResult = currentScriptName
                 return true
+            elseif "linenumber" == vname
+                CustomResolveIntResult = lineNum
+                return true
             elseif "sessionid" == vname
                 CustomResolveIntResult = sl_triggers.GetSessionId()
                 return true
@@ -1102,6 +1105,8 @@ Function ResetBlockContext()
     endwhile
 EndFunction
 
+bool __searchFoundBlockEnd = false
+
 ; returns true if should increment currentLine, false otherwise
 int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool subCommand = true)
     if SLT.Debug_Cmd_RunScript
@@ -1179,13 +1184,26 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                 endif
             else
                 if command == __be_starter
+                    if SLT.Debug_Cmd_RunScript_Blocks
+                        SFD("block-skipping: found starter(" + __be_starter + "); incrementing")
+                    endif
                     __be_needed += 1
+                ; matching __be_needed == 1 for only top-level matches for elseif/else
                 elseif command == __be_ender || (__be_needed == 1 && (command == __be_alt_router || command == __be_alt_starter))
+                    if SLT.Debug_Cmd_RunScript_Blocks
+                        SFD("block-skipping: something made this true: command == __be_ender || (__be_needed == 1 && (command == __be_alt_router || command == __be_alt_starter))")
+                        SFD("block-skipping: command(" + command + ") needed(" + __be_needed + ") starter(" + __be_starter + ") ender(" + __be_ender + ") router(" + __be_alt_router + ") altstarter(" + __be_alt_starter + ")")
+                    endif
                     __be_needed -= 1
                     ; this might bring us below 0, i.e. no longer needing to blockskip
                     ; which means we need to allow block end handling now
                     if __be_needed <= 0
+                        if SLT.Debug_Cmd_RunScript_Blocks
+                            SFD("dropping below 1 needed: " + __be_needed)
+                        endif
                         ResetBlockEndTarget()
+                        __searchFoundBlockEnd = true
+                        ; no advance because we are going to return, the line will not move, we will still be on the block end, and then should advance
                         __CLRR = CLRR_NOADVANCE
                     endif
                 endif
@@ -1271,13 +1289,14 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                                 SFD("Cmd.RunScript: set/5 <target> = <source> <op> <source>")
                             endif
                             __operator = ResolveString(cmdLine[3])
+
                     
                             ; this is sloppy, imprecise
                             if __operator == "+"
                                 __floatVal = ResolveFloat(cmdLine[2]) + ResolveFloat(cmdLine[4])
                                 __intVal = __floatVal as int
                                 __floatVal2 = __intVal
-                                if __floatVal == __floatVal
+                                if __floatVal == __floatVal2
                                     SetVarInt(varscopestringlist[0], varscopestringlist[1], __intVal)
                                 else
                                     SetVarFloat(varscopestringlist[0], varscopestringlist[1], __floatVal)
@@ -1286,7 +1305,8 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                                 __floatVal = ResolveFloat(cmdLine[2]) - ResolveFloat(cmdLine[4])
                                 __intVal = __floatVal as int
                                 __floatVal2 = __intVal
-                                if __floatVal == __floatVal
+
+                                if __floatVal == __floatVal2
                                     SetVarInt(varscopestringlist[0], varscopestringlist[1], __intVal)
                                 else
                                     SetVarFloat(varscopestringlist[0], varscopestringlist[1], __floatVal)
@@ -1295,7 +1315,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                                 __floatVal = ResolveFloat(cmdLine[2]) * ResolveFloat(cmdLine[4])
                                 __intVal = __floatVal as int
                                 __floatVal2 = __intVal
-                                if __floatVal == __floatVal
+                                if __floatVal == __floatVal2
                                     SetVarInt(varscopestringlist[0], varscopestringlist[1], __intVal)
                                 else
                                     SetVarFloat(varscopestringlist[0], varscopestringlist[1], __floatVal)
@@ -1304,7 +1324,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                                 __floatVal = ResolveFloat(cmdLine[2]) / ResolveFloat(cmdLine[4])
                                 __intVal = __floatVal as int
                                 __floatVal2 = __intVal
-                                if __floatVal == __floatVal
+                                if __floatVal == __floatVal2
                                     SetVarInt(varscopestringlist[0], varscopestringlist[1], __intVal)
                                 else
                                     SetVarFloat(varscopestringlist[0], varscopestringlist[1], __floatVal)
@@ -1340,6 +1360,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             if subCommand
                 SFE("'endif' is not a valid subcommand")
             endif
+            __searchFoundBlockEnd = false
             if !IsInsideIfBlock
                 SFE("'endif' encountered outside of if-block; ignoring")
             endif
@@ -1350,6 +1371,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             if subCommand
                 SFE("'else' is not a valid subcommand")
             endif
+            __searchFoundBlockEnd = false
             if !IsInsideIfBlock
                 SFE("'else' encountered outside of if-block; ignoring")
             else
@@ -1364,10 +1386,17 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             if subCommand
                 SFE("'endwhile' is not a valid subcommand")
             endif
-            __intVal = slt_PopWhileReturn()
-            if __intVal > -1
-                currentLine = __intVal
-                __CLRR = CLRR_NOADVANCE
+            if __searchFoundBlockEnd
+                __searchFoundBlockEnd = false
+            else
+                __intVal = slt_PopWhileReturn()
+                if __intVal > -1
+                    if SLT.Debug_Cmd_RunScript_Blocks
+                        SFD("moving back to WHILE and not advancing")
+                    endif
+                    currentLine = __intVal
+                    __CLRR = CLRR_NOADVANCE
+                endif
             endif
             ;currentLine += 1
         elseIf command == "while"
@@ -1382,6 +1411,10 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                     endif
                 elseif cmdLine.Length == 4
                     __operator = ResolveString(cmdLine[2])
+
+                    if SLT.Debug_Cmd_RunScript_While
+                        SFD("while /" + cmdLine[1] + "/ /" + cmdLine[2] + "/=>/" + __operator +  "/ /" + cmdLine[3] + "/")
+                    endif
                     
                     if __operator
                         __bVal = false
@@ -1400,6 +1433,11 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                         elseIf __operator == "<"
                             if ResolveFloat(cmdLine[1]) < ResolveFloat(cmdLine[3])
                                 __bVal = true
+                            endif
+                            if SLT.Debug_Cmd_RunScript_While
+                                float flt1 = ResolveFloat(cmdLine[1])
+                                float flt2 = ResolveFloat(cmdLine[3])
+                                SFD("while: /" + cmdLine[1] + "/=>/" + flt1 + "/ /" + cmdLine[2] + "/=>/" + __operator +  "/ /" + cmdLine[3] + "/=>/" + flt2 + "/  => bval/" + __bVal + "/")
                             endif
                         elseIf __operator == "<="
                             if ResolveFloat(cmdLine[1]) <= ResolveFloat(cmdLine[3])
@@ -1434,6 +1472,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             if !IsInsideIfBlock && command == "elseif"
                 SFW("'elseif' should be preceded by an 'if' to open the block; allowing it but you should change it to make sure your script semantics are as you expect")
             endif
+            __searchFoundBlockEnd = false
             if subCommand
                 if command == "if"
                     SFE("'if' is not a valid subcommand")
@@ -1537,7 +1576,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                 IsInsideIfBlock = true
                 if !__bVal
                     if SLT.Debug_Cmd_RunScript_If
-                        SFD("\t\tif: EVALUTED (" + (!__bVal) + "): searching for endif")
+                        SFD("\t\tif: EVALUATED (" + (!__bVal) + "): searching for endif")
                     endif
 
                     IfBlockSatisfied = false
@@ -1545,7 +1584,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                 else
                     IfBlockSatisfied = true
                     if SLT.Debug_Cmd_RunScript_If
-                        SFD("\t\tif: EVALUTED (" + (!__bVal) + "): proceeding into the if block")
+                        SFD("\t\tif: EVALUATED (" + (!__bVal) + "): proceeding into the if block")
                     endif
                 endIf
             elseif cmdLine.Length == 5
@@ -1745,15 +1784,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                     slt_AddGosub(ResolveString(cmdLine[1]), currentLine)
                 endif
                 ; still try to go through with finding the end
-                __intVal = currentLine
-                while __intVal < totalLines
-                    startidx = tokenoffsets[__intVal]
-                    if tokens[startidx] == "endsub"
-                        currentLine = __intVal
-                        __intVal = totalLines
-                    endif
-                    __intVal += 1
-                endwhile
+                SetBlockEndTarget(BE_BEGINSUB)
             endif
             ;currentLine += 1
         elseIf command == "callarg"
@@ -2006,6 +2037,8 @@ Form[]      pushed_recentresultform
 int[]       pushed_mostrecentresulttype
 Actor[]     pushed_iteractor
 string[]    pushed_currentscriptname
+bool[]      pushed_insideifblock
+bool[]      pushed_ifsatisfied
 
 bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
     if !scriptfilename
@@ -2089,6 +2122,8 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
             pushed_iteractor = new Actor[1]
             pushed_iteractor = PapyrusUtil.ResizeActorArray(pushed_iteractor, 0)
             pushed_currentscriptname = PapyrusUtil.StringArray(0)
+            pushed_insideifblock = PapyrusUtil.BoolArray(0)
+            pushed_ifsatisfied = PapyrusUtil.BoolArray(0)
         endif
 
         pushed_currentLine = PapyrusUtil.PushInt(pushed_currentLine, currentLine)
@@ -2104,6 +2139,8 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
 
         pushed_iteractor = PapyrusUtil.PushActor(pushed_iteractor, iterActor)
         pushed_currentscriptname = PapyrusUtil.PushString(pushed_currentscriptname, currentScriptName)
+        pushed_insideifblock = PapyrusUtil.PushBool(pushed_insideifblock, IsInsideIfBlock)
+        pushed_ifsatisfied = PapyrusUtil.PushBool(pushed_ifsatisfied, IfBlockSatisfied)
 
         int varcount
         int varstoresize
@@ -2451,6 +2488,8 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
     endif
 
     hasValidFrame = true
+    IfBlockSatisfied = true
+    IsInsideIfBlock = false
 
     ResetBlockEndTarget()
 
@@ -2485,6 +2524,8 @@ bool Function slt_Frame_Pop()
     _recentResultForm           = pushed_recentresultform[pushed_recentresultform.Length - 1]
     currentScriptName           = pushed_currentscriptname[pushed_currentscriptname.Length - 1]
     iterActor                   = pushed_iteractor[pushed_iteractor.Length - 1]
+    IsInsideIfBlock             = pushed_insideifblock[pushed_insideifblock.Length - 1]
+    IfBlockSatisfied            = pushed_ifsatisfied[pushed_ifsatisfied.Length - 1]
 
     pushed_currentLine          = PapyrusUtil.ResizeIntArray(pushed_currentLine, pushed_currentLine.Length - 1)
     pushed_totalLines           = PapyrusUtil.ResizeIntArray(pushed_totalLines, pushed_totalLines.Length - 1)
@@ -2498,6 +2539,8 @@ bool Function slt_Frame_Pop()
     pushed_recentresultform     = PapyrusUtil.ResizeFormArray(pushed_recentresultform, pushed_recentresultform.Length - 1)
     pushed_currentscriptname    = PapyrusUtil.ResizeStringArray(pushed_currentscriptname, pushed_currentscriptname.Length - 1)
     pushed_iteractor            = PapyrusUtil.ResizeActorArray(pushed_iteractor, pushed_iteractor.Length - 1)
+    pushed_insideifblock        = PapyrusUtil.ResizeBoolArray(pushed_insideifblock, pushed_insideifblock.Length - 1)
+    pushed_ifsatisfied          = PapyrusUtil.ResizeBoolArray(pushed_ifsatisfied, pushed_ifsatisfied.Length - 1)
 
     int varcount
     int newvarstoresize
@@ -2765,9 +2808,15 @@ EndFunction
 
 int Function slt_PopWhileReturn()
     if !whileReturns.Length
+        if SLT.Debug_Cmd_RunScript_Blocks
+            SFD("slt_PopWhileReturn: whileReturns.Length(" + whileReturns.Length + "): returning -1")
+        endif
         return -1
     endif
     int r = whileReturns[whileReturns.Length - 1]
+    if SLT.Debug_Cmd_RunScript_Blocks
+        SFD("slt_PopWhileReturn: whileReturns.Length(" + whileReturns.Length + "): returning r(" + r + ")")
+    endif
     whileReturns = PapyrusUtil.ResizeIntArray(whileReturns, whileReturns.Length - 1)
     return r
 EndFunction

@@ -1,0 +1,63 @@
+deb_msg $"SLTR System Vars testing ({system.initialScriptName})/({system.currentScriptName})"
+
+set $now $system.realtime
+
+inc $thread.testCount
+
+set $then $system.realtime
+
+if $now == $then
+    deb_msg $"FAIL: system.realtime/1 not returning expected values: now({now}) == then({then}) and it shouldn't be"
+else
+    inc $thread.passCount
+    deb_msg $"PASS: system.realtime/2"
+endif
+
+inc $thread.testCount
+if $now > $then
+    deb_msg $"FAIL: system.realtime/1 not returning expected values: now({now}) > then({then}) and it shouldn't be"
+else
+    inc $thread.passCount
+    deb_msg $"PASS: system.realtime/2"
+endif
+
+inc $thread.testCount
+if $system.self != $system.player
+    deb_msg "FAIL: WARNING: This script should be being run on the player; if it is, this is a failure; if it is not, restart the test on the player"
+else
+    inc $thread.passCount
+    deb_msg "PASS: WARNING: This script should be being run on the player; if it is, this is a success; if it is not, restart the test on the player"
+endif
+
+inc $thread.testCount
+if $system.stats.running_scripts < 1
+    deb_msg $"FAIL: system.stats.running_scripts reports {system.stats.running_scripts}, less than 1, which is obviously wrong"
+else
+    inc $thread.passCount
+    deb_msg "PASS: system.stats.running_scripts"
+endif
+
+inc $thread.testCount
+if $system.currentScriptName == $system.initialScriptName
+    deb_msg $"FAIL: system.currentScriptName({system.currentScriptName}) == system.initialScriptName({system.initialScriptName}), but they should not be"
+else
+    inc $thread.passCount
+    deb_msg $"PASS: system.currentScriptName({system.currentScriptName}) != system.initialScriptName({system.initialScriptName})"
+endif
+
+inc $thread.testCount
+set $testvar $system.random.100
+if $testvar > 100
+    deb_msg $"FAIL: system.random.100 produced too large a number({testvar})"
+else
+    inc $thread.passCount
+    deb_msg $"PASS: system.random.100 <= 100"
+endif
+
+inc $thread.testCount
+if $testvar < 0
+    deb_msg $"FAIL: system.random.100 produced too low a number({testvar})"
+else
+    inc $thread.passCount
+    deb_msg $"PASS: system.random.100 >= 0"
+endif
