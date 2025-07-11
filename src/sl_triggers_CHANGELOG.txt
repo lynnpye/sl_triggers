@@ -113,7 +113,6 @@
                 ; trailing code
             endif
             ; this should cause it to skip leading, inner, and trailing code, as one would expect
-    enhancement: caching of debug flags in AME objects (should offset the plethora of granular debug output flags)
 
 123
     Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)
