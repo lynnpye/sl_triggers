@@ -21,6 +21,14 @@ Function Set_krequest_v_prefix()
     krequest_v_prefix = "SLTR:target:" + CmdTargetFormID + ":request:" + CmdRequestId + ":vars:"
 EndFunction
 
+string function Make_ktarget_v_prefix(int formid)
+    return "SLTR:target:" + formid + ":vars:"
+endfunction
+
+string function Make_ktarget_type_v_prefix(int formid)
+    return "SLTR:target:" + formid + ":vartypes:"
+endfunction
+
 Actor			Property CmdTargetActor Hidden
     Actor Function Get()
         return _cmdTA
@@ -31,8 +39,8 @@ Actor			Property CmdTargetActor Hidden
         if _cmdTA
             CmdTargetFormID             = _cmdTA.GetFormID()
 
-            ktarget_v_prefix = "SLTR:target:" + CmdTargetFormID + ":vars:"
-            ktarget_type_v_prefix = "SLTR:target:" + CmdTargetFormID + ":vartypes:"
+            ktarget_v_prefix = Make_ktarget_v_prefix(CmdTargetFormID)
+            ktarget_type_v_prefix = Make_ktarget_type_v_prefix(CmdTargetFormID)
             Set_krequest_v_prefix()
         endif
     EndFunction
@@ -202,7 +210,7 @@ bool Function CRToBool()
     if SLT.RT_BOOL == CustomResolveType
         return CustomResolveBoolResult
     elseif SLT.RT_STRING == CustomResolveType
-        return IsStringTruthy(CustomResolveStringResult)
+        return CustomResolveStringResult != ""
     elseif SLT.RT_INT == CustomResolveType
         return CustomResolveIntResult != 0
     elseif SLT.RT_FLOAT == CustomResolveType
@@ -213,7 +221,7 @@ bool Function CRToBool()
         SFE("Invalid conversion from LABEL to BOOL")
         return false
     endif
-    return IsStringTruthy(CustomResolveUnresolvedResult)
+    return CustomResolveUnresolvedResult != ""
 EndFunction
 
 int Function CRToInt()
@@ -790,7 +798,13 @@ bool Function InternalResolve(string token)
 
                 j = 0
                 while j < vartoks.Length
-                    vartoks[j] = ResolveString(vartoks[j])
+                    If (SLT.Debug_Cmd_InternalResolve)
+                        string outtok = ResolveString(vartoks[j])
+                        SFD("String interpolation: vartoks[" + j + "](" + vartoks[j] + ") resolved to(" + outtok + ")")
+                        vartoks[j] = outtok
+                    else
+                        vartoks[j] = ResolveString(vartoks[j])
+                    EndIf
 
                     j += 1
                 endwhile
@@ -2676,6 +2690,10 @@ EndFunction
 string Function GetFrameVarString(string _key, string missing)
 	int i = localVarKeys.Find(_key, 0)
 	if i > -1
+        int rt = localVarTypes[i]
+        if SLT.RT_BOOL == rt
+            return (localVarVals[i] != "")
+        endif
 		return localVarVals[i]
 	endif
 	return missing
@@ -2684,6 +2702,10 @@ EndFunction
 string Function GetFrameVarLabel(string _key, string missing)
 	int i = localVarKeys.Find(_key, 0)
 	if i > -1
+        int rt = localVarTypes[i]
+        if SLT.RT_BOOL == rt
+            return (localVarVals[i] != "")
+        endif
 		return localVarVals[i]
 	endif
 	return missing
@@ -2694,13 +2716,13 @@ bool Function GetFrameVarBool(string _key, bool missing)
 	if i > -1
         int rt = localVarTypes[i]
         if SLT.RT_BOOL == rt
-            return IsStringTruthy(localVarVals[i])
+            return localVarVals[i] != ""
         elseif SLT.RT_INT == rt
             return (localVarVals[i] as int) != 0
         elseif SLT.RT_FLOAT == rt
             return (localVarVals[i] as float) != 0
         elseif SLT.RT_STRING == rt
-            return IsStringTruthy(localVarVals[i])
+            return localVarVals[i] != ""
         elseIF SLT.RT_FORM == rt
             return (localVarVals[i] as int) != 0
         endif
@@ -2714,7 +2736,7 @@ int Function GetFrameVarInt(string _key, int missing)
 	if i > -1
         int rt = localVarTypes[i]
         if SLT.RT_BOOL == rt
-            return (localVarVals[i] as bool) as int
+            return localVarVals[i] as int
         elseif SLT.RT_INT == rt
             return localVarVals[i] as int
         elseif SLT.RT_FLOAT == rt
@@ -2734,7 +2756,7 @@ float Function GetFrameVarFloat(string _key, float missing)
 	if i > -1
         int rt = localVarTypes[i]
         if SLT.RT_BOOL == rt
-            return (localVarVals[i] as bool) as float
+            return localVarVals[i] as float
         elseif SLT.RT_INT == rt
             return localVarVals[i] as int
         elseif SLT.RT_FLOAT == rt
@@ -2799,10 +2821,18 @@ bool Function SetFrameVarBool(string _key, bool value)
 	int i = localVarKeys.Find(_key, 0)
 	if i < 0
 		localVarKeys = PapyrusUtil.PushString(localVarKeys, _key)
-        localVarVals = PapyrusUtil.PushString(localVarVals, value)
+        if value
+            localVarVals = PapyrusUtil.PushString(localVarVals, "1")
+        else
+            localVarVals = PapyrusUtil.PushString(localVarVals, "")
+        endif
         localVarTypes = PapyrusUtil.PushInt(localVarTypes, SLT.RT_BOOL)
     else
-		localVarVals[i] = value
+        if value
+		    localVarVals[i] = "1"
+        else
+		    localVarVals[i] = ""
+        endif
         localVarTypes[i] = SLT.RT_BOOL
 	endif
 	return value
@@ -2862,6 +2892,10 @@ EndFunction
 string Function GetThreadVarString(string _key, string missing)
 	int i = threadVarKeys.Find(_key, 0)
 	if i > -1
+        int rt = threadVarTypes[i]
+        if SLT.RT_BOOL == rt
+            return (threadVarVals[i] != "")
+        endif
 		return threadVarVals[i]
 	endif
 	return missing
@@ -2870,6 +2904,10 @@ EndFunction
 string Function GetThreadVarLabel(string _key, string missing)
 	int i = threadVarKeys.Find(_key, 0)
 	if i > -1
+        int rt = threadVarTypes[i]
+        if SLT.RT_BOOL == rt
+            return (threadVarVals[i] != "")
+        endif
 		return threadVarVals[i]
 	endif
 	return missing
@@ -2880,13 +2918,13 @@ bool Function GetThreadVarBool(string _key, bool missing)
 	if i > -1
         int rt = threadVarTypes[i]
         if SLT.RT_BOOL == rt
-            return IsStringTruthy(threadVarVals[i])
+            return threadVarVals[i] != ""
         elseif SLT.RT_INT == rt
             return (threadVarVals[i] as int) != 0
         elseif SLT.RT_FLOAT == rt
-            return (threadVarVals[i] as float) != 0
+            return (threadVarVals[i] as float) != 0.0
         elseif SLT.RT_STRING == rt
-            return IsStringTruthy(threadVarVals[i])
+            return threadVarVals[i] != ""
         elseIF SLT.RT_FORM == rt
             return (threadVarVals[i] as int) != 0
         endif
@@ -2900,7 +2938,7 @@ int Function GetThreadVarInt(string _key, int missing)
 	if i > -1
         int rt = threadVarTypes[i]
         if SLT.RT_BOOL == rt
-            return (threadVarVals[i] as bool) as int
+            return threadVarVals[i] as int
         elseif SLT.RT_INT == rt
             return threadVarVals[i] as int
         elseif SLT.RT_FLOAT == rt
@@ -2920,7 +2958,7 @@ float Function GetThreadVarFloat(string _key, float missing)
 	if i > -1
         int rt = threadVarTypes[i]
         if SLT.RT_BOOL == rt
-            return (threadVarVals[i] as bool) as float
+            return threadVarVals[i] as float
         elseif SLT.RT_INT == rt
             return threadVarVals[i] as int
         elseif SLT.RT_FLOAT == rt
@@ -2985,10 +3023,18 @@ bool Function SetThreadVarBool(string _key, bool value)
 	int i = threadVarKeys.Find(_key, 0)
 	if i < 0
 		threadVarKeys = PapyrusUtil.PushString(threadVarKeys, _key)
-        threadVarVals = PapyrusUtil.PushString(threadVarVals, value)
+        if value
+            threadVarVals = PapyrusUtil.PushString(threadVarVals, "1")
+        else
+            threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
+        endif
         threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_BOOL)
     else
-		threadVarVals[i] = value
+        if value
+		    threadVarVals[i] = "1"
+        else
+            threadVarVals[i] = ""
+        endif
         threadVarTypes[i] = SLT.RT_BOOL
 	endif
 	return value
@@ -3034,65 +3080,65 @@ Form Function SetThreadVarForm(string _key, Form value)
 EndFunction
 
 bool Function HasTargetVar(string _key)
-    return HasStringValue(SLT, ktarget_v_prefix + _key)
+    return HasIntValue(SLT, ktarget_type_v_prefix + _key)
 EndFunction
 
-int Function GetTargetVarType(string _key)
-    return GetIntValue(SLT, ktarget_type_v_prefix + _key, SLT.RT_INVALID)
+int Function GetTargetVarType(string typeprefix, string _key)
+    return GetIntValue(SLT, typeprefix + _key, SLT.RT_INVALID)
 EndFunction
 
-string Function GetTargetVarString(string _key, string missing)
-    return GetStringValue(SLT, ktarget_v_prefix + _key, missing)
+string Function GetTargetVarString(string dataprefix, string _key, string missing)
+    return GetStringValue(SLT, dataprefix + _key, missing)
 EndFunction
 
-string Function GetTargetVarLabel(string _key, string missing)
-    return GetStringValue(SLT, ktarget_v_prefix + _key, missing)
+string Function GetTargetVarLabel(string dataprefix, string _key, string missing)
+    return GetStringValue(SLT, dataprefix + _key, missing)
 EndFunction
 
-bool Function GetTargetVarBool(string _key, bool missing)
-    return IsStringTruthy(GetStringValue(SLT, ktarget_v_prefix + _key, missing))
+bool Function GetTargetVarBool(string dataprefix, string _key, bool missing)
+    return GetIntValue(SLT, dataprefix + _key, missing as int) != 0
 EndFunction
 
-int Function GetTargetVarInt(string _key, int missing)
-    return GetIntValue(SLT, ktarget_v_prefix + _key, missing)
+int Function GetTargetVarInt(string dataprefix, string _key, int missing)
+    return GetIntValue(SLT, dataprefix + _key, missing)
 EndFunction
 
-float Function GetTargetVarFloat(string _key, float missing)
-    return GetFloatValue(SLT, ktarget_v_prefix + _key, missing)
+float Function GetTargetVarFloat(string dataprefix, string _key, float missing)
+    return GetFloatValue(SLT, dataprefix + _key, missing)
 EndFunction
 
-Form Function GetTargetVarForm(string _key, Form missing)
-    return GetFormValue(SLT, ktarget_v_prefix + _key, missing)
+Form Function GetTargetVarForm(string dataprefix, string _key, Form missing)
+    return GetFormValue(SLT, dataprefix + _key, missing)
 EndFunction
 
-string Function SetTargetVarString(string _key, string value)
-    SetIntValue(SLT, ktarget_type_v_prefix + _key, SLT.RT_STRING)
-    return SetStringValue(SLT, ktarget_v_prefix + _key, value)
+string Function SetTargetVarString(string typeprefix, string dataprefix, string _key, string value)
+    SetIntValue(SLT, typeprefix + _key, SLT.RT_STRING)
+    return SetStringValue(SLT, dataprefix + _key, value)
 EndFunction
 
-string Function SetTargetVarLabel(string _key, string value)
-    SetIntValue(SLT, ktarget_type_v_prefix + _key, SLT.RT_LABEL)
-    return SetStringValue(SLT, ktarget_v_prefix + _key, value)
+string Function SetTargetVarLabel(string typeprefix, string dataprefix, string _key, string value)
+    SetIntValue(SLT, typeprefix + _key, SLT.RT_LABEL)
+    return SetStringValue(SLT, dataprefix + _key, value)
 EndFunction
 
-bool Function SetTargetVarBool(string _key, bool value)
-    SetIntValue(SLT, ktarget_type_v_prefix + _key, SLT.RT_BOOL)
-    return IsStringTruthy(SetStringValue(SLT, ktarget_v_prefix + _key, value))
+bool Function SetTargetVarBool(string typeprefix, string dataprefix, string _key, bool value)
+    SetIntValue(SLT, typeprefix + _key, SLT.RT_BOOL)
+    return SetIntValue(SLT, dataprefix + _key, value as int) != 0
 EndFunction
 
-int Function SetTargetVarInt(string _key, int value)
-    SetIntValue(SLT, ktarget_type_v_prefix + _key, SLT.RT_INT)
-    return SetIntValue(SLT, ktarget_v_prefix + _key, value)
+int Function SetTargetVarInt(string typeprefix, string dataprefix, string _key, int value)
+    SetIntValue(SLT, typeprefix + _key, SLT.RT_INT)
+    return SetIntValue(SLT, dataprefix + _key, value)
 EndFunction
 
-float Function SetTargetVarFloat(string _key, float value)
-    SetIntValue(SLT, ktarget_type_v_prefix + _key, SLT.RT_FLOAT)
-    return SetFloatValue(SLT, ktarget_v_prefix + _key, value)
+float Function SetTargetVarFloat(string typeprefix, string dataprefix, string _key, float value)
+    SetIntValue(SLT, typeprefix + _key, SLT.RT_FLOAT)
+    return SetFloatValue(SLT, dataprefix + _key, value)
 EndFunction
 
-Form Function SetTargetVarForm(string _key, Form value)
-    SetIntValue(SLT, ktarget_type_v_prefix + _key, SLT.RT_FORM)
-    return SetFormValue(SLT, ktarget_v_prefix + _key, value)
+Form Function SetTargetVarForm(string typeprefix, string dataprefix, string _key, Form value)
+    SetIntValue(SLT, typeprefix + _key, SLT.RT_FORM)
+    return SetFormValue(SLT, dataprefix + _key, value)
 EndFunction
 
 string Function GetRequestString(string _key)
@@ -3100,7 +3146,7 @@ string Function GetRequestString(string _key)
 EndFunction
 
 bool Function GetRequestBool(string _key)
-    return IsStringTruthy(GetStringValue(SLT, krequest_v_prefix + _key))
+    return GetIntValue(SLT, krequest_v_prefix + _key) != 0
 EndFunction
 
 int Function GetRequestInt(string _key)
@@ -3200,7 +3246,25 @@ int function GetVarType(string scope, string varname)
     elseif scope == "thread"
         return GetThreadVarType(varname)
     elseif scope == "target"
-        return GetTargetVarType(varname)
+        int keylen = StringUtil.GetLength(varname)
+        string realprefix
+        if keylen > 4 && StringUtil.GetNthChar(varname, 0) == "<"
+            int chunkend = StringUtil.Find(varname, ">.")
+            if ((chunkend > 1) && (chunkend < (keylen - 2)))
+                string formstr = StringUtil.Substring(varname, 1, chunkend - 1)
+                Form targetForm = ResolveForm("$" + formstr)
+                if targetForm
+                    varname = StringUtil.Substring(varname, chunkend + 2)
+                    realprefix = Make_ktarget_type_v_prefix(targetForm.GetFormID())
+                else
+                    SFE("Unable to resolve target-scoped alternate target(" + formstr + ")")
+                endif
+            endif
+        endif
+        if !realprefix
+            realprefix = ktarget_type_v_prefix
+        endif
+        return GetTargetVarType(realprefix, varname)
     endif
     SFE("GetVarType: Invalid scope(" + scope + ")")
     return SLT.RT_INVALID
@@ -3214,7 +3278,29 @@ string function GetVarString2(string scope, string varname, string missing)
     elseif scope == "thread"
         return GetThreadVarString(varname, missing)
     elseif scope == "target"
-        return GetTargetVarString(varname, missing)
+        int keylen = StringUtil.GetLength(varname)
+        string realprefix
+        if keylen > 4 && StringUtil.GetNthChar(varname, 0) == "<"
+            int chunkend = StringUtil.Find(varname, ">.")
+            if ((chunkend > 1) && (chunkend < (keylen - 2)))
+                string formstr = StringUtil.Substring(varname, 1, chunkend - 1)
+                Form targetForm = ResolveForm("$" + formstr)
+                if targetForm
+                    varname = StringUtil.Substring(varname, chunkend + 2)
+                    realprefix = Make_ktarget_v_prefix(targetForm.GetFormID())
+                else
+                    SFE("Unable to resolve target-scoped alternate target(" + formstr + ")")
+                endif
+            endif
+        endif
+        if !realprefix
+            realprefix = ktarget_v_prefix
+        endif
+        If (SLT.Debug_Cmd_RunScript_Set)
+            string outresult = GetTargetVarString(realprefix, varname, missing)
+            SFD("GetTargetVarString: dataprefix(" + realprefix + ")/ktarget_v_prefix(" + ktarget_v_prefix + ") varname(" + varname + ") missing(" + missing + ") => (" + outresult + ")")
+        EndIf
+        return GetTargetVarString(realprefix, varname, missing)
     endif
     return missing
 endfunction
@@ -3227,7 +3313,25 @@ string function GetVarLabel(string scope, string varname, string missing)
     elseif scope == "thread"
         return GetThreadVarLabel(varname, missing)
     elseif scope == "target"
-        return GetTargetVarLabel(varname, missing)
+        int keylen = StringUtil.GetLength(varname)
+        string realprefix
+        if keylen > 4 && StringUtil.GetNthChar(varname, 0) == "<"
+            int chunkend = StringUtil.Find(varname, ">.")
+            if ((chunkend > 1) && (chunkend < (keylen - 2)))
+                string formstr = StringUtil.Substring(varname, 1, chunkend - 1)
+                Form targetForm = ResolveForm("$" + formstr)
+                if targetForm
+                    varname = StringUtil.Substring(varname, chunkend + 2)
+                    realprefix = Make_ktarget_v_prefix(targetForm.GetFormID())
+                else
+                    SFE("Unable to resolve target-scoped alternate target(" + formstr + ")")
+                endif
+            endif
+        endif
+        if !realprefix
+            realprefix = ktarget_v_prefix
+        endif
+        return GetTargetVarLabel(realprefix, varname, missing)
     endif
     return missing
 endfunction
@@ -3240,7 +3344,25 @@ bool function GetVarBool(string scope, string varname, bool missing)
     elseif scope == "thread"
         return GetThreadVarBool(varname, missing)
     elseif scope == "target"
-        return GetTargetVarBool(varname, missing)
+        int keylen = StringUtil.GetLength(varname)
+        string realprefix
+        if keylen > 4 && StringUtil.GetNthChar(varname, 0) == "<"
+            int chunkend = StringUtil.Find(varname, ">.")
+            if ((chunkend > 1) && (chunkend < (keylen - 2)))
+                string formstr = StringUtil.Substring(varname, 1, chunkend - 1)
+                Form targetForm = ResolveForm("$" + formstr)
+                if targetForm
+                    varname = StringUtil.Substring(varname, chunkend + 2)
+                    realprefix = Make_ktarget_v_prefix(targetForm.GetFormID())
+                else
+                    SFE("Unable to resolve target-scoped alternate target(" + formstr + ")")
+                endif
+            endif
+        endif
+        if !realprefix
+            realprefix = ktarget_v_prefix
+        endif
+        return GetTargetVarBool(realprefix, varname, missing)
     endif
     return missing
 endfunction
@@ -3253,7 +3375,25 @@ int function GetVarInt(string scope, string varname, int missing)
     elseif scope == "thread"
         return GetThreadVarInt(varname, missing)
     elseif scope == "target"
-        return GetTargetVarInt(varname, missing)
+        int keylen = StringUtil.GetLength(varname)
+        string realprefix
+        if keylen > 4 && StringUtil.GetNthChar(varname, 0) == "<"
+            int chunkend = StringUtil.Find(varname, ">.")
+            if ((chunkend > 1) && (chunkend < (keylen - 2)))
+                string formstr = StringUtil.Substring(varname, 1, chunkend - 1)
+                Form targetForm = ResolveForm("$" + formstr)
+                if targetForm
+                    varname = StringUtil.Substring(varname, chunkend + 2)
+                    realprefix = Make_ktarget_v_prefix(targetForm.GetFormID())
+                else
+                    SFE("Unable to resolve target-scoped alternate target(" + formstr + ")")
+                endif
+            endif
+        endif
+        if !realprefix
+            realprefix = ktarget_v_prefix
+        endif
+        return GetTargetVarInt(realprefix, varname, missing)
     endif
     return missing
 endfunction
@@ -3266,7 +3406,25 @@ float function GetVarFloat(string scope, string varname, float missing)
     elseif scope == "thread"
         return GetThreadVarFloat(varname, missing)
     elseif scope == "target"
-        return GetTargetVarFloat(varname, missing)
+        int keylen = StringUtil.GetLength(varname)
+        string realprefix
+        if keylen > 4 && StringUtil.GetNthChar(varname, 0) == "<"
+            int chunkend = StringUtil.Find(varname, ">.")
+            if ((chunkend > 1) && (chunkend < (keylen - 2)))
+                string formstr = StringUtil.Substring(varname, 1, chunkend - 1)
+                Form targetForm = ResolveForm("$" + formstr)
+                if targetForm
+                    varname = StringUtil.Substring(varname, chunkend + 2)
+                    realprefix = Make_ktarget_v_prefix(targetForm.GetFormID())
+                else
+                    SFE("Unable to resolve target-scoped alternate target(" + formstr + ")")
+                endif
+            endif
+        endif
+        if !realprefix
+            realprefix = ktarget_v_prefix
+        endif
+        return GetTargetVarFloat(realprefix, varname, missing)
     endif
     return missing
 endfunction
@@ -3279,7 +3437,25 @@ Form function GetVarForm(string scope, string varname, Form missing)
     elseif scope == "thread"
         return GetThreadVarForm(varname, missing)
     elseif scope == "target"
-        return GetTargetVarForm(varname, missing)
+        int keylen = StringUtil.GetLength(varname)
+        string realprefix
+        if keylen > 4 && StringUtil.GetNthChar(varname, 0) == "<"
+            int chunkend = StringUtil.Find(varname, ">.")
+            if ((chunkend > 1) && (chunkend < (keylen - 2)))
+                string formstr = StringUtil.Substring(varname, 1, chunkend - 1)
+                Form targetForm = ResolveForm("$" + formstr)
+                if targetForm
+                    varname = StringUtil.Substring(varname, chunkend + 2)
+                    realprefix = Make_ktarget_v_prefix(targetForm.GetFormID())
+                else
+                    SFE("Unable to resolve target-scoped alternate target(" + formstr + ")")
+                endif
+            endif
+        endif
+        if !realprefix
+            realprefix = ktarget_v_prefix
+        endif
+        return GetTargetVarForm(realprefix, varname, missing)
     endif
     return missing
 endfunction
@@ -3292,7 +3468,31 @@ string function SetVarString2(string scope, string varname, string value)
     elseif scope == "thread"
         return SetThreadVarString(varname, value)
     elseif scope == "target"
-        return SetTargetVarString(varname, value)
+        int keylen = StringUtil.GetLength(varname)
+        string typeprefix
+        string dataprefix
+        if keylen > 4 && StringUtil.GetNthChar(varname, 0) == "<"
+            int chunkend = StringUtil.Find(varname, ">.")
+            if ((chunkend > 1) && (chunkend < (keylen - 2)))
+                string formstr = StringUtil.Substring(varname, 1, chunkend - 1)
+                Form targetForm = ResolveForm("$" + formstr)
+                if targetForm
+                    varname = StringUtil.Substring(varname, chunkend + 2)
+                    typeprefix = Make_ktarget_type_v_prefix(targetForm.GetFormID())
+                    dataprefix = Make_ktarget_v_prefix(targetForm.GetFormID())
+                else
+                    SFE("Unable to resolve target-scoped alternate target(" + formstr + ")")
+                endif
+            endif
+        endif
+        if !typeprefix
+            typeprefix = ktarget_type_v_prefix
+            dataprefix = ktarget_v_prefix
+        endif
+        If (SLT.Debug_Cmd_RunScript_Set)
+            SFD("SetTargetVarString: typeprefix(" + typeprefix + ") dataprefix(" + dataprefix + ") varname(" + varname + ") value(" + value + ")")
+        EndIf
+        return SetTargetVarString(typeprefix, dataprefix, varname, value)
     elseif scope
         SFE("Attempted to assign to read-only scope (" + scope + ")")
         return ""
@@ -3309,7 +3509,28 @@ string function SetVarLabel(string scope, string varname, string value)
     elseif scope == "thread"
         return SetThreadVarLabel(varname, value)
     elseif scope == "target"
-        return SetTargetVarLabel(varname, value)
+        int keylen = StringUtil.GetLength(varname)
+        string typeprefix
+        string dataprefix
+        if keylen > 4 && StringUtil.GetNthChar(varname, 0) == "<"
+            int chunkend = StringUtil.Find(varname, ">.")
+            if ((chunkend > 1) && (chunkend < (keylen - 2)))
+                string formstr = StringUtil.Substring(varname, 1, chunkend - 1)
+                Form targetForm = ResolveForm("$" + formstr)
+                if targetForm
+                    varname = StringUtil.Substring(varname, chunkend + 2)
+                    typeprefix = Make_ktarget_type_v_prefix(targetForm.GetFormID())
+                    dataprefix = Make_ktarget_v_prefix(targetForm.GetFormID())
+                else
+                    SFE("Unable to resolve target-scoped alternate target(" + formstr + ")")
+                endif
+            endif
+        endif
+        if !typeprefix
+            typeprefix = ktarget_type_v_prefix
+            dataprefix = ktarget_v_prefix
+        endif
+        return SetTargetVarLabel(typeprefix, dataprefix, varname, value)
     elseif scope
         SFE("Attempted to assign to read-only scope (" + scope + ")")
         return ""
@@ -3326,7 +3547,28 @@ bool function SetVarBool(string scope, string varname, bool value)
     elseif scope == "thread"
         return SetThreadVarBool(varname, value)
     elseif scope == "target"
-        return SetTargetVarBool(varname, value)
+        int keylen = StringUtil.GetLength(varname)
+        string typeprefix
+        string dataprefix
+        if keylen > 4 && StringUtil.GetNthChar(varname, 0) == "<"
+            int chunkend = StringUtil.Find(varname, ">.")
+            if ((chunkend > 1) && (chunkend < (keylen - 2)))
+                string formstr = StringUtil.Substring(varname, 1, chunkend - 1)
+                Form targetForm = ResolveForm("$" + formstr)
+                if targetForm
+                    varname = StringUtil.Substring(varname, chunkend + 2)
+                    typeprefix = Make_ktarget_type_v_prefix(targetForm.GetFormID())
+                    dataprefix = Make_ktarget_v_prefix(targetForm.GetFormID())
+                else
+                    SFE("Unable to resolve target-scoped alternate target(" + formstr + ")")
+                endif
+            endif
+        endif
+        if !typeprefix
+            typeprefix = ktarget_type_v_prefix
+            dataprefix = ktarget_v_prefix
+        endif
+        return SetTargetVarBool(typeprefix, dataprefix, varname, value)
     elseif scope
         SFE("Attempted to assign to read-only scope (" + scope + ")")
         return false
@@ -3343,7 +3585,28 @@ int function SetVarInt(string scope, string varname, int value)
     elseif scope == "thread"
         return SetThreadVarInt(varname, value)
     elseif scope == "target"
-        return SetTargetVarInt(varname, value)
+        int keylen = StringUtil.GetLength(varname)
+        string typeprefix
+        string dataprefix
+        if keylen > 4 && StringUtil.GetNthChar(varname, 0) == "<"
+            int chunkend = StringUtil.Find(varname, ">.")
+            if ((chunkend > 1) && (chunkend < (keylen - 2)))
+                string formstr = StringUtil.Substring(varname, 1, chunkend - 1)
+                Form targetForm = ResolveForm(formstr)
+                if targetForm
+                    varname = StringUtil.Substring(varname, chunkend + 2)
+                    typeprefix = Make_ktarget_type_v_prefix(targetForm.GetFormID())
+                    dataprefix = Make_ktarget_v_prefix(targetForm.GetFormID())
+                else
+                    SFE("Unable to resolve target-scoped alternate target(" + formstr + ")")
+                endif
+            endif
+        endif
+        if !typeprefix
+            typeprefix = ktarget_type_v_prefix
+            dataprefix = ktarget_v_prefix
+        endif
+        return SetTargetVarInt(typeprefix, dataprefix, varname, value)
     elseif scope
         SFE("Attempted to assign to read-only scope (" + scope + ")")
         return 0
@@ -3360,7 +3623,28 @@ float function SetVarFloat(string scope, string varname, float value)
     elseif scope == "thread"
         return SetThreadVarFloat(varname, value)
     elseif scope == "target"
-        return SetTargetVarFloat(varname, value)
+        int keylen = StringUtil.GetLength(varname)
+        string typeprefix
+        string dataprefix
+        if keylen > 4 && StringUtil.GetNthChar(varname, 0) == "<"
+            int chunkend = StringUtil.Find(varname, ">.")
+            if ((chunkend > 1) && (chunkend < (keylen - 2)))
+                string formstr = StringUtil.Substring(varname, 1, chunkend - 1)
+                Form targetForm = ResolveForm("$" + formstr)
+                if targetForm
+                    varname = StringUtil.Substring(varname, chunkend + 2)
+                    typeprefix = Make_ktarget_type_v_prefix(targetForm.GetFormID())
+                    dataprefix = Make_ktarget_v_prefix(targetForm.GetFormID())
+                else
+                    SFE("Unable to resolve target-scoped alternate target(" + formstr + ")")
+                endif
+            endif
+        endif
+        if !typeprefix
+            typeprefix = ktarget_type_v_prefix
+            dataprefix = ktarget_v_prefix
+        endif
+        return SetTargetVarFloat(typeprefix, dataprefix, varname, value)
     elseif scope
         SFE("Attempted to assign to read-only scope (" + scope + ")")
         return 0.0
@@ -3377,7 +3661,28 @@ Form function SetVarForm(string scope, string varname, Form value)
     elseif scope == "thread"
         return SetThreadVarForm(varname, value)
     elseif scope == "target"
-        return SetTargetVarForm(varname, value)
+        int keylen = StringUtil.GetLength(varname)
+        string typeprefix
+        string dataprefix
+        if keylen > 4 && StringUtil.GetNthChar(varname, 0) == "<"
+            int chunkend = StringUtil.Find(varname, ">.")
+            if ((chunkend > 1) && (chunkend < (keylen - 2)))
+                string formstr = StringUtil.Substring(varname, 1, chunkend - 1)
+                Form targetForm = ResolveForm("$" + formstr)
+                if targetForm
+                    varname = StringUtil.Substring(varname, chunkend + 2)
+                    typeprefix = Make_ktarget_type_v_prefix(targetForm.GetFormID())
+                    dataprefix = Make_ktarget_v_prefix(targetForm.GetFormID())
+                else
+                    SFE("Unable to resolve target-scoped alternate target(" + formstr + ")")
+                endif
+            endif
+        endif
+        if !typeprefix
+            typeprefix = ktarget_type_v_prefix
+            dataprefix = ktarget_v_prefix
+        endif
+        return SetTargetVarForm(typeprefix, dataprefix, varname, value)
     elseif scope
         SFE("Attempted to assign to read-only scope (" + scope + ")")
         return none
@@ -3393,7 +3698,7 @@ endfunction
 
 function PrecacheRequestBool(sl_triggersMain slthost, int requestTargetFormId, int requestId, string varname, bool value) global
     string ckey = "SLTR:target:" + requestTargetFormId + ":system.request:" + requestId + ":vars:" + varname
-    SetStringValue(slthost, ckey, value)
+    SetIntValue(slthost, ckey, value as int)
 endfunction
 
 function PrecacheRequestInt(sl_triggersMain slthost, int requestTargetFormId, int requestId, string varname, int value) global

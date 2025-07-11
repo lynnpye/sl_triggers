@@ -766,8 +766,9 @@ namespace {
 bool IsValidVariableName(const std::string& name) {
     if (name.empty()) return false;
     
+    // less sloppy would be to make sure the <> is appropriately placed and only on target scope
     for (char c : name) {
-        if (!std::isalnum(c) && c != '_' && c != '.') {
+        if (!std::isalnum(c) && c != '_' && c != '.' && c != '<' && c != '>') {
             return false;
         }
     }

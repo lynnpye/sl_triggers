@@ -582,6 +582,10 @@ EndFunction
 string Function GetGlobalVarString(string _key, string missing)
 	int i = global_var_keys.Find(_key, 0)
 	if i > -1
+		int rt = global_var_types[i]
+		if RT_BOOL == rt
+			return (global_var_vals[i] != "")
+		endif
 		return global_var_vals[i]
 	endif
 	return missing
@@ -590,6 +594,10 @@ EndFunction
 string Function GetGlobalVarLabel(string _key, string missing)
 	int i = global_var_keys.Find(_key, 0)
 	if i > -1
+		int rt = global_var_types[i]
+		if RT_BOOL == rt
+			return (global_var_vals[i] != "")
+		endif
 		return global_var_vals[i]
 	endif
 	return missing
@@ -600,13 +608,13 @@ bool Function GetGlobalVarBool(string _key, bool missing)
 	if i > -1
         int rt = global_var_types[i]
         if RT_BOOL == rt
-            return IsStringTruthy(global_var_vals[i])
+            return global_var_vals[i] != ""
         elseif RT_INT == rt
             return (global_var_vals[i] as int) != 0
         elseif RT_FLOAT == rt
             return (global_var_vals[i] as float) != 0
         elseif RT_STRING == rt
-            return IsStringTruthy(global_var_vals[i])
+            return global_var_vals[i] != ""
         elseIF RT_FORM == rt
             return (global_var_vals[i] as int) != 0
         endif
@@ -620,7 +628,7 @@ int Function GetGlobalVarInt(string _key, int missing)
 	if i > -1
         int rt = global_var_types[i]
         if RT_BOOL == rt
-            return (global_var_vals[i] as bool) as int
+            return global_var_vals[i] as int
         elseif RT_INT == rt
             return global_var_vals[i] as int
         elseif RT_FLOAT == rt
@@ -640,7 +648,7 @@ float Function GetGlobalVarFloat(string _key, float missing)
 	if i > -1
         int rt = global_var_types[i]
         if RT_BOOL == rt
-            return (global_var_vals[i] as bool) as float
+            return global_var_vals[i] as float
         elseif RT_INT == rt
             return global_var_vals[i] as int
         elseif RT_FLOAT == rt
@@ -705,10 +713,18 @@ bool Function SetGlobalVarBool(string _key, bool value)
 	int i = global_var_keys.Find(_key, 0)
 	if i < 0
 		global_var_keys = PapyrusUtil.PushString(global_var_keys, _key)
-        global_var_vals = PapyrusUtil.PushString(global_var_vals, value)
+		if value
+        	global_var_vals = PapyrusUtil.PushString(global_var_vals, "1")
+		else
+        	global_var_vals = PapyrusUtil.PushString(global_var_vals, "")
+		endif
         global_var_types = PapyrusUtil.PushInt(global_var_types, RT_BOOL)
     else
-		global_var_vals[i] = value
+		if value
+			global_var_vals[i] = "1"
+		else
+			global_var_vals[i] = ""
+		endif
 		global_var_types[i] = RT_BOOL
 	endif
 	return value

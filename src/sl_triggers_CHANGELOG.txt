@@ -23,6 +23,20 @@
             if $var1 > $var2 [target label]
             set $targetLabel [target label]
             goto $targetLabel
+    enhancement: target scope extension; you can now "extend" your target scope to target other Actors, in order to get/set their target-scoped variables
+            this allows you to alter target-scope variables for targets other than the target of your script
+            example:
+                ; set a target variable for myself
+                set $target.happiness 10
+                ; or if I want to be pedantic
+                set $target.<system.self>.happiness 10
+                ; and for partner
+                set $target.<system.partner>.happiness 10
+                ; or even this:
+                set $thetarget $system.self
+                set $target.<thetarget>.happiness 10
+                set $thetarget $system.partner
+                set $target.<thetarget>.happiness 10
     enhancement: true and false are now keywords that return bool true and false
     enhancement: new operators for set and if: '&&' and '||' for boolean AND and OR respectively
     enhancement: if <var> <label> ; you can now test a variable for truthiness instead of requiring a comparison
