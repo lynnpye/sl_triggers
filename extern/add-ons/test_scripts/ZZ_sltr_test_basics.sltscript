@@ -384,6 +384,13 @@ else
     deb_msg "FAIL: int var != int literal"
 endif
 inc $thread.testCount
+if $testvar != -8
+    inc $thread.passCount
+    deb_msg "PASS: int var != neg int literal"
+else
+    deb_msg "FAIL: int var != neg int literal"
+endif
+inc $thread.testCount
 if 6 > $testvar
     inc $thread.passCount
     deb_msg "PASS: int literal < int var"
@@ -426,6 +433,13 @@ if $testvar != 5.4
     deb_msg "PASS: float var != float literal"
 else
     deb_msg "FAIL: float var != float literal"
+endif
+inc $thread.testCount
+if $testvar != -5.4
+    inc $thread.passCount
+    deb_msg "PASS: float var != neg float literal"
+else
+    deb_msg "FAIL: float var != neg float literal"
 endif
 
 ; form stuff

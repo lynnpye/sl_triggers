@@ -1,0 +1,50 @@
+inc $thread.testCount
+set $testval -23
+set $testval $target.sltr_regression_test_target_val
+if $testval &!= ""
+    deb_msg "FAIL: set testval from target.value, without having set it first, but it wasn't considered equivalent to an empty string"
+else
+    inc $thread.passCount
+    deb_msg "PASS: set testval from target.value, without having set it first, and it was ''"
+endif
+
+inc $thread.testCount
+set $target.sltr_regression_test_target_val -12.5
+set $testval $target.sltr_regression_test_target_val
+if $testval != -12.5
+    deb_msg $"FAIL: testval should be -12.5 but is ({testval})"
+else
+    inc $thread.passCount
+    deb_msg $"PASS: testval should be -12.5 and is ({testval})"
+endif
+
+inc $thread.testCount
+set $testval $target.<system.player>.sltr_regression_test_target_val2
+if $testval &!= ""
+    deb_msg "FAIL: set testval from target{system.player}.sltr_regression_test_target_val2, without having set it first, but it wasn't considered equivalent to an empty string"
+else
+    inc $thread.passCount
+    deb_msg "PASS: set testval from target{system.player}.sltr_regression_test_target_val2, without having set it first, and it was ''"
+endif
+
+inc $thread.testCount
+set $target.<system.player>.sltr_regression_test_target_val2 "wizzit"
+set $testval $target.<system.player>.sltr_regression_test_target_val2
+if $testval &!= "wizzit"
+    deb_msg $"FAIL: testval should be 'wizzit' but is ({testval})"
+else
+    inc $thread.passCount
+    deb_msg $"PASS: testval should be 'wizzit' and is ({testval})"
+endif
+
+inc $thread.testCount
+set $theplayer $system.player
+set $testval -99
+set $target.<theplayer>.sltr_regression_test_target_val2 "fuzzball"
+set $testval $target.<theplayer>.sltr_regression_test_target_val2
+if $testval &!= "fuzzball"
+    deb_msg $"FAIL: testval should be 'fuzzball' but is ({testval})"
+else
+    inc $thread.passCount
+    deb_msg $"PASS: testval should be 'fuzzball' and is ({testval})"
+endif

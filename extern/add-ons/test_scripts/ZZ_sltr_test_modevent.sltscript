@@ -1,0 +1,30 @@
+inc $thread.testCount
+
+util_sendmodevent "OnSLTRequestCommand" "ZZ_sltr_test_modevent_worker"
+
+inc $thread.requiredWaitTime 7.0
+util_wait 7.0
+
+set $testval $system.sessionid + 1
+if $global.sltr_regression_test_global_value == $testval
+    inc $thread.passCount
+    deb_msg $"PASS: util_sendmodevent canary ({global.sltr_regression_test_global_value}) == ({testval})"
+else
+    deb_msg $"FAIL: util_sendmodevent canary ({global.sltr_regression_test_global_value}) == ({testval})"
+endif
+
+inc $thread.testCount
+if $target.<system.player>.val1 == 43.5
+    inc $thread.passCount
+    deb_msg $"PASS: util_sendmodevent canary ({target.<system.player>.val1}) should be 43.5"
+else
+    deb_msg $"FAIL: util_sendmodevent canary ({target.<system.player>.val1}) should be 43.5"
+endif
+
+inc $thread.testCount
+if $target.val2 == 53.4
+    inc $thread.passCount
+    deb_msg $"PASS: util_sendmodevent canary ({target.val2}) should be 53.4"
+else
+    deb_msg $"FAIL: util_sendmodevent canary ({target.val2}) should be 53.4"
+endif

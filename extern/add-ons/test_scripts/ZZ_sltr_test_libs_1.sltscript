@@ -1,0 +1,67 @@
+inc $thread.testCount
+set $anEditorId "Ale"
+set $aleForm resultfrom form_getbyid $anEditorId
+if $aleForm == $system.none
+    deb_msg "FAIL: form_getbyid 'ale'; returned 'none'"
+else
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid 'ale'; returned {aleForm}"
+endif
+
+inc $thread.testCount
+set $aleName resultfrom form_dogetter $aleForm GetName
+if $aleName == "Ale"
+    inc $thread.passCount
+    deb_msg $"PASS: form_dogetter GetName; returned ({aleName})"
+else
+    deb_msg $"FAIL: form_dogetter GetName; returned ({aleName}), should be 'Ale'"
+endif
+
+inc $thread.testCount
+inc $thread.testCount
+set $wasSneaking resultfrom actor_dogetter $system.player IsSneaking
+
+actor_doaction $system.player StartSneaking
+set $nowSneaking resultfrom actor_dogetter $system.player IsSneaking
+
+if $wasSneaking != $isSneaking
+    inc $thread.passCount
+    inc $thread.passCount
+    deb_msg "PASS: actor_dogetter IsSneaking/1"
+    deb_msg "PASS: actor_doaction StartSneaking/1"
+else
+    deb_msg "FAIL: actor_dogetter IsSneaking/1"
+    deb_msg "FAIL: actor_doaction StartSneaking/1"
+endif
+
+inc $thread.testCount
+inc $thread.testCount
+actor_doaction $system.player StartSneaking
+set $nowSneaking resultfrom actor_dogetter $system.player IsSneaking
+
+if $wasSneaking != $isSneaking
+    inc $thread.passCount
+    inc $thread.passCount
+    deb_msg "PASS: actor_dogetter IsSneaking/2"
+    deb_msg "PASS: actor_doaction StartSneaking/2"
+else
+    deb_msg "FAIL: actor_dogetter IsSneaking/2"
+    deb_msg "FAIL: actor_doaction StartSneaking/2"
+endif
+
+inc $thread.testCount
+set $playerName resultfrom actor_display_name $system.player
+if $playerName &!= ""
+    inc $thread.passCount
+    deb_msg $"PASS: actor_display_name &!= ({playerName})"
+else
+    deb_msg $"FAIL: actor_display_name &!= ({playerName})"
+endif
+
+inc $thread.testCount
+if $playerName != ""
+    inc $thread.passCount
+    deb_msg $"PASS: actor_display_name != ({playerName})"
+else
+    deb_msg $"FAIL: actor_display_name != ({playerName})"
+endif

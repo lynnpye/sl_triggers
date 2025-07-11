@@ -1,0 +1,82 @@
+set $testfile "../sl_triggers/commandstore/jsonutil_function_test"
+
+inc $thread.testCount
+set $flag resultfrom jsonutil exists $testfile
+if $flag
+    inc $thread.passCount
+    deb_msg $"PASS: jsonutil exists ({flag})"
+else
+    deb_msg $"FAIL: jsonutil exists ({flag})"
+endif
+
+inc $thread.testCount
+set $avalue resultfrom jsonutil set $testfile "key1" "string" "avalue"
+if $avalue == "avalue"
+    inc $thread.passCount
+    deb_msg $"PASS: jsonutil set ({avalue})"
+else
+    deb_msg $"FAIL: jsonutil set ({avalue})"
+endif
+
+inc $thread.testCount
+set $hasworks resultfrom jsonutil has $testfile "key1" "string"
+if $hasworks
+    inc $thread.passCount
+    deb_msg $"PASS: jsonutil has ({hasworks})"
+else
+    deb_msg $"FAIL: jsonutil has ({hasworks})"
+endif
+
+inc $thread.testCount
+set $unsetworks resultfrom jsonutil unset $testfile "key1" "string"
+if $unsetworks
+    inc $thread.passCount
+    deb_msg $"PASS: jsonutil unset ({unsetworks})"
+else
+    deb_msg $"FAIL: jsonutil unset ({unsetworks})"
+endif
+
+inc $thread.testCount
+set $hasalsoworks resultfrom jsonutil has $testfile "key1" "string"
+if $hasalsoworks
+    deb_msg $"FAIL: jsonutil unset or has is failing ({hasalsoworks})"
+else
+    inc $thread.passCount
+    deb_msg $"PASS: jsonutil unset/has ({hasalsoworks})"
+endif
+
+inc $thread.testCount
+set $setfloatworks resultfrom jsonutil set $testfile "key1" "float" "87"
+if $setfloatworks == 87
+    inc $thread.passCount
+    deb_msg $"PASS: jsonutil set with float ({setfloatworks})"
+else
+    deb_msg $"FAIL: jsonutil set with float ({setfloatworks})"
+endif
+
+inc $thread.testCount
+set $checktypes resultfrom jsonutil has $testfile "key1" "string"
+if $checktypes
+    deb_msg $"FAIL: has failed, crossed the streams float and string? ({setfloatworks})"
+else
+    inc $thread.passCount
+    deb_msg $"PASS: has success ({setfloatworks})"
+endif
+
+inc $thread.testCount
+jsonutil listclear $testfile  "somelist" "int"
+
+jsonutil listadd $testfile  "somelist"  "int"  1
+jsonutil listadd $testfile  "somelist"  "int"  2
+jsonutil listadd $testfile  "somelist"  "int"  3
+jsonutil listadd $testfile  "somelist"  "int"  1
+
+set $listcount resultfrom jsonutil listcount $testfile "somelist" "int"
+if $listcount == 4
+    inc $thread.passCount
+    deb_msg $"PASS: listclear/listadd/listcount ({setfloatworks})"
+else
+    deb_msg $"FAIL: listclear/listadd/listcount; one has failed ({setfloatworks})"
+endif
+
+jsonutil save $testfile

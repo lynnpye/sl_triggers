@@ -1,4 +1,5 @@
-deb_msg $"SLTR Regression Test Starting... ({system.initialScriptName})/({system.currentScriptName})"
+deb_msg  "============================="
+deb_msg $"SLTR Regression Test Starting"
 
 set $thread.testCount = 0
 set $thread.passCount = 0
@@ -18,12 +19,13 @@ endsub
 beginsub finish_regression_testing
     set $elapsedTime $system.realtime - $thread.startTime
     set $elapsedNoWaiting $elapsedTime - $thread.requiredWaitTime
-    deb_msg "SLTR Regression Test Finished: Here are the results"
     deb_msg $"Tests attempted:     {thread.testCount}"
-    deb_msg $"Tests completed:     {thread.passCount}"
+    deb_msg $"PASS outcomes:       {thread.passCount}"
     deb_msg $"Total elapsed time:  {elapsedTime}"
     deb_msg $"Required wait times: {thread.requiredWaitTime}"
     deb_msg $"Actual run time:     {elapsedTime}"
+    deb_msg "SLTR Regression Test Finished"
+    deb_msg "============================="
     return
 endsub
 
@@ -42,6 +44,15 @@ if $thread.testCount != $thread.passCount
     return
 else
     deb_msg "PASS: simple gosub {thread.testCount}/{thread.passCount}"
+endif
+
+; quick initialScriptName test
+inc $thread.testCount
+if $system.initialScriptName == $system.currentScriptName
+    inc $thread.passCount
+    deb_msg $"PASS: system.initialScriptName({system.initialScriptName}) == system.currentScriptName({system.currentScriptName})"
+else
+    deb_msg $"FAIL: system.initialScriptName({system.initialScriptName}) != system.currentScriptName({system.currentScriptName})"
 endif
 
 ; gosub ahead of us
@@ -88,6 +99,16 @@ endif
 call "ZZ_sltr_test_while"
 
 call "ZZ_sltr_test_system_vars"
+
+call "ZZ_sltr_test_target_subscopes"
+
+call "ZZ_sltr_test_libs_1"
+
+call "ZZ_sltr_test_modevent"
+
+call "ZZ_sltr_test_jsonutil"
+
+call "ZZ_sltr_test_storageutil"
 
 ; wrap things up
 gosub finish_regression_testing

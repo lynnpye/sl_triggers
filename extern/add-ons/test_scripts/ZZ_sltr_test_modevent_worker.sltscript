@@ -1,0 +1,11 @@
+set $target.sltr_regression_test_target_testCount = 1
+if $system.stats.running_scripts > 1
+    set $target.sltr_regression_test_target_passCount = 1
+    deb_msg $"PASS: system.stats.running_scripts ({system.stats.running_scripts}); should be at least 2"
+else
+    deb_msg $"FAIL: system.stats.running_scripts ({system.stats.running_scripts}); should be at least 2"
+endif
+
+set $global.sltr_regression_test_global_value $system.sessionid + 1
+set $target.val1 = 43.5
+set $target.<system.player>.val2 = 53.4

@@ -1,0 +1,71 @@
+set $suhost $system.player
+
+inc $thread.testCount
+set $result resultfrom storageutil set $suhost "key1" "string" "avalue"
+if $result == "avalue"
+    inc $thread.passCount
+    deb_msg $"PASS: storageutil set ({result})"
+else
+    deb_msg $"FAIL: storageutil set ({result})"
+endif
+
+inc $thread.testCount
+set $result resultfrom storageutil has $suhost "key1" "string"
+if $result
+    inc $thread.passCount
+    deb_msg $"PASS: storageutil has ({result})"
+else
+    deb_msg $"FAIL: storageutil has ({result})"
+endif
+
+inc $thread.testCount
+set $result resultfrom storageutil unset $suhost "key1" "string"
+if $result
+    inc $thread.passCount
+    deb_msg $"PASS: storageutil unset ({result})"
+else
+    deb_msg $"FAIL: storageutil unset ({result})"
+endif
+
+inc $thread.testCount
+set $result resultfrom storageutil has $suhost "key1" "string"
+if $result
+    deb_msg $"FAIL: storageutil unset ({result})"
+else
+    inc $thread.passCount
+    deb_msg $"PASS: storageutil unset ({result})"
+endif
+
+inc $thread.testCount
+set $result resultfrom storageutil set $suhost "key1" "float" "87"
+if $result == 87
+    inc $thread.passCount
+    deb_msg $"PASS: storageutil set float ({result})"
+else
+    deb_msg $"FAIL: storageutil set float ({result})"
+endif
+
+inc $thread.testCount
+set $result resultfrom storageutil has $suhost "key1" "string"
+if $result
+    deb_msg $"FAIL: storageutil unset/has ({result})"
+else
+    inc $thread.passCount
+    deb_msg $"PASS: storageutil unset/has ({result})"
+endif
+
+inc $thread.testCount
+storageutil listclear $suhost  "somelist" "int"
+
+storageutil listadd $suhost  "somelist"  "int"  1
+storageutil listadd $suhost  "somelist"  "int"  2
+storageutil listadd $suhost  "somelist"  "int"  3
+storageutil listadd $suhost  "somelist"  "int"  1
+
+set $result resultfrom storageutil listcount $suhost "somelist" "int"
+if $result == 4
+    inc $thread.passCount
+    deb_msg $"PASS: storageutil listclear/listadd/listcount ({result})"
+else
+    deb_msg $"FAIL: storageutil listclear/listadd/listcount ({result})"
+endif

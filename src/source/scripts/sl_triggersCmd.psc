@@ -605,6 +605,8 @@ Function DoStartup()
                 SLTErrMsg("sl_triggersCmd: invalid push frame attempt for script(" + initialScriptName + ")")
                 CleanupAndRemove()
                 return
+            else
+                initialScriptName = currentScriptName
             endif
         endif
     endif

@@ -227,7 +227,7 @@
     },
     "control-keywords": {
       "name": "keyword.control.sltscript",
-      "match": "\\b(?i:if|endif|while|endwhile|goto|gosub|call|set|inc|return|beginsub|endsub|callarg|cat)\\b"
+      "match": "\\b(?i:if|elseif|else|endif|while|endwhile|goto|gosub|call|set|inc|return|beginsub|endsub|callarg|cat)\\b"
     },
     "functions": {
       "patterns": [
