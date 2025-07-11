@@ -1,0 +1,19 @@
+SFW when var requested that hasn't been set
+lists
+fix sl_triggers_PlayerTrackerActor being detected
+additional/external locations for files
+update docs
+add libraries of values for mod compat
+can we create a dynamic binding feature?
+fix docs for storageutil
+
+dyna.<script>.<function> [<FormID if instance function>] [<optional arg> [<optional arg> [...]]]
+; $$ is set or not if it returned a function or not
+
+
+RunOperationOnActor: to let it serve universally will need to detect non-functions and set the most recent value to the resolved value
+    - have to consider possible interactions for first slot 
+
+
+interpolated string literal with leading $ failed
+    - possibly due to interpolation?

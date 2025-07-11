@@ -15,6 +15,8 @@
     bugfix: MannySauce was disappointed about the version number mismatch in the MCM; the disappointment has been addressed
     bugfix: plugin should now properly disable function libraries for disabled extensions
     bugfix: empty string literals erroneously reporting as '"'
+    change: 'goto' will unwind/reset all pending while/gosub calls in your local stack
+        if you use 'goto' to jump somewhere else in your code, this will now reset things so that encountering another endsub or endwhile will no longer have unexpected consequences
     change: bool flags in settings.json changed to string: "true"/"false"
     change: label notation can be used as the target for goto/if as well as the source for set
         example:
@@ -104,8 +106,6 @@
             endif
             ; this should cause it to skip leading, inner, and trailing code, as one would expect
     enhancement: caching of debug flags in AME objects (should offset the plethora of granular debug output flags)
-    change: 'goto' will unwind/reset all pending while/gosub calls in your local stack
-        if you use 'goto' to jump somewhere else in your code, this will now reset things so that encountering another endsub or endwhile will no longer have unexpected consequences
 
 123
     Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)

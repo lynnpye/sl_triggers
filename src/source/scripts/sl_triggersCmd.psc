@@ -1376,6 +1376,14 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                             if ResolveFloat(cmdLine[1]) <= ResolveFloat(cmdLine[3])
                                 __bVal = true
                             endif
+                        elseIf __operator == "||"
+                            if ResolveBool(cmdLine[1]) || ResolveBool(cmdLine[3])
+                                __bVal = true
+                            endif
+                        elseIf __operator == "&&"
+                            if ResolveBool(cmdLine[1]) && ResolveBool(cmdLine[3])
+                                __bVal = true
+                            endif
                         else
                             SFE("unexpected operator, this is likely an error in the SLT script")
                             __bVal = false
