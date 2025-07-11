@@ -5,6 +5,11 @@ SET "TEST_FOLDER=..\..\..\wabbajack\modlistinstalls\SME\mods\AaDevelopment"
 REM SET "TEST_FOLDER=..\..\..\wabbajack\modlistinstalls\NEFARAM.15.4.1\mods\AaDevelopment"
 
 SET "SRC_DIR=%~dp0src"
+SET "TEST_SCRIPT_SRC_DIR=.\extern\add-ons\test_scripts"
+set "TARGET_SCRIPTS_DIR=%TEST_FOLDER%\SKSE\Plugins\sl_triggers\commands"
+
+echo Copy test .sltscript from "%TEST_SCRIPT_SRC_DIR%" to "%TARGET_SCRIPTS_DIR%"
+xcopy /i /y "%TEST_SCRIPT_SRC_DIR%\*.sltscript" "%TARGET_SCRIPTS_DIR%"
 
 SET "DLL_SRC=.\plugin\sl-triggers\build\release-msvc\sl-triggers.dll"
 SET "SRC_DLL_DIR=%SRC_DIR%\SKSE\Plugins\"

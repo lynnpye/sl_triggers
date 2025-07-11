@@ -188,6 +188,32 @@ std::optional<std::uint32_t> Util::String::StringToUnsignedIntWithImplicitHexCon
     return std::nullopt;
 }
 
+bool Util::String::isNumeric(std::string_view str, float& outValue) {
+    std::string hexStr = trim(str);
+    if (hexStr.empty()) {
+        return 0;
+    }
+    const char* start = hexStr.data();
+    const char* end = hexStr.data() + hexStr.size();
+    int base = 10;
+    
+    if (hexStr.size() >= 2 && str::iEquals(hexStr.substr(0, 2), "0x")) {
+        start += 2;
+        base = 16;
+    }
+    
+    std::int32_t intValue;
+    auto int_result = std::from_chars(start, end, intValue, base);
+    
+    if (int_result.ec == std::errc{} && int_result.ptr == end) {
+        outValue = intValue;
+        return true;
+    }
+
+    auto float_result = std::from_chars(start, end, outValue);
+    return float_result.ec == std::errc() && float_result.ptr == end;
+}
+
 bool Util::String::iContains(std::string_view a_str1, std::string_view a_str2) {
     if (a_str2.length() > a_str1.length()) {
         return false;

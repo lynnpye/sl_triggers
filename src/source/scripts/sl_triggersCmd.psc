@@ -495,6 +495,9 @@ string      initialScriptName = ""
 bool hasValidFrame
 bool IsResetRequested = false
 
+bool IsInsideIfBlock = false
+bool IfBlockSatisfied = false
+
 int Property BE_NONE        = 0 AutoReadOnly Hidden
 int Property BE_IF          = 1 AutoReadOnly Hidden
 int Property BE_BEGINSUB    = 2 AutoReadOnly Hidden
@@ -502,24 +505,34 @@ int Property BE_WHILE       = 3 AutoReadOnly Hidden
 
 string __be_starter = ""
 string __be_ender = ""
+string __be_alt_starter = ""
+string __be_alt_router = ""
 int __be_needed = 0
 
 Function SetBlockEndTarget(int betype)
     if BE_IF == betype
         __be_starter = "if"
         __be_ender = "endif"
+        __be_alt_starter = "elseif"
+        __be_alt_router = "else"
         __be_needed = 1
     elseif BE_BEGINSUB == betype
         __be_starter = "beginsub"
         __be_ender = "endsub"
+        __be_alt_starter = ""
+        __be_alt_router = ""
         __be_needed = 1
     elseif BE_WHILE == betype
         __be_starter = "while"
         __be_ender = "endwhile"
+        __be_alt_starter = ""
+        __be_alt_router = ""
         __be_needed = 1
     else
         __be_starter = ""
         __be_ender = ""
+        __be_alt_starter = ""
+        __be_alt_router = ""
         __be_needed = 0
     endif
 EndFunction
@@ -528,6 +541,8 @@ Function ResetBlockEndTarget()
     __be_needed = 0
     __be_starter = ""
     __be_ender = ""
+    __be_alt_starter = ""
+    __be_alt_router = ""
 EndFunction
 
 ;/
@@ -1154,28 +1169,23 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             endif
 
             if subCommand
-                __be_needed = 0
-                __be_starter = ""
-                __be_ender = ""
+                ResetBlockEndTarget()
                 SFE("subcommand processing should not be encountered during block skipping; please report your script as an indication of SLTR script engine failure")
-            elseif !__be_starter || !__be_ender
+            elseif !__be_starter || (!__be_ender && !__be_alt_router && !__be_alt_starter)
                 ; this isn't right, we bail after resetting __be_needed
-                __be_needed = 0
-                __be_starter = ""
-                __be_ender = ""
+                ResetBlockEndTarget()
                 if SLT.Debug_Cmd_RunScript_Blocks
-                    SFW("__be_needed was [" + __be_needed + "], but either __be_starter() or __be_ender were empty (\"\"); resetting __be_needed to 0 and both __be_starter and __be_ender to \"\"")
+                    SFW("__be_needed was [" + __be_needed + "], but either __be_starter() or __be_ender/__be_alt_starter/__be_alt_router were empty (\"\"); resetting __be_needed to 0 and both __be_starter and __be_ender to \"\"")
                 endif
             else
                 if command == __be_starter
                     __be_needed += 1
-                elseif command == __be_ender
+                elseif command == __be_ender || (__be_needed == 1 && (command == __be_alt_router || command == __be_alt_starter))
                     __be_needed -= 1
                     ; this might bring us below 0, i.e. no longer needing to blockskip
                     ; which means we need to allow block end handling now
                     if __be_needed <= 0
-                        __be_starter = ""
-                        __be_ender = ""
+                        ResetBlockEndTarget()
                         __CLRR = CLRR_NOADVANCE
                     endif
                 endif
@@ -1330,6 +1340,25 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             if subCommand
                 SFE("'endif' is not a valid subcommand")
             endif
+            if !IsInsideIfBlock
+                SFE("'endif' encountered outside of if-block; ignoring")
+            endif
+            IsInsideIfBlock = false
+            IfBlockSatisfied = true
+            ;currentLine += 1
+        elseIf command == "else"
+            if subCommand
+                SFE("'else' is not a valid subcommand")
+            endif
+            if !IsInsideIfBlock
+                SFE("'else' encountered outside of if-block; ignoring")
+            else
+                if IfBlockSatisfied
+                    SetBlockEndTarget(BE_IF)
+                endif
+                ; else always satisfies the if-block
+                IfBlockSatisfied = true
+            endif
             ;currentLine += 1
         elseIf command == "endwhile"
             if subCommand
@@ -1401,41 +1430,73 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                     SFE("'while': while <var> | while <var> <op> <var>, invalid number of arguments provided")
                 endif
             endif
-        elseIf command == "if"
+        elseIf (command == "if" || command == "elseif")
+            if !IsInsideIfBlock && command == "elseif"
+                SFW("'elseif' should be preceded by an 'if' to open the block; allowing it but you should change it to make sure your script semantics are as you expect")
+            endif
             if subCommand
-                SFE("'if' is not a valid subcommand")
+                if command == "if"
+                    SFE("'if' is not a valid subcommand")
+                else
+                    SFE("'elseif' is not a valid subcommand")
+                endif
+            elseif IsInsideIfBlock && IfBlockSatisfied && command == "elseif"
+                SetBlockEndTarget(BE_IF)
+                ; inside an if block but it's already been satisfied, keep going until we hit endif
             elseif cmdLine.Length == 2
                 ; if <boolval> ; treat like start of if-block and search for endif
                 if SLT.Debug_Cmd_RunScript_If
-                    SFD("if <bool>")
+                    if command == "if"
+                        SFD("if <bool>")
+                    else
+                        SFD("elseif <bool>")
+                    endif
                 endif
+                
+                IsInsideIfBlock = true
                 if !ResolveBool(cmdLine[1])
                     ; find the matching endif
+                    IfBlockSatisfied = false
                     SetBlockEndTarget(BE_IF)
+                else
+                    IfBlockSatisfied = true
                 endif
             elseif cmdLine.Length == 3
                 ; if <boolval> <label> ;
                 if SLT.Debug_Cmd_RunScript_If
-                    SFD("if <bool> <label>")
-                endif
-                if ResolveBool(cmdLine[1])
-                    __strVal = ResolveLabel(cmdLine[2])
-                    __intVal = slt_FindGoto(__strVal)
-                    if __intVal > -1
-                        ResetBlockContext()
-                        currentLine = __intVal
+                    if command == "if"
+                        SFD("if <bool> <label>")
                     else
-                        SFE("Unable to resolve goto label (" + cmdLine[2] + ") resolved to (" + __strVal + ")")
+                        SFD("elseif <bool> <label>")
+                    endif
+                endif
+                if command == "elseif"
+                    SFE("'elseif' does not support [label] redirection; you will have to add an explicit goto on the following line instead")
+                else
+                    if ResolveBool(cmdLine[1])
+                        __strVal = ResolveLabel(cmdLine[2])
+                        __intVal = slt_FindGoto(__strVal)
+                        if __intVal > -1
+                            ResetBlockContext()
+                            currentLine = __intVal
+                        else
+                            SFE("Unable to resolve goto label (" + cmdLine[2] + ") resolved to (" + __strVal + ")")
+                        endif
                     endif
                 endif
             elseif cmdLine.Length == 4
                 ; if <var1> <op> <var2> ; treat like start of if-block and search for endif
                 if SLT.Debug_Cmd_RunScript_If
-                    SFD("if <val> <op> <val>")
+                    if command == "if"
+                        SFD("if <val> <op> <val>")
+                    else
+                        SFD("elseif <val> <op> <val>")
+                    endif
                 endif
+
                 __operator = ResolveString(cmdLine[2])
                 if SLT.Debug_Cmd_RunScript_If
-                    SFD("if: <op> is    / " + __operator + " /")
+                    SFD("<op> is    / " + __operator + " /")
                 endif
 
                 __bVal = false
@@ -1460,18 +1521,29 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                     if ResolveFloat(cmdLine[1]) <= ResolveFloat(cmdLine[3])
                         __bVal = true
                     endif
+                elseIf __operator == "||"
+                    If ResolveBool(cmdLine[1]) || ResolveBool(cmdLine[3])
+                        __bVal = true
+                    EndIf
+                elseIf __operator == "&&"
+                    If ResolveBool(cmdLine[1]) && ResolveBool(cmdLine[3])
+                        __bVal = true
+                    EndIf
                 else
                     SFE("unexpected operator(" + __operator + "), this is likely an error in the SLT script")
                     __bVal = false
                 endif
 
+                IsInsideIfBlock = true
                 if !__bVal
                     if SLT.Debug_Cmd_RunScript_If
                         SFD("\t\tif: EVALUTED (" + (!__bVal) + "): searching for endif")
                     endif
 
+                    IfBlockSatisfied = false
                     SetBlockEndTarget(BE_IF)
                 else
+                    IfBlockSatisfied = true
                     if SLT.Debug_Cmd_RunScript_If
                         SFD("\t\tif: EVALUTED (" + (!__bVal) + "): proceeding into the if block")
                     endif
@@ -1479,53 +1551,70 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             elseif cmdLine.Length == 5
                 ; if <var1> <op> <var2> <label>
                 if SLT.Debug_Cmd_RunScript_If
-                    SFD("if <var> <opt> <var> <label>")
-                endif
-                __operator = ResolveString(cmdLine[2])
-                if SLT.Debug_Cmd_RunScript_If
-                    SFD("if: <op> is    / " + __operator + " /")
+                    if command == "if"
+                        SFD("if <var> <opt> <var> <label>")
+                    else
+                        SFD("elseif <var> <opt> <var> <label>")
+                    endif
                 endif
                 
-                if __operator
-
-                    __bVal = false
-                    if __operator == "=" || __operator == "==" || __operator == "&="
-                        __bVal = sl_triggers.SmartEquals(ResolveString(cmdLine[1]), ResolveString(cmdLine[3]))
-                    elseIf __operator == "!=" || __operator == "&!="
-                        __bVal = !sl_triggers.SmartEquals(ResolveString(cmdLine[1]), ResolveString(cmdLine[3]))
-                    elseIf __operator == ">"
-                        if ResolveFloat(cmdLine[1]) > ResolveFloat(cmdLine[3])
-                            __bVal = true
-                        endif
-                    elseIf __operator == ">="
-                        if ResolveFloat(cmdLine[1]) >= ResolveFloat(cmdLine[3])
-                            __bVal = true
-                        endif
-                    elseIf __operator == "<"
-                        if ResolveFloat(cmdLine[1]) < ResolveFloat(cmdLine[3])
-                            __bVal = true
-                        endif
-                    elseIf __operator == "<="
-                        if ResolveFloat(cmdLine[1]) <= ResolveFloat(cmdLine[3])
-                            __bVal = true
-                        endif
-                    else
-                        SFE("unexpected operator, this is likely an error in the SLT script")
-                        __bVal = false
+                if command == "elseif"
+                    SFE("'elseif' does not support [label] redirection; you will have to add an explicit goto on the following line instead")
+                else
+                    __operator = ResolveString(cmdLine[2])
+                    if SLT.Debug_Cmd_RunScript_If
+                        SFD("<op> is    / " + __operator + " /")
                     endif
 
-                    if __bVal
-                        __strVal = ResolveLabel(cmdLine[4])
-                        __intVal = slt_FindGoto(__strVal)
-                        if __intVal > -1
-                            ResetBlockContext()
-                            currentLine = __intVal
+                    if __operator
+
+                        __bVal = false
+                        if __operator == "=" || __operator == "==" || __operator == "&="
+                            __bVal = sl_triggers.SmartEquals(ResolveString(cmdLine[1]), ResolveString(cmdLine[3]))
+                        elseIf __operator == "!=" || __operator == "&!="
+                            __bVal = !sl_triggers.SmartEquals(ResolveString(cmdLine[1]), ResolveString(cmdLine[3]))
+                        elseIf __operator == ">"
+                            if ResolveFloat(cmdLine[1]) > ResolveFloat(cmdLine[3])
+                                __bVal = true
+                            endif
+                        elseIf __operator == ">="
+                            if ResolveFloat(cmdLine[1]) >= ResolveFloat(cmdLine[3])
+                                __bVal = true
+                            endif
+                        elseIf __operator == "<"
+                            if ResolveFloat(cmdLine[1]) < ResolveFloat(cmdLine[3])
+                                __bVal = true
+                            endif
+                        elseIf __operator == "<="
+                            if ResolveFloat(cmdLine[1]) <= ResolveFloat(cmdLine[3])
+                                __bVal = true
+                            endif
+                        elseIf __operator == "||"
+                            If ResolveBool(cmdLine[1]) || ResolveBool(cmdLine[3])
+                                __bVal = true
+                            EndIf
+                        elseIf __operator == "&&"
+                            If ResolveBool(cmdLine[1]) && ResolveBool(cmdLine[3])
+                                __bVal = true
+                            EndIf
                         else
-                            SFE("Unable to resolve goto label (" + cmdLine[4] + ") resolved to (" + __strVal + ")")
+                            SFE("unexpected operator, this is likely an error in the SLT script")
+                            __bVal = false
                         endif
-                    endIf
-                else
-                    SFE("unable to resolve operator (" + cmdLine[2] + ") po(" + __operator + ")")
+
+                        if __bVal
+                            __strVal = ResolveLabel(cmdLine[4])
+                            __intVal = slt_FindGoto(__strVal)
+                            if __intVal > -1
+                                ResetBlockContext()
+                                currentLine = __intVal
+                            else
+                                SFE("Unable to resolve goto label (" + cmdLine[4] + ") resolved to (" + __strVal + ")")
+                            endif
+                        endIf
+                    else
+                        SFE("unable to resolve operator (" + cmdLine[2] + ") po(" + __operator + ")")
+                    endif
                 endif
             else
                 SFE("'if': invalid number of arguments")

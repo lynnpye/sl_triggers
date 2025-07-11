@@ -420,20 +420,10 @@ void SLTNativeFunctions::SetExtensionEnabled(PAPYRUS_NATIVE_DECL, std::string_vi
     }
 }
 
-namespace {
-bool isNumeric(std::string_view str, float& outValue) {
-    const char* begin = str.data();
-    const char* end = begin + str.size();
-
-    auto result = std::from_chars(begin, end, outValue);
-    return result.ec == std::errc() && result.ptr == end;
-}
-}
-
 bool SLTNativeFunctions::SmartEquals(PAPYRUS_NATIVE_DECL, std::string_view a, std::string_view b) {
     float aNum = 0.0, bNum = 0.0;
-    bool aIsNum = isNumeric(a, aNum);
-    bool bIsNum = isNumeric(b, bNum);
+    bool aIsNum = Util::String::isNumeric(a, aNum);
+    bool bIsNum = Util::String::isNumeric(b, bNum);
 
     std::optional<bool> aBoolVal;
     std::optional<bool> bBoolVal;

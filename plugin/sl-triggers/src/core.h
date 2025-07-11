@@ -71,7 +71,7 @@ private:
         } else if constexpr (std::is_arithmetic_v<T>) {
             return value != 0;
         } else if constexpr (std::is_same_v<T, std::string>) {
-            return !value.empty() && value != "0" && !Util::String::isFalse(value);
+            return !value.empty();
         } else {
             return true; // Unknown types default to truthy
         }

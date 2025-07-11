@@ -15,6 +15,7 @@
     bugfix: MannySauce was disappointed about the version number mismatch in the MCM; the disappointment has been addressed
     bugfix: plugin should now properly disable function libraries for disabled extensions
     bugfix: empty string literals erroneously reporting as '"'
+    bugfix: plugin should handle hex formatted values for smart comparison
     change: 'goto' will unwind/reset all pending while/gosub calls in your local stack
         if you use 'goto' to jump somewhere else in your code, this will now reset things so that encountering another endsub or endwhile will no longer have unexpected consequences
     change: bool flags in settings.json changed to string: "true"/"false"
@@ -64,6 +65,13 @@
                 ; code that will be skipped because the values are actually equal
             endif
             ; execution will skip to after this line if ($var1 > $var2) evaluates to false
+    enhancement: (IF-ELSE-ENDIF) you can have an 'else' block to go with your if
+        example:
+            if $flag
+                ; code for flag true
+            else
+                ; code for flag false
+            endif
     enhancement: (WHILE/ENDWHILE BLOCK) while-var-endwhile and while-var-op-var-endwhile
         example:
             set $limit 10
