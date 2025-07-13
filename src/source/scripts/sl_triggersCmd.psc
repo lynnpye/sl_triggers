@@ -898,6 +898,9 @@ bool Function InternalResolve(string token)
             elseif "is_player.in_wilderness" == vname
                 CustomResolveBoolResult = SLT.IsLocationKeywordWilderness(SLT.GetPlayerLocationKeyword())
                 return true
+            elseif "is_player.in_combat" == vname
+                CustomResolveBoolResult = PlayerRef.IsInCombat()
+                return true
             elseif "stats.running_scripts" == vname
                 CustomResolveIntResult = SLT.RunningScriptCount
                 return true

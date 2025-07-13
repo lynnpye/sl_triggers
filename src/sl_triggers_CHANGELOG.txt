@@ -12,7 +12,10 @@
     enhancement: New Core trigger: Player Combat State Change
         filters: Entering/Leaving Combat
     enhancement: New Core trigger: Player On Hit
-        filters: Hitting/Was Hit
+        filters: Hitting/Was Hit, Was Blocked, Was Power Attacking, Was Sneak Attacking, Was Bash Attacking
+        request vars introduced: $request.core.player_on_hit.attacker, $request.core.player_on_hit.target
+    enhancement: $system.forms.gold - new system variable, returns Form object for gold in game (0xf)
+    enhancement: $system.core.is_player.in_combat - return true if player is in combat, false otherwise
 
 124
     Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)

@@ -44,6 +44,12 @@ string 	ATTR_EQUIPPING							= "equipping"
 string  ATTR_EQUIPPED_ITEM_TYPE					= "equipped_item_type"
 string  ATTR_ARMOR_SLOT							= "armor_slot"
 string	ATTR_CHANCE								= "chance"
+string  ATTR_COMBAT_STATE						= "combat_state"
+string  ATTR_PLAYER_ATTACKING					= "player_attacking"
+string	ATTR_WAS_POWER_ATTACK					= "was_power_attack"
+string 	ATTR_WAS_SNEAK_ATTACK					= "was_sneak_attack"
+string 	ATTR_WAS_BASH_ATTACK					= "was_bash_attack"
+string	ATTR_WAS_BLOCKED						= "was_blocked"
 string	ATTR_DO_1								= "do_1"
 string	ATTR_DO_2								= "do_2"
 string	ATTR_DO_3								= "do_3"
@@ -1541,8 +1547,6 @@ Function HandleEquipmentChange(Form akBaseObject, ObjectReference akRef, bool is
 		SLTDebugMsg("Core.HandleEquipmentChange: akBaseObject(" + akBaseObject + ") akRef(" + akRef + ") is_equipping(" + is_equipping + ")")
 	EndIf
 
-	SLTDebugMsg("Core.HandleEquipmentChange: akBaseObject(" + akBaseObject + ") akRef(" + akRef + ") is_equipping(" + is_equipping + ")")
-
 	if triggerKeys_equipment_change.Length < 1
 		return
 	endif
@@ -1722,9 +1726,195 @@ int Function GetNextEquipmentChangeRequestId(int requestTargetFormId, int cmdReq
 EndFunction
 
 Function HandlePlayerCombatStateChanged(Actor target, bool player_in_combat)
-	SLTDebugMsg("Core.PlayerCombatStateChanged: target(" + target + ") player_in_combat(" + player_in_combat + ")")
+	If (SLT.Debug_Extension_Core)
+		SLTDebugMsg("Core.HandlePlayerCombatStateChanged: target (" + target + ") player_in_combat (" + player_in_combat + ")")
+	EndIf
+
+	if triggerKeys_player_combat_status.Length < 1
+		return
+	endif
+
+	int cmdRequestId
+	int		requestTargetFormId = PlayerRef.GetFormID() ; conveniently so, in this case
+	int i = 0
+	int j
+
+	bool   	doRun
+	string 	triggerKey
+	string 	_triggerFile
+	string 	command
+
+	int    	ival
+	bool 	bval
+	
+	float chance
+
+	while i < triggerKeys_player_combat_status.Length
+		triggerKey = triggerKeys_player_combat_status[i]
+		_triggerFile = FN_T(triggerKey)
+
+		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
+
+			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+				doRun = true
+
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_COMBAT_STATE)
+					if ival != 0 ; 0 is Any
+						if ival == 1
+							doRun = player_in_combat
+						elseIf ival == 2
+							doRun = !player_in_combat
+						endIf
+					endIf
+				endif
+				
+				if doRun
+					int cmdThreadId
+					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+					if command
+						RequestCommand(PlayerRef, command)
+					endIf
+					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+					if command
+						RequestCommand(PlayerRef, command)
+					endIf
+					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+					if command
+						RequestCommand(PlayerRef, command)
+					endIf
+				endif
+			endif
+		endif
+
+		i += 1
+	endwhile
 EndFunction
 
 Function HandlePlayerOnHit(Form kattacker, Form ktarget, Form ksource, Form kprojectile, bool was_player_attacker, bool kPowerAttack, bool kSneakAttack, bool kBashAttack, bool kHitBlocked)
-	SLTDebugMsg("Core.HandlePlayerOnHit: attacker(" + kattacker + ") target(" + ktarget + ") source(" + ksource + ") projectile(" + kprojectile + ") was_player_attacker(" + was_player_attacker + ") power(" + kPowerAttack + ") sneak(" + kSneakAttack + ") bash(" + kBashAttack + ") blocked(" + kHitBlocked + ")")
+	If (SLT.Debug_Extension_Core)
+		SLTDebugMsg("Core.HandlePlayerOnHit: attacker(" + kattacker + ") target(" + ktarget + ") source(" + ksource + ") projectile(" + kprojectile + ") was_player_attacker(" + was_player_attacker + ") power(" + kPowerAttack + ") sneak(" + kSneakAttack + ") bash(" + kBashAttack + ") blocked(" + kHitBlocked + ")")
+	EndIf
+
+	if triggerKeys_player_on_hit.Length < 1
+		return
+	endif
+
+	int cmdRequestId
+	int		requestTargetFormId = PlayerRef.GetFormID() ; conveniently so, in this case
+	int i = 0
+	int j
+
+	bool   	doRun
+	string 	triggerKey
+	string 	_triggerFile
+	string 	command
+
+	int    	ival
+	bool 	bval
+	
+	float chance
+
+	while i < triggerKeys_player_on_hit.Length
+		triggerKey = triggerKeys_player_on_hit[i]
+		_triggerFile = FN_T(triggerKey)
+
+		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
+
+			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+				doRun = true
+
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PLAYER_ATTACKING)
+					if ival != 0 ; 0 is Any
+						if ival == 1
+							doRun = was_player_attacker
+						elseIf ival == 2
+							doRun = !was_player_attacker
+						endIf
+					endIf
+				endif
+
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_WAS_BLOCKED)
+					if ival != 0 ; 0 is Any
+						if ival == 1
+							doRun = kHitBlocked
+						elseIf ival == 2
+							doRun = !kHitBlocked
+						endIf
+					endIf
+				endif
+
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_WAS_POWER_ATTACK)
+					if ival != 0 ; 0 is Any
+						if ival == 1
+							doRun = kPowerAttack
+						elseIf ival == 2
+							doRun = !kPowerAttack
+						endIf
+					endIf
+				endif
+
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_WAS_SNEAK_ATTACK)
+					if ival != 0 ; 0 is Any
+						if ival == 1
+							doRun = kSneakAttack
+						elseIf ival == 2
+							doRun = !kSneakAttack
+						endIf
+					endIf
+				endif
+
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_WAS_BASH_ATTACK)
+					if ival != 0 ; 0 is Any
+						if ival == 1
+							doRun = kBashAttack
+						elseIf ival == 2
+							doRun = !kBashAttack
+						endIf
+					endIf
+				endif
+				
+				if doRun
+					int cmdThreadId
+					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+					if command
+						cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget)
+						cmdThreadId = SLT.GetNextInstanceId()
+						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+					endIf
+					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+					if command
+						cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget)
+						cmdThreadId = SLT.GetNextInstanceId()
+						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+					endIf
+					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+					if command
+						cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget)
+						cmdThreadId = SLT.GetNextInstanceId()
+						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+					endIf
+				endif
+			endif
+		endif
+
+		i += 1
+	endwhile
+EndFunction
+
+int Function GetNextPlayerOnHitRequestId(int requestTargetFormId, int cmdRequestId, Form attacker, Form target)
+	if !cmdRequestId
+		cmdRequestId = SLT.GetNextInstanceId()
+
+		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.player_on_hit.attacker", attacker)
+		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.player_on_hit.target", target)
+	endif
+	return cmdRequestId
 EndFunction

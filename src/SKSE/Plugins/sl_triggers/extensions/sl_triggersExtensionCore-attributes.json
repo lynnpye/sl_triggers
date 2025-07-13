@@ -32,6 +32,13 @@
         ["equipped_item_type", "triggerattribute_equipped_item_type"],
         ["has_enchantments", "triggerattribute_has_enchantments"],
         ["item_is_unique", "triggerattributes_item_is_unique"],
+        ["combat_state", "triggerattributes_combat_state"],
+        ["player_attacking", "triggerattributes_player_attacking"],
+        ["was_power_attack", "triggerattributes_was_power_attack"],
+        ["was_sneak_attack", "triggerattributes_was_sneak_attack"],
+        ["was_bash_attack", "triggerattributes_was_bash_attack"],
+        ["was_blocked", "triggerattributes_was_blocked"],
+        ["clothed", "triggerattributes_clothed"],
         ["do_1", "triggerattribute_do_1"],
         ["do_2", "triggerattribute_do_2"],
         ["do_3", "triggerattribute_do_3"]
@@ -137,6 +144,36 @@
         ["widget", "menu", "Empty Containers :", "0", "Any", "Ignore Empty Containers", "Only Empty Containers"],
         ["info", "Whether the container has any contents."]
     ],
+    "triggerattribute_combat_state" : [
+        ["type", "int"],
+        ["widget", "menu", "Combat State :", "0", "Any", "Entering Combat", "Leaving Combat"],
+        ["info", "Whether the player is entering or leaving combat."]
+    ],
+    "triggerattribute_player_attacking" : [
+        ["type", "int"],
+        ["widget", "menu", "Player Attacking :", "0", "Any", "Player Attacking", "Player Being Attacked"],
+        ["info", "Whether the player is the one attacking or being attacked."]
+    ],
+    "triggerattribute_was_power_attack" : [
+        ["type", "int"],
+        ["widget", "menu", "Power Attacking :", "0", "Any", "Is Power Attacking", "Is Not Power Attacking"],
+        ["info", "Whether the attack was a power attack."]
+    ],
+    "triggerattribute_was_sneak_attack" : [
+        ["type", "int"],
+        ["widget", "menu", "Sneak Attacking :", "0", "Any", "Is Sneak Attacking", "Is Not Sneak Attacking"],
+        ["info", "Whether the attack was a sneak attack."]
+    ],
+    "triggerattribute_was_bash_attack" : [
+        ["type", "int"],
+        ["widget", "menu", "Bash Attacking :", "0", "Any", "Is Bash Attacking", "Is Not Bash Attacking"],
+        ["info", "Whether the attack was a bash attack."]
+    ],
+    "triggerattribute_was_blocked" : [
+        ["type", "int"],
+        ["widget", "menu", "Attack Blocked :", "0", "Any", "Was Attack Blocked", "Was Attack Blocked"],
+        ["info", "Whether the attack was blocked."]
+    ],
     "triggerattribute_do_1" : [
         ["type", "string"],
         ["widget", "command", "Command 1: "],
@@ -162,7 +199,9 @@
         ["5", "triggerlayout_playerloadingscreen"],
         ["6", "triggerlayout_playercontaineractivate"],
         ["7", "triggerlayout_locationchange"],
-        ["8", "triggerlayout_equipment_change"]
+        ["8", "triggerlayout_equipment_change"],
+        ["9", "triggerlayout_player_combat_status"],
+        ["10", "triggerlayout_player_on_hit"]
     ],
     "triggerlayout_keymapping" : [
         ["event", "keymapping"],
@@ -213,6 +252,20 @@
         ["equipping", "has_enchantments"],
         ["equipped_item_type", "armor_slot"],
         ["item_is_unique", "daytime"],
+        ["do_1", "do_2"],
+        ["do_3"]
+    ],
+    "triggerlayout_player_combat_status" : [
+        ["event", "chance"],
+        ["combat_state"],
+        ["do_1", "do_2"],
+        ["do_3"]
+    ],
+    "triggerlayout_player_on_hit" : [
+        ["event", "chance"],
+        ["player_attacking", "was_blocked"],
+        ["was_power_attack", "was_sneak_attack"],
+        ["was_bash_attack"],
         ["do_1", "do_2"],
         ["do_3"]
     ],

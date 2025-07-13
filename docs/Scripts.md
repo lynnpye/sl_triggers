@@ -63,6 +63,7 @@ Variable names can include any of the following characters after the scope: `A-Z
 |`$system.is_player.in_dungeon`|bool - is the Player currently in a DraugrCrypt, DragonPriestLair, FalmerHive, VampireLair, Dwarven Ruin, Dungeon, Mine, or Cave|
 |`$system.is_player.in_safe`|bool - is the Player currently in a PlayerHome, Jail, or Inn|
 |`$system.is_player.in_wilderness`|bool - is the Player currently in a Hold, BanditCamp, MilitaryFort, or a Location with no keyword|
+|`$system.is_player.in_combat`|bool - true if the Player is currently in combat, false otherwise|
 |`$system.stats.running_scripts`|int - current count of running scripts; will always be 1 or greater because you will be calling it from a script|
 |`$system.realtime`|float - the current real time (i.e. seconds since launch of SkyrimSE.exe) from Game.GetCurrentRealtime()|
 |`$system.gametime`|float - the current game time (i.e. in-game days since your save was created) from Game.GetCurrentGametime()|
@@ -70,7 +71,7 @@ Variable names can include any of the following characters after the scope: `A-Z
 |`$system.initialScriptName`|string - the initial script that was requested; might differ from current script in case `call` was used|
 |`$system.currentScriptName`|string - the current script that is running; might differ from current script in case `call` was used|
 |`$system.sessionid`|int - the current SLTR sessionid (changes with each load of a save or creation of a new game)|
-|`$system.forms.gold`|bool - (Added by SLTR Core) returns the Form for gold (i.e. "0xf|Skyrim.esm")|
+|`$system.forms.gold`|Form - returns the Form for gold (i.e. "0xf|Skyrim.esm")|
 |`$system.is_available.core`|bool - (Added by SLTR Core) is the SLTR Core extension available and enabled (very rare you would want this false)|
 |`$system.is_available.sexlab`|bool - (Added by SLTR SexLab) is the SLTR SexLab extension available and enabled (would be false if you installed on a system without SexLab)|
 |`$system.partner`|Actor - (Added by SLTR SexLab) the first member of the target Actor's current SexLab scene that is not the target Actor (same as `$sexlab.partner1`)|
