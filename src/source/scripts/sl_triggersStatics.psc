@@ -5,7 +5,7 @@ Function SLTDebugMsg(string msg) global
 EndFunction
 
 Function SLTErrMsg(string msg) global
-	sl_triggers_internal.LogError("\n\n!!!!!!!!!!!!!!!!!\n\n\t\t\t\t" + msg + "\n\n\n")
+	sl_triggers_internal.LogError("\n\n!!!!!!!!!!!!!!!!!\n\n\t\t\t\t" + msg + "\n\n!!!!!!!!!!!!!!!!!\n")
 EndFunction
 
 Function SLTInfoMsg(string msg) global
@@ -17,7 +17,7 @@ Function SLTWarnMsg(string msg) global
 EndFunction
 
 int Function GetModVersion() global
-	return 125
+	return 126
 EndFunction
 
 ;;;;;;;

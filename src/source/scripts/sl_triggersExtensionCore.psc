@@ -1885,19 +1885,19 @@ Function HandlePlayerOnHit(Form kattacker, Form ktarget, Form ksource, Form kpro
 					int cmdThreadId
 					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
 					if command
-						cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget)
+						cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget, ksource, kprojectile)
 						cmdThreadId = SLT.GetNextInstanceId()
 						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
 					endIf
 					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
 					if command
-						cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget)
+						cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget, ksource, kprojectile)
 						cmdThreadId = SLT.GetNextInstanceId()
 						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
 					endIf
 					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
 					if command
-						cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget)
+						cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget, ksource, kprojectile)
 						cmdThreadId = SLT.GetNextInstanceId()
 						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
 					endIf
@@ -1909,12 +1909,14 @@ Function HandlePlayerOnHit(Form kattacker, Form ktarget, Form ksource, Form kpro
 	endwhile
 EndFunction
 
-int Function GetNextPlayerOnHitRequestId(int requestTargetFormId, int cmdRequestId, Form attacker, Form target)
+int Function GetNextPlayerOnHitRequestId(int requestTargetFormId, int cmdRequestId, Form kattacker, Form ktarget, Form ksource, Form kprojectile)
 	if !cmdRequestId
 		cmdRequestId = SLT.GetNextInstanceId()
 
-		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.player_on_hit.attacker", attacker)
-		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.player_on_hit.target", target)
+		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.player_on_hit.attacker", kattacker)
+		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.player_on_hit.target", ktarget)
+		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.player_on_hit.source", ksource)
+		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.player_on_hit.projectile", kprojectile)
 	endif
 	return cmdRequestId
 EndFunction
