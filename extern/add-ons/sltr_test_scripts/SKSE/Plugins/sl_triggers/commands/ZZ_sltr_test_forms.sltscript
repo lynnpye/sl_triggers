@@ -1,0 +1,415 @@
+;;;;
+; Literals
+
+;;;;
+; 01
+inc $thread.testCount
+set $testval_01 resultfrom form_getbyid "15|Skyrim.esm"
+if $testval_01 == 0xf
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid: requested decimal string, pipe-delimited, received({testval_01})"
+else
+    deb_msg $"FAIL: form_getbyid: requested decimal string, pipe-delimited, received({testval_01})"
+endif
+
+inc $thread.testCount
+if $testval_01 != $system.none
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid: inequality with $system.none, received({testval_01})"
+else
+    deb_msg $"FAIL: form_getbyid: inequality with $system.none, received({testval_01})"
+endif
+
+inc $thread.testCount
+if $testval_01 == $system.none
+    deb_msg $"FAIL: form_getbyid: equality with $system.none, received({testval_01})"
+else
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid: equality with $system.none, received({testval_01})"
+endif
+
+inc $thread.testCount
+set $resultval_01 resultfrom form_dogetter $testval_01 GetName
+if $resultval_01 == "Gold"
+    inc $thread.passCount
+    deb_msg $"PASS: form_dogetter GetName: decimal string, pipe-delimited: received({resultval_01}) from form({testval_01})"
+else
+    deb_msg $"FAIL: form_dogetter GetName: decimal string, pipe-delimited: received({resultval_01}) from form({testval_01})"
+endif
+
+;;;;
+; 02
+inc $thread.testCount
+set $testval_02 resultfrom form_getbyid "0xf|Skyrim.esm"
+if $testval_02 == 0xf
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid: requested hex string, pipe-delimited, received({testval_02})"
+else
+    deb_msg $"FAIL: form_getbyid: requested hex string, pipe-delimited, received({testval_02})"
+endif
+
+inc $thread.testCount
+set $resultval_02 resultfrom form_dogetter $testval_02 GetName
+if $resultval_02 == "Gold"
+    inc $thread.passCount
+    deb_msg $"PASS: form_dogetter GetName: hex string, pipe-delimited: received({resultval_02}) from form({testval_02})"
+else
+    deb_msg $"FAIL: form_dogetter GetName: hex string, pipe-delimited: received({resultval_02}) from form({testval_02})"
+endif
+
+;;;;
+; 03
+inc $thread.testCount
+set $testval_03 resultfrom form_getbyid 15
+if $testval_03 == 0xf
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid: requested int (non-relative FormID), received({testval_03})"
+else
+    deb_msg $"FAIL: form_getbyid: requested int (non-relative FormID), received({testval_03})"
+endif
+
+inc $thread.testCount
+set $resultval_03 resultfrom form_dogetter $testval_03 GetName
+if $resultval_03 == "Gold"
+    inc $thread.passCount
+    deb_msg $"PASS: form_dogetter GetName: int (non-relative FormID): received({resultval_03}) from form({testval_03})"
+else
+    deb_msg $"FAIL: form_dogetter GetName: int (non-relative FormID): received({resultval_03}) from form({testval_03})"
+endif
+
+;;;;
+; 04
+inc $thread.testCount
+set $testval_04 resultfrom form_getbyid 0xf
+if $testval_04 == 0xf
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid: requested hex int (non-relative FormID), received({testval_04})"
+else
+    deb_msg $"FAIL: form_getbyid: requested hex int (non-relative FormID), received({testval_04})"
+endif
+
+inc $thread.testCount
+set $resultval_04 resultfrom form_dogetter $testval_04 GetName
+if $resultval_04 == "Gold"
+    inc $thread.passCount
+    deb_msg $"PASS: form_dogetter GetName: hex int (non-relative FormID): received({resultval_04}) from form({testval_04})"
+else
+    deb_msg $"FAIL: form_dogetter GetName: hex int (non-relative FormID): received({resultval_04}) from form({testval_04})"
+endif
+
+;;;;
+; 05
+inc $thread.testCount
+set $testval_05 resultfrom form_getbyid "Skyrim.esm:15"
+if $testval_05 == 0xf
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid: requested decimal string, colon-delimited, received({testval_05})"
+else
+    deb_msg $"FAIL: form_getbyid: requested decimal string, colon-delimited, received({testval_05})"
+endif
+
+inc $thread.testCount
+set $resultval_05 resultfrom form_dogetter $testval_05 GetName
+if $resultval_05 == "Gold"
+    inc $thread.passCount
+    deb_msg $"PASS: form_dogetter GetName: decimal string, colon-delimited: received({resultval_05}) from form({testval_05})"
+else
+    deb_msg $"FAIL: form_dogetter GetName: decimal string, colon-delimited: received({resultval_05}) from form({testval_05})"
+endif
+
+;;;;
+; 06
+inc $thread.testCount
+set $testval_06 resultfrom form_getbyid "Skyrim.esm:0xf"
+if $testval_06 == 0xf
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid: requested decimal string, colon-delimited, received({testval_06})"
+else
+    deb_msg $"FAIL: form_getbyid: requested decimal string, colon-delimited, received({testval_06})"
+endif
+
+inc $thread.testCount
+set $resultval_06 resultfrom form_dogetter $testval_06 GetName
+if $resultval_06 == "Gold"
+    inc $thread.passCount
+    deb_msg $"PASS: form_dogetter GetName: decimal string, colon-delimited: received({resultval_06}) from form({testval_06})"
+else
+    deb_msg $"FAIL: form_dogetter GetName: decimal string, colon-delimited: received({resultval_06}) from form({testval_06})"
+endif
+
+;;;;
+; Variables
+
+;;;;
+; 11
+inc $thread.testCount
+set $formval_11 "15|Skyrim.esm"
+set $testval_11 resultfrom form_getbyid $formval_11
+if $testval_11 == 0xf
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid: requested decimal var, pipe-delimited, received({testval_11})"
+else
+    deb_msg $"FAIL: form_getbyid: requested decimal var, pipe-delimited, received({testval_11})"
+endif
+
+inc $thread.testCount
+set $resultval_11 resultfrom form_dogetter $testval_11 GetName
+if $resultval_11 == "Gold"
+    inc $thread.passCount
+    deb_msg $"PASS: form_dogetter GetName: decimal var, pipe-delimited: received({resultval_11}) from form({testval_11})"
+else
+    deb_msg $"FAIL: form_dogetter GetName: decimal var, pipe-delimited: received({resultval_11}) from form({testval_11})"
+endif
+
+;;;;
+; 12
+inc $thread.testCount
+set $formval_12 "0xf|Skyrim.esm"
+set $testval_12 resultfrom form_getbyid $formval_12
+if $testval_12 == 0xf
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid: requested hex var, pipe-delimited, received({testval_12})"
+else
+    deb_msg $"FAIL: form_getbyid: requested hex var, pipe-delimited, received({testval_12})"
+endif
+
+inc $thread.testCount
+set $resultval_12 resultfrom form_dogetter $testval_12 GetName
+if $resultval_12 == "Gold"
+    inc $thread.passCount
+    deb_msg $"PASS: form_dogetter GetName: hex var, pipe-delimited: received({resultval_12}) from form({testval_12})"
+else
+    deb_msg $"FAIL: form_dogetter GetName: hex var, pipe-delimited: received({resultval_12}) from form({testval_12})"
+endif
+
+;;;;
+; 13
+inc $thread.testCount
+set $formval_13 15
+set $testval_13 resultfrom form_getbyid $formval_13
+if $testval_13 == 0xf
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid: requested int var (non-relative FormID), received({testval_13})"
+else
+    deb_msg $"FAIL: form_getbyid: requested int var (non-relative FormID), received({testval_13})"
+endif
+
+inc $thread.testCount
+set $resultval_13 resultfrom form_dogetter $testval_13 GetName
+if $resultval_13 == "Gold"
+    inc $thread.passCount
+    deb_msg $"PASS: form_dogetter GetName: int var (non-relative FormID): received({resultval_13}) from form({testval_13})"
+else
+    deb_msg $"FAIL: form_dogetter GetName: int var (non-relative FormID): received({resultval_13}) from form({testval_13})"
+endif
+
+;;;;
+; 14
+inc $thread.testCount
+set $formval_14 0xf
+set $testval_14 resultfrom form_getbyid $formval_14
+if $testval_14 == 0xf
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid: requested hex int var (non-relative FormID), received({testval_14})"
+else
+    deb_msg $"FAIL: form_getbyid: requested hex int var (non-relative FormID), received({testval_14})"
+endif
+
+inc $thread.testCount
+set $resultval_14 resultfrom form_dogetter $testval_14 GetName
+if $resultval_14 == "Gold"
+    inc $thread.passCount
+    deb_msg $"PASS: form_dogetter GetName: hex int var (non-relative FormID): received({resultval_14}) from form({testval_14})"
+else
+    deb_msg $"FAIL: form_dogetter GetName: hex int var (non-relative FormID): received({resultval_14}) from form({testval_14})"
+endif
+
+;;;;
+; 15
+inc $thread.testCount
+set $formval_15 "Skyrim.esm:15"
+set $testval_15 resultfrom form_getbyid $formval_15
+if $testval_15 == 0xf
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid: requested decimal var, colon-delimited, received({testval_15})"
+else
+    deb_msg $"FAIL: form_getbyid: requested decimal var, colon-delimited, received({testval_15})"
+endif
+
+inc $thread.testCount
+set $resultval_15 resultfrom form_dogetter $testval_15 GetName
+if $resultval_15 == "Gold"
+    inc $thread.passCount
+    deb_msg $"PASS: form_dogetter GetName: decimal var, colon-delimited: received({resultval_15}) from form({testval_15})"
+else
+    deb_msg $"FAIL: form_dogetter GetName: decimal var, colon-delimited: received({resultval_15}) from form({testval_15})"
+endif
+
+;;;;
+; 16
+inc $thread.testCount
+set $formval_16 "Skyrim.esm:0xf"
+set $testval_16 resultfrom form_getbyid $formval_16
+if $testval_16 == 0xf
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid: requested decimal var, colon-delimited, received({testval_16})"
+else
+    deb_msg $"FAIL: form_getbyid: requested decimal var, colon-delimited, received({testval_16})"
+endif
+
+inc $thread.testCount
+set $resultval_16 resultfrom form_dogetter $testval_16 GetName
+if $resultval_16 == "Gold"
+    inc $thread.passCount
+    deb_msg $"PASS: form_dogetter GetName: decimal var, colon-delimited: received({resultval_16}) from form({testval_16})"
+else
+    deb_msg $"FAIL: form_dogetter GetName: decimal var, colon-delimited: received({resultval_16}) from form({testval_16})"
+endif
+
+;;;;
+; System variable
+
+;;;;
+; 21
+inc $thread.testCount
+set $testval_21 resultfrom form_getbyid $system.forms.gold
+if $testval_21 == 0xf
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid: requested $system.forms.gold, received({testval_21})"
+else
+    deb_msg $"FAIL: form_getbyid: requested $system.forms.gold, received({testval_21})"
+endif
+
+inc $thread.testCount
+set $resultval_21 resultfrom form_dogetter $testval_21 GetName
+if $resultval_21 == "Gold"
+    inc $thread.passCount
+    deb_msg $"PASS: form_dogetter GetName: $system.forms.gold: received({resultval_21}) from form({testval_21})"
+else
+    deb_msg $"FAIL: form_dogetter GetName: $system.forms.gold: received({resultval_21}) from form({testval_21})"
+endif
+
+;;;;
+; 22
+inc $thread.testCount
+set $testval_22 resultfrom form_getbyid $system.forms.septim
+if $testval_22 == 0xf
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid: requested $system.forms.septim, received({testval_22})"
+else
+    deb_msg $"FAIL: form_getbyid: requested $system.forms.septim, received({testval_22})"
+endif
+
+inc $thread.testCount
+set $resultval_22 resultfrom form_dogetter $testval_22 GetName
+if $resultval_22 == "Gold"
+    inc $thread.passCount
+    deb_msg $"PASS: form_dogetter GetName: $system.forms.septim: received({resultval_22}) from form({testval_22})"
+else
+    deb_msg $"FAIL: form_dogetter GetName: $system.forms.septim: received({resultval_22}) from form({testval_22})"
+endif
+
+;;;;
+; Form variables from return values
+;;;;
+; 31
+inc $thread.testCount
+set $testval_31 resultfrom form_getbyid $system.forms.gold
+if $testval_31 == 0xf
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid: requested form var, received({testval_31})"
+else
+    deb_msg $"FAIL: form_getbyid: requested form var, received({testval_31})"
+endif
+
+inc $thread.testCount
+set $resultval_31 resultfrom form_dogetter $testval_31 GetName
+if $resultval_31 == "Gold"
+    inc $thread.passCount
+    deb_msg $"PASS: form_dogetter GetName: form var: received({resultval_31}) from form({testval_31})"
+else
+    deb_msg $"FAIL: form_dogetter GetName: form var: received({resultval_31}) from form({testval_31})"
+endif
+
+;;;;
+; ESL Form values
+
+;;;;
+; 41
+inc $thread.testCount
+set $testval_41 resultfrom form_getbyid "2111|sl_triggers.esp"
+if $testval_41 != $system.none
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid: requested decimal string, pipe-delimited, received({testval_41})"
+else
+    deb_msg $"FAIL: form_getbyid: requested decimal string, pipe-delimited, received({testval_41})"
+endif
+
+inc $thread.testCount
+set $resultval_41 resultfrom form_dogetter $testval_41 GetName
+if $resultval_41 == "SLT"
+    inc $thread.passCount
+    deb_msg $"PASS: form_dogetter GetName: decimal string, pipe-delimited: received({resultval_41}) from form({testval_41})"
+else
+    deb_msg $"FAIL: form_dogetter GetName: decimal string, pipe-delimited: received({resultval_41}) from form({testval_41})"
+endif
+
+;;;;
+; 42
+inc $thread.testCount
+set $testval_42 resultfrom form_getbyid "0x83f|sl_triggers.esp"
+if $testval_42 != $system.none
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid: requested hex string, pipe-delimited, received({testval_42})"
+else
+    deb_msg $"FAIL: form_getbyid: requested hex string, pipe-delimited, received({testval_42})"
+endif
+
+inc $thread.testCount
+set $resultval_42 resultfrom form_dogetter $testval_42 GetName
+if $resultval_42 == "SLT"
+    inc $thread.passCount
+    deb_msg $"PASS: form_dogetter GetName: hex string, pipe-delimited: received({resultval_42}) from form({testval_42})"
+else
+    deb_msg $"FAIL: form_dogetter GetName: hex string, pipe-delimited: received({resultval_42}) from form({testval_42})"
+endif
+
+;;;;
+; 43
+inc $thread.testCount
+set $testval_43 resultfrom form_getbyid "sl_triggers.esp:2111"
+if $testval_43 != $system.none
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid: requested decimal string, colon-delimited, received({testval_43})"
+else
+    deb_msg $"FAIL: form_getbyid: requested decimal string, colon-delimited, received({testval_43})"
+endif
+
+inc $thread.testCount
+set $resultval_43 resultfrom form_dogetter $testval_43 GetName
+if $resultval_43 == "SLT"
+    inc $thread.passCount
+    deb_msg $"PASS: form_dogetter GetName: decimal string, colon-delimited: received({resultval_43}) from form({testval_43})"
+else
+    deb_msg $"FAIL: form_dogetter GetName: decimal string, colon-delimited: received({resultval_43}) from form({testval_43})"
+endif
+
+;;;;
+; 44
+inc $thread.testCount
+set $testval_44 resultfrom form_getbyid "sl_triggers.esp:0x83f"
+if $testval_44 != $system.none
+    inc $thread.passCount
+    deb_msg $"PASS: form_getbyid: requested decimal string, colon-delimited, received({testval_44})"
+else
+    deb_msg $"FAIL: form_getbyid: requested decimal string, colon-delimited, received({testval_44})"
+endif
+
+inc $thread.testCount
+set $resultval_44 resultfrom form_dogetter $testval_44 GetName
+if $resultval_44 == "SLT"
+    inc $thread.passCount
+    deb_msg $"PASS: form_dogetter GetName: decimal string, colon-delimited: received({resultval_44}) from form({testval_44})"
+else
+    deb_msg $"FAIL: form_dogetter GetName: decimal string, colon-delimited: received({resultval_44}) from form({testval_44})"
+endif

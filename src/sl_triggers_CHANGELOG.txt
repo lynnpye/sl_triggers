@@ -1,3 +1,19 @@
+125
+    Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)
+    Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log (or whichever folder you have your SKSE logs directed to)
+    bugfix: MCM for container activation not respecting Empty, Corpse, and Common Container settings
+    bugfix: type conversion from Form variables was incorrectly attempting to parse strings
+    enhancement: New Core trigger: Player Location Change
+        filters: Chance, Daytime, Departing Location (inside/outside/wilderness/city/dungeon/etc.), Is Departed Location Cleared, Arriving Location, Is Arrival Location Cleared
+        request vars introduced: $request.core.from_location, $request.core.to_location
+    enhancement: New Core trigger: Player Equipment Change
+        filters: Is Equipping/Unequipping, Is Unique, Has Enchantments, Item Type (Armor, Weapon, Potion, etc.), Armor Slot (if applicable)
+        request vars introduced: $request.core.equipped_item.base_form, $request.core.equipped_item.object_reference, $request.core.equipped_item.is_equipping, $request.core.equipped_item.is_unique, $request.core.equipped_item.has_enchantments, $request.core.equipped_item.type
+    enhancement: New Core trigger: Player Combat State Change
+        filters: Entering/Leaving Combat
+    enhancement: New Core trigger: Player On Hit
+        filters: Hitting/Was Hit
+
 124
     Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)
     Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log (or whichever folder you have your SKSE logs directed to)

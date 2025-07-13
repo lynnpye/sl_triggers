@@ -165,29 +165,6 @@ std::optional<std::int32_t> Util::String::StringToIntWithImplicitHexConversion(s
     return std::nullopt;
 }
 
-std::optional<std::uint32_t> Util::String::StringToUnsignedIntWithImplicitHexConversion(std::string_view _hexStr) {
-    std::string hexStr = trim(_hexStr);
-    if (hexStr.empty()) {
-        return 0;
-    }
-    const char* start = hexStr.data();
-    const char* end = hexStr.data() + hexStr.size();
-    int base = 10;
-    
-    if (hexStr.size() >= 2 && str::iEquals(hexStr.substr(0, 2), "0x")) {
-        start += 2;
-        base = 16;
-    }
-    
-    std::uint32_t result;
-    auto [ptr, ec] = std::from_chars(start, end, result, base);
-    
-    if (ec == std::errc{} && ptr == end) {
-        return result;
-    }
-    return std::nullopt;
-}
-
 bool Util::String::isNumeric(std::string_view str, float& outValue) {
     std::string hexStr = trim(str);
     if (hexStr.empty()) {
@@ -492,6 +469,7 @@ RE::TESForm* FormUtil::Parse::GetForm(std::string_view data) {
     RE::TESForm* retVal = nullptr;
     
     if (data.empty()) {
+        logger::warn("GetForm: invalid form specifier ({})", data);
         return nullptr;
     }
     
@@ -502,7 +480,7 @@ RE::TESForm* FormUtil::Parse::GetForm(std::string_view data) {
         const std::string& sid = params[1];
         
         if (!modfile.empty() && !sid.empty()) {
-            auto idOpt = Util::String::StringToUnsignedIntWithImplicitHexConversion(sid);
+            auto idOpt = Util::String::StringToIntWithImplicitHexConversion(sid);
             
             if (idOpt.has_value()) {
                 RE::FormID id = static_cast<RE::FormID>(idOpt.value());
@@ -510,8 +488,20 @@ RE::TESForm* FormUtil::Parse::GetForm(std::string_view data) {
                 auto* dataHandler = RE::TESDataHandler::GetSingleton();
                 if (dataHandler) {
                     retVal = dataHandler->LookupForm(id, modfile);
+                    if (!retVal) {
+                        logger::warn("GetForm: data({}) appears valid, but dataHandler->LookupForm() returned nullptr", data);
+                    }
+                }
+                else {
+                    logger::error("GetForm: Unable to obtain data handler singleton");
                 }
             }
+            else {
+                logger::warn("GetForm: unable to convert ({}) to int", sid);
+            }
+        }
+        else {
+            logger::warn("GetForm: (:) one of modfile({}) or sid({}) was empty", modfile, sid);
         }
     } 
     else {
@@ -521,7 +511,7 @@ RE::TESForm* FormUtil::Parse::GetForm(std::string_view data) {
             const std::string& modfile = params[1];
             
             if (!modfile.empty() && !sid.empty()) {
-                auto idOpt = Util::String::StringToUnsignedIntWithImplicitHexConversion(sid);
+                auto idOpt = Util::String::StringToIntWithImplicitHexConversion(sid);
                 
                 if (idOpt.has_value()) {
                     RE::FormID id = static_cast<RE::FormID>(idOpt.value());
@@ -529,12 +519,24 @@ RE::TESForm* FormUtil::Parse::GetForm(std::string_view data) {
                     auto* dataHandler = RE::TESDataHandler::GetSingleton();
                     if (dataHandler) {
                         retVal = dataHandler->LookupForm(id, modfile);
+                        if (!retVal) {
+                            logger::warn("GetForm: data({}) appears valid, but dataHandler->LookupForm() returned nullptr", data);
+                        }
+                    }
+                    else {
+                        logger::error("GetForm: Unable to obtain data handler singleton");
                     }
                 }
+                else {
+                    logger::warn("GetForm: unable to convert ({}) to int", sid);
+                }
+            }
+            else {
+                logger::warn("GetForm: (|) one of sid({}) or modfile({}) was empty", sid, modfile);
             }
         } 
         else if (params.size() == 1) {
-            auto idOpt = Util::String::StringToUnsignedIntWithImplicitHexConversion(data);
+            auto idOpt = Util::String::StringToIntWithImplicitHexConversion(data);
             
             if (idOpt.has_value() && idOpt.value() != 0) {
                 RE::FormID id = static_cast<RE::FormID>(idOpt.value());
@@ -542,6 +544,9 @@ RE::TESForm* FormUtil::Parse::GetForm(std::string_view data) {
             } else {
                 retVal = RE::TESForm::LookupByEditorID(data);
             }
+        }
+        else {
+            logger::error("GetForm: unexpected parse result for ({})", data);
         }
     }
     

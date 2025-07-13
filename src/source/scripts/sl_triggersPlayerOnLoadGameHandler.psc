@@ -3,14 +3,21 @@ scriptname sl_triggersPlayerOnLoadGameHandler extends ReferenceAlias
 import sl_triggersStatics
 
 sl_triggersMain			Property SLT Auto
+sl_triggersExtensionCore Property SLTCore Auto Hidden
 
 Event OnPlayerLoadGame()
+	SLT.SLTPLYREF = self
 	SLT.DoPlayerLoadGame()
 	InitiateConsoleHook()
 EndEvent
 
 Event OnInit()
+	SLT.SLTPLYREF = self
 	InitiateConsoleHook()
+EndEvent
+
+Event OnLocationChange(Location akOldLoc, Location akNewLoc)
+	SLTCore.HandleLocationChanged(akOldLoc, akNewLoc)
 EndEvent
 
 Function InitiateConsoleHook()

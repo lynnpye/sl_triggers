@@ -20,6 +20,10 @@ int  	EVENT_ID_NEW_SESSION					= 3
 int		EVENT_ID_PLAYER_CELL_CHANGE				= 4
 int		EVENT_ID_PLAYER_LOADING_SCREEN			= 5
 int		EVENT_ID_CONTAINER						= 6
+int		EVENT_ID_LOCATION_CHANGE				= 7
+int		EVENT_ID_EQUIPMENT_CHANGE				= 8
+int		EVENT_ID_PLAYER_COMBAT_STATUS			= 9
+int		EVENT_ID_PLAYER_ON_HIT					= 10
 string	ATTR_EVENT								= "event"
 string	ATTR_KEYMAPPING							= "keymapping"
 string	ATTR_MODIFIERKEYMAPPING 				= "modifierkeymapping"
@@ -28,8 +32,17 @@ string  ATTR_DAYTIME							= "daytime"
 string	ATTR_LOCATION							= "location"
 string  ATTR_COMMONCONTAINERMATCHING			= "comconmat"
 string  ATTR_DEEPLOCATION						= "deeplocation"
+string  ATTR_DEEPLOCATION_LEAVING				= "deeplocation_leaving"
+string  ATTR_DEEPLOCATION_ENTERING				= "deeplocation_entering"
 string  ATTR_CONTAINER_CORPSE					= "container_corpse"
 string  ATTR_CONTAINER_EMPTY					= "container_empty"
+string  ATTR_CLEARED_LEAVING					= "cleared_leaving"
+string  ATTR_CLEARED_ENTERING					= "cleared_entering"
+string  ATTR_HAS_ENCHANTMENTS					= "has_enchantments"
+string  ATTR_ITEM_IS_UNIQUE						= "item_is_unique"
+string 	ATTR_EQUIPPING							= "equipping"
+string  ATTR_EQUIPPED_ITEM_TYPE					= "equipped_item_type"
+string  ATTR_ARMOR_SLOT							= "armor_slot"
 string	ATTR_CHANCE								= "chance"
 string	ATTR_DO_1								= "do_1"
 string	ATTR_DO_2								= "do_2"
@@ -61,6 +74,10 @@ string[]	triggerKeys_newSession
 string[]	triggerKeys_playercellchange
 string[]	triggerKeys_playerloadingscreen
 string[]	triggerKeys_container
+string[]	triggerKeys_location_change
+string[]	triggerKeys_equipment_change
+string[]	triggerKeys_player_combat_status
+string[]	triggerKeys_player_on_hit
 
 bool		playerCellChangeHandlingReady
 float 		last_time_PlayerCellChangeEvent
@@ -246,6 +263,12 @@ Function SLTReady()
 		SLTDebugMsg("Core.SLTReady")
 	endif
 
+	SLT.SLTPLYREF.SLTCore = self
+
+	if !SLT.SLTPLYREF
+		SLTErrMsg("Core.SLTReady setting SLT.SLTPLYREF.SLTCore but SLT.SLTPLYREF is still none")
+	endif
+
 	PopulatePerk()
 	if SLT.Debug_Extension_Core
 		SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ")")
@@ -419,7 +442,19 @@ Event OnSLTRPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Form fkwPl
 	endif
 EndEvent
 
-int cellPreviousSessionId;
+Event OnSLTRPlayerEquipEvent(Form baseForm, ObjectReference objRef, bool is_equipping)
+	HandleEquipmentChange(baseForm, objRef, is_equipping)
+EndEvent
+
+Event OnSLTRPlayerCombatStateChanged(Actor target, bool player_in_combat)
+	HandlePlayerCombatStateChanged(target, player_in_combat)
+EndEvent
+
+Event OnSLTRPlayerHit(Form kattacker, Form ktarget, Form ksource, Form kprojectile, bool was_player_attacker, bool kPowerAttack, bool kSneakAttack, bool kBashAttack, bool kHitBlocked)
+	HandlePlayerOnHit(kattacker, ktarget, ksource, kprojectile, was_player_attacker, kPowerAttack, kSneakAttack, kBashAttack, kHitBlocked)
+EndEvent
+
+int cellPreviousSessionId
 Function Send_SLTR_OnPlayerCellChange()
 	if !PlayerRef || !PlayerRef.Is3DLoaded() || PlayerRef.IsDisabled()
         SLTDebugMsg("Core.Send_SLTR_OnPlayerCellChange: Player not ready for cell change processing")
@@ -432,7 +467,9 @@ Function Send_SLTR_OnPlayerCellChange()
 	if last_time_PlayerCellChangeEvent && nowtime > last_time_PlayerCellChangeEvent
 		if (nowtime - last_time_PlayerCellChangeEvent) < 1.0
 			; ignoring flutter
-			SLTDebugMsg("Core.Send_SLTR_OnPlayerCellChange: ignoring flutter")
+			If (SLT.Debug_Extension_Core)
+				SLTDebugMsg("Core.Send_SLTR_OnPlayerCellChange: ignoring flutter")
+			EndIf
 			return
 		endif
 	; i.e. new launch of the .exe; not reversing time (is there an API for that?)
@@ -596,6 +633,11 @@ Function RefreshTriggerCache()
 	triggerKeys_playercellchange		= PapyrusUtil.StringArray(0)
 	triggerKeys_playerloadingscreen		= PapyrusUtil.StringArray(0)
 	triggerKeys_container				= PapyrusUtil.StringArray(0)
+	triggerKeys_location_change			= PapyrusUtil.StringArray(0)
+	triggerKeys_equipment_change		= PapyrusUtil.StringArray(0)
+	triggerKeys_player_combat_status	= PapyrusUtil.StringArray(0)
+	triggerKeys_player_on_hit			= PapyrusUtil.StringArray(0)
+
 	int i = 0
 	
 	while i < TriggerKeys.Length
@@ -616,6 +658,14 @@ Function RefreshTriggerCache()
 				triggerKeys_playerloadingscreen = PapyrusUtil.PushString(triggerKeys_playerloadingscreen, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_CONTAINER
 				triggerKeys_container = PapyrusUtil.PushString(triggerKeys_container, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_LOCATION_CHANGE
+				triggerKeys_location_change = PapyrusUtil.PushString(triggerKeys_location_change, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_EQUIPMENT_CHANGE
+				triggerKeys_equipment_change = PapyrusUtil.PushString(triggerKeys_equipment_change, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_PLAYER_COMBAT_STATUS
+				triggerKeys_player_combat_status = PapyrusUtil.PushString(triggerKeys_player_combat_status, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_PLAYER_ON_HIT
+				triggerKeys_player_on_hit = PapyrusUtil.PushString(triggerKeys_player_on_hit, TriggerKeys[i])
 			endif
 		endif
 
@@ -718,7 +768,9 @@ Function RegisterEvents()
 
 	if SLT.SLTRContainerPerk
 		if PlayerRef && !PlayerRef.HasPerk(SLT.SLTRContainerPerk)
-			;SLTDebugMsg("Core.RegisterEvents: during check for OnSLTRContainerActivate, adding missing perk to player")
+			If (SLT.Debug_Extension_Core)
+				SLTDebugMsg("Core.RegisterEvents: during check for OnSLTRContainerActivate, adding missing perk to player")
+			EndIf
 			PlayerRef.AddPerk(SLT.SLTRContainerPerk)
 		endif
 
@@ -731,6 +783,28 @@ Function RegisterEvents()
 	else
 		SLTDebugMsg("Core.RegisterEvents: failed/2 to register OnSLTRContainerActivate: IsEnabled(" + IsEnabled + ") / SLT.SLTRContainerPerk(" + SLT.SLTRContainerPerk + ") / PlayerRef(" + PlayerRef + ") / PlayerRef.HasPerk(" + (SLT && SLT.SLTRContainerPerk && PlayerRef && PlayerRef.HasPerk(SLT.SLTRContainerPerk)) + ")")
 	EndIf
+
+	UnregisterForModEvent(EVENT_SLTR_ON_PLAYER_EQUIP())
+	if triggerKeys_equipment_change.Length > 0
+		SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_EQUIP(), EVENT_SLTR_ON_PLAYER_EQUIP())
+	else
+		SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_EQUIP(), EVENT_SLTR_ON_PLAYER_EQUIP())
+	endif
+
+	UnregisterForModEvent(EVENT_SLTR_ON_PLAYER_COMBAT_STATE_CHANGED())
+	if triggerKeys_player_combat_status.Length > 0
+		SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_COMBAT_STATE_CHANGED(), EVENT_SLTR_ON_PLAYER_COMBAT_STATE_CHANGED())
+	else
+		SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_COMBAT_STATE_CHANGED(), EVENT_SLTR_ON_PLAYER_COMBAT_STATE_CHANGED())
+	endif
+
+	UnregisterForModEvent(EVENT_SLTR_ON_PLAYER_HIT())
+	if triggerKeys_player_on_hit.Length > 0
+		SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_HIT(), EVENT_SLTR_ON_PLAYER_HIT())
+	else
+		SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_HIT(), EVENT_SLTR_ON_PLAYER_HIT())
+	endif
+
 EndFunction
 
 Function RegisterForKeyEvents()
@@ -964,10 +1038,10 @@ Function HandleOnPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Keywo
 			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
 				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
 				if ival != 0 ; 0 is Any
-					if ival == 1 && dayTime() != 1
-						doRun = false
-					elseIf ival == 2 && dayTime() != 2
-						doRun = false
+					if ival == 1
+						doRun = DayTime()
+					elseIf ival == 2
+						doRun = !DayTime()
 					endIf
 				endIf
 
@@ -1081,10 +1155,6 @@ Function HandleOnPlayerLoadingScreen()
 EndFunction
 
 Function HandlePlayerContainerActivation(ObjectReference containerRef, bool container_is_corpse, bool container_is_empty, Keyword playerLocationKeyword, bool playerWasInInterior)
-	if !containerRef
-		return
-	endif
-
 	int i = 0
 	int j
 
@@ -1118,14 +1188,22 @@ Function HandlePlayerContainerActivation(ObjectReference containerRef, bool cont
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_CONTAINER_EMPTY)
 					if ival != 0
-						doRun = (ival == 2)
+						if ival == 1
+							doRun = !container_is_empty
+						elseif ival == 2
+							doRun = container_is_empty
+						endif
 					endif
 				endif
 
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_CONTAINER_CORPSE)
 					if ival != 0
-						doRun = (ival == 2)
+						if ival == 1
+							doRun = !container_is_corpse
+						elseif ival == 2
+							doRun = container_is_corpse
+						endif
 					endif
 				endif
 
@@ -1144,7 +1222,11 @@ Function HandlePlayerContainerActivation(ObjectReference containerRef, bool cont
 								j += 1
 							endwhile
 						endif
-						doRun = (container_is_common && ival == 1) || (!container_is_common && ival == 2)
+						if ival == 1
+							doRun = !container_is_common
+						elseif ival == 2
+							doRun = container_is_common
+						endif
 					endif
 				endif
 
@@ -1228,4 +1310,421 @@ int Function GetNextPlayerContainerActivationRequestId(int requestTargetFormId, 
 		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.playerLocationKeyword", playerLocationKeyword)
 	endif
 	return cmdRequestId
+EndFunction
+
+Function HandleLocationChanged(Location akOldLoc, Location akNewLoc)
+	If (SLT.Debug_Extension_Core)
+		SLTDebugMsg("Core.HandleLocationChanged: akOldLoc(" + akOldLoc + ") akNewLoc(" + akNewLoc + ")")
+	EndIf
+
+	if triggerKeys_location_change.Length < 1
+		return
+	endif
+
+	int cmdRequestId
+	int		requestTargetFormId = PlayerRef.GetFormID() ; conveniently so, in this case
+	bool  playerWasInInterior = PlayerRef.IsInInterior()
+	int i = 0
+	int j
+	bool[]	flagset_leaving = new bool[19]
+	bool[]	flagset_entering = new bool[19]
+	
+	SLT.GetLocationFlags(akOldLoc, flagset_leaving)
+	SLT.GetLocationFlags(akNewLoc, flagset_entering)
+	Keyword playerLocationKeyword = SLT.GetPlayerLocationKeyword()
+
+	bool   	doRun
+	string 	triggerKey
+	string 	_triggerFile
+	string 	command
+
+	int    	ival
+	bool 	bval
+	
+	float chance
+
+	while i < triggerKeys_location_change.Length
+		triggerKey = triggerKeys_location_change[i]
+		_triggerFile = FN_T(triggerKey)
+
+		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
+
+			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+				doRun = true
+
+				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
+				if ival != 0 ; 0 is Any
+					if ival == 1
+						doRun = DayTime()
+					elseIf ival == 2
+						doRun = !DayTime()
+					endIf
+				endIf
+
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_CLEARED_LEAVING)
+					if ival != 0 ; 0 is Any
+						if ival == 1
+							doRun = akOldLoc.IsCleared()
+						elseIf ival == 2
+							doRun = !akOldLoc.IsCleared()
+						endIf
+					endIf
+				endIf
+
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_CLEARED_ENTERING)
+					if ival != 0 ; 0 is Any
+						if ival == 1
+							doRun = akNewLoc.IsCleared()
+						elseIf ival == 2
+							doRun = !akNewLoc.IsCleared()
+						endIf
+					endIf
+				endIf
+
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION_ENTERING)
+					if ival != 0
+;/
+0 - Any
+
+1 - Inside
+2 - Outside
+3 - Safe (Home/Jail/Inn)
+4 - City (City/Town/Habitation/Dwelling)
+5 - Wilderness (!pLoc(DEFAULT)/Hold/Fort/Bandit Camp)
+6 - Dungeon (Cave/et. al.)
+
+; LocationKeywords[i - 7]
+5 - Player Home
+6 - Jail
+...
+/;
+
+						if ival == 1
+							doRun = playerWasInInterior
+						elseif ival == 2
+							doRun = !playerWasInInterior
+						elseif ival == 3
+							doRun = SLT.IsFlagsetSafe(flagset_entering)
+						elseif ival == 4
+							doRun = SLT.IsFlagsetInCity(flagset_entering)
+						elseif ival == 5
+							doRun = SLT.IsFlagsetInWilderness(flagset_entering)
+						elseif ival == 6
+							doRun = SLT.IsFlagsetInDungeon(flagset_entering)
+						else
+							j = ival - 6
+							doRun = flagset_entering[j]
+						endif
+					endif
+				endIf
+
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION_LEAVING)
+					if ival != 0
+						SLT.GetLocationFlags(akOldLoc, flagset_leaving)
+;/
+0 - Any
+
+1 - Inside
+2 - Outside
+3 - Safe (Home/Jail/Inn)
+4 - City (City/Town/Habitation/Dwelling)
+5 - Wilderness (!pLoc(DEFAULT)/Hold/Fort/Bandit Camp)
+6 - Dungeon (Cave/et. al.)
+
+; LocationKeywords[i - 7]
+5 - Player Home
+6 - Jail
+...
+/;
+
+						if ival == 1
+							doRun = playerWasInInterior
+						elseif ival == 2
+							doRun = !playerWasInInterior
+						elseif ival == 3
+							doRun = SLT.IsFlagsetSafe(flagset_leaving)
+						elseif ival == 4
+							doRun = SLT.IsFlagsetInCity(flagset_leaving)
+						elseif ival == 5
+							doRun = SLT.IsFlagsetInWilderness(flagset_leaving)
+						elseif ival == 6
+							doRun = SLT.IsFlagsetInDungeon(flagset_leaving)
+						else
+							j = ival - 6
+							doRun = flagset_leaving[j]
+						endif
+					endif
+				endIf
+				
+				if doRun
+					int cmdThreadId
+					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+					if command
+						cmdRequestId = GetNextLocationChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword, akOldLoc, akNewLoc)
+						cmdThreadId = SLT.GetNextInstanceId()
+						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+					endIf
+					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+					if command
+						cmdRequestId = GetNextLocationChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword, akOldLoc, akNewLoc)
+						cmdThreadId = SLT.GetNextInstanceId()
+						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+					endIf
+					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+					if command
+						cmdRequestId = GetNextLocationChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword, akOldLoc, akNewLoc)
+						cmdThreadId = SLT.GetNextInstanceId()
+						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+					endIf
+				endif
+
+			endif
+		endif
+
+		i += 1
+	endwhile
+EndFunction
+
+int Function GetNextLocationChangeRequestId(int requestTargetFormId, int cmdRequestId, bool playerWasInInterior, Keyword playerLocationKeyword, Location akOldLoc, Location akNewLoc)
+	if !cmdRequestId
+		cmdRequestId = SLT.GetNextInstanceId()
+
+		sl_triggersCmd.PrecacheRequestBool(SLT, requestTargetFormId, cmdRequestId, "core.was_player.inside", playerWasInInterior)
+		sl_triggersCmd.PrecacheRequestBool(SLT, requestTargetFormId, cmdRequestId, "core.was_player.outside", !playerWasInInterior)
+		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.from_location", akOldLoc)
+		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.to_location", akNewLoc)
+		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.playerLocationKeyword", playerLocationKeyword)
+	endif
+	return cmdRequestId
+EndFunction
+
+int Property kSlotMask30 = 0x00000001 AutoReadOnly ; HEAD
+int Property kSlotMask31 = 0x00000002 AutoReadOnly ; Hair
+int Property kSlotMask32 = 0x00000004 AutoReadOnly ; BODY
+int Property kSlotMask33 = 0x00000008 AutoReadOnly ; Hands
+int Property kSlotMask34 = 0x00000010 AutoReadOnly ; Forearms
+int Property kSlotMask35 = 0x00000020 AutoReadOnly ; Amulet
+int Property kSlotMask36 = 0x00000040 AutoReadOnly ; Ring
+int Property kSlotMask37 = 0x00000080 AutoReadOnly ; Feet
+int Property kSlotMask38 = 0x00000100 AutoReadOnly ; Calves
+int Property kSlotMask39 = 0x00000200 AutoReadOnly ; SHIELD
+int Property kSlotMask40 = 0x00000400 AutoReadOnly ; TAIL
+int Property kSlotMask41 = 0x00000800 AutoReadOnly ; LongHair
+int Property kSlotMask42 = 0x00001000 AutoReadOnly ; Circlet
+int Property kSlotMask43 = 0x00002000 AutoReadOnly ; Ears
+int Property kSlotMask44 = 0x00004000 AutoReadOnly ; Unnamed
+int Property kSlotMask45 = 0x00008000 AutoReadOnly ; Unnamed
+int Property kSlotMask46 = 0x00010000 AutoReadOnly ; Unnamed
+int Property kSlotMask47 = 0x00020000 AutoReadOnly ; Unnamed
+int Property kSlotMask48 = 0x00040000 AutoReadOnly ; Unnamed
+int Property kSlotMask49 = 0x00080000 AutoReadOnly ; Unnamed
+int Property kSlotMask50 = 0x00100000 AutoReadOnly ; DecapitateHead
+int Property kSlotMask51 = 0x00200000 AutoReadOnly ; Decapitate
+int Property kSlotMask52 = 0x00400000 AutoReadOnly ; Unnamed
+int Property kSlotMask53 = 0x00800000 AutoReadOnly ; Unnamed
+int Property kSlotMask54 = 0x01000000 AutoReadOnly ; Unnamed
+int Property kSlotMask55 = 0x02000000 AutoReadOnly ; Unnamed
+int Property kSlotMask56 = 0x04000000 AutoReadOnly ; Unnamed
+int Property kSlotMask57 = 0x08000000 AutoReadOnly ; Unnamed
+int Property kSlotMask58 = 0x10000000 AutoReadOnly ; Unnamed
+int Property kSlotMask59 = 0x20000000 AutoReadOnly ; Unnamed
+int Property kSlotMask60 = 0x40000000 AutoReadOnly ; Unnamed
+int Property kSlotMask61 = 0x80000000 AutoReadOnly ; FX01
+
+Function HandleEquipmentChange(Form akBaseObject, ObjectReference akRef, bool is_equipping)
+	If (SLT.Debug_Extension_Core)
+		SLTDebugMsg("Core.HandleEquipmentChange: akBaseObject(" + akBaseObject + ") akRef(" + akRef + ") is_equipping(" + is_equipping + ")")
+	EndIf
+
+	SLTDebugMsg("Core.HandleEquipmentChange: akBaseObject(" + akBaseObject + ") akRef(" + akRef + ") is_equipping(" + is_equipping + ")")
+
+	if triggerKeys_equipment_change.Length < 1
+		return
+	endif
+
+	int cmdRequestId
+	int		requestTargetFormId = PlayerRef.GetFormID() ; conveniently so, in this case
+	bool  playerWasInInterior = PlayerRef.IsInInterior()
+	int i = 0
+	int j
+	bool[]	flagset_entering = new bool[19]
+	
+	SLT.GetLocationFlags(PlayerRef.GetCurrentLocation(), flagset_entering)
+
+	bool   	doRun
+	string 	triggerKey
+	string 	_triggerFile
+	string 	command
+
+	int    	ival
+	bool 	bval
+	
+	float chance
+	bool is_daytime = DayTime()
+	bool is_unique = (akRef != none)
+	bool has_enchantments = (is_unique && akRef.GetEnchantment() != none)
+	int item_type
+	string item_type_str
+	
+ 	if (akBaseObject as Armor) != none
+		item_type = 1
+		item_type_str = "Armor"
+	elseif (akBaseObject as Weapon) != none
+		item_type = 2
+		item_type_str = "Weapon"
+	elseif (akBaseObject as Spell) != none
+		item_type = 3
+		item_type_str = "Spell"
+	elseif (akBaseObject as Potion) != none
+		item_type = 4
+		item_type_str = "Potion"
+	elseif (akBaseObject as Ammo) != none
+		item_type = 5
+		item_type_str = "Ammo"
+	endif
+
+	while i < triggerKeys_equipment_change.Length
+		triggerKey = triggerKeys_equipment_change[i]
+		_triggerFile = FN_T(triggerKey)
+
+		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
+
+			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+				doRun = true
+
+				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
+				if ival != 0 ; 0 is Any
+					if ival == 1
+						doRun = DayTime()
+					elseIf ival == 2
+						doRun = !DayTime()
+					endIf
+				endIf
+
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_EQUIPPING)
+					if ival != 0 ; 0 is Any
+						if ival == 1
+							doRun = is_equipping
+						elseIf ival == 2
+							doRun = !is_equipping
+						endIf
+					endIf
+				endif
+
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_ITEM_IS_UNIQUE)
+					if ival != 0 ; 0 is Any
+						if ival == 1
+							doRun = !is_unique
+						elseIf ival == 2
+							doRun = is_unique
+						endIf
+					endIf
+				endif
+
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_HAS_ENCHANTMENTS)
+					if ival != 0 ; 0 is Any
+						if ival == 1
+							doRun = has_enchantments
+						elseIf ival == 2
+							doRun = !has_enchantments
+						endIf
+					endIf
+				endif
+
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_EQUIPPED_ITEM_TYPE)
+					if ival != 0
+						if ival == item_type
+							doRun = true
+						endif
+					endif
+				endif
+
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_ARMOR_SLOT)
+					if ival != 0
+						if (akBaseObject as Armor) == none
+							doRun = false
+						elseif ival == 1
+							; only head/body/hands/feet slots
+							Armor baseArmor = akBaseObject as Armor
+							If (baseArmor)
+								int slotMask = baseArmor.GetSlotMask()
+								doRun = (Math.LogicalAnd(slotMask, kSlotMask30) || Math.LogicalAnd(slotMask, kSlotMask32) || Math.LogicalAnd(slotMask, kSlotMask33) || Math.LogicalAnd(slotMask, kSlotMask37))
+							EndIf
+						elseif ival == 2
+							; only ring/amulet/circlet slots
+							Armor baseArmor = akBaseObject as Armor
+							If (baseArmor)
+								int slotMask = baseArmor.GetSlotMask()
+								doRun = (Math.LogicalAnd(slotMask, kSlotMask36) || Math.LogicalAnd(slotMask, kSlotMask35) || Math.LogicalAnd(slotMask, kSlotMask42))
+							EndIf
+						else
+							; slot = ival - 3 + 30
+							Armor baseArmor = akBaseObject as Armor
+							If (baseArmor)
+								int slotMask = baseArmor.GetSlotMask()
+								doRun = Math.LogicalAnd(slotMask, Math.LeftShift(1, ival - 3 + 30))
+							EndIf
+						endif
+					endif
+				endif
+				
+				if doRun
+					int cmdThreadId
+					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+					if command
+						cmdRequestId = GetNextEquipmentChangeRequestId(requestTargetFormId, cmdRequestId, akBaseObject, akRef, is_equipping, is_unique, has_enchantments, item_type_str)
+						cmdThreadId = SLT.GetNextInstanceId()
+						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+					endIf
+					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+					if command
+						cmdRequestId = GetNextEquipmentChangeRequestId(requestTargetFormId, cmdRequestId, akBaseObject, akRef, is_equipping, is_unique, has_enchantments, item_type_str)
+						cmdThreadId = SLT.GetNextInstanceId()
+						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+					endIf
+					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+					if command
+						cmdRequestId = GetNextEquipmentChangeRequestId(requestTargetFormId, cmdRequestId, akBaseObject, akRef, is_equipping, is_unique, has_enchantments, item_type_str)
+						cmdThreadId = SLT.GetNextInstanceId()
+						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+					endIf
+				endif
+			endif
+		endif
+
+		i += 1
+	endwhile
+EndFunction
+
+int Function GetNextEquipmentChangeRequestId(int requestTargetFormId, int cmdRequestId, Form baseForm, ObjectReference objRef, bool is_equipping, bool is_unique, bool has_enchantments, string equipped_item_type)
+	if !cmdRequestId
+		cmdRequestId = SLT.GetNextInstanceId()
+
+		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.equipped_item.base_form", baseForm)
+		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.equipped_item.object_reference", objRef)
+		sl_triggersCmd.PrecacheRequestBool(SLT, requestTargetFormId, cmdRequestId, "core.equipped_item.is_equipping", is_equipping)
+		sl_triggersCmd.PrecacheRequestBool(SLT, requestTargetFormId, cmdRequestId, "core.equipped_item.is_unique", is_unique)
+		sl_triggersCmd.PrecacheRequestBool(SLT, requestTargetFormId, cmdRequestId, "core.equipped_item.has_enchantments", has_enchantments)
+		sl_triggersCmd.PrecacheRequestString(SLT, requestTargetFormId, cmdRequestId, "core.equipped_item.type", equipped_item_type)
+	endif
+	return cmdRequestId
+EndFunction
+
+Function HandlePlayerCombatStateChanged(Actor target, bool player_in_combat)
+	SLTDebugMsg("Core.PlayerCombatStateChanged: target(" + target + ") player_in_combat(" + player_in_combat + ")")
+EndFunction
+
+Function HandlePlayerOnHit(Form kattacker, Form ktarget, Form ksource, Form kprojectile, bool was_player_attacker, bool kPowerAttack, bool kSneakAttack, bool kBashAttack, bool kHitBlocked)
+	SLTDebugMsg("Core.HandlePlayerOnHit: attacker(" + kattacker + ") target(" + ktarget + ") source(" + ksource + ") projectile(" + kprojectile + ") was_player_attacker(" + was_player_attacker + ") power(" + kPowerAttack + ") sneak(" + kSneakAttack + ") bash(" + kBashAttack + ") blocked(" + kHitBlocked + ")")
 EndFunction

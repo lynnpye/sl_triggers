@@ -17,7 +17,7 @@ Function SLTWarnMsg(string msg) global
 EndFunction
 
 int Function GetModVersion() global
-	return 124
+	return 125
 EndFunction
 
 ;;;;;;;
@@ -102,6 +102,18 @@ EndFunction
 
 string Function EVENT_SLTR_ON_PLAYER_LOADING_SCREEN() global
 	return "OnSLTRPlayerLoadingScreen"
+EndFunction
+
+string Function EVENT_SLTR_ON_PLAYER_EQUIP() global
+	return "OnSLTRPlayerEquipEvent"
+EndFunction
+
+string Function EVENT_SLTR_ON_PLAYER_COMBAT_STATE_CHANGED() global
+	return "OnSLTRPlayerCombatStateChanged"
+EndFunction
+
+string Function EVENT_SLTR_ON_PLAYER_HIT() global
+	return "OnSLTRPlayerHit"
 EndFunction
 
 float Function SLT_LIST_REQUEST_SU_KEY_IS_GLOBAL() global

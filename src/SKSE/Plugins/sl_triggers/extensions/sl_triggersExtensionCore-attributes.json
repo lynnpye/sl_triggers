@@ -19,8 +19,19 @@
         ["chance", "triggerattribute_chance"],
         ["comconmat", "triggerattribute_comconmat"],
         ["deeplocation", "triggerattribute_deeplocation"],
+        ["deeplocation_leaving", "triggerattribute_deeplocation"],
+        ["deeplocation_entering", "triggerattribute_deeplocation"],
         ["container_corpse", "triggerattribute_container_corpse"],
         ["container_empty", "triggerattribute_container_empty"],
+        ["lbl_location_leaving", "triggerattribute_location_leaving"],
+        ["lbl_location_entering", "triggerattribute_location_entering"],
+        ["cleared_leaving", "triggerattribute_cleared"],
+        ["cleared_entering", "triggerattribute_cleared"],
+        ["equipping", "triggerattribute_equipping"],
+        ["armor_slot", "triggerattribute_armor_slot"],
+        ["equipped_item_type", "triggerattribute_equipped_item_type"],
+        ["has_enchantments", "triggerattribute_has_enchantments"],
+        ["item_is_unique", "triggerattributes_item_is_unique"],
         ["do_1", "triggerattribute_do_1"],
         ["do_2", "triggerattribute_do_2"],
         ["do_3", "triggerattribute_do_3"]
@@ -28,7 +39,7 @@
     "triggerattribute_event" : [
         ["# here is where you define aspects of the attribute"],
         ["type", "int"],
-        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Key Mapping", "Top of the Hour", "New Session", "Player Cell Change", "Player Loading Screen", "Player Opened Container"],
+        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Key Mapping", "Top of the Hour", "New Session", "Player Cell Change (Frequent)", "Player Loading Screen", "Player Opened Container", "Player Location Change (Less Frequent)"],
         ["info", "Choose which type of event this trigger will use."]
     ],
     "triggerattribute_keymapping" : 
@@ -38,9 +49,21 @@
         ["widget", "keymapping", "Key: ", "-1"],
         ["info", "Choose the key to map to the action."]
     ],
+    "triggerattribute_location_leaving" :
+    [
+        ["type", "string", ""],
+        ["widget", "header"],
+        ["info", "Location Leaving: "]
+    ],
+    "triggerattribute_location_entering" :
+    [
+        ["type", "string", ""],
+        ["widget", "header"],
+        ["info", "Location Entering: "]
+    ],
     "triggerattribute_modifierkeymapping" : 
     [
-        ["type", "int", -1],
+        ["type", "int", "-1"],
         ["widget", "keymapping", "Modifier Key: ", "-1"],
         ["info", "(Optional) If specified, will be required to be pressed to trigger the action."]
     ],
@@ -48,6 +71,36 @@
         ["type", "int"],
         ["widget", "toggle", "Use DAK? ", "0"],
         ["info", "(Optional) If enabled, will use the Dynamic Activation Key instead of the Modifier key (if selected)"]
+    ],
+    "triggerattribute_cleared" : [
+        ["type", "int"],
+        ["widget", "menu", "Cleared: ", "0", "Any", "Cleared", "Not Cleared"],
+        ["info", "Whether the location is considered Cleared or not."]
+    ],
+    "triggerattribute_equipping" : [
+        ["type", "int"],
+        ["widget", "menu", "Equipping: ", "0", "Any", "Equipping", "Unequipping"],
+        ["info", "Whether the equipment is being put on or taken off."]
+    ],
+    "triggerattribute_has_enchantments" : [
+        ["type", "int"],
+        ["widget", "menu", "Has Enchants: ", "0", "Any", "Must Have Enchantments", "Cannot Have Enchantments"],
+        ["info", "Whether the equipment can have enchantments or not."]
+    ],
+    "triggerattribute_item_is_unique" : [
+        ["type", "int"],
+        ["widget", "menu", "Unique/World Items: ", "0", "Any", "Standard Items Only", "Unique/World Items Only"],
+        ["info", "Whether the equipment is unique (specifically, do the equip/unequip events provide an ObjectReference or just the base Form?)."]
+    ],
+    "triggerattribute_equipped_item_type" : [
+        ["type", "int"],
+        ["widget", "menu", "Equipping: ", "0", "Any", "Armor", "Weapon", "Spell", "Potion/Food", "Ammo"],
+        ["info", "The type of 'equipment' that was equipped/unequipped. Technically could include things like Potions, for example."]
+    ],
+    "triggerattribute_armor_slot" : [
+        ["type", "int"],
+        ["widget", "menu", "Armor Slot (implies Worn): ", "0", "Any", "Body/Head/Hands/Feet", "Ring/Amulet/Circlet", "30 - Head", "31 - Hair", "32 - Body", "33 - Hands", "34 - Forearms", "35 - Amulet", "36 - Ring", "37 - Feet", "38 - Calves", "39 - Shield", "40 - Tail", "41 - LongHair", "42 - Circlet", "43 - Ears", "44 - Unnamed", "45 - Unnamed", "46 - Unnamed", "47 - Unnamed", "48 - Unnamed", "49 - Unnamed", "50 - DecapitateHead", "51 - Decapitate", "52 - Unnamed", "53 - Unnamed", "54 - Unnamed", "55 - Unnamed", "56 - Unnamed", "57 - Unnamed", "58 - Unnamed", "59 - Unnamed", "60 - Unnamed", "61 - FX01"],
+        ["info", "The armor slot of the equipment (implies Armor was equipped; filter will fail otherwise)."]
     ],
     "triggerattribute_daytime" : [
         ["type", "int"],
@@ -72,7 +125,7 @@
     "triggerattribute_deeplocation": [
         ["type", "int"],
         ["widget", "menu", "Location :", "0", "Any", "Inside", "Outside", "Safe (Home/Jail/Inn)", "City / Town", "Wilderness", "Dungeon", "Player Home", "Jail", "Dungeon", "Cave", "Dwelling", "City", "Town", "Habitation", "Draugr Crypt", "Dragon Priest Lair", "Bandit Camp", "Falmer Hive", "Vampire Lair", "Dwarven Automatons", "Military Fort", "Mine", "Inn", "Hold"],
-        ["info", "The location, indoors or outdoors, the cell qualifies as."]
+        ["info", "The location, indoors or outdoors, as well as Safe/City/Wilderness/Dungeon and others, the cell qualifies as."]
     ],
     "triggerattribute_container_corpse": [
         ["type", "int"],
@@ -107,7 +160,9 @@
         ["3", "triggerlayout_newsession"],
         ["4", "triggerlayout_playercellchange"],
         ["5", "triggerlayout_playerloadingscreen"],
-        ["6", "triggerlayout_playercontaineractivate"]
+        ["6", "triggerlayout_playercontaineractivate"],
+        ["7", "triggerlayout_locationchange"],
+        ["8", "triggerlayout_equipment_change"]
     ],
     "triggerlayout_keymapping" : [
         ["event", "keymapping"],
@@ -140,6 +195,24 @@
         ["event", "chance"],
         ["comconmat", "deeplocation"],
         ["container_corpse", "container_empty"],
+        ["do_1", "do_2"],
+        ["do_3"]
+    ],
+    "triggerlayout_locationchange" : [
+        ["event", "chance"],
+        ["daytime"],
+        ["lbl_location_leaving"],
+        ["deeplocation_leaving", "cleared_leaving"],
+        ["lbl_location_entering"],
+        ["deeplocation_entering", "cleared_entering"],
+        ["do_1", "do_2"],
+        ["do_3"]
+    ],
+    "triggerlayout_equipment_change" : [
+        ["event", "chance"],
+        ["equipping", "has_enchantments"],
+        ["equipped_item_type", "armor_slot"],
+        ["item_is_unique", "daytime"],
         ["do_1", "do_2"],
         ["do_3"]
     ],

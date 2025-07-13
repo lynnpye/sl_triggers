@@ -9,7 +9,7 @@
     <Imports>
         <Import>.\src\Source\Scripts</Import>
         <Import>.\inc\skse</Import>
-        <Import>..\..\..\wabbajack\modlistinstalls\SME\Stock Game\Data\Source\Scripts</Import>
+        <Import>.\inc\beth</Import>
         <Import>.\inc\paputil</Import>
         <Import>.\inc\po3</Import>
         <Import>.\inc\skyui</Import>

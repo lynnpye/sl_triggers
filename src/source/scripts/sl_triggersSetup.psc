@@ -11,13 +11,14 @@ string		RESTORE_BUTTON = "--RESTORETHISITEM--"
 string		HARD_DELETE_BUTTON = "--HARDDELETETHISITEM--"
 
 
-int			WIDG_ERROR			= 0
-int			WIDG_SLIDER			= 1
-int			WIDG_MENU			= 2
-int			WIDG_KEYMAP			= 3
-int			WIDG_TOGGLE			= 4
-int			WIDG_INPUT			= 5
-int			WIDG_COMMANDLIST	= 6
+int	WIDG_ERROR			= 0
+int	WIDG_SLIDER			= 1
+int	WIDG_MENU			= 2
+int	WIDG_KEYMAP			= 3
+int	WIDG_TOGGLE			= 4
+int	WIDG_INPUT			= 5
+int	WIDG_COMMANDLIST	= 6
+int	WIDG_LABEL			= 7
 
 
 ; Properties
@@ -152,21 +153,10 @@ endEvent
 
 ;;;;;;;;;
 ; Simple constants for Papyrus types
-int Function PTYPE_STRING() global
-	return 1
-EndFunction
-
-int Function PTYPE_INT() global
-	return 2
-EndFunction
-
-int Function PTYPE_FLOAT() global
-	return 3
-EndFunction
-
-int Function PTYPE_FORM() global
-	return 4
-EndFunction
+int Property PTYPE_STRING = 1 AutoReadOnly Hidden
+int Property PTYPE_INT = 2 AutoReadOnly Hidden
+int Property PTYPE_FLOAT = 3 AutoReadOnly Hidden
+int Property PTYPE_FORM = 4 AutoReadOnly Hidden
 
 int Function ShowAttribute(string attrName, int widgetOptions, string triggerKey, string _dataFile, bool _isTriggerAttributes)
 	string extensionKey = CurrentExtensionKey
@@ -186,18 +176,18 @@ int Function ShowAttribute(string attrName, int widgetOptions, string triggerKey
 		string[] menuSelections = GetAttrMenuSelections(_isTriggerAttributes, attrName)
 		int ptype = GetAttrType(_isTriggerAttributes, attrName)
 		string menuValue = ""
-		if (ptype == PTYPE_INT() && !JsonUtil.HasIntValue(_dataFile, attrName)) || (ptype == PTYPE_STRING() && !JsonUtil.HasStringValue(_dataFile, attrName))
+		if (ptype == PTYPE_INT && !JsonUtil.HasIntValue(_dataFile, attrName)) || (ptype == PTYPE_STRING && !JsonUtil.HasStringValue(_dataFile, attrName))
 			int midx = GetAttrDefaultIndex(_isTriggerAttributes, attrName)
 			if midx > -1
 				menuValue = menuSelections[midx]
 			endif
 		else
-			if ptype == PTYPE_INT()
+			if ptype == PTYPE_INT
 				int midx = JsonUtil.GetIntValue(_dataFile, attrName)
 				if midx > -1
 					menuValue = menuSelections[midx]
 				endif
-			elseif ptype == PTYPE_STRING()
+			elseif ptype == PTYPE_STRING
 				string _tval = JsonUtil.GetStringValue(_dataFile, attrName)
 				if menuSelections.find(_tval) > -1
 					menuValue = _tval
@@ -228,19 +218,19 @@ int Function ShowAttribute(string attrName, int widgetOptions, string triggerKey
 		string _defval = GetAttrDefaultString(_isTriggerAttributes, attrName)
 		
 		int ptype = GetAttrType(_isTriggerAttributes, attrName)
-		if ptype == PTYPE_INT()
+		if ptype == PTYPE_INT
 			if JsonUtil.HasIntValue(_dataFile, attrName)
 				_defval = JsonUtil.GetIntValue(_dataFile, attrName) as string
 			endif
-		elseif ptype == PTYPE_FLOAT()
+		elseif ptype == PTYPE_FLOAT
 			if JsonUtil.HasFloatValue(_dataFile, attrName)
 				_defval = JsonUtil.GetFloatValue(_dataFile, attrName) as string
 			endif
-		elseif ptype == PTYPE_STRING()
+		elseif ptype == PTYPE_STRING
 			if JsonUtil.HasStringValue(_dataFile, attrName)
 				_defval = JsonUtil.GetStringValue(_dataFile, attrName)
 			endif
-		elseif ptype == PTYPE_FORM()
+		elseif ptype == PTYPE_FORM
 			if JsonUtil.HasFormValue(_dataFile, attrName)
 				_defval = JsonUtil.GetFormValue(_dataFile, attrName) as string
 			endif
@@ -259,8 +249,14 @@ int Function ShowAttribute(string attrName, int widgetOptions, string triggerKey
 		
 		_oid = AddMenuOption(label, menuValue, widgetOptions)
 		AddOid(_oid, triggerKey, attrName)
+	elseif widg == WIDG_LABEL
+		string labeltext = GetAttrHighlight(_isTriggerAttributes, attrName)
+		; purposefully not returning the _oid as this is just supposed to behave like a simple label
+		; headers expand across both rows and this avoids that
+		AddTextOption(labeltext, "")
 	else
 		Debug.Trace("This should not be reachable attrName(" + attrName + ") widg(" + widg + ") label(" + label + ") widgetOptions(" + widgetOptions + ") triggerKey(" + triggerKey + ") _dataFile(" + _dataFile + ") _isTriggerAttributes(" + _isTriggerAttributes + ")")
+		AddEmptyOption()
 	endif
 	return _oid
 EndFunction
@@ -310,7 +306,7 @@ Function ShowExtensionSettings()
 		endif
 
 		if tlattributes.Length > 1 && tlattributes[1]
-			ShowAttribute(tlattributes[1], widgetOptions, "", _dataFile, false)
+			_oid = ShowAttribute(tlattributes[1], widgetOptions, "", _dataFile, false)
 			if _layoutData[1] && _layoutData[1] == tlattributes[1]
 				oidForcePageReset = PapyrusUtil.PushInt(oidForcePageReset, _oid)
 			endif
@@ -651,32 +647,32 @@ Event OnOptionDefault(int option)
 	endif
 	
 	; set the trigger value
-	if attrType == PTYPE_INT()
+	if attrType == PTYPE_INT
 		defInt = GetAttrDefaultValue(_istk, attrName)
 		JsonUtil.SetIntValue(_dataFile, attrName, defInt)
-	elseif attrType == PTYPE_STRING()
+	elseif attrType == PTYPE_STRING
 		defStr = GetAttrDefaultString(_istk, attrName)
 		JsonUtil.SetStringValue(_dataFile, attrName, defStr)
-	elseif attrType == PTYPE_FLOAT()
+	elseif attrType == PTYPE_FLOAT
 		defFlt = GetAttrDefaultFloat(_istk, attrName)
 		JsonUtil.SetFloatValue(_dataFile, attrName, defFlt)
 	endif
 	
 	; and set the option value
 	if attrWidg == WIDG_SLIDER
-		if attrType == PTYPE_INT()
+		if attrType == PTYPE_INT
 			optFlt = defInt as float
-		elseif attrType == PTYPE_STRING()
+		elseif attrType == PTYPE_STRING
 			optFlt = defStr as float
-		elseif attrType == PTYPE_FLOAT()
+		elseif attrType == PTYPE_FLOAT
 			optFlt = defFlt
 		endif
 		
 		SetSliderOptionValue(option, optFlt, GetAttrFormatString(_istk, attrName))
 	elseif attrWidg == WIDG_MENU
-		if attrType == PTYPE_INT()
+		if attrType == PTYPE_INT
 			optInt = defInt
-		elseif attrType == PTYPE_STRING()
+		elseif attrType == PTYPE_STRING
 			optInt = GetAttrMenuSelectionIndex(_istk, attrName, defStr)
 		endif
 		
@@ -684,11 +680,11 @@ Event OnOptionDefault(int option)
 	elseif attrWidg == WIDG_KEYMAP
 		SetKeyMapOptionValue(option, defInt)
 	elseif attrWidg == WIDG_TOGGLE
-		if attrType == PTYPE_INT()
+		if attrType == PTYPE_INT
 			optBool = defInt != 0
-		elseif attrType == PTYPE_STRING()
+		elseif attrType == PTYPE_STRING
 			optBool = defStr as bool
-		elseif attrType == PTYPE_FLOAT()
+		elseif attrType == PTYPE_FLOAT
 			optBool = defFlt != 0.0
 		endif
 		
@@ -953,11 +949,11 @@ Event OnOptionSliderOpen(int option)
 
 	float startValue
 	int attrType = GetAttrType(_istk, attrName)
-	if attrType == PTYPE_STRING() && JsonUtil.HasStringValue(_dataFile, attrName)
+	if attrType == PTYPE_STRING && JsonUtil.HasStringValue(_dataFile, attrName)
 		startValue = JsonUtil.GetFloatValue(_dataFile, attrName) as float
-	elseif attrType == PTYPE_INT() && JsonUtil.HasIntValue(_dataFile, attrName)
+	elseif attrType == PTYPE_INT && JsonUtil.HasIntValue(_dataFile, attrName)
 		startValue = JsonUtil.GetIntValue(_dataFile, attrName) as float
-	elseif attrType == PTYPE_FLOAT() && JsonUtil.HasFloatValue(_dataFile, attrName)
+	elseif attrType == PTYPE_FLOAT && JsonUtil.HasFloatValue(_dataFile, attrName)
 		startValue = JsonUtil.GetFloatValue(_dataFile, attrName)
 	endif
 
@@ -995,11 +991,11 @@ Event OnOptionSliderAccept(int option, float value)
 
 	int attrType = GetAttrType(_istk, attrName)
 
-	if attrType == PTYPE_STRING()
+	if attrType == PTYPE_STRING
 		JsonUtil.SetFloatValue(_dataFile, attrName, value)
-	elseif attrType == PTYPE_INT()
+	elseif attrType == PTYPE_INT
 		JsonUtil.SetIntValue(_dataFile, attrName, value as int)
-	elseif attrType == PTYPE_FLOAT()
+	elseif attrType == PTYPE_FLOAT
 		JsonUtil.SetFloatValue(_dataFile, attrName, value as float)
 	endif
 
@@ -1060,11 +1056,11 @@ Event OnOptionMenuOpen(int option)
 			menuIndex = menuSelections.find(menuValue)
 		endif
 	elseif attrWidg == WIDG_MENU
-		if attrType == PTYPE_INT()
+		if attrType == PTYPE_INT
 			defaultIndex = GetAttrDefaultValue(_istk, attrName)
 			menuIndex = JsonUtil.GetIntValue(_dataFile, attrName)
 			menuValue = menuSelections[menuIndex]
-		elseif attrType == PTYPE_STRING()
+		elseif attrType == PTYPE_STRING
 			defaultIndex = menuSelections.find(GetAttrDefaultString(_istk, attrName))
 			menuValue = JsonUtil.GetStringValue(_dataFile, attrName)
 			menuIndex = menuSelections.find(menuValue)
@@ -1112,16 +1108,16 @@ Event OnOptionMenuAccept(int option, int index)
 	endif
 
 	if index >= 0
-		if attrType == PTYPE_INT()
+		if attrType == PTYPE_INT
 			JsonUtil.SetIntValue(_dataFile, attrName, index)
-		elseif attrType == PTYPE_STRING()
+		elseif attrType == PTYPE_STRING
 			JsonUtil.SetStringValue(_dataFile, attrName, menuSelections[index])
 		endif
 		SetMenuOptionValue(option, menuSelections[index])
 	else
-		if attrType == PTYPE_INT()
+		if attrType == PTYPE_INT
 			JsonUtil.UnsetIntValue(_dataFile, attrName)
-		elseif attrType == PTYPE_STRING()
+		elseif attrType == PTYPE_STRING
 			JsonUtil.UnsetStringValue(_dataFile, attrName)
 		endif
 		SetMenuOptionValue(option, "")
@@ -1220,11 +1216,11 @@ Event OnOptionInputOpen(int option)
 	endif
 
 	int attrType = GetAttrType(_istk, attrName)
-	if attrType == PTYPE_STRING() && JsonUtil.HasStringValue(_dataFile, attrName)
+	if attrType == PTYPE_STRING && JsonUtil.HasStringValue(_dataFile, attrName)
 		hasTheData = 1
-	elseif attrType == PTYPE_INT() && JsonUtil.HasIntValue(_dataFile, attrName)
+	elseif attrType == PTYPE_INT && JsonUtil.HasIntValue(_dataFile, attrName)
 		hasTheData = 2
-	elseif attrType == PTYPE_FLOAT() && JsonUtil.HasFloatValue(_dataFile, attrName)
+	elseif attrType == PTYPE_FLOAT && JsonUtil.HasFloatValue(_dataFile, attrName)
 		hasTheData = 3
 	endif
 
@@ -1268,19 +1264,19 @@ Event OnOptionInputAccept(int option, string _input)
 	endif
 
 	int attrType = GetAttrType(_istk, attrName)
-	if attrType == PTYPE_STRING()
+	if attrType == PTYPE_STRING
 		if !_input
 			JsonUtil.UnsetStringValue(_dataFile, attrName)
 		else
 			JsonUtil.SetStringValue(_dataFile, attrName, _input)
 		endif
-	elseif attrType == PTYPE_INT()
+	elseif attrType == PTYPE_INT
 		if !_input
 			JsonUtil.UnsetIntValue(_dataFile, attrName)
 		else
 			JsonUtil.SetIntValue(_dataFile, attrName, _input as int)
 		endif
-	elseif attrType == PTYPE_FLOAT()
+	elseif attrType == PTYPE_FLOAT
 		if !_input
 			JsonUtil.UnsetFloatValue(_dataFile, attrName)
 		else
@@ -1451,6 +1447,8 @@ int Function GetAttrWidget(bool _istk, string _attr)
 			return WIDG_INPUT
 		elseif strwidg == "command"
 			return WIDG_COMMANDLIST
+		elseif strwidg == "header"
+			return WIDG_LABEL
 		endif
 	endif
 	return WIDG_ERROR
@@ -1462,13 +1460,13 @@ int Function GetAttrType(bool _istk, string _attr)
 	if data.Length > 0
 		string strtype = data[0]
 		if strtype == "int"
-			ptype = PTYPE_INT()
+			ptype = PTYPE_INT
 		elseif strtype == "float"
-			ptype = PTYPE_FLOAT()
+			ptype = PTYPE_FLOAT
 		elseif strtype == "string"
-			ptype = PTYPE_STRING()
+			ptype = PTYPE_STRING
 		elseif strtype == "form"
-			ptype = PTYPE_FORM()
+			ptype = PTYPE_FORM
 		endif
 	endif
 	return ptype
@@ -1627,7 +1625,7 @@ string[] Function GetLayout(bool _istk, string _dataFile)
 				_layoutValue = list[0]
 		
 				int ptype = GetAttrType(_istk, visibilityKey)
-				if ptype == PTYPE_INT()
+				if ptype == PTYPE_INT
 					int _layoutTest = _layoutValue as int
 					int _dataTest = JsonUtil.GetIntValue(_dataFile, visibilityKey)
 					bool _matches = (_layoutTest == _dataTest)
@@ -1641,7 +1639,7 @@ string[] Function GetLayout(bool _istk, string _dataFile)
 							return _layoutData
 						endif
 					endif
-				elseif ptype == PTYPE_STRING()
+				elseif ptype == PTYPE_STRING
 					string _dataTest = JsonUtil.GetStringValue(_dataFile, visibilityKey)
 					bool _matches = (_layoutValue == _dataTest)
 					if _matches

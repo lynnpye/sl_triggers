@@ -110,5 +110,9 @@ call "ZZ_sltr_test_jsonutil"
 
 call "ZZ_sltr_test_storageutil"
 
+call "ZZ_sltr_test_forms"
+
+call "ZZ_sltr_test_perf"
+
 ; wrap things up
 gosub finish_regression_testing

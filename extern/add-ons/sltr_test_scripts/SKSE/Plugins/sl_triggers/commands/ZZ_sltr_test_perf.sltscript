@@ -1,0 +1,241 @@
+deb_msg "============"
+deb_msg "Perf testing"
+
+set $start_local 0.0
+set $finish_local 0.0
+set $lapse_local 0.0
+set $start $system.realtime
+
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+inc $target.incer
+
+set $finish $system.realtime
+
+set $start_local $system.realtime
+
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+inc $local.incer
+
+set $finish_local $system.realtime
+
+set $lapse_target   $finish - $start
+set $lapse_local    $finish_local - $start_local
+
+deb_msg $"Sanity check: local({local.incer}) target({target.incer})"
+deb_msg $"Local elapsed : {lapse_local}"
+deb_msg $"Target elapsed: {lapse_target}"
+deb_msg "============"

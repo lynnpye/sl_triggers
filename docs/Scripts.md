@@ -70,6 +70,7 @@ Variable names can include any of the following characters after the scope: `A-Z
 |`$system.initialScriptName`|string - the initial script that was requested; might differ from current script in case `call` was used|
 |`$system.currentScriptName`|string - the current script that is running; might differ from current script in case `call` was used|
 |`$system.sessionid`|int - the current SLTR sessionid (changes with each load of a save or creation of a new game)|
+|`$system.forms.gold`|bool - (Added by SLTR Core) returns the Form for gold (i.e. "0xf|Skyrim.esm")|
 |`$system.is_available.core`|bool - (Added by SLTR Core) is the SLTR Core extension available and enabled (very rare you would want this false)|
 |`$system.is_available.sexlab`|bool - (Added by SLTR SexLab) is the SLTR SexLab extension available and enabled (would be false if you installed on a system without SexLab)|
 |`$system.partner`|Actor - (Added by SLTR SexLab) the first member of the target Actor's current SexLab scene that is not the target Actor (same as `$sexlab.partner1`)|
@@ -94,6 +95,14 @@ Variable names can include any of the following characters after the scope: `A-Z
 |`$request.core.was_player.in_city`|bool - (Added by SLTR Core) was the Player "In a City" at the time the trigger was handled|
 |`$request.core.was_player.in_wilderness`|bool - (Added by SLTR Core) was the Player "In the Wilderness" at the time the trigger was handled|
 |`$request.core.was_player.in_dungeon`|bool - (Added by SLTR Core) was the Player "In a Dungeon" at the time the trigger was handled|
+|`$request.core.from_location`|bool - (Added by SLTR Core) (for OnLocationChange) the Location travelled from; might be none/empty for many outdoor locations|
+|`$request.core.to_location`|bool - (Added by SLTR Core) (for OnLocationChange) the Location travelled to; might be none/empty for many outdoor locations|
+|`$request.core.equipped_item.base_form`|Form - (Added by SLTR Core) (for Player Equipment Change) the base Form for the item that was equipped/unequipped|
+|`$request.core.equipped_item.object_reference`|ObjectReference - (Added by SLTR Core) (for Player Equipment Change) the ObjectReference from the original event; typically only available for unique items (e.g. artifacts)|
+|`$request.core.equipped_item.is_equipping`|bool - (Added by SLTR Core) (for Player Equipment Change) true if the item was being equipped; false if the item was being unequipped|
+|`$request.core.equipped_item.is_unique`|bool - (Added by SLTR Core) (for Player Equipment Change) true if the item was unique (event provided ObjectReference) ; false otherwise|
+|`$request.core.equipped_item.has_enchantments`|bool - (Added by SLTR Core) (for Player Equipment Change) true if the item had enchantments; false otherwise|
+|`$request.core.equipped_item.type`|string - (Added by SLTR Core) (for Player Equipment Change) One of 'Armor', 'Weapon', 'Spell', 'Potion', or 'Ammo'|
 
 #### Core
 `core` scoped variables are provided by the Core extension

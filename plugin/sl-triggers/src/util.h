@@ -116,7 +116,6 @@ namespace Util
         static void rtrim_inplace(std::string& str);
         static void trim_inplace(std::string& str);
         static std::optional<std::int32_t> StringToIntWithImplicitHexConversion(std::string_view _hexStr);
-        static std::optional<std::uint32_t> StringToUnsignedIntWithImplicitHexConversion(std::string_view _hexStr);
         static bool isNumeric(std::string_view str, float& outValue);
         static bool iContains(std::string_view a_str1, std::string_view a_str2);
 		static bool iEquals(std::string_view a_str1, std::string_view a_str2);

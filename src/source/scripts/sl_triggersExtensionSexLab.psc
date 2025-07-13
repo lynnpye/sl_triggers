@@ -64,7 +64,7 @@ Function RefreshData()
 	RegisterEvents()
 EndFunction
 
-bool Function _slt_AdditionalEnabledRequirements()
+bool Function _slt_AdditionalRequirementsSatisfied()
 	return SexLabForm != none
 EndFunction
 
@@ -426,9 +426,9 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTrigg
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && dayTime() != 1
+						if ival == 1 && !dayTime()
 							doRun = false
-						elseIf ival == 2 && dayTime() != 2
+						elseIf ival == 2 && dayTime()
 							doRun = false
 						endIf
 					endIf

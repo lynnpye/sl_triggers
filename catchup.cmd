@@ -1,15 +1,15 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-SET "TEST_FOLDER=..\..\..\wabbajack\modlistinstalls\SME\mods\AaDevelopment"
-REM SET "TEST_FOLDER=..\..\..\wabbajack\modlistinstalls\NEFARAM.15.4.1\mods\AaDevelopment"
+SET "TEST_FOLDER=D:\wabbajack\modlistinstalls\SME\mods\- Dev Files"
+REM SET "TEST_FOLDER=D:\wabbajack\modlistinstalls\NEFARAM.15.4.1\mods\AaDevelopment"
 
 SET "SRC_DIR=%~dp0src"
-SET "TEST_SCRIPT_SRC_DIR=.\extern\add-ons\test_scripts"
-set "TARGET_SCRIPTS_DIR=%TEST_FOLDER%\SKSE\Plugins\sl_triggers\commands"
+SET "TEST_SCRIPT_SRC_DIR=.\extern\add-ons\sltr_test_scripts"
+set "TARGET_TEST_SCRIPTS_DIR=%TEST_FOLDER%"
 
-echo Copy test .sltscript from "%TEST_SCRIPT_SRC_DIR%" to "%TARGET_SCRIPTS_DIR%"
-xcopy /i /y "%TEST_SCRIPT_SRC_DIR%\*.sltscript" "%TARGET_SCRIPTS_DIR%"
+echo Copy test .sltscript from "%TEST_SCRIPT_SRC_DIR%" to "%TARGET_TEST_SCRIPTS_DIR%"
+xcopy /s /i /y "%TEST_SCRIPT_SRC_DIR%\*.*" "%TARGET_TEST_SCRIPTS_DIR%\"
 
 SET "DLL_SRC=.\plugin\sl-triggers\build\release-msvc\sl-triggers.dll"
 SET "SRC_DLL_DIR=%SRC_DIR%\SKSE\Plugins\"

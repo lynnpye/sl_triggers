@@ -126,15 +126,12 @@ int Function ActorPos(int idx, int count)
     return idx
 endFunction
 
-Int Function DayTime()
+bool Function DayTime()
 	float dayTime = Utility.GetCurrentGameTime()
  
 	dayTime -= Math.Floor(dayTime)
 	dayTime *= 24
-	If dayTime >= 7 && dayTime <= 19
-		return 1
-	EndIf
-	Return 2
+	return (dayTime >= 7 && dayTime <= 19)
 EndFunction
 
 
