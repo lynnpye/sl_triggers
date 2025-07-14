@@ -31,11 +31,17 @@ string function event_slt_settings_updated() global
 endfunction
 string function event_slt_delay_start_command() global
 endfunction
-string function event_sltr_on_container_activate() global
+string function event_sltr_on_player_container_activate() global
 endfunction
 string function event_sltr_on_player_cell_change() global
 endfunction
 string function event_sltr_on_player_loading_screen() global
+endfunction
+string function event_sltr_on_player_equip() global
+endfunction
+string function event_sltr_on_player_combat_state_changed() global
+endfunction
+string function event_sltr_on_player_hit() global
 endfunction
 float function slt_list_request_su_key_is_global() global
 endfunction
@@ -65,6 +71,10 @@ form function getform_deviousdevices_zadlibs() global
 endfunction
 form function getform_deviousfollowers_dfquest() global
 endfunction
+int function getrelativeformid_deviousfollowers_mcm() global
+endfunction
+string function getmodfilename_deviousfollowers_mcm() global
+endfunction
 form function getform_deviousfollowers_mcm() global
 endfunction
 string function commandsfolder() global
@@ -83,11 +93,21 @@ string function fn_x_attributes(string _x) global
 endfunction
 string function fn_trigger(string _x, string _t) global
 endfunction
-function initsettingsfile(string filename, bool force = false) global
+bool function getflag(bool bdbgout, string filename, string flagname, bool defaultvalue = false) global
+endfunction
+bool function updateflag(bool bdbgout, string filename, string flagname, bool newvalue) global
 endfunction
 int function globalhextoint(string _value) global
 endfunction
+bool function isstringtruthy(string _value) global
+endfunction
 function squawkfunctionerror(sl_triggerscmd _cmdprimary, string msg) global
+endfunction
+function squawkfunctionwarn(sl_triggerscmd _cmdprimary, string msg) global
+endfunction
+function squawkfunctioninfo(sl_triggerscmd _cmdprimary, string msg) global
+endfunction
+function squawkfunctiondebug(sl_triggerscmd _cmdprimary, string msg) global
 endfunction
 bool function paramlengthlt(sl_triggerscmd _cmdprimary, int actuallength, int neededlength) global
 endfunction

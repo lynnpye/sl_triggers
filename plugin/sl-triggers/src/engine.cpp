@@ -56,6 +56,35 @@ bool OperationRunner::RunOperationOnActor(RE::Actor* targetActor,
     
     return RunOperationOnActor(targetActor, cmdPrimary, bsParams);
 }
+
+bool OperationRunner::RunSLTRMain(RE::Actor* cmdActor, std::string_view scriptname, std::vector<std::string> strlist, std::vector<std::int32_t> intlist, std::vector<float> floatlist, std::vector<bool> boollist, std::vector<RE::TESForm*> formlist) {
+    if (scriptname.empty()) return false;
+    
+    auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+    if (!vm) {
+        logger::error("RunSLTRMain: Failed to get VM singleton");
+        return false;
+    }
+
+    auto voidCallback = RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor>{};
+    
+    auto* operationArgs = RE::MakeFunctionArguments(
+        static_cast<RE::Actor*>(cmdActor),
+        static_cast<std::vector<std::string>>(strlist),
+        static_cast<std::vector<std::int32_t>>(intlist),
+        static_cast<std::vector<float>>(floatlist),
+        static_cast<std::vector<bool>>(boollist),
+        static_cast<std::vector<RE::TESForm*>>(formlist)
+    );
+
+    bool success = vm->DispatchStaticCall(scriptname, "SLTRMain", operationArgs, voidCallback);
+    
+    if (!success) {
+        logger::error("RunSLTRMain: Failed to dispatch static call for script({})/operation(SLTRMain)", scriptname);
+    }
+    
+    return success;
+}
 #pragma endregion
 
 #pragma region Function Libraries definition

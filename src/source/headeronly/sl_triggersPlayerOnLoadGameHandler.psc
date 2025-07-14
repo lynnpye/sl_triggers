@@ -1,8 +1,11 @@
 scriptname sl_triggersplayeronloadgamehandler extends referencealias
 sl_triggersmain   property slt auto
+sl_triggersextensioncore property sltcore auto hidden
 event onplayerloadgame()
 endevent
 event oninit()
+endevent
+event onlocationchange(location akoldloc, location aknewloc)
 endevent
 function initiateconsolehook()
 endfunction

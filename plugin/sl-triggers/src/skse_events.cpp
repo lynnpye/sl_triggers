@@ -1,5 +1,6 @@
 #include "engine.h"
 #include "sl_triggers.h"
+#include "caprunner.h"
 
 namespace SLT {
 
@@ -182,6 +183,8 @@ public:
     void GameEventHandler::onDataLoaded() {
         FunctionLibrary::PrecacheLibraries();
         ScriptPoolManager::GetSingleton().InitializePool();
+
+        //RunCapricaForScripts();
     }
 
     void GameEventHandler::onNewGame() {

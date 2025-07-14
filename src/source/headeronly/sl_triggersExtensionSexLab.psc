@@ -9,7 +9,7 @@ function sltready()
 endfunction
 function refreshdata()
 endfunction
-bool function _slt_additionalenabledrequirements()
+bool function _slt_additionalrequirementssatisfied()
 endfunction
 sslthreadcontroller function getthreadforactor(actor theactor)
 endfunction

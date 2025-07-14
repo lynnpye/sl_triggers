@@ -32,6 +32,10 @@ public:
     static bool RunOperationOnActor(RE::Actor* targetActor, 
                                    RE::ActiveEffect* cmdPrimary, 
                                    const std::vector<std::string>& params);
+
+    static bool RunSLTRMain(RE::Actor* cmdActor, std::string_view scriptname, std::vector<std::string> strlist,
+        std::vector<std::int32_t> intlist, std::vector<float> floatlist,
+        std::vector<bool> boollist, std::vector<RE::TESForm*> formlist);
 };
 #pragma endregion
 

@@ -41,6 +41,8 @@ static std::vector<std::int32_t> NormalizeTimestampComponents(PAPYRUS_NATIVE_DEC
 static bool RunOperationOnActor(PAPYRUS_NATIVE_DECL, RE::Actor* cmdTarget, RE::ActiveEffect* cmdPrimary,
                                             std::vector<std::string> tokens);
 
+static bool RunSLTRMain(PAPYRUS_NATIVE_DECL, RE::Actor* cmdTarget, std::string_view scriptname, std::vector<std::string> strlist, std::vector<std::int32_t> intlist, std::vector<float> floatlist, std::vector<bool> boollist, std::vector<RE::TESForm*> formlist);
+
 static void SetExtensionEnabled(PAPYRUS_NATIVE_DECL, std::string_view extensionKey,
                                             bool enabledState);
 
@@ -54,13 +56,13 @@ static std::vector<std::string> SplitScriptContentsAndTokenize(PAPYRUS_NATIVE_DE
 
 static bool StartScript(PAPYRUS_NATIVE_DECL, RE::Actor* cmdTarget, std::string_view initialScriptName);
 
-static std::string Trim(PAPYRUS_NATIVE_DECL, std::string_view str);
-
 static std::vector<std::string> Tokenize(PAPYRUS_NATIVE_DECL, std::string_view input);
 
 static std::vector<std::string> Tokenizev2(PAPYRUS_NATIVE_DECL, std::string_view input);
 
 static std::vector<std::string> TokenizeForVariableSubstitution(PAPYRUS_NATIVE_DECL, std::string_view input);
+
+static std::string Trim(PAPYRUS_NATIVE_DECL, std::string_view str);
 };
 #pragma endregion
 
@@ -188,6 +190,11 @@ public:
     static bool RunOperationOnActor(PAPYRUS_STATIC_ARGS, RE::Actor* cmdTarget, RE::ActiveEffect* cmdPrimary,
                                             std::vector<std::string> tokens) {
         return SLT::SLTNativeFunctions::RunOperationOnActor(PAPYRUS_FN_PARMS, cmdTarget, cmdPrimary, tokens);
+    }
+
+    static bool RunSLTRMain(PAPYRUS_STATIC_ARGS, RE::Actor* cmdActor, std::string_view scriptname, std::vector<std::string> strlist,
+        std::vector<std::int32_t> intlist, std::vector<float> floatlist, std::vector<bool> boollist, std::vector<RE::TESForm*> formlist) {
+        return SLT::SLTNativeFunctions::RunSLTRMain(PAPYRUS_FN_PARMS, cmdActor, scriptname, strlist, intlist, floatlist, boollist, formlist);
     }
 
     static void SetExtensionEnabled(PAPYRUS_STATIC_ARGS, std::string_view extensionKey, bool enabledState) {

@@ -7,8 +7,13 @@ actor               property playerref auto
 sl_triggersmain  property slt auto hidden ; will be populated on startup
 keyword    property actortypenpc auto hidden ; will be populated on startup
 keyword    property actortypeundead auto hidden ; will be populated on startup
-bool    property isenabled = true auto hidden
+bool    property isenabled hidden
+bool function get()
+endfunction
+endproperty
 bool    property benabled = true auto hidden ; enable/disable our extension
+bool function _slt_additionalrequirementssatisfied()
+endfunction
 function setenabled(bool _newenabledflag)
 endfunction
 string[]   property triggerkeys auto hidden
@@ -31,17 +36,19 @@ int function actorrace(actor _actor)
 endfunction
 int function actorpos(int idx, int count)
 endfunction
-int function daytime()
+bool function daytime()
 endfunction
 bool    property _bdebugmsg = false auto hidden ; enable/disable debug logging for our extension
 string    property currenttriggerid auto hidden ; used for simple iteration
-event _slt_onsltsettingsupdated(string eventname, string strarg, float numarg, form sender)
+event onsltsettingsupdated(string eventname, string strarg, float numarg, form sender)
 endevent
 function sltinit()
 endfunction
 bool function requestcommand(actor _theactor, string _thescript)
 endfunction
-event _slt_onsltinternalready(string eventname, string strarg, float numarg, form sender)
+bool function requestcommandwiththreadid(actor _theactor, string _thescript, int _requestid, int _threadid)
+endfunction
+event onsltinternalready(string eventname, string strarg, float numarg, form sender)
 endevent
 function _slt_refreshtriggers()
 endfunction

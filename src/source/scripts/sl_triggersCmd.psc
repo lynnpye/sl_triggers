@@ -2096,8 +2096,10 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
     int scrtype = sl_triggers.NormalizeScriptfilename(scriptfilename)
     string _myCmdName
     if scrtype == 1
-        _myCmdName = CommandsFolder() + scriptfilename
-        totalJsonCommandCount = JsonUtil.PathCount(_myCmdName, ".cmd")
+        ;_myCmdName = CommandsFolder() + scriptfilename
+        ;totalJsonCommandCount = JsonUtil.PathCount(_myCmdName, ".cmd")
+        SFE("SLT: JSON script support has ended; please convert your script to SLTScript format")
+        return false
     elseif scrtype == 2
         _myCmdName = scriptfilename
 
@@ -2110,9 +2112,11 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
         totalFunctionalCommands = rawtokenresult[0] as int
         SLTDebugMsg("")
     elseif scrtype == 10
-        scrtype = 1
-        _myCmdName = CommandsFolder() + scriptfilename + ".json"
-        totalJsonCommandCount = JsonUtil.PathCount(_myCmdName, ".cmd")
+        ;scrtype = 1
+        ;_myCmdName = CommandsFolder() + scriptfilename + ".json"
+        ;totalJsonCommandCount = JsonUtil.PathCount(_myCmdName, ".cmd")
+        SFE("SLT: JSON script support has ended; please convert your script to SLTScript format")
+        return false
     elseif scrtype == 20
         ; for now, treat as the same; .sltscript is just a bandaid to improve syntax highlighting
         scrtype = 2
@@ -2407,6 +2411,9 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
     endif
 
     if scrtype == 1
+        ;/
+        ; JSON support has ended
+        ; 
         int theFileLine = 0
         while theFileLine < totalJsonCommandCount
             lineno += 1
@@ -2444,6 +2451,7 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
             endif
             theFileLine += 1
         endwhile
+        /;
     elseif scrtype == 2 || scrtype == 3
 
         scriptlines = PapyrusUtil.IntArray(totalFunctionalCommands)

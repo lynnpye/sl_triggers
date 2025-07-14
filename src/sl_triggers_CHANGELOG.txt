@@ -1,5 +1,6 @@
 126
     Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log (or whichever folder you have your SKSE logs directed to)
+    MAJOR CHANGE: JSON format for scripts is no longer supported; only SLTScript/INI formatted scripts will be supported going forward
     enhancement: Added $request.core.player_on_hit.attacker, $request.core.player_on_hit.target, $request.core.player_on_hit.source, $request.core.player_on_hit.projectile
 
 125

@@ -27,12 +27,12 @@ SET "HEADER_ONLY=.\src\source\headeronly\"
 SET "PEXIMPORT_DIR=%SRC_DIR%\SKSE\Plugins\sl_triggers\peximport"
 
 echo Copy Caprica.exe to %CAPRICA_EXE_DIR%
-rem mkdir "%CAPRICA_EXE_DIR%"
-REM xcopy /y "%CAPRICA_EXE%" "%CAPRICA_EXE_DIR%"
-REM xcopy /y "%TESV_FLAGS%" "%CAPRICA_EXE_DIR%"
+mkdir "%CAPRICA_EXE_DIR%"
+xcopy /y "%CAPRICA_EXE%" "%CAPRICA_EXE_DIR%"
+xcopy /y "%TESV_FLAGS%" "%CAPRICA_EXE_DIR%"
 mkdir "%PEXIMPORT_DIR%"
-REM xcopy /i /y "%BETH_INC%" "%PEXIMPORT_DIR%"
-REM xcopy /i /y "%SKSE_INC%" "%PEXIMPORT_DIR%"
+xcopy /i /y "%BETH_INC%" "%PEXIMPORT_DIR%"
+xcopy /i /y "%SKSE_INC%" "%PEXIMPORT_DIR%"
 xcopy /i /y "%HEADER_ONLY%" "%PEXIMPORT_DIR%"
 
 echo Copying from "%SRC_DIR%\" to "%TEST_FOLDER%\"

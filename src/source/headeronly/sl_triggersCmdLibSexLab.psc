@@ -5,8 +5,6 @@ function util_waitforend(actor cmdtargetactor, activemagiceffect _cmdprimary, st
 endfunction
 function sl_getrndactor(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
-function util_getrndactor(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
-endfunction
 function actor_race(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
 function util_waitforkbd(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
@@ -16,6 +14,8 @@ endfunction
 function sl_isin(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
 function sl_hastag(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
+endfunction
+function sl_disableorgasm(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
 function sl_animname(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction

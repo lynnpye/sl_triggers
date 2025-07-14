@@ -15,6 +15,36 @@ fs::path GetScriptfilePath(std::string_view scriptfilename) {
     fs::path scriptfilepath = fs::path("Data") / "SKSE" / "Plugins" / "sl_triggers" / "commands" / strfn;
     return scriptfilepath;
 }
+
+fs::path GetCapricaExe() {
+    fs::path pluginPath = fs::path("Data") / "SKSE" / "Plugins" / "sl_triggers" / "caprica" / "Caprica.exe";
+    return pluginPath;
+}
+
+fs::path GetCapricaFlagsFile() {
+    fs::path pluginPath = fs::path("Data") / "SKSE" / "Plugins" / "sl_triggers" / "caprica" / "TESV_Papyrus_Flags.flg";
+    return pluginPath;
+}
+
+fs::path GetCapricaImportDir() {
+    fs::path pluginPath = fs::path("Data") / "SKSE" / "Plugins" / "sl_triggers" / "peximport";
+    return pluginPath;
+}
+
+fs::path GetCapricaOutputDir() {
+    fs::path pluginPath = fs::path("Data") / "SKSE" / "Plugins" / "sl_triggers" / "pexoutput";
+    return pluginPath;
+}
+
+fs::path GetCapricaWorkingDir(std::string_view scriptfilename) {
+    fs::path pluginPath;
+    if (scriptfilename.empty()) {
+        pluginPath = fs::path("Data") / "SKSE" / "Plugins" / "sl_triggers" / "pexsource";
+    } else {
+        pluginPath = fs::path("Data") / "SKSE" / "Plugins" / "sl_triggers" / "pexsource" / scriptfilename;
+    }
+    return pluginPath;
+}
     
 SLTSessionId sessionId;
 bool sessionIdGenerated = false;

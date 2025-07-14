@@ -12,14 +12,10 @@ event onconfigopen()
 endevent
 event onconfigclose()
 endevent
-int function ptype_string() global
-endfunction
-int function ptype_int() global
-endfunction
-int function ptype_float() global
-endfunction
-int function ptype_form() global
-endfunction
+int property ptype_string = 1 autoreadonly hidden
+int property ptype_int = 2 autoreadonly hidden
+int property ptype_float = 3 autoreadonly hidden
+int property ptype_form = 4 autoreadonly hidden
 int function showattribute(string attrname, int widgetoptions, string triggerkey, string _datafile, bool _istriggerattributes)
 endfunction
 function showextensionsettings()
@@ -32,6 +28,8 @@ event onoptionhighlight(int option)
 endevent
 event onoptiondefault(int option)
 endevent
+bool function dosaveandreset(int option, string jkey, bool value)
+endfunction
 event onoptionselect(int option)
 endevent
 event onoptionslideropen(int option)

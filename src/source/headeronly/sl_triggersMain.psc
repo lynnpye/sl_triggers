@@ -1,6 +1,7 @@
 scriptname sl_triggersmain extends quest
 actor               property playerref    auto
 sl_triggerssetup property sltmcm     auto
+sl_triggersplayeronloadgamehandler property sltplyref auto hidden
 keyword property loctypeplayerhome  auto 
 keyword property loctypejail  auto 
 keyword property loctypedungeon  auto  
@@ -21,19 +22,51 @@ keyword property loctypeinn  auto
 keyword property loctypehold auto
 perk property sltrcontainerperk auto
 keyword[] property locationkeywords auto hidden
+string    property savetimestamp auto hidden
 bool    property isresetting = false auto hidden
-bool    property isenabled  = true auto hidden
 bool    property bdebugmsg  = false auto hidden
 form[]    property extensions    auto hidden
 int     property nextinstanceid   auto hidden
 int     property runningscriptcount = 0 auto hidden
-function setenabled(bool _newenabledflag)
+int     property rt_invalid =    0 autoreadonly
+int     property rt_string =     1 autoreadonly
+int     property rt_bool =       2 autoreadonly
+int     property rt_int =        3 autoreadonly
+int     property rt_float =      4 autoreadonly
+int     property rt_form =       5 autoreadonly
+int  property rt_label =   6 autoreadonly
+string function rt_tostring(int rt_type)
 endfunction
+bool property debug_cmd auto hidden
+bool property debug_cmd_functions auto hidden
+bool property debug_cmd_internalresolve auto hidden
+bool property debug_cmd_internalresolve_literals auto hidden
+bool property debug_cmd_resolveform auto hidden
+bool property debug_cmd_runscript auto hidden
+bool property debug_cmd_runscript_blocks auto hidden
+bool property debug_cmd_runscript_if auto hidden
+bool property debug_cmd_runscript_labels auto hidden
+bool property debug_cmd_runscript_set auto hidden
+bool property debug_cmd_runscript_while auto hidden
+bool property debug_extension auto hidden
+bool property debug_extension_core auto hidden
+bool property debug_extension_core_keymapping auto hidden
+bool property debug_extension_sexlab auto hidden
+bool property debug_extension_customresolvescoped auto hidden
+bool property debug_setup auto hidden
+function setupsettingsflags()
+endfunction
+bool    property isenabled hidden
+bool function get()
+endfunction
+function set(bool value)
+endfunction
+endproperty
 event oninit()
 endevent
 function doplayerloadgame()
 endfunction
-function bootstrapsltinit()
+function bootstrapsltinit(bool bsetupflags)
 endfunction
 event onupdate()
 endevent
@@ -71,13 +104,41 @@ sl_triggersextension function getextensionbyscope(string _scope)
 endfunction
 event onsltdelaystartcommand(string eventname, string initialscriptname, float reattemptcount, form sender)
 endevent
-string function getglobalvar(string _key, string missing)
+bool function hasglobalvar(string _key)
 endfunction
-string function setglobalvar(string _key, string value)
+int function getglobalvartype(string _key)
+endfunction
+string function getglobalvarstring(string _key, string missing)
+endfunction
+string function getglobalvarlabel(string _key, string missing)
+endfunction
+bool function getglobalvarbool(string _key, bool missing)
+endfunction
+int function getglobalvarint(string _key, int missing)
+endfunction
+float function getglobalvarfloat(string _key, float missing)
+endfunction
+form function getglobalvarform(string _key, form missing)
+endfunction
+string function setglobalvarstring(string _key, string value)
+endfunction
+string function setglobalvarlabel(string _key, string value)
+endfunction
+bool function setglobalvarbool(string _key, bool value)
+endfunction
+int function setglobalvarint(string _key, int value)
+endfunction
+float function setglobalvarfloat(string _key, float value)
+endfunction
+form function setglobalvarform(string _key, form value)
 endfunction
 string[] function claimnextthread(int targetformid)
 endfunction
 function startcommand(form targetform, string initialscriptname)
+endfunction
+function startcommandwiththreadid(form targetform, string initialscriptname, int requestid, int threadid)
+endfunction
+function getlocationflags(location ploc, bool[] flagset)
 endfunction
 function getplayerlocationflags(bool[] flagset)
 endfunction
@@ -87,6 +148,14 @@ keyword function getplayerlocationkeyword()
 endfunction
 keyword function getactorlocationkeyword(actor theactor)
 endfunction
+bool function isflagsetsafe(bool[] flagset)
+endfunction
+bool function isflagsetincity(bool[] flagset)
+endfunction
+bool function isflagsetinwilderness(bool[] flagset)
+endfunction
+bool function isflagsetindungeon(bool[] flagset)
+endfunction
 bool function islocationkeywordsafe(keyword lockeyword)
 endfunction
 bool function islocationkeywordcity(keyword lockeyword)
@@ -94,6 +163,14 @@ endfunction
 bool function islocationkeywordwilderness(keyword lockeyword)
 endfunction
 bool function islocationkeyworddungeon(keyword lockeyword)
+endfunction
+bool function islocationsafe(location ploc)
+endfunction
+bool function islocationincity(location ploc)
+endfunction
+bool function islocationinwilderness(location ploc)
+endfunction
+bool function islocationindungeon(location ploc)
 endfunction
 bool function playerisindungeon()
 endfunction

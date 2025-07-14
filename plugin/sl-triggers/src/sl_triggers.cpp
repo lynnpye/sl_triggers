@@ -406,6 +406,10 @@ bool SLTNativeFunctions::RunOperationOnActor(PAPYRUS_NATIVE_DECL, RE::Actor* cmd
     return OperationRunner::RunOperationOnActor(cmdTarget, cmdPrimary, tokens);
 }
 
+bool SLTNativeFunctions::RunSLTRMain(PAPYRUS_NATIVE_DECL, RE::Actor* cmdTarget, std::string_view scriptname, std::vector<std::string> strlist, std::vector<std::int32_t> intlist, std::vector<float> floatlist, std::vector<bool> boollist, std::vector<RE::TESForm*> formlist) {
+    return OperationRunner::RunSLTRMain(cmdTarget, scriptname, strlist, intlist, floatlist, boollist, formlist);
+}
+
 void SLTNativeFunctions::SetExtensionEnabled(PAPYRUS_NATIVE_DECL, std::string_view extensionKey, bool enabledState) {
     //SLTExtensionTracker::SetEnabled(extensionKey, enabledState);
     FunctionLibrary* funlib = FunctionLibrary::ByExtensionKey(extensionKey);

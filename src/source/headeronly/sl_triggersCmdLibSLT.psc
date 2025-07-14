@@ -1,7 +1,11 @@
 scriptname sl_triggerscmdlibslt
-function hextun_test(actor cmdtargetactor, activemagiceffect _cmdprimary, string param) global
+function hextun_test(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
 function hextun_test2(actor cmdtargetactor, activemagiceffect _cmdprimary, string param) global
+endfunction
+function echo_back_test(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
+endfunction
+function validate_get_numeric_literal(actor cmdtargetactor, activemagiceffect _cmdprimary, string param) global
 endfunction
 function deb_msg(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
@@ -56,6 +60,8 @@ endfunction
 function rnd_list(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
 function rnd_int(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
+endfunction
+function rnd_float(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
 function util_wait(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
@@ -145,11 +151,11 @@ function objectreference_doaction(actor cmdtargetactor, activemagiceffect _cmdpr
 endfunction
 function actor_doaction(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
-string function _slt_form_dogetter(sl_triggerscmd cmdprimary, form _target, string _theaction) global
+bool function _slt_form_dogetter(sl_triggerscmd cmdprimary, form _target, string _theaction) global
 endfunction
-string function _slt_objectreference_dogetter(sl_triggerscmd cmdprimary, objectreference _target, string _theaction) global
+bool function _slt_objectreference_dogetter(sl_triggerscmd cmdprimary, objectreference _target, string _theaction) global
 endfunction
-string function _slt_actor_dogetter(sl_triggerscmd cmdprimary, actor _target, string _theaction) global
+bool function _slt_actor_dogetter(sl_triggerscmd cmdprimary, actor _target, string _theaction) global
 endfunction
 function form_dogetter(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
@@ -169,11 +175,11 @@ function objectreference_doconsumer(actor cmdtargetactor, activemagiceffect _cmd
 endfunction
 function actor_doconsumer(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
-string function _slt_form_dofunction(sl_triggerscmd cmdprimary, form _target, string _theaction, string[] param) global
+bool function _slt_form_dofunction(sl_triggerscmd cmdprimary, form _target, string _theaction, string[] param) global
 endfunction
-string function _slt_objectreference_dofunction(sl_triggerscmd cmdprimary, objectreference _target, string _theaction, string[] param) global
+bool function _slt_objectreference_dofunction(sl_triggerscmd cmdprimary, objectreference _target, string _theaction, string[] param) global
 endfunction
-string function _slt_actor_dofunction(sl_triggerscmd cmdprimary, actor _target, string _theaction, string[] param) global
+bool function _slt_actor_dofunction(sl_triggerscmd cmdprimary, actor _target, string _theaction, string[] param) global
 endfunction
 function form_dofunction(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
@@ -225,8 +231,12 @@ function jsonutil(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] 
 endfunction
 function storageutil(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
+function util_getrndactor(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
+endfunction
 function weather_state(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
 function math(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
+endfunction
+function topicinfo_getresponsetext(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
 ;This file was cleaned with PapyrusSourceHeadliner 1

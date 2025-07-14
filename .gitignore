@@ -7,3 +7,6 @@ sgrep.cmd
 sl-triggers-internal.dll
 sl-triggers.dll
 todo.txt
+src/SKSE/Plugins/sl_triggers/caprica/Caprica.exe
+src/SKSE/Plugins/sl_triggers/caprica/TESV_Papyrus_Flags.flg
+src/SKSE/Plugins/sl_triggers/peximport/

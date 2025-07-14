@@ -1072,7 +1072,7 @@ function actor_advskill(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
         if _targetActor
             string skillName = CmdPrimary.ResolveString(param[2])
             if skillName
-                Game.AdvanceSkill(skillName, CmdPrimary.ResolveInt(param[3]))
+                Game.AdvanceSkill(skillName, CmdPrimary.ResolveFloat(param[3]))
             else
                 CmdPrimary.SFE("unable to resolve skill name (" + param[2] + ")")
             endif
@@ -4929,7 +4929,7 @@ endFunction
 
 ; sltname util_waitforkbd
 ; sltgrup Utility
-; sltdesc Sets $$ to the keycode pressed after waiting for user to press any of the specified keys
+; sltdesc Sets $$ to the keycode pressed after waiting for user to press any of the specified keys. (See https://ck.uesp.net/wiki/Input_Script for the DXScanCodes)
 ; sltargs dxscancode: <DXScanCode of key> [<DXScanCode of key> ...]
 ; sltsamp util_waitforkbd 74 78 181 55
 function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
