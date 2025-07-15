@@ -255,11 +255,11 @@ Function PopulatePerk()
 				SLTErrMsg("Core.PopulatePerk: SLTRContainerPerk is not present on PlayerRef even after validation; Container activation tracking disabled; this is probably an error")
 			else
 				;SLTInfoMsg("Core.PopulatePerk: Registering/1 for OnSLTRPlayerContainerActivate")
-				SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE(), EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE())
+				;SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE(), EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE())
 			Endif
 		else
 			;SLTInfoMsg("Core.PopulatePerk: Registering/2 for OnSLTRContainerActivate")
-			SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE(), EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE())
+			;SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE(), EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE())
 		Endif
 	Endif
 EndFunction
@@ -441,12 +441,14 @@ Event OnKeyDown(Int KeyCode)
 	Endif
 EndEvent
 
+;/
 Event OnSLTRPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Form fkwPlayerLocation, bool playerWasInInterior)
 	if SLT.Debug_Extension_Core
 		Keyword kwpLocation = fkwPlayerLocation as Keyword
 		SLTDebugMsg("\tCore.OnSLTRPlayerCellChange: isNewGameLaunch:" + isNewGameLaunch + " / isNewSession: " + isNewSession + " / keywordPlayerLocation : " + kwpLocation + " / playerWasInInterior:" + playerWasInInterior)
 	endif
 EndEvent
+/;
 
 Event OnSLTRPlayerEquipEvent(Form baseForm, ObjectReference objRef, bool is_equipping)
 	HandleEquipmentChange(baseForm, objRef, is_equipping)
@@ -456,12 +458,16 @@ Event OnSLTRPlayerCombatStateChanged(Actor target, bool player_in_combat)
 	HandlePlayerCombatStateChanged(target, player_in_combat)
 EndEvent
 
-Event OnSLTRPlayerHit(Form kattacker, Form ktarget, Form ksource, Form kprojectile, bool was_player_attacker, bool kPowerAttack, bool kSneakAttack, bool kBashAttack, bool kHitBlocked)
-	HandlePlayerOnHit(kattacker, ktarget, ksource, kprojectile, was_player_attacker, kPowerAttack, kSneakAttack, kBashAttack, kHitBlocked)
+Event OnSLTRPlayerHit(Form kattacker, Form ktarget, int ksourceFormID, int kprojectileFormID, bool was_player_attacker, bool kPowerAttack, bool kSneakAttack, bool kBashAttack, bool kHitBlocked)
+	HandlePlayerOnHit(kattacker, ktarget, ksourceFormID, kprojectileFormID, was_player_attacker, kPowerAttack, kSneakAttack, kBashAttack, kHitBlocked)
 EndEvent
 
 int cellPreviousSessionId
 Function Send_SLTR_OnPlayerCellChange()
+	if triggerKeys_playercellchange.Length > 0
+		return
+	endif
+
 	if !PlayerRef || !PlayerRef.Is3DLoaded() || PlayerRef.IsDisabled()
         SLTDebugMsg("Core.Send_SLTR_OnPlayerCellChange: Player not ready for cell change processing")
         return
@@ -493,16 +499,13 @@ Function Send_SLTR_OnPlayerCellChange()
 		cellPreviousSessionId = nowSessionId
 	endif
 
-	if isNewGameLaunch && !isNewSession
-		SLTWarnMsg("Core.Send_SLTR_OnPlayerCellChange: IsNewGameLaunch(" + isNewGameLaunch + ") but isNewSession(" + isNewSession + ") this really ought to be an error")
-	endif
-
 	; should
 	; optional send actual mod event, otherwise at least pass it off to our handlers
 	Keyword playerLocationKeyword = SLT.GetPlayerLocationKeyword()
 
 	HandleOnPlayerCellChange(isNewGameLaunch, isNewSession, playerLocationKeyword, PlayerRef.IsInInterior())
 
+	;/
 	int mehandle = ModEvent.Create(EVENT_SLTR_ON_PLAYER_CELL_CHANGE())
 	; is this in response to a "new launch" (i.e. new run of SkyrimSE.exe) ; multiple can be true
 	ModEvent.PushBool(mehandle, isNewGameLaunch)
@@ -511,6 +514,7 @@ Function Send_SLTR_OnPlayerCellChange()
 	ModEvent.PushForm(mehandle, playerLocationKeyword)
 	ModEvent.PushBool(mehandle, PlayerRef.IsInInterior())
 	ModEvent.Send(mehandle)
+	/;
 
 	isNewGameLaunch = false
 EndFunction
@@ -519,32 +523,40 @@ Function SLTR_Internal_PlayerCellChange()
 	if !playerCellChangeHandlingReady
 		return
 	endif
-	Send_SLTR_OnPlayerCellChange()
+	if triggerKeys_playercellchange.Length > 0
+		Send_SLTR_OnPlayerCellChange()
+	endif
 EndFunction
 
 Function RelocatePlayerLoadingScreenSentinel()
 	pkSentinel.MoveTo(PlayerRef, 0.0, 0.0, 256.0)
 EndFunction
 
+;/
 Event OnSLTRPlayerLoadingScreen(string _eventName, string _strvalue, float _fltvalue, Form _frmvalue)
 	if SLT.Debug_Extension_Core
 		SLTDebugMsg("\tCore.OnSLTRPlayerLoadingScreen")
 	endif
 EndEvent
+/;
 
 Function Send_SLTR_OnPlayerLoadingScreen()
-	; optional send actual mod event, otherwise at least pass it off to our handlers
-	HandleOnPlayerLoadingScreen()
+	if triggerKeys_playerloadingscreen.Length > 0
+		HandleOnPlayerLoadingScreen()
+	endif
 
-	SendModEvent(EVENT_SLTR_ON_PLAYER_LOADING_SCREEN())
+	;SendModEvent(EVENT_SLTR_ON_PLAYER_LOADING_SCREEN())
 EndFunction
 
 ; in the example, called OnPlayerLoadingScreen() but surely it's for more than that?
 Function SLTR_Internal_PlayerNewSpaceEvent()
 	RelocatePlayerLoadingScreenSentinel()
-	Send_SLTR_OnPlayerLoadingScreen()
+	if triggerKeys_playerloadingscreen.Length > 0
+		Send_SLTR_OnPlayerLoadingScreen()
+	endif
 EndFunction
 
+;/
 Event OnSLTRPlayerContainerActivate(Form fcontainerRef, bool isConCorpse, bool isConEmpty, Form fkwPlayerLocation, bool playerWasInInterior)
 	if SLT.Debug_Extension_Core
 		ObjectReference containerRef = fcontainerRef as ObjectReference
@@ -553,20 +565,15 @@ Event OnSLTRPlayerContainerActivate(Form fcontainerRef, bool isConCorpse, bool i
 		SLTDebugMsg("\tCore.OnSLTRPlayerContainerActivate fcontainerRef(" + fcontainerRef + ") / containerRef(" + containerRef + ") / isConCorpse(" + isConCorpse + ") / isConEmpty(" + isConEmpty + ") / fkwPlayerLocation(" + fkwPlayerLocation + ") / kwpLocation(" + kwpLocation + ")")
 	endif
 EndEvent
+/;
 
 Function Send_SLTR_OnPlayerActivateContainer(ObjectReference containerRef, bool container_is_corpse, bool container_is_empty)
-	;SLTDebugMsg("Core.Send_SLTR_OnPlayerActivateContainer containerRef(" + containerRef + ") corpse(" + container_is_corpse + ") empty(" + container_is_empty + ")")
-	Keyword playerLocationKeyword = SLT.GetPlayerLocationKeyword()
+	if triggerKeys_container.Length > 0
+		;SLTDebugMsg("Core.Send_SLTR_OnPlayerActivateContainer containerRef(" + containerRef + ") corpse(" + container_is_corpse + ") empty(" + container_is_empty + ")")
+		Keyword playerLocationKeyword = SLT.GetPlayerLocationKeyword()
 
-	HandlePlayerContainerActivation(containerRef, container_is_corpse, container_is_empty, playerLocationKeyword, PlayerRef.IsInInterior())
-
-	int handle = ModEvent.Create(EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE())
-	ModEvent.PushForm(handle, containerRef)
-	ModEvent.PushBool(handle, container_is_corpse)
-	ModEvent.PushBool(handle, container_is_empty)
-	ModEvent.PushForm(handle, playerLocationKeyword)
-	ModEvent.PushBool(handle, PlayerRef.IsInInterior())
-	ModEvent.Send(handle)
+		HandlePlayerContainerActivation(containerRef, container_is_corpse, container_is_empty, playerLocationKeyword, PlayerRef.IsInInterior())
+	endif
 EndFunction
 
 Function SLTR_Internal_PlayerActivatedContainer(ObjectReference containerRef, bool container_is_corpse, bool container_is_empty)
@@ -574,7 +581,9 @@ Function SLTR_Internal_PlayerActivatedContainer(ObjectReference containerRef, bo
 		SLTErrMsg("Core.SLTR_Internal_PlayerActivatedContainer: containerRef is null")
 		return
 	endif
-	Send_SLTR_OnPlayerActivateContainer(containerRef, container_is_corpse, container_is_empty)
+	if triggerKeys_container.Length > 0
+		Send_SLTR_OnPlayerActivateContainer(containerRef, container_is_corpse, container_is_empty)
+	endif
 EndFunction
 
 Function RefreshTheContainersWeKnowAndLove()
@@ -768,9 +777,9 @@ Function RegisterEvents()
 		RegisterForKeyEvents()
 	endif
 
-	SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_CELL_CHANGE(), "OnSLTRPlayerCellChange")
+	;SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_CELL_CHANGE(), "OnSLTRPlayerCellChange")
 
-	SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_LOADING_SCREEN(), "OnSLTRPlayerLoadingScreen")
+	;SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_LOADING_SCREEN(), "OnSLTRPlayerLoadingScreen")
 
 	if SLT.SLTRContainerPerk
 		if PlayerRef && !PlayerRef.HasPerk(SLT.SLTRContainerPerk)
@@ -782,7 +791,7 @@ Function RegisterEvents()
 
 		if PlayerRef.HasPerk(SLT.SLTRContainerPerk)
 			;SLTDebugMsg("Core.RegisterEvents: registering OnSLTRContainerActivate")
-			SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE(), EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE())
+			;SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE(), EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE())
 		else
 			SLTDebugMsg("Core.RegisterEvents: failed/1 to register OnSLTRContainerActivate: IsEnabled(" + IsEnabled + ") / SLT.SLTRContainerPerk(" + SLT.SLTRContainerPerk + ") / PlayerRef(" + PlayerRef + ") / PlayerRef.HasPerk(" + (SLT && SLT.SLTRContainerPerk && PlayerRef && PlayerRef.HasPerk(SLT.SLTRContainerPerk)) + ")")
 		endif
@@ -793,22 +802,25 @@ Function RegisterEvents()
 	UnregisterForModEvent(EVENT_SLTR_ON_PLAYER_EQUIP())
 	if triggerKeys_equipment_change.Length > 0
 		SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_EQUIP(), EVENT_SLTR_ON_PLAYER_EQUIP())
+		sl_triggers_internal.SetEquipSinkEnabled(true)
 	else
-		SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_EQUIP(), EVENT_SLTR_ON_PLAYER_EQUIP())
+		sl_triggers_internal.SetEquipSinkEnabled(false)
 	endif
 
 	UnregisterForModEvent(EVENT_SLTR_ON_PLAYER_COMBAT_STATE_CHANGED())
 	if triggerKeys_player_combat_status.Length > 0
 		SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_COMBAT_STATE_CHANGED(), EVENT_SLTR_ON_PLAYER_COMBAT_STATE_CHANGED())
+		sl_triggers_internal.SetCombatSinkEnabled(true)
 	else
-		SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_COMBAT_STATE_CHANGED(), EVENT_SLTR_ON_PLAYER_COMBAT_STATE_CHANGED())
+		sl_triggers_internal.SetCombatSinkEnabled(false)
 	endif
 
 	UnregisterForModEvent(EVENT_SLTR_ON_PLAYER_HIT())
 	if triggerKeys_player_on_hit.Length > 0
 		SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_HIT(), EVENT_SLTR_ON_PLAYER_HIT())
+		sl_triggers_internal.SetHitSinkEnabled(true)
 	else
-		SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_HIT(), EVENT_SLTR_ON_PLAYER_HIT())
+		sl_triggers_internal.SetHitSinkEnabled(false)
 	endif
 
 EndFunction
@@ -875,7 +887,7 @@ Function HandleTopOfTheHour()
 		_triggerFile = FN_T(triggerKey)
 
 		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
-			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
 
 			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
 				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
@@ -1039,7 +1051,7 @@ Function HandleOnPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Keywo
 		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
 
 		if doRun
-			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
 
 			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
 				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
@@ -1139,7 +1151,7 @@ Function HandleOnPlayerLoadingScreen()
 		_triggerFile = FN_T(triggerKey)
 
 		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
-			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
 
 			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
 				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
@@ -1184,7 +1196,7 @@ Function HandlePlayerContainerActivation(ObjectReference containerRef, bool cont
 		_triggerFile = FN_T(triggerKey)
 
 		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
-			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
 
 			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
 				ival = 0
@@ -1354,7 +1366,7 @@ Function HandleLocationChanged(Location akOldLoc, Location akNewLoc)
 		_triggerFile = FN_T(triggerKey)
 
 		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
-			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
 
 			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
 				doRun = true
@@ -1597,7 +1609,7 @@ Function HandleEquipmentChange(Form akBaseObject, ObjectReference akRef, bool is
 		_triggerFile = FN_T(triggerKey)
 
 		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
-			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
 
 			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
 				doRun = true
@@ -1754,7 +1766,7 @@ Function HandlePlayerCombatStateChanged(Actor target, bool player_in_combat)
 		_triggerFile = FN_T(triggerKey)
 
 		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
-			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
 
 			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
 				doRun = true
@@ -1792,9 +1804,9 @@ Function HandlePlayerCombatStateChanged(Actor target, bool player_in_combat)
 	endwhile
 EndFunction
 
-Function HandlePlayerOnHit(Form kattacker, Form ktarget, Form ksource, Form kprojectile, bool was_player_attacker, bool kPowerAttack, bool kSneakAttack, bool kBashAttack, bool kHitBlocked)
+Function HandlePlayerOnHit(Form kattacker, Form ktarget, int ksourceFormID, int kprojectileFormID, bool was_player_attacker, bool kPowerAttack, bool kSneakAttack, bool kBashAttack, bool kHitBlocked)
 	If (SLT.Debug_Extension_Core)
-		SLTDebugMsg("Core.HandlePlayerOnHit: attacker(" + kattacker + ") target(" + ktarget + ") source(" + ksource + ") projectile(" + kprojectile + ") was_player_attacker(" + was_player_attacker + ") power(" + kPowerAttack + ") sneak(" + kSneakAttack + ") bash(" + kBashAttack + ") blocked(" + kHitBlocked + ")")
+		SLTDebugMsg("Core.HandlePlayerOnHit: attacker(" + kattacker + ") target(" + ktarget + ") source(" + ksourceFormID + ") projectile(" + kprojectileFormID + ") was_player_attacker(" + was_player_attacker + ") power(" + kPowerAttack + ") sneak(" + kSneakAttack + ") bash(" + kBashAttack + ") blocked(" + kHitBlocked + ")")
 	EndIf
 
 	if triggerKeys_player_on_hit.Length < 1
@@ -1821,7 +1833,7 @@ Function HandlePlayerOnHit(Form kattacker, Form ktarget, Form ksource, Form kpro
 		_triggerFile = FN_T(triggerKey)
 
 		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
-			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
 
 			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
 				doRun = true
@@ -1885,19 +1897,19 @@ Function HandlePlayerOnHit(Form kattacker, Form ktarget, Form ksource, Form kpro
 					int cmdThreadId
 					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
 					if command
-						cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget, ksource, kprojectile)
+						cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget, ksourceFormID, kprojectileFormID)
 						cmdThreadId = SLT.GetNextInstanceId()
 						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
 					endIf
 					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
 					if command
-						cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget, ksource, kprojectile)
+						cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget, ksourceFormID, kprojectileFormID)
 						cmdThreadId = SLT.GetNextInstanceId()
 						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
 					endIf
 					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
 					if command
-						cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget, ksource, kprojectile)
+						cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget, ksourceFormID, kprojectileFormID)
 						cmdThreadId = SLT.GetNextInstanceId()
 						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
 					endIf
@@ -1909,14 +1921,14 @@ Function HandlePlayerOnHit(Form kattacker, Form ktarget, Form ksource, Form kpro
 	endwhile
 EndFunction
 
-int Function GetNextPlayerOnHitRequestId(int requestTargetFormId, int cmdRequestId, Form kattacker, Form ktarget, Form ksource, Form kprojectile)
+int Function GetNextPlayerOnHitRequestId(int requestTargetFormId, int cmdRequestId, Form kattacker, Form ktarget, int ksourceFormID, int kprojectileFormID)
 	if !cmdRequestId
 		cmdRequestId = SLT.GetNextInstanceId()
 
 		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.player_on_hit.attacker", kattacker)
 		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.player_on_hit.target", ktarget)
-		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.player_on_hit.source", ksource)
-		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.player_on_hit.projectile", kprojectile)
+		sl_triggersCmd.PrecacheRequestInt(SLT, requestTargetFormId, cmdRequestId, "core.player_on_hit.source", ksourceFormID)
+		sl_triggersCmd.PrecacheRequestInt(SLT, requestTargetFormId, cmdRequestId, "core.player_on_hit.projectile", kprojectileFormID)
 	endif
 	return cmdRequestId
 EndFunction

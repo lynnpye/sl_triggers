@@ -131,4 +131,42 @@ namespace SLT {
             void onSaveGame() override;
             void onDeleteGame() override;
     };
+    
+
+    class SLTREventSink :
+        public RE::BSTEventSink<RE::TESCombatEvent>,
+        public RE::BSTEventSink<RE::TESEquipEvent>,
+        public RE::BSTEventSink<RE::TESHitEvent>
+    {
+    private:
+        bool isEnabled_CombatEvent;
+        bool isEnabled_EquipEvent;
+        bool isEnabled_HitEvent;
+
+        SLTREventSink() : isEnabled_CombatEvent(false), isEnabled_EquipEvent(false), isEnabled_HitEvent(false)
+        {}
+
+    public:
+        static SLTREventSink* GetSingleton()
+        {
+            static SLTREventSink singleton;
+            return &singleton;
+        }
+
+        bool IsEnabledEquipEvent() { return isEnabled_EquipEvent; }
+        bool IsEnabledHitEvent() { return isEnabled_HitEvent; }
+        bool IsEnabledCombatEvent() { return isEnabled_CombatEvent; }
+
+        void SetEnabledEquipEvent(bool b) { isEnabled_EquipEvent = b; }
+        void SetEnabledHitEvent(bool b) { isEnabled_HitEvent = b; }
+        void SetEnabledCombatEvent(bool b) { isEnabled_CombatEvent = b; }
+
+        RE::BSEventNotifyControl ProcessEvent(const RE::TESEquipEvent* event, RE::BSTEventSource<RE::TESEquipEvent>* source) override;
+
+        RE::BSEventNotifyControl ProcessEvent(const RE::TESHitEvent* event, 
+                                        RE::BSTEventSource<RE::TESHitEvent>* source) override;
+
+        RE::BSEventNotifyControl ProcessEvent(const RE::TESCombatEvent* event, 
+                                        RE::BSTEventSource<RE::TESCombatEvent>* source) override;
+    };
 }

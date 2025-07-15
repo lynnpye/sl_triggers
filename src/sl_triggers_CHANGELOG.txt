@@ -1,6 +1,10 @@
 126
     Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log (or whichever folder you have your SKSE logs directed to)
+    bugfix: plugin should no longer attempt to resolve two forms on each player involved hit event in the event sink; formid resolution has been pushed out to SLTScript evaluation
+        unused eventsinks will no longer be left sending events back to Papyrus code that is not listening for them
+    bugfix: added the Core event entries to the event dropdown for "Player Equipment Change", "Player Combat State Changed", "Player Hit or Is Hit"
     enhancement: Added $request.core.player_on_hit.attacker, $request.core.player_on_hit.target, $request.core.player_on_hit.source, $request.core.player_on_hit.projectile
+    change: events will now default to 100% chance when created and that attribute is available
 
 125
     Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)

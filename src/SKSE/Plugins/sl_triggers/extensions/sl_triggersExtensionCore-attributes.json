@@ -10,43 +10,43 @@
     "trigger_attributes" : [
         ["# this section is just a simple list of attributes"],
         ["# one per row, yes"],
-        ["event", "triggerattribute_event"],
-        ["keymapping", "triggerattribute_keymapping"],
-        ["modifierkeymapping", "triggerattribute_modifierkeymapping"],
-        ["usedak", "triggerattribute_usedak"],
-        ["daytime", "triggerattribute_daytime"],
-        ["location", "triggerattribute_location"],
-        ["chance", "triggerattribute_chance"],
-        ["comconmat", "triggerattribute_comconmat"],
-        ["deeplocation", "triggerattribute_deeplocation"],
-        ["deeplocation_leaving", "triggerattribute_deeplocation"],
-        ["deeplocation_entering", "triggerattribute_deeplocation"],
-        ["container_corpse", "triggerattribute_container_corpse"],
-        ["container_empty", "triggerattribute_container_empty"],
-        ["lbl_location_leaving", "triggerattribute_location_leaving"],
-        ["lbl_location_entering", "triggerattribute_location_entering"],
-        ["cleared_leaving", "triggerattribute_cleared"],
-        ["cleared_entering", "triggerattribute_cleared"],
-        ["equipping", "triggerattribute_equipping"],
-        ["armor_slot", "triggerattribute_armor_slot"],
-        ["equipped_item_type", "triggerattribute_equipped_item_type"],
-        ["has_enchantments", "triggerattribute_has_enchantments"],
-        ["item_is_unique", "triggerattributes_item_is_unique"],
-        ["combat_state", "triggerattributes_combat_state"],
-        ["player_attacking", "triggerattributes_player_attacking"],
-        ["was_power_attack", "triggerattributes_was_power_attack"],
-        ["was_sneak_attack", "triggerattributes_was_sneak_attack"],
-        ["was_bash_attack", "triggerattributes_was_bash_attack"],
-        ["was_blocked", "triggerattributes_was_blocked"],
-        ["clothed", "triggerattributes_clothed"],
-        ["do_1", "triggerattribute_do_1"],
-        ["do_2", "triggerattribute_do_2"],
-        ["do_3", "triggerattribute_do_3"]
+        ["event",                   "triggerattribute_event"],
+        ["keymapping",              "triggerattribute_keymapping"],
+        ["modifierkeymapping",      "triggerattribute_modifierkeymapping"],
+        ["usedak",                  "triggerattribute_usedak"],
+        ["daytime",                 "triggerattribute_daytime"],
+        ["location",                "triggerattribute_location"],
+        ["chance",                  "triggerattribute_chance"],
+        ["comconmat",               "triggerattribute_comconmat"],
+        ["deeplocation",            "triggerattribute_deeplocation"],
+        ["deeplocation_leaving",    "triggerattribute_deeplocation"],
+        ["deeplocation_entering",   "triggerattribute_deeplocation"],
+        ["container_corpse",        "triggerattribute_container_corpse"],
+        ["container_empty",         "triggerattribute_container_empty"],
+        ["lbl_location_leaving",    "triggerattribute_location_leaving"],
+        ["lbl_location_entering",   "triggerattribute_location_entering"],
+        ["cleared_leaving",         "triggerattribute_cleared"],
+        ["cleared_entering",        "triggerattribute_cleared"],
+        ["equipping",               "triggerattribute_equipping"],
+        ["armor_slot",              "triggerattribute_armor_slot"],
+        ["equipped_item_type",      "triggerattribute_equipped_item_type"],
+        ["has_enchantments",        "triggerattribute_has_enchantments"],
+        ["item_is_unique",          "triggerattribute_item_is_unique"],
+        ["combat_state",            "triggerattribute_combat_state"],
+        ["player_attacking",        "triggerattribute_player_attacking"],
+        ["was_power_attack",        "triggerattribute_was_power_attack"],
+        ["was_sneak_attack",        "triggerattribute_was_sneak_attack"],
+        ["was_bash_attack",         "triggerattribute_was_bash_attack"],
+        ["was_blocked",             "triggerattribute_was_blocked"],
+        ["clothed",                 "triggerattribute_clothed"],
+        ["do_1",                    "triggerattribute_do_1"],
+        ["do_2",                    "triggerattribute_do_2"],
+        ["do_3",                    "triggerattribute_do_3"]
     ],
     "triggerattribute_event" : [
         ["# here is where you define aspects of the attribute"],
         ["type", "int"],
-        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Key Mapping", "Top of the Hour", "New Session", "Player Cell Change (Frequent)", "Player Loading Screen", "Player Opened Container", "Player Location Change (Less Frequent)"],
+        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Key Mapping", "Top of the Hour", "New Session", "Player Cell Change (Frequent)", "Player Loading Screen", "Player Opened Container", "Player Location Change (Less Frequent)", "(Experimental) Player Equipment Change", "(Experimental) Player Combat State Changed", "(Experimental) Player Hit or Is Hit"],
         ["info", "Choose which type of event this trigger will use."]
     ],
     "triggerattribute_keymapping" : 
@@ -86,7 +86,7 @@
     ],
     "triggerattribute_equipping" : [
         ["type", "int"],
-        ["widget", "menu", "Equipping: ", "0", "Any", "Equipping", "Unequipping"],
+        ["widget", "menu", "Equipping/Unequipping: ", "0", "Any", "Equipping Item", "Unequipping Item"],
         ["info", "Whether the equipment is being put on or taken off."]
     ],
     "triggerattribute_has_enchantments" : [
@@ -101,12 +101,12 @@
     ],
     "triggerattribute_equipped_item_type" : [
         ["type", "int"],
-        ["widget", "menu", "Equipping: ", "0", "Any", "Armor", "Weapon", "Spell", "Potion/Food", "Ammo"],
+        ["widget", "menu", "Type of Item: ", "0", "Any", "Armor Item", "Weapon Item", "Spell Item", "Potion/Food Item", "Ammo Item"],
         ["info", "The type of 'equipment' that was equipped/unequipped. Technically could include things like Potions, for example."]
     ],
     "triggerattribute_armor_slot" : [
         ["type", "int"],
-        ["widget", "menu", "Armor Slot (implies Worn): ", "0", "Any", "Body/Head/Hands/Feet", "Ring/Amulet/Circlet", "30 - Head", "31 - Hair", "32 - Body", "33 - Hands", "34 - Forearms", "35 - Amulet", "36 - Ring", "37 - Feet", "38 - Calves", "39 - Shield", "40 - Tail", "41 - LongHair", "42 - Circlet", "43 - Ears", "44 - Unnamed", "45 - Unnamed", "46 - Unnamed", "47 - Unnamed", "48 - Unnamed", "49 - Unnamed", "50 - DecapitateHead", "51 - Decapitate", "52 - Unnamed", "53 - Unnamed", "54 - Unnamed", "55 - Unnamed", "56 - Unnamed", "57 - Unnamed", "58 - Unnamed", "59 - Unnamed", "60 - Unnamed", "61 - FX01"],
+        ["widget", "menu", "Armor Slot (implies Armor): ", "0", "Any", "Body/Head/Hands/Feet", "Ring/Amulet/Circlet", "30 - Head", "31 - Hair", "32 - Body", "33 - Hands", "34 - Forearms", "35 - Amulet", "36 - Ring", "37 - Feet", "38 - Calves", "39 - Shield", "40 - Tail", "41 - LongHair", "42 - Circlet", "43 - Ears", "44 - Unnamed", "45 - Unnamed", "46 - Unnamed", "47 - Unnamed", "48 - Unnamed", "49 - Unnamed", "50 - DecapitateHead", "51 - Decapitate", "52 - Unnamed", "53 - Unnamed", "54 - Unnamed", "55 - Unnamed", "56 - Unnamed", "57 - Unnamed", "58 - Unnamed", "59 - Unnamed", "60 - Unnamed", "61 - FX01"],
         ["info", "The armor slot of the equipment (implies Armor was equipped; filter will fail otherwise)."]
     ],
     "triggerattribute_daytime" : [
@@ -120,7 +120,7 @@
         ["info", "The location, indoors or outdoors, the cell qualifies as."]
     ],
     "triggerattribute_chance" : [
-        ["type", "float", "0.0"],
+        ["type", "float", "100.0"],
         ["widget", "slider", "Chance: ", "0.0", "100.0", "1.0", "{0}"],
         ["info", "The chance the trigger will run when all prerequisites are met."]
     ],
@@ -171,7 +171,7 @@
     ],
     "triggerattribute_was_blocked" : [
         ["type", "int"],
-        ["widget", "menu", "Attack Blocked :", "0", "Any", "Was Attack Blocked", "Was Attack Blocked"],
+        ["widget", "menu", "Attack Blocked :", "0", "Any", "Was Attack Blocked", "Was Attack Left Unblocked"],
         ["info", "Whether the attack was blocked."]
     ],
     "triggerattribute_do_1" : [
