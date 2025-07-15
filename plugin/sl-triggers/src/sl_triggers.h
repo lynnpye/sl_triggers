@@ -46,8 +46,19 @@ static bool RunSLTRMain(PAPYRUS_NATIVE_DECL, RE::Actor* cmdTarget, std::string_v
 static void SetExtensionEnabled(PAPYRUS_NATIVE_DECL, std::string_view extensionKey,
                                             bool enabledState);
 
-static bool SmartEquals(PAPYRUS_NATIVE_DECL, std::string_view a, std::string_view b);
+static void SetCombatSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled);
 
+static void SetEquipSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled);
+
+static void SetHitSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled);
+
+static bool IsCombatSinkEnabled(PAPYRUS_NATIVE_DECL);
+
+static bool IsEquipSinkEnabled(PAPYRUS_NATIVE_DECL);
+
+static bool IsHitSinkEnabled(PAPYRUS_NATIVE_DECL);
+
+static bool SmartEquals(PAPYRUS_NATIVE_DECL, std::string_view a, std::string_view b);
 //static std::vector<std::string> SplitFileContents(PAPYRUS_NATIVE_DECL, std::string_view filecontents);
 
 //static std::vector<std::string> SplitScriptContents(PAPYRUS_NATIVE_DECL, std::string_view scriptfilename);
@@ -201,6 +212,30 @@ public:
         SLT::SLTNativeFunctions::SetExtensionEnabled(PAPYRUS_FN_PARMS, extensionKey, enabledState);
     }
 
+    static void SetCombatSinkEnabled(PAPYRUS_STATIC_ARGS, bool isEnabled) {
+        SLT::SLTNativeFunctions::SetCombatSinkEnabled(PAPYRUS_FN_PARMS, isEnabled);
+    }
+
+    static void SetEquipSinkEnabled(PAPYRUS_STATIC_ARGS, bool isEnabled) {
+        SLT::SLTNativeFunctions::SetEquipSinkEnabled(PAPYRUS_FN_PARMS, isEnabled);
+    }
+
+    static void SetHitSinkEnabled(PAPYRUS_STATIC_ARGS, bool isEnabled) {
+        SLT::SLTNativeFunctions::SetHitSinkEnabled(PAPYRUS_FN_PARMS, isEnabled);
+    }
+
+    static bool IsCombatSinkEnabled(PAPYRUS_STATIC_ARGS) {
+        return SLT::SLTNativeFunctions::IsCombatSinkEnabled(PAPYRUS_FN_PARMS);
+    }
+
+    static bool IsEquipSinkEnabled(PAPYRUS_STATIC_ARGS) {
+        return SLT::SLTNativeFunctions::IsEquipSinkEnabled(PAPYRUS_FN_PARMS);
+    }
+
+    static bool IsHitSinkEnabled(PAPYRUS_STATIC_ARGS) {
+        return SLT::SLTNativeFunctions::IsHitSinkEnabled(PAPYRUS_FN_PARMS);
+    }
+
     static bool StartScript(PAPYRUS_STATIC_ARGS, RE::Actor* cmdTarget, std::string_view initialScriptName) {
         return SLT::SLTNativeFunctions::StartScript(PAPYRUS_FN_PARMS, cmdTarget, initialScriptName);
     }
@@ -216,6 +251,12 @@ public:
         reg.RegisterStatic("LogWarn", &SLTInternalPapyrusFunctionProvider::LogWarn);
         reg.RegisterStatic("RunOperationOnActor", &SLTInternalPapyrusFunctionProvider::RunOperationOnActor);
         reg.RegisterStatic("SetExtensionEnabled", &SLTInternalPapyrusFunctionProvider::SetExtensionEnabled);
+        reg.RegisterStatic("SetCombatSinkEnabled", &SLTInternalPapyrusFunctionProvider::SetCombatSinkEnabled);
+        reg.RegisterStatic("SetEquipSinkEnabled", &SLTInternalPapyrusFunctionProvider::SetEquipSinkEnabled);
+        reg.RegisterStatic("SetHitSinkEnabled", &SLTInternalPapyrusFunctionProvider::SetHitSinkEnabled);
+        reg.RegisterStatic("IsCombatSinkEnabled", &SLTInternalPapyrusFunctionProvider::IsCombatSinkEnabled);
+        reg.RegisterStatic("IsEquipSinkEnabled", &SLTInternalPapyrusFunctionProvider::IsEquipSinkEnabled);
+        reg.RegisterStatic("IsHitSinkEnabled", &SLTInternalPapyrusFunctionProvider::IsHitSinkEnabled);
         reg.RegisterStatic("StartScript", &SLTInternalPapyrusFunctionProvider::StartScript);
     }
 };

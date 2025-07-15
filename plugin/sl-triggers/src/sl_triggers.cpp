@@ -424,6 +424,33 @@ void SLTNativeFunctions::SetExtensionEnabled(PAPYRUS_NATIVE_DECL, std::string_vi
     }
 }
 
+void SLTNativeFunctions::SetCombatSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled) {
+    SLTREventSink::GetSingleton()->SetEnabledCombatEvent(isEnabled);
+    logger::info("CombatEvent sink enabled({})", SLTREventSink::GetSingleton()->IsEnabledCombatEvent());
+}
+
+void SLTNativeFunctions::SetEquipSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled) {
+    SLTREventSink::GetSingleton()->SetEnabledEquipEvent(isEnabled);
+    logger::info("EquipEvent sink enabled({})", SLTREventSink::GetSingleton()->IsEnabledEquipEvent());
+}
+
+void SLTNativeFunctions::SetHitSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled) {
+    SLTREventSink::GetSingleton()->SetEnabledHitEvent(isEnabled);
+    logger::info("HitEvent sink enabled({})", SLTREventSink::GetSingleton()->IsEnabledHitEvent());
+}
+
+bool SLTNativeFunctions::IsCombatSinkEnabled(PAPYRUS_NATIVE_DECL) {
+    return SLTREventSink::GetSingleton()->IsEnabledCombatEvent();
+}
+
+bool SLTNativeFunctions::IsEquipSinkEnabled(PAPYRUS_NATIVE_DECL) {
+    return SLTREventSink::GetSingleton()->IsEnabledEquipEvent();
+}
+
+bool SLTNativeFunctions::IsHitSinkEnabled(PAPYRUS_NATIVE_DECL) {
+    return SLTREventSink::GetSingleton()->IsEnabledHitEvent();
+}
+
 bool SLTNativeFunctions::SmartEquals(PAPYRUS_NATIVE_DECL, std::string_view a, std::string_view b) {
     float aNum = 0.0, bNum = 0.0;
     bool aIsNum = Util::String::isNumeric(a, aNum);

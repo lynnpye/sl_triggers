@@ -10,19 +10,19 @@
     "trigger_attributes" : [
         ["# this section is just a simple list of attributes"],
         ["# one per row, yes"],
-        ["event", "triggerattribute_event"],
-        ["chance", "triggerattribute_chance"],
-        ["race", "triggerattribute_race"],
-        ["role", "triggerattribute_role"],
-        ["player", "triggerattribute_player"],
-        ["gender", "triggerattribute_gender"],
-        ["tag", "triggerattribute_tag"],
-        ["daytime", "triggerattribute_daytime"],
-        ["location", "triggerattribute_location"],
-        ["position", "triggerattribute_position"],
-        ["do_1", "triggerattribute_do_1"],
-        ["do_2", "triggerattribute_do_2"],
-        ["do_3", "triggerattribute_do_3"]
+        ["event",           "triggerattribute_event"],
+        ["chance",          "triggerattribute_chance"],
+        ["race",            "triggerattribute_race"],
+        ["role",            "triggerattribute_role"],
+        ["player",          "triggerattribute_player"],
+        ["gender",          "triggerattribute_gender"],
+        ["tag",             "triggerattribute_tag"],
+        ["daytime",         "triggerattribute_daytime"],
+        ["location",        "triggerattribute_location"],
+        ["position",        "triggerattribute_position"],
+        ["do_1",            "triggerattribute_do_1"],
+        ["do_2",            "triggerattribute_do_2"],
+        ["do_3",            "triggerattribute_do_3"]
     ],
     "triggerattribute_event" : [
         ["# here is where you define aspects of the attribute"],
@@ -31,7 +31,7 @@
         ["info", "Choose which type of awesome event this trigger will use."]
     ],
     "triggerattribute_chance" : [
-        ["type", "float", "0.0"],
+        ["type", "float", "100.0"],
         ["widget", "slider", "Chance: ", "0.0", "100.0", "1.0", "{0}"],
         ["info", "The chance the trigger will run when all prerequisites are met."]
     ],

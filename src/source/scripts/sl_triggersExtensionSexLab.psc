@@ -305,7 +305,7 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTrigg
 		bool   doRun
 		int    actorIdx = 0
 
-		float chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE)
+		float chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
 
 		if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
 			while actorIdx < actorCount

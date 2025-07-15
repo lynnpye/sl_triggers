@@ -4,7 +4,7 @@ SLTScript Documentation
 Overview
 --------
 
-Script for SL Triggers, or SLTScript, is primarily a text file using a simple marker-to-enclose tokenization strategy. Lines are tokenized by splitting on whitespace, except when fields are enclosed in either double-quotes (""), dollar-double-quotes for string interpolation ($"") or square brackets ([]). Enclosed strings may contain whitespace, and embedded double quotes are escaped by doubling them ("").
+Script for SL Triggers Redux, or SLTScript, is primarily a text file using a simple marker-to-enclose tokenization strategy. Lines are tokenized by splitting on whitespace, except when fields are enclosed in either double-quotes (""), dollar-double-quotes for string interpolation ($"") or square brackets ([]). Enclosed strings may contain whitespace, and embedded double quotes are escaped by doubling them ("").
 
 The legacy option of .JSON still exists but is deprecated.
 
@@ -108,6 +108,10 @@ $system.isplayer.inwilderness
 
 bool - is the Player currently in a Hold, BanditCamp, MilitaryFort, or a Location with no keyword
 
+$system.isplayer.incombat
+
+bool - true if the Player is currently in combat, false otherwise
+
 $system.stats.runningscripts
 
 int - current count of running scripts; will always be 1 or greater because you will be calling it from a script
@@ -135,6 +139,10 @@ string - the current script that is running; might differ from current script in
 $system.sessionid
 
 int - the current SLTR sessionid (changes with each load of a save or creation of a new game)
+
+$system.forms.gold
+
+Form - returns the Form for gold (i.e. "0xf
 
 $system.isavailable.core
 
@@ -215,6 +223,54 @@ bool - (Added by SLTR Core) was the Player "In the Wilderness" at the time the t
 $request.core.wasplayer.indungeon
 
 bool - (Added by SLTR Core) was the Player "In a Dungeon" at the time the trigger was handled
+
+$request.core.fromlocation
+
+bool - (Added by SLTR Core) (for OnLocationChange) the Location travelled from; might be none/empty for many outdoor locations
+
+$request.core.tolocation
+
+bool - (Added by SLTR Core) (for OnLocationChange) the Location travelled to; might be none/empty for many outdoor locations
+
+$request.core.equippeditem.baseform
+
+Form - (Added by SLTR Core) (for Player Equipment Change) the base Form for the item that was equipped/unequipped
+
+$request.core.equippeditem.objectreference
+
+ObjectReference - (Added by SLTR Core) (for Player Equipment Change) the ObjectReference from the original event; typically only available for unique items (e.g. artifacts)
+
+$request.core.equippeditem.isequipping
+
+bool - (Added by SLTR Core) (for Player Equipment Change) true if the item was being equipped; false if the item was being unequipped
+
+$request.core.equippeditem.isunique
+
+bool - (Added by SLTR Core) (for Player Equipment Change) true if the item was unique (event provided ObjectReference) ; false otherwise
+
+$request.core.equippeditem.hasenchantments
+
+bool - (Added by SLTR Core) (for Player Equipment Change) true if the item had enchantments; false otherwise
+
+$request.core.equippeditem.type
+
+string - (Added by SLTR Core) (for Player Equipment Change) One of 'Armor', 'Weapon', 'Spell', 'Potion', or 'Ammo'
+
+$request.core.playeronhit.attacker
+
+Form - (Added by SLTR Core) (for Player On Hit) the Player if the Player was attacking, their opponent if the Player was being attacked
+
+$request.core.playeronhit.target
+
+Form - (Added by SLTR Core) (for Player On Hit) the Player if the Player was being attacked, their opponent if the Player was attacking
+
+$request.core.playeronhit.source
+
+Form - (Added by SLTR Core) (for Player On Hit) the source (weapon/spell) used for the attack
+
+$request.core.playeronhit.projectile
+
+Form - (Added by SLTR Core) (for Player On Hit) the projectile used for the attack if one was involved
 
  Core
 
