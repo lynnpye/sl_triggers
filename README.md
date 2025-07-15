@@ -5,6 +5,21 @@ SLTR lets you run simple scripts without the need to compile and without worryin
 
 It is ESL flagged to minimize impact on your load order and most dependencies are loaded dynamically, so aside from the requirements of SKSE and PapyrusUtils, everything else is optional depending on what functionality you want.
 
+# Requirements
+- [SKSE](https://skse.silverlock.org/) - SLTR comes with a plugin that provides core functionality; it is also required for PapyrusUtil
+- [Address Library for SKSE Plugins](https://www.nexusmods.com/skyrimspecialedition/mods/32444) - the SLTR plugin needs this as does PapyrusUtil
+- [PapyrusUtil](https://www.nexusmods.com/skyrimspecialedition/mods/13048) - provides core functionality
+
+## Optional
+These mods provide additional functionality, mostly in the form of integration, i.e. bindings in SLTScript to run functions in the mod, or, as in SexLab's case, full on extensions to provide trigger support and a broad set of additional functions for SLTScript. Not having them simply means your SLTScripts will not have access to functions provided for that mod.
+- [SexLab Framework](https://www.loverslab.com/files/file/20058-sexlab-se-sex-animation-framework-v166b-01182024/) (if you want SexLab events and commands)
+- [SexLab P+ Framework](https://www.loverslab.com/files/file/25318-sexlab-p/) (this version works as well)
+- [Console Util Extended](https://www.nexusmods.com/skyrimspecialedition/mods/133569)) (if you want to execute Skyrim console commands in your scripts) (or another ConsoleUtil variant)
+- [MfgFix](https://www.nexusmods.com/skyrimspecialedition/mods/11669) (if you want facial expression related commands in your scripts)
+- [Devious Followers Continued](https://www.loverslab.com/files/file/11732-devious-followers-continued-se/)
+- [OSLAroused](https://www.loverslab.com/files/file/20867-osl-aroused-arousal-reborn-sse-ae/)
+- [Devious Devices NG](https://www.loverslab.com/files/file/29779-devious-devices-ng/)/[Devious Devices SE](https://www.loverslab.com/files/file/5878-devious-devices-se/)
+
 # More Details Please!
 SL Triggers Redux (SLTR, though you may still see references to SLT) is two things: first, it is a scripting engine for the SLTScript scripting language and second, it is an extensible set of triggers that let you set up SLTScripts to be run in response to in-game events. The original focus of SLTR was purely on the four basic SexLab events (Sex Start, Orgasm, Sex End, Separate Orgasm via SLSO), but the framework has been expanded to not be tied solely to SexLab events. In addition, out of the box, you can also set up hotkeys to run scripts on demand, set scripts up to run on the (in-game) hour, and even run scripts directly via console command.
 
@@ -23,42 +38,86 @@ All other work that exists as part of this project as well as the associated SKS
 
 All SLTScripts created by anyone else are subject to their copyright and I hold none over them.
 
-# Installation:
+# Installation
+## If You Are Updating From An Older Version
+If you are moving from Fotogen's original SL Triggers, you will need a new save.
 
-If you have an older version (i.e. Fotogen's original) you will need a new save. Sorry. :(
+If you are updating from one version of SLTR (this mod) to a newer version, check the CHANGELOG, but I'll likely still recommend a new save. Regardless, especially for small version jumps, it doesn't hurt to try first without a new save.
 
-I strongly recommend using a mod manager like ModOrganizer2.
+That said, I have often found that both Fotogen's and mine seem to be able to survive the following:
+- Save your game and quit Skyrim
+- Remove the old version
+- Run Skyrim, load your save, click through the warning, save, and quit again
+- Perform any necessary cleanup (e.g. some versions no longer understand old script formats like JSON)
+- Install the new version
+- Run Skyrim and enjoy your new version
 
-Typical mod install into Data\ (again, if you aren't using a mod manager)
+However, in case of support, if a problem persists beyond that, the next logical step would be to test on a new save if possible.
 
-There is an MCM available to manage triggers and settings, but all options are also manageable through files.
+## If You Are Installing For The First Time
+### Using MO2 Is Recommended
+I personally use (ModOrganizer2/MO2)[https://www.modorganizer.org/] and even then, often just through whichever modlist I'm using via (wabbajack)[https://www.wabbajack.org/]. If using MO2, dragging an SLTR install .zip into the downloads tab should be sufficient to make it available to install into your list. Similarly dragging it into your active load order should be sufficient to have it installed and running when you next play. It doesn't (at this time) have any particular load order requirements so feel free to move it about as you need.
 
-# Requirements:
+### If, However, You Are Doing A Manual Install
+SLTR itself is a typical mod install with a SKSE plugin. It installs into Data\ as you would expect
 
-- SKSE
-- PapyrusUtil
+## Mod and Plugin Logging Output
+Mod logging output will appear in whichever folder SKSE is configured to output to. On a typical Windows 10 Steam install, for example, I think this ends up in your 'Documents\My Games\Skyrim Special Edition\SKSE\sl-triggers.log' folder. Generally I also send log output from Papyrus script through the plugin, so all log output should be located in that one file.
 
-## Optional
-- [SexLab Framework](https://www.loverslab.com/files/file/20058-sexlab-se-sex-animation-framework-v166b-01182024/) (if you want SexLab events and commands)
-- [SexLab P+ Framework](https://www.loverslab.com/files/file/25318-sexlab-p/) (this version works as well)
-- [Console Util Extended](https://www.nexusmods.com/skyrimspecialedition/mods/133569)) (if you want to execute Skyrim console commands in your scripts) (or another ConsoleUtil variant)
-- [MfgFix](https://www.nexusmods.com/skyrimspecialedition/mods/11669) (if you want facial expression related commands in your scripts)
-- [Devious Followers Continued](https://www.loverslab.com/files/file/11732-devious-followers-continued-se/)
-- [OSLAroused](https://www.loverslab.com/files/file/20867-osl-aroused-arousal-reborn-sse-ae/)
-- [Devious Devices NG](https://www.loverslab.com/files/file/29779-devious-devices-ng/)/[Devious Devices SE](https://www.loverslab.com/files/file/5878-devious-devices-se/)
+## Once It Is Installed
+Once installed, you should now find in your 'mods' folder a new sub-folder, 'sl_triggers' (or whatever you named it during install).
 
+The mod folder structure at install should look something like:
+
+- `interfaces\` - containing e.g. translation files
+- `scripts\` - containing compiled .pex files
+- `SKSE\`
+  - `CustomConsole\` - config file for ConsoleUtil-Extended to provide improved console commands
+  - `Plugins\`
+    - `sl_triggers\`
+      - `commands\` - pre-made SLTScripts you can link to triggers without having to do any coding
+      - `commandstore\` - folder available for SLTScript usage as well as shared persisted files (other locations are not excluded)
+      - `extensions\`
+        - `sl_triggersExtensionCore\` - trigger definitions (JSON) for events handled by the 'Core' extension
+          - new triggers for the 'Core' extension will be created here (but may end up in your overwrite or other folder specified for output files)
+          - you can place your own JSON files (as long as the filename can be a valid string in the Skyrim Papyrus VM) here without needing to use the MCM
+          - this also allows you to share triggers created by others
+        - `sl_triggersExtensionSexLab\` - trigger definitions (JSON) for events handled by the 'SexLab' extension
+          - new triggers for the 'SexLab' extension will be created here (but may end up in your overwrite or other folder specified for output files)
+          - similarly, this works for any extension; for now there are only 'Core' and 'SexLab' offered by the mod
+        - `sl_triggersExtensionCore-attributes.json` - DO NOT EDIT; JSON-based definitions for the SLTR MCM to handle Core triggers
+        - `sl_triggersExtensionCore-libraries.json` - DO NOT EDIT; JSON configuration for Core function libraries
+        - `sl_triggersExtensionSexLab-attributes.json` - DO NOT EDIT; JSON-based definitions for the SLTR MCM to handle SexLab triggers
+        - `sl_triggersExtensionSexLab-libraries.json` - DO NOT EDIT; JSON configuration for SexLab function libraries
+      - `containers.json` - JSON configuration for Containers (provides support for the Core trigger: On Player Activate Container)
+        - you can modify this file to add containers from other mods that will be detected; it includes some examples
+        - you can also define which containers will be considered "Common" for filtering purposes; some defaults are included
+      - `settings.json` - created at first launch to avoid being overwritten during updates
+    - `sl-triggers.dll` - SKSE plugin; CommonLibNG-SSE based; uses Address Library; should support most used versions
+- `source\`
+  - `scripts\` - containing source .psc files for the .pex files
+- `sl_triggers.esp`
+- `sl_triggers_CHANGELOG.txt`
+- `sl_triggers_function_library.md` - Markdown documentation for available SLTScript functions provided by SLTR (other functions may be provided by third party extensions and function libraries)
+- `sl_triggers_function_library.txt` - Text documentation for available SLTScript functions provided by SLTR (other functions may be provided by third party extensions and function libraries)
+- `sl_triggers_sltscripts.txt` - Basic information about SLTScript; for the best documentation visit the [wiki](https://github.com/lynnpye/sl_triggers/wiki).
+
+## In-Game Configuration
+If you have SkyUI installed, you should have an MCM available as 'SL Triggers Redux'. Any extensions registering themselves with SLTR will be listed on the left.
+
+The main SLTR MCM screen has an 'Enabled' option (on by default), a 'Debug' option, and a number of Granular Debug options, all of which are off by default. This will cause very little logging output. Even with all 'Debug' options off, during SLTScript parsing, if errors or important warnings or info need to be reported, they will be sent to that log. If your SLTScript isn't behaving as expected, check the log first.
+
+All of the 'Debug' options will output to the log file and will absolutely impact performance, both of your SLTScript and likely the game itself. This can be useful when troubleshooting your scripts, but don't leave it on for general play.
+
+Selecting an extension displays it's triggers if it has any defined, and gives you the option to create more. Each trigger has filter options on it's card for you to customize when the scripts should be applied.
+
+In game, if you are using the MCM to create new triggers, or as any new files are generated by SLTR (like new .json files if you create SLTScript that does so), they will be generated in the 'overwrite\' folder as for any mod; if you want to manage those files, you will need to manually copy them into whatever new location you want them in.
+
+You can also "soft delete" a trigger, marking it inactive until either you restore it or go in and physically remove the trigger file. Until restored it will remain inactive.
 
 # About Performance:
 
 Effort has been made to avoid scripts from stressing the system more than necessary, but there are still limitations. Each script will be run on an Actor in game (the Player or an NPC) as an ActiveMagicEffect i.e. as from a Spell. Any one Actor can have no more than 30 scripts running on them at one time. Scripts can be long-running if you make them so, so be careful not to let things run away.
- 
-# Setting Things Up:
-
-The MCM lists "extensions" on the left and their associated triggers and settings on the right. Each "extension" represents a set of triggers/events that you can add to and configure to run SLT scripts in response.
-
-When you add a trigger, it will show up with it's configurable options. Each option represents a check that will be made when the selected event fires. If all the checks pass, the Actor being verified will have the script run on them.
-
-You can also "soft delete" a trigger, marking it inactive until either you restore it or go in and physically remove the trigger file. Until restored it will remain inactive.
 
 # Okay, But How Do I Run A Script!
 ## Running Scripts Manually
