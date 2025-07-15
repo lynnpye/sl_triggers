@@ -86,7 +86,6 @@ RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESEquipEvent* ev
 RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESHitEvent* event, 
                                     RE::BSTEventSource<RE::TESHitEvent>* source) {
     if (IsEnabledHitEvent()) {
-        logger::debug("\t HitSink enabled and processing");
         if (event && event->target && event->cause) {
             auto* target = event->target->GetBaseObject();
             auto* attacker = event->cause->GetBaseObject();
@@ -110,8 +109,6 @@ RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESHitEvent* even
                 }
             }
         }
-    } else {
-        logger::debug("\t HitSink event missed because not processing");
     }
 
     return RE::BSEventNotifyControl::kContinue;
@@ -120,10 +117,7 @@ RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESHitEvent* even
 RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESCombatEvent* event, 
                                     RE::BSTEventSource<RE::TESCombatEvent>* source) {
     if (IsEnabledCombatEvent()) {
-        logger::debug("\t CombatSink enabled and processing");
         DelayedFunction(&HandlePlayerCombatStatusChange, 1250);
-    } else {
-        logger::debug("\t CombatSink event missed because not processing");
     }
 
     return RE::BSEventNotifyControl::kContinue;

@@ -106,8 +106,8 @@ Variable names can include any of the following characters after the scope: `A-Z
 |`$request.core.equipped_item.type`|string - (Added by SLTR Core) (for Player Equipment Change) One of 'Armor', 'Weapon', 'Spell', 'Potion', or 'Ammo'|
 |`$request.core.player_on_hit.attacker`|Form - (Added by SLTR Core) (for Player On Hit) the Player if the Player was attacking, their opponent if the Player was being attacked|
 |`$request.core.player_on_hit.target`|Form - (Added by SLTR Core) (for Player On Hit) the Player if the Player was being attacked, their opponent if the Player was attacking|
-|`$request.core.player_on_hit.source`|Form - (Added by SLTR Core) (for Player On Hit) the source (weapon/spell) used for the attack|
-|`$request.core.player_on_hit.projectile`|Form - (Added by SLTR Core) (for Player On Hit) the projectile used for the attack if one was involved|
+|`$request.core.player_on_hit.source`|int - (Added by SLTR Core) (for Player On Hit) the source FormID (weapon/spell) used for the attack|
+|`$request.core.player_on_hit.projectile`|int - (Added by SLTR Core) (for Player On Hit) the projectile FormID used for the attack if one was involved|
 
 #### Core
 `core` scoped variables are provided by the Core extension

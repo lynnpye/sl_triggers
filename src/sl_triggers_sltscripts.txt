@@ -266,11 +266,11 @@ Form - (Added by SLTR Core) (for Player On Hit) the Player if the Player was bei
 
 $request.core.playeronhit.source
 
-Form - (Added by SLTR Core) (for Player On Hit) the source (weapon/spell) used for the attack
+int - (Added by SLTR Core) (for Player On Hit) the source FormID (weapon/spell) used for the attack
 
 $request.core.playeronhit.projectile
 
-Form - (Added by SLTR Core) (for Player On Hit) the projectile used for the attack if one was involved
+int - (Added by SLTR Core) (for Player On Hit) the projectile FormID used for the attack if one was involved
 
  Core
 

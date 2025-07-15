@@ -1,3 +1,7 @@
+127
+    Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log (or whichever folder you have your SKSE logs directed to)
+    bugfix: removed extraneous logging output from event sinks
+
 126
     Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log (or whichever folder you have your SKSE logs directed to)
     bugfix: plugin should no longer attempt to resolve two forms on each player involved hit event in the event sink; formid resolution has been pushed out to SLTScript evaluation
