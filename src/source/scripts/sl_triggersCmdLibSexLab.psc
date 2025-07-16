@@ -271,7 +271,7 @@ function sl_adjustenjoyment(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary,
 
     sl_triggersExtensionSexLab slExtension = GetExtension()
 
-	if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 2)
+	if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
             sslThreadController tc = (slExtension.SexLabForm as SexLabFramework).GetActorController(_targetActor)
