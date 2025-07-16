@@ -60,7 +60,6 @@ Function SLTReady()
 EndFunction
 
 Function RefreshData()
-	RefreshTriggerCache()
 	RegisterEvents()
 EndFunction
 

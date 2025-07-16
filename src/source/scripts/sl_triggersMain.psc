@@ -780,34 +780,6 @@ Form Function SetGlobalVarForm(string _key, Form value)
 	return value
 EndFunction
 
-; I blame the DayQuil
-string[]	thread_pending_info
-
-string[] Function ClaimNextThread(int targetformid)
-	int i = 0
-	int j
-	while i < thread_pending_info.Length
-		int fid = thread_pending_info[i + 2] as int
-		if fid == targetformid
-			thread_pending_info[i + 2] = 0
-			string[] result = new string[3]
-			result[0] = thread_pending_info[i]
-			result[1] = thread_pending_info[i + 1]
-			result[2] = thread_pending_info[i + 3]
-			if (i + 4) < thread_pending_info.length
-				thread_pending_info = PapyrusUtil.MergeStringArray(PapyrusUtil.SliceStringArray(thread_pending_info, 0, i - 1), PapyrusUtil.SliceStringArray(thread_pending_info, i + 4))
-			else
-				thread_pending_info = PapyrusUtil.SliceStringArray(thread_pending_info, 0, i - 1)
-			endif
-			return result
-		endif
-
-		i += 4
-	endwhile
-	return none
-EndFunction
-
-
 Function StartCommand(Form targetForm, string initialScriptName)
 	if bDebugMsg
 		SLTDebugMsg("Main.StartCommand targetForm(" + targetForm + ") initialScriptName(" + initialScriptName + ")")
@@ -819,6 +791,26 @@ Function StartCommand(Form targetForm, string initialScriptName)
 	int requestId = GetNextInstanceId()
 	int threadId = GetNextInstanceId()
 	StartCommandWithThreadId(targetForm, initialScriptName, requestId, threadId)
+EndFunction
+
+Function PushScriptForTarget(Form targetForm, int requestId, int threadid, string initialScriptName)
+	If (!targetForm || !threadid || !initialScriptName || !requestId)
+		SLTErrMsg("PushScriptForTarget: Invalid arguments")
+		return
+	EndIf
+	StorageUtil.IntListAdd(targetForm, "SLTR:pending_requestid_list", requestid)
+	StorageUtil.IntListAdd(targetForm, "SLTR:pending_threadid_list", threadid)
+	StorageUtil.StringListAdd(targetForm, "SLTR:pending_initialscriptname_list", initialScriptName)
+EndFunction
+
+Function PopScriptForTarget(Form targetForm, int[] requestId, int[] threadid, string[] initialScriptName)
+	If (!targetForm || !threadid.Length || !initialScriptName.Length || !requestId.Length)
+		SLTErrMsg("PopScriptForTarget: Invalid arguments")
+		return
+	EndIf
+	requestid[0] = StorageUtil.IntListPop(targetForm, "SLTR:pending_requestid_list")
+	threadid[0] = StorageUtil.IntListPop(targetForm, "SLTR:pending_threadid_list")
+	initialScriptName[0] = StorageUtil.StringListPop(targetForm, "SLTR:pending_initialscriptname_list")
 EndFunction
 
 ; StartCommand
@@ -837,19 +829,8 @@ Function StartCommandWithThreadId(Form targetForm, string initialScriptName, int
 		target = PlayerRef
 	endif
 
-	string[] new_thread_info = new string[4]
-
-	new_thread_info[0] = threadid as string
-	new_thread_info[1] = initialScriptName
-	new_thread_info[2] = target.GetFormID() as string
-	new_thread_info[3] = requestId as string
-
-	if !thread_pending_info
-		thread_pending_info = new_thread_info
-	else
-		thread_pending_info = PapyrusUtil.MergeStringArray(thread_pending_info, new_thread_info)
-	endif
-
+	PushScriptForTarget(targetForm, requestId, threadid, initialScriptName)
+	
 	if bDebugMsg
 		SLTDebugMsg("Calling sl_triggers_internal.StartScript(target=<" + target + ">, initialScriptName=<" + initialScriptName + ">)")
 	endif

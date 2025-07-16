@@ -301,7 +301,6 @@ EndFunction
 
 Function RefreshData()
 	RefreshTheContainersWeKnowAndLove()
-	RefreshTriggerCache()
 	RegisterEvents()
 EndFunction
 

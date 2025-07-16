@@ -208,6 +208,13 @@ EndEvent
 
 Function _slt_RefreshTriggers()
 	TriggerKeys = sl_triggers_internal.GetTriggerKeys(SLTExtensionKey)
+	If (SLT.Debug_Cmd_RunScript)
+		SLTDebugMsg("_slt_RefreshTriggers: TriggerKeys(" + PapyrusUtil.StringJoin(TriggerKeys, "),(") + ")")
+	EndIf
+	RefreshTriggerCache()
+EndFunction
+
+Function RefreshTriggerCache()
 EndFunction
 
 

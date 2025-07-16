@@ -590,11 +590,15 @@ Function DoStartup()
     
     if !threadid
         ; need to determine our threadid
-        string[] nextThreadInfo = SLT.ClaimNextThread(CmdTargetFormID)
-        if nextThreadInfo.Length
-            threadid = nextThreadInfo[0] as int
-            initialScriptName = nextThreadInfo[1]
-            CmdRequestId = nextThreadInfo[2] as int
+        int[] requestresult = new int[1]
+        int[] threadresult = new int[1]
+        string[] scriptresult = new string[1]
+        SLT.PopScriptForTarget(CmdTargetActor, requestresult, threadresult, scriptresult)
+
+        if (requestresult[0] && threadresult[0] && scriptresult[0])
+            CmdRequestId = requestresult[0]
+            threadid = threadresult[0]
+            initialScriptName = scriptresult[0]
         endif
 
         if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
@@ -2458,6 +2462,10 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
         tokencounts = PapyrusUtil.IntArray(totalFunctionalCommands)
         tokenoffsets = PapyrusUtil.IntArray(totalFunctionalCommands)
         tokens = PapyrusUtil.SliceStringArray(rawtokenresult, 1 + 3 * totalFunctionalCommands)
+        
+        If (SLT.Debug_Cmd_RunScript)
+            SLTDebugMsg("scriptfilename(" + scriptfilename + ") rawtokens: (" + PapyrusUtil.StringJoin(rawtokenresult, "),(") + ")")
+        EndIf
 
         int sloff = 1
         int tcoff = sloff + totalFunctionalCommands

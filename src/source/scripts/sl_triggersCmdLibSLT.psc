@@ -315,10 +315,20 @@ function av_get(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] pa
 
     if ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        string avname = CmdPrimary.ResolveString(param[2])
 
-        if _targetActor
-            nextResult = _targetActor.GetActorValue(CmdPrimary.ResolveString(param[2]))
-        endif
+        If (CmdPrimary.SLT.Debug_Cmd_Functions)
+            if _targetActor
+                nextResult = _targetActor.GetActorValue(avname)
+                SLTDebugMsg("av_get: actor(" + _targetActor + ") avname(" + avname + ") value(" + nextResult + ")")
+            else
+                SLTDebugMsg("av_get: unable to resolve _targetActor from (" + param[1] + ")")
+            endif
+        else
+            if _targetActor
+                nextResult = _targetActor.GetActorValue(avname)
+            endif
+        EndIf
     endif
 
     CmdPrimary.MostRecentFloatResult = nextResult
