@@ -682,6 +682,176 @@ function dd_unlockall(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
     CmdPrimary.CompleteOperationOnActor()
 endFunction
 
+; sltname sla_get_version
+; sltgrup SexLab Aroused/OSLAroused
+; sltdesc Returns the version of SexLabAroused or OSLAroused
+; sltsamp sla_get_version
+; sltsamp msg_console "Version is: " $$
+function sla_get_version(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    CmdPrimary.MostRecentIntResult = sl_triggersAdapterSLA.GetVersion()
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname sla_get_arousal
+; sltgrup SexLab Aroused/OSLAroused
+; sltdesc Returns the current arousal of the actor as an int
+; sltargs actor: target Actor
+; sltsamp sla_get_arousal
+function sla_get_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    int newResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor
+            newResult = sl_triggersAdapterSLA.GetArousal(_targetActor)
+        endif
+    endif
+
+    CmdPrimary.MostRecentIntResult = newResult
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname sla_get_exposure
+; sltgrup SexLab Aroused/OSLAroused
+; sltdesc Returns the current exposure level of the actor as an int
+; sltargs actor: target Actor
+; sltsamp sla_get_exposure $system.self
+function sla_get_exposure(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    int newResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor
+            newResult = sl_triggersAdapterSLA.GetExposure(_targetActor)
+        endif
+    endif
+
+    CmdPrimary.MostRecentIntResult = newResult
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname sla_set_exposure
+; sltgrup SexLab Aroused/OSLAroused
+; sltdesc Sets the exposure for the target actor and returns the new amount as an int
+; sltargs actor: target Actor
+; sltargs exposureAmount: int; amount of exposure update to set
+; sltsamp sla_set_exposure $system.self 25
+function sla_set_exposure(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    int newResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        int value = CmdPrimary.ResolveInt(param[2])
+        if _targetActor
+            newResult = sl_triggersAdapterSLA.SetExposure(_targetActor, value)
+        endif
+    endif
+
+    CmdPrimary.MostRecentIntResult = newResult
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname sla_update_exposure
+; sltgrup SexLab Aroused/OSLAroused
+; sltdesc Updates the exposure for the target actor and returns the updated amount as an int.
+; sltdesc This uses the API, not a modevent directly (though the API may still be sending a modevent behind the scenes)
+; sltargs actor: target Actor
+; sltargs exposureAmount: int; amount of exposure update to apply
+; sltsamp sla_update_exposure $system.self 5
+function sla_update_exposure(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    int newResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        int value = CmdPrimary.ResolveInt(param[2])
+        if _targetActor
+            newResult = sl_triggersAdapterSLA.UpdateExposure(_targetActor, value)
+        endif
+    endif
+
+    CmdPrimary.MostRecentIntResult = newResult
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname sla_send_exposure_event
+; sltgrup SexLab Aroused/OSLAroused
+; sltdesc Sends the "slaUpdateExposure" modevent. No return value.
+; sltargs actor: target Actor
+; sltargs exposureAmount: float; amount of exposure update to send
+; sltsamp sla_send_exposure_event $system.self 5.0
+function sla_send_exposure_event(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        float value = CmdPrimary.ResolveFloat(param[2])
+        if _targetActor
+            sl_triggersAdapterSLA.SendUpdateExposureEvent(_targetActor, value)
+        endif
+    endif
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname sla_get_actor_days_since_last_orgasm
+; sltgrup SexLab Aroused/OSLAroused
+; sltdesc Returns the days since the actor last had an orgasm as a float
+; sltargs actor: target Actor
+; sltsamp sla_get_actor_days_since_last_orgasm $system.self
+function sla_get_actor_days_since_last_orgasm(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    float newResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor
+            newResult = sl_triggersAdapterSLA.GetActorDaysSinceLastOrgasm(_targetActor)
+        endif
+    endif
+
+    CmdPrimary.MostRecentFloatResult = newResult
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname sla_get_actor_hours_since_last_sex
+; sltgrup SexLab Aroused/OSLAroused
+; sltdesc Returns the in-game hours since the actor last had sex as an int
+; sltargs actor: target Actor
+; sltsamp sla_get_actor_hours_since_last_sex $system.self
+function sla_get_actor_hours_since_last_sex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    int newResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor
+            newResult = sl_triggersAdapterSLA.GetActorHoursSinceLastSex(_targetActor)
+        endif
+    endif
+
+    CmdPrimary.MostRecentIntResult = newResult
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
+
 ; sltname osla_get_arousal
 ; sltgrup OSLAroused
 ; sltdesc Sets $$ to the result of OSLAroused_ModInterface.GetArousal()

@@ -2614,7 +2614,7 @@ The script will pause processing for 2.5 seconds
 
 **Description**
 
-Sets $$ to the keycode pressed after waiting for user to press any of the specified keys
+Sets $$ to the keycode pressed after waiting for user to press any of the specified keys. (See https://ck.uesp.net/wiki/Input_Script for the DXScanCodes)
 
 **Parameters**
 
@@ -3088,6 +3088,145 @@ Wait until specified actor is not in SexLab scene
     util_waitforend $self  
 
 Wait until the scene ends  
+
+
+# SexLab Aroused/OSLAroused
+
+### sla_get_actor_days_since_last_orgasm
+
+**Description**
+
+Returns the days since the actor last had an orgasm as a float
+
+**Parameters**
+
+    actor: target Actor  
+
+
+**Example**
+
+    sla_get_actor_days_since_last_orgasm $system.self  
+
+
+
+### sla_get_actor_hours_since_last_sex
+
+**Description**
+
+Returns the in-game hours since the actor last had sex as an int
+
+**Parameters**
+
+    actor: target Actor  
+
+
+**Example**
+
+    sla_get_actor_hours_since_last_sex $system.self  
+
+
+
+### sla_get_arousal
+
+**Description**
+
+Returns the current arousal of the actor as an int
+
+**Parameters**
+
+    actor: target Actor  
+
+
+**Example**
+
+    sla_get_arousal  
+
+
+
+### sla_get_exposure
+
+**Description**
+
+Returns the current exposure level of the actor as an int
+
+**Parameters**
+
+    actor: target Actor  
+
+
+**Example**
+
+    sla_get_exposure $system.self  
+
+
+
+### sla_get_version
+
+**Description**
+
+Returns the version of SexLabAroused or OSLAroused
+
+
+**Example**
+
+    sla_get_version  
+    msg_console "Version is: " $$  
+
+
+
+### sla_send_exposure_event
+
+**Description**
+
+Sends the "slaUpdateExposure" modevent. No return value.
+
+**Parameters**
+
+    actor: target Actor  
+    exposureAmount: float; amount of exposure update to send  
+
+
+**Example**
+
+    sla_send_exposure_event $system.self 5.0  
+
+
+
+### sla_set_exposure
+
+**Description**
+
+Sets the exposure for the target actor and returns the new amount as an int
+
+**Parameters**
+
+    actor: target Actor  
+    exposureAmount: int; amount of exposure update to set  
+
+
+**Example**
+
+    sla_set_exposure $system.self 25  
+
+
+
+### sla_update_exposure
+
+**Description**
+
+Updates the exposure for the target actor and returns the updated amount as an int.
+This uses the API, not a modevent directly (though the API may still be sending a modevent behind the scenes)
+
+**Parameters**
+
+    actor: target Actor  
+    exposureAmount: int; amount of exposure update to apply  
+
+
+**Example**
+
+    sla_update_exposure $system.self 5  
+
 
 
 # SexLab Separate Orgasms
