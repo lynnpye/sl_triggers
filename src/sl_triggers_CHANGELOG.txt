@@ -1,6 +1,10 @@
 127
     Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log (or whichever folder you have your SKSE logs directed to)
     bugfix: removed extraneous logging output from event sinks
+    bugfix: potential problem with script queuing
+    enhancement: added SexLabAroused/OSLAroused functions: sla_get_version, sla_get_arousal, sla_get_exposure, sla_set_exposure,
+        sla_update_exposure, sla_send_exposure_event, sla_get_actor_days_since_last_orgasm, sla_get_actor_hours_since_last_sex
+    change: moved trigger caching earlier in load step
 
 126
     Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log (or whichever folder you have your SKSE logs directed to)
