@@ -1,0 +1,1 @@
+You can place SexLab extension triggers in this folder and they will be detected automatically at next game launch.

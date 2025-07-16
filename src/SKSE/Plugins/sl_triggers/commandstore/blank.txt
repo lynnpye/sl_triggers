@@ -1,1 +1,1 @@
-So that install creates folder.
+This folder is merely a convenient location to store persistent files e.g. JSON that you might work with in your SLTScripts.
