@@ -6,12 +6,12 @@ set $global.petCollarGame.petCollarTime $base
 [setupdone]
 
 actor_isplayer $system.self
-if $$ == 0 endIsNotPlayer
+if $$ == false endIsNotPlayer
 
 set $perspective resultfrom json_getvalue $petCollarGameData "int" "perspective"	-1
 
 sl_isin $system.player
-if $$ == 0 notInScene
+if $$ == false notInScene
 goto handleSexLab
 [notInScene]
 set $perspective -1
@@ -20,25 +20,21 @@ goto main
 [handleSexLab]
 set $selfname resultfrom actor_name $system.partner1
 actor_infaction $system.partner1 "skyrim.esm:378958"
-if $$ == 1 withfollower
+if $$ == true main
 
 set $selfname resultfrom actor_name $system.partner2
 actor_infaction $system.partner2 "skyrim.esm:378958"
-if $$ == 1 withfollower
+if $$ == true main
 
 set $selfname resultfrom actor_name $system.partner3
 actor_infaction $system.partner3 "skyrim.esm:378958"
-if $$ == 1 withfollower
+if $$ == true main
 
 set $selfname resultfrom actor_name $system.partner4
 actor_infaction $system.partner4 "skyrim.esm:378958"
-if $$ == 1 main
+if $$ == true main
 
 goto endWithoutFollower
-
-beginsub foobarsub
-
-endsub
 
 [main]
 set $low		resultfrom json_getvalue $petCollarGameData "int" "low"			1
@@ -49,10 +45,10 @@ if $$ > $global.petCollarGame.petCollarTime endMissedChance
 
 set $petCollarFormID 	"petcollar.esp:31017"
 actor_iswearing $system.player $petCollarFormID
-if $$ == 1 handleMercy
+if $$ == true handleMercy
 
 actor_wornhaskeyword $system.player "zad_DeviousCollar"
-if $$ == 1 endWearingCollar
+if $$ == true endWearingCollar
 
 util_sendevent "PetCollarManipulate" "form" $system.self "form" $system.player "int" 11
 

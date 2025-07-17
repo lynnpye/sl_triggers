@@ -4674,7 +4674,7 @@ function util_sendevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
                     idxArg += 2
                 endWhile
 
-                if idxArg >= param.Length
+                if idxArg > param.Length
                     SquawkFunctionError(CmdPrimary, "util_sendevent: imbalanced type/value pairs provided")
                 endif
                 

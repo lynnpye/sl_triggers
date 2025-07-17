@@ -5,7 +5,7 @@
 		"low": 1,
 		"high": 50,
 		"c2": "'base' is what the 'petCollarTime' variable gets set to when the follower emplaces the collar ($global.petCollarGame.petCollarTime to be specific)",
-		"c21": "since the follower only acts if the roll is higher than the 'petCollarTime' variable, if you make 'base' lower than 'low', there will be a minimum number of events (runs of the PetCollarGame script) before the next pet collar action",
+		"c21": "since the follower only acts if the roll is lower than the 'petCollarTime' variable, if you make 'base' lower than 'low', there will be a minimum number of events (runs of the PetCollarGame script) before the next pet collar action",
 		"base": -3,
 		"c3": "'add' is the increment step. technically you could make this negative but you'll never get an interaction",
 		"c3.5": "'you wont get an interaction', that is, unless the 'petCollarTime' (i.e. $global.petCollarGame.petCollarTime) were to be changed, say, in another script",
