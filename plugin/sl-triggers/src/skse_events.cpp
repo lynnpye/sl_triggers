@@ -149,18 +149,30 @@ RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESCombatEvent* e
         } else {
             logger::error("Unable to register with ScriptEventSourceHolder");
         }
+
+        // ad-hoc initters
+        {
+            auto& reg = SLT::RegistrationClass::GetSingleton();
+            std::lock_guard<std::mutex> lock(reg._mutexInitters);
+            for (auto& cb : reg._initters) {
+                cb();
+            }
+        }
+
+        // hook quitters
+        RegistrationClass::QuitGameHook::install();
     }
 
     void GameEventHandler::onPostLoad() {
-        //logger::info("onPostLoad()");
+        RegistrationClass::HandleSKSEMessage(SKSE::MessagingInterface::kPostLoad);
     }
 
     void GameEventHandler::onPostPostLoad() {
-        //logger::info("onPostPostLoad()");
+        RegistrationClass::HandleSKSEMessage(SKSE::MessagingInterface::kPostPostLoad);
     }
 
     void GameEventHandler::onInputLoaded() {
-        //logger::info("onInputLoaded()");
+        RegistrationClass::HandleSKSEMessage(SKSE::MessagingInterface::kInputLoaded);
     }
 
     void GameEventHandler::onDataLoaded() {
@@ -168,29 +180,83 @@ RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESCombatEvent* e
         ScriptPoolManager::GetSingleton().InitializePool();
 
         //RunCapricaForScripts();
+        RegistrationClass::HandleSKSEMessage(SKSE::MessagingInterface::kDataLoaded);
     }
 
     void GameEventHandler::onNewGame() {
         SLT::GenerateNewSessionId(true);
         logger::info("{} starting session {}", SystemUtil::File::GetPluginName(), SLT::GetSessionId());
+
+        RegistrationClass::HandleSKSEMessage(SKSE::MessagingInterface::kNewGame);
     }
 
     void GameEventHandler::onPreLoadGame() {
-        //logger::info("onPreLoadGame()");
+        RegistrationClass::HandleSKSEMessage(SKSE::MessagingInterface::kPreLoadGame);
     }
 
     void GameEventHandler::onPostLoadGame() {
         SLT::GenerateNewSessionId(true);
         logger::info("{} starting session {}", SystemUtil::File::GetPluginName(), SLT::GetSessionId());
+        RegistrationClass::HandleSKSEMessage(SKSE::MessagingInterface::kPostLoadGame);
     }
 
     void GameEventHandler::onSaveGame() {
-        //logger::info("onSaveGame()");
+        RegistrationClass::HandleSKSEMessage(SKSE::MessagingInterface::kSaveGame);
     }
 
     void GameEventHandler::onDeleteGame() {
-        //logger::info("onDeleteGame()");
+        RegistrationClass::HandleSKSEMessage(SKSE::MessagingInterface::kDeleteGame);
     }
 }  // namespace plugin
 
+void SLT::RegistrationClass::QuitGameHook::hook() {
+    {
+        auto& reg = SLT::RegistrationClass::GetSingleton();
+        std::lock_guard<std::mutex> lock(reg._mutexQuitters);
+        for (auto& cb : reg._quitters) {
+            cb();
+        }
+    }
+    orig();
+}
 
+void SLT::RegistrationClass::QuitGameHook::install() {
+    HookUtil::Hooking::writeCall<SLT::RegistrationClass::QuitGameHook>();
+}
+
+std::string SLT::RegistrationClass::QuitGameHook::logName = "QuitGame";
+REL::Relocation<decltype(SLT::RegistrationClass::QuitGameHook::hook)> SLT::RegistrationClass::QuitGameHook::orig;
+REL::RelocationID SLT::RegistrationClass::QuitGameHook::srcFunc = REL::RelocationID{35545, 36544};
+uint64_t SLT::RegistrationClass::QuitGameHook::srcFuncOffset = REL::Relocate(0x35, 0x1AE);
+
+SLT::RegistrationClass& SLT::RegistrationClass::GetSingleton() {
+    static SLT::RegistrationClass instance;
+    return instance;
+}
+
+void SLT::RegistrationClass::RegisterMessageListener(SKSEMessageType skseMessageType, std::function<void()> cb) {
+    std::lock_guard<std::mutex> lock(_mutex);
+    _callbacks[skseMessageType].push_back(std::move(cb));
+}
+
+SLT::RegistrationClass::AutoRegister::AutoRegister(SKSEMessageType skseMsg, std::function<void()> cb) {
+    SLT::RegistrationClass::GetSingleton().RegisterMessageListener(skseMsg, cb);
+}
+
+void SLT::RegistrationClass::RegisterInitter(std::function<void()> cb) {
+    std::lock_guard<std::mutex> lock(_mutexInitters);
+    _initters.push_back(std::move(cb));
+}
+
+SLT::RegistrationClass::AutoInitter::AutoInitter(std::function<void()> cb) {
+    SLT::RegistrationClass::GetSingleton().RegisterInitter(cb);
+}
+
+void SLT::RegistrationClass::RegisterQuitter(std::function<void()> cb) {
+    std::lock_guard<std::mutex> lock(_mutexQuitters);
+    _quitters.push_back(std::move(cb));
+}
+
+SLT::RegistrationClass::AutoQuitter::AutoQuitter(std::function<void()> cb) {
+    SLT::RegistrationClass::GetSingleton().RegisterQuitter(cb);
+}
