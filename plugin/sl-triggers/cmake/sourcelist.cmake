@@ -5,5 +5,6 @@ set(sources ${sources}
     src/main.cpp
     src/skse_events.cpp
     src/sl_triggers.cpp
+    src/su_bridge.cpp
     src/util.cpp
 )

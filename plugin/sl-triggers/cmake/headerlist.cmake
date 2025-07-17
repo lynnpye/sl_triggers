@@ -6,5 +6,6 @@ set(headers ${headers}
 	src/engine.h
 	src/skse_events.h
 	src/sl_triggers.h
+	src/su_bridge.h
     src/util.h
 )
