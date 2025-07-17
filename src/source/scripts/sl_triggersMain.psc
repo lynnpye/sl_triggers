@@ -48,6 +48,8 @@ int					Property nextInstanceId			Auto Hidden
 
 int					Property RunningScriptCount = 0 Auto Hidden
 
+int					Property SLTRVersion = 0 Auto Hidden
+
 
 ; duplicated from sl_triggersCmd
 int     Property RT_INVALID =   	0 AutoReadOnly
@@ -216,6 +218,8 @@ Function BootstrapSLTInit(bool bSetupFlags)
 	if !self
 		return
 	endif
+
+	CheckVersionUpdates()
 
 	if !global_var_keys || !global_var_vals
 		global_var_keys = PapyrusUtil.StringArray(0)
@@ -1017,4 +1021,12 @@ EndFunction
 
 bool Function ActorIsInSafeLocation(Actor theActor)
 	return IsLocationSafe(theActor.GetCurrentLocation())
+EndFunction
+
+;; handle version updates, let extensions do it too
+Function CheckVersionUpdates()
+	int newVersion = GetModVersion()
+	SLTDebugMsg("Main.CheckVersionUpdates: oldVersion(" + SLTRVersion + ") newVersion(" + newVersion + ")")
+
+	SLTRVersion = newVersion
 EndFunction

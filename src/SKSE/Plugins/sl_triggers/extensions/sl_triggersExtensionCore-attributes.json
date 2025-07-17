@@ -46,7 +46,7 @@
     "triggerattribute_event" : [
         ["# here is where you define aspects of the attribute"],
         ["type", "int"],
-        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Key Mapping", "Top of the Hour", "New Session", "Player Cell Change (Frequent)", "Player Loading Screen", "Player Opened Container", "Player Location Change (Less Frequent)", "(Experimental) Player Equipment Change", "(Experimental) Player Combat State Changed", "(Experimental) Player Hit or Is Hit"],
+        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Key Mapping", "Top of the Hour", "New Session", "Player Cell Change (Frequent)", "Player Opened Container", "Player Location Change (Less Frequent)", "(Experimental) Player Equipment Change", "(Experimental) Player Combat State Changed", "(Experimental) Player Hit or Is Hit"],
         ["info", "Choose which type of event this trigger will use."]
     ],
     "triggerattribute_keymapping" : 
@@ -196,12 +196,12 @@
         ["2", "triggerlayout_topofthehour"],
         ["3", "triggerlayout_newsession"],
         ["4", "triggerlayout_playercellchange"],
-        ["5", "triggerlayout_playerloadingscreen"],
-        ["6", "triggerlayout_playercontaineractivate"],
-        ["7", "triggerlayout_locationchange"],
-        ["8", "triggerlayout_equipment_change"],
-        ["9", "triggerlayout_player_combat_status"],
-        ["10", "triggerlayout_player_on_hit"]
+        ["# deprecated, later events renumbered", "5", "triggerlayout_playerloadingscreen"],
+        ["5", "triggerlayout_playercontaineractivate"],
+        ["6", "triggerlayout_locationchange"],
+        ["7", "triggerlayout_equipment_change"],
+        ["8", "triggerlayout_player_combat_status"],
+        ["9", "triggerlayout_player_on_hit"]
     ],
     "triggerlayout_keymapping" : [
         ["event", "keymapping"],

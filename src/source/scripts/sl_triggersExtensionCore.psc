@@ -11,6 +11,8 @@ FormList Property				TheContainersWeKnowAndLove Auto ; so many naming schemes to
 
 Actor Property pkSentinel Auto Hidden
 
+bool Property FF_VersionUpdate_Remove_EVENT_ID_PLAYER_LOADING_SCREEN = false Auto Hidden
+
 string	EVENT_TOP_OF_THE_HOUR					= "TopOfTheHour"
 string	EVENT_TOP_OF_THE_HOUR_HANDLER			= "OnTopOfTheHour"
 
@@ -18,12 +20,16 @@ int		EVENT_ID_KEYMAPPING 					= 1
 int		EVENT_ID_TOP_OF_THE_HOUR				= 2
 int  	EVENT_ID_NEW_SESSION					= 3
 int		EVENT_ID_PLAYER_CELL_CHANGE				= 4
-int		EVENT_ID_PLAYER_LOADING_SCREEN			= 5
-int		EVENT_ID_CONTAINER						= 6
-int		EVENT_ID_LOCATION_CHANGE				= 7
-int		EVENT_ID_EQUIPMENT_CHANGE				= 8
-int		EVENT_ID_PLAYER_COMBAT_STATUS			= 9
-int		EVENT_ID_PLAYER_ON_HIT					= 10
+int		EVENT_ID_CONTAINER						= 5
+int		EVENT_ID_LOCATION_CHANGE				= 6
+int		EVENT_ID_EQUIPMENT_CHANGE				= 7
+int		EVENT_ID_PLAYER_COMBAT_STATUS			= 8
+int		EVENT_ID_PLAYER_ON_HIT					= 9
+
+; legacy, used for updates
+int		DEPRECATED_EVENT_ID_PLAYER_LOADING_SCREEN			= 5
+
+string  ATTR_MOD_VERSION						= "__slt_mod_version__"
 string	ATTR_EVENT								= "event"
 string	ATTR_KEYMAPPING							= "keymapping"
 string	ATTR_MODIFIERKEYMAPPING 				= "modifierkeymapping"
@@ -78,7 +84,7 @@ string[]	triggerKeys_topOfTheHour
 string[]	triggerKeys_keyDown
 string[]	triggerKeys_newSession
 string[]	triggerKeys_playercellchange
-string[]	triggerKeys_playerloadingscreen
+;string[]	triggerKeys_playerloadingscreen
 string[]	triggerKeys_container
 string[]	triggerKeys_location_change
 string[]	triggerKeys_equipment_change
@@ -150,6 +156,8 @@ Event OnUpdate()
 				SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : should be back to Default after PopulateSentinel()")
 			endif
 			return
+			;/
+			; no longer need to deal with actually populating it, just cleaning it up
 		elseif !PlayerRef
 			if SLT.Debug_Extension_Core
 				SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : polling for sentinel; player not loaded")
@@ -162,85 +170,22 @@ Event OnUpdate()
 			endif
 			QueueUpdateLoop(0.1)
 			return
+			/;
 		endif
 	endif
 EndEvent
 
 bool Function PopulateSentinel()
 	if SLT.Debug_Extension_Core
-		SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : PopulateSentinel")
-	endif
-	
-	bool hasSentinel = pkSentinel != none
-	bool hasPlayer = PlayerRef != none
-	bool playerIs3dLoaded = hasPlayer && PlayerRef.Is3DLoaded()
-
-	if !hasPlayer
-		if SLT.Debug_Extension_Core
-			SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : PopulateSentinel : PlayerRef is still none; a missing reference that should, at most, take place super early, early enough I wouldn't expect this message to be quite honest. But here we are. Though probably not for long. Bye now. (though if you keep seeing me for long after launch, that's a bad thing and you should report a bug to me)")
-		endif
-		;SLTDebugMsg("Core.OnUpdate: pollingForSentinel requested, PlayerRef is not filled, polling 1 second")
-		return false
+		SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : PopulateSentinel (is actually cleaning it out)")
 	endif
 
-	if hasSentinel
-		bool wasghost = pkSentinel.IsGhost()
-		bool wasteam = pkSentinel.IsPlayerTeammate()
-		if SLT.Debug_Extension_Core
-			SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : PopulateSentinel : Setting sentinel parameters: SetDontMove(true) SetGhost(true) SetPlayerTeammate(false, false) SetNotShowOnStealthMeter(true) previously: IsGhost(" + wasghost + ") IsPlayerTeammate(" + wasteam + ")")
-		endif
-
-		pkSentinel.SetDontMove(true)
-		pkSentinel.SetGhost(true)
-		pkSentinel.SetPlayerTeammate(false, false)
-		pkSentinel.SetNotShowOnStealthMeter(true)
-		; got filled at some point when we weren't looking, huzzah!
-		RelocatePlayerLoadingScreenSentinel()
-		playerCellChangeHandlingReady = true
-		return true
+	if pkSentinel
+		pkSentinel.Delete()
+		pkSentinel = none
 	endif
 
-	if playerIs3dLoaded
-		pkSentinel = PlayerRef.PlaceActorAtMe(pkSentinelBase)
-			if SLT.Debug_Extension_Core
-				SLTInfoMsg("Core.PopulateSentinel: PlayerRef:(" + PlayerRef + ").Is3DLoaded() == " + playerIs3dLoaded + "; PlayerRef.PlaceActorAtMe(" + pkSentinelBase + ") produced (" + pkSentinel + ")")
-			endif
-
-		if pkSentinel
-			;SLTDebugMsg("Core.OnUpdate: pollingForSentinel requested, PlayerRef.Is3DLoaded, pkSentinel is (" + pkSentinel + ")")
-			bool wasghost = pkSentinel.IsGhost()
-			bool wasteam = pkSentinel.IsPlayerTeammate()
-			
-			if SLT.Debug_Extension_Core
-				SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : PopulateSentinel : Initializing sentinel parameters: SetDontMove(true) SetGhost(true) SetPlayerTeammate(false, false) SetNotShowOnStealthMeter(true) previously: IsGhost(" + wasghost + ") IsPlayerTeammate(" + wasteam + ")")
-			endif
-			pkSentinel.SetDontMove(true)
-			pkSentinel.SetGhost(true)
-			pkSentinel.SetPlayerTeammate(false, false)
-			pkSentinel.SetNotShowOnStealthMeter(true)
-			RelocatePlayerLoadingScreenSentinel()
-			playerCellChangeHandlingReady = true
-			return true
-			
-		else
-			if SLT.Debug_Extension_Core
-				SLTErrMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : PopulateSentinel : Have I told you about my favorite cousin, 'else'?; if you are here, we were missing pkSentinel and had a PlayerRef with is3DLoaded(true); we called PlayerRef.PlaceAtMe(pkSentinelBase), which should have worked, but pkSentinel is still none; This? This is actually quite not good")
-			endif
-			SLTErrMsg("Core.PopulateSentinel: PlayerRef:(" + PlayerRef + ").Is3DLoaded() == " + playerIs3dLoaded + "; PlayerRef.PlaceActorAtMe(" + pkSentinelBase + ") produced (" + pkSentinel + ") ; which is to say none or null; this is an error though not one I would expect, as it suggests the engine just refused; please report the bug; in the meantime, giving up polling and returning true")
-			return true
-		;else
-			; keep checking until satisfied?
-			;SLTDebugMsg("Core.OnUpdate: pollingForSentinel requested, waiting 1 second to check for pkSentinel and player 3d loaded; this isn't actually good... it means placeactoratme failed even when PlayerRef.Is3dLoaded()")
-		endif
-	endif
-
-	; if you are here, hasPlayer is TRUE, hasSentinel is FALSE, playerIs3dLoaded is FALSE
-	; still waiting for the 3d virtual space to open up, please wait
-	if SLT.Debug_Extension_Core
-		SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : PopulateSentinel : Ah.. my favorite.. 'else'; if you are here, we are still missing pkSentinel, and we have a PlayerRef, but the PlayerRef is still not 3dloaded; just give it another moment, I'll take a quick sip of coffee and wait with you")
-	endif
-	;SLTDebugMsg("Core.OnUpdate: pollingForSentinel requested, PlayerRef is filled but not 3d loaded, polling 1 second")
-	return false
+	return true
 EndFunction
 
 Function PopulatePerk()
@@ -490,7 +435,7 @@ Function Send_SLTR_OnPlayerCellChange()
 	endif
 	last_time_PlayerCellChangeEvent = nowtime
 
-	RelocatePlayerLoadingScreenSentinel()
+	;RelocatePlayerLoadingScreenSentinel()
 
 	int nowSessionId = sl_triggers.GetSessionId()
 	bool isNewSession = nowSessionId != cellPreviousSessionId
@@ -527,17 +472,18 @@ Function SLTR_Internal_PlayerCellChange()
 	endif
 EndFunction
 
+;/
 Function RelocatePlayerLoadingScreenSentinel()
-	pkSentinel.MoveTo(PlayerRef, 0.0, 0.0, 256.0)
+	if pkSentinel
+		pkSentinel.MoveTo(PlayerRef, 0.0, 0.0, 256.0)
+	endif
 EndFunction
 
-;/
 Event OnSLTRPlayerLoadingScreen(string _eventName, string _strvalue, float _fltvalue, Form _frmvalue)
 	if SLT.Debug_Extension_Core
 		SLTDebugMsg("\tCore.OnSLTRPlayerLoadingScreen")
 	endif
 EndEvent
-/;
 
 Function Send_SLTR_OnPlayerLoadingScreen()
 	if triggerKeys_playerloadingscreen.Length > 0
@@ -554,6 +500,7 @@ Function SLTR_Internal_PlayerNewSpaceEvent()
 		Send_SLTR_OnPlayerLoadingScreen()
 	endif
 EndFunction
+/;
 
 ;/
 Event OnSLTRPlayerContainerActivate(Form fcontainerRef, bool isConCorpse, bool isConEmpty, Form fkwPlayerLocation, bool playerWasInInterior)
@@ -645,7 +592,7 @@ Function RefreshTriggerCache()
 	triggerKeys_keyDown					= PapyrusUtil.StringArray(0)
 	triggerKeys_newSession				= PapyrusUtil.StringArray(0)
 	triggerKeys_playercellchange		= PapyrusUtil.StringArray(0)
-	triggerKeys_playerloadingscreen		= PapyrusUtil.StringArray(0)
+	;triggerKeys_playerloadingscreen		= PapyrusUtil.StringArray(0)
 	triggerKeys_container				= PapyrusUtil.StringArray(0)
 	triggerKeys_location_change			= PapyrusUtil.StringArray(0)
 	triggerKeys_equipment_change		= PapyrusUtil.StringArray(0)
@@ -668,8 +615,6 @@ Function RefreshTriggerCache()
 				triggerKeys_newSession = PapyrusUtil.PushString(triggerKeys_newSession, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_PLAYER_CELL_CHANGE
 				triggerKeys_playercellchange = PapyrusUtil.PushString(triggerKeys_playercellchange, TriggerKeys[i])
-			elseif eventCode == EVENT_ID_PLAYER_LOADING_SCREEN
-				triggerKeys_playerloadingscreen = PapyrusUtil.PushString(triggerKeys_playerloadingscreen, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_CONTAINER
 				triggerKeys_container = PapyrusUtil.PushString(triggerKeys_container, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_LOCATION_CHANGE
@@ -750,6 +695,39 @@ Function UpdateDAKStatus()
 	if DAKStatus
 		dakavailable = true
 	endif
+EndFunction
+
+Function HandleVersionUpdate(int oldVersion, int newVersion)
+	If (SLT.Debug_Extension || SLT.Debug_Setup || SLT.Debug_Extension_Core)
+		SLTDebugMsg("Core.HandleVersionUpdate: oldVersion(" + SLTRVersion + ") newVersion(" + newVersion + ")")
+	EndIf
+	If (FF_VersionUpdate_Remove_EVENT_ID_PLAYER_LOADING_SCREEN)
+		; version 127: removed "Player Loading Screen" event handling, so Core triggers with an event_id
+		; of 5 or higher need to have it decremented by 1 and updated
+		int i = 0
+		string[] updateKeys = sl_triggers_internal.GetTriggerKeys(SLTExtensionKey)
+		while i < updateKeys.Length
+			string _triggerFile = FN_T(updateKeys[i])
+			
+			int triggerVersion = JsonUtil.GetIntValue(_triggerFile, ATTR_MOD_VERSION)
+			if (triggerVersion < 127)
+				JsonUtil.SetIntValue(_triggerFile, ATTR_MOD_VERSION, GetModVersion())
+
+				int eventCode = JsonUtil.GetIntValue(_triggerFile, ATTR_EVENT)
+				If (eventCode >= DEPRECATED_EVENT_ID_PLAYER_LOADING_SCREEN)
+					eventCode -= 1
+					If (SLT.Debug_Extension || SLT.Debug_Setup || SLT.Debug_Extension_Core)
+						SLTDebugMsg("Core.HandleVersionUpdate: updating triggerFile() to handle removal of 'Player Loading Screen' event")
+					EndIf
+					JsonUtil.SetIntValue(_triggerFile, ATTR_EVENT, eventCode)
+				EndIf
+
+				JsonUtil.Save(_triggerFile)
+			endif
+
+			i += 1
+		endwhile
+	EndIf
 EndFunction
 
 ; selectively enables only events with triggers
@@ -1139,6 +1117,7 @@ int Function GetNextPlayerCellChangeRequestId(int requestTargetFormId, int cmdRe
 	return cmdRequestId
 EndFunction
 
+;/
 Function HandleOnPlayerLoadingScreen()
 	int i = 0
 	string triggerKey
@@ -1170,6 +1149,7 @@ Function HandleOnPlayerLoadingScreen()
 		i += 1
 	endwhile
 EndFunction
+/;
 
 Function HandlePlayerContainerActivation(ObjectReference containerRef, bool container_is_corpse, bool container_is_empty, Keyword playerLocationKeyword, bool playerWasInInterior)
 	int i = 0

@@ -17,6 +17,7 @@ sl_triggersMain		Property SLT Auto Hidden ; will be populated on startup
 Keyword				Property ActorTypeNPC Auto Hidden ; will be populated on startup
 Keyword				Property ActorTypeUndead Auto Hidden ; will be populated on startup
 
+int Property SLTRVersion = 0 Auto Hidden
 
 ; bool IsEnabled
 ; enabled status for this extension
@@ -161,10 +162,6 @@ EndEvent
 Function SLTInit()
 	FN_S = FN_X_Settings(SLTExtensionKey)
 	bEnabled = GetFlag(SLT.Debug_Setup || SLT.Debug_Extension, FN_S, "enabled", true)  && _slt_AdditionalRequirementsSatisfied()
-	if SLT.Debug_Extension_SexLab
-		SLTDebugMsg("SexLab.IsEnabled => (" + IsEnabled + ") vs bEnabled(" + bEnabled + ")")
-	endif
-	sl_triggers_internal.SetExtensionEnabled(SLTExtensionKey, bEnabled)
 
 	if !SLT
 		SLT = GetSLTMain()
@@ -175,6 +172,10 @@ Function SLTInit()
 	if !ActorTypeUndead
 		ActorTypeUndead = GetForm_Skyrim_ActorTypeUndead() as Keyword
 	endif
+
+	sl_triggers_internal.SetExtensionEnabled(SLTExtensionKey, bEnabled)
+	
+	CheckVersionUpdates()
 	
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_INTERNAL_READY_EVENT(), "OnSLTInternalReady")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTSettingsUpdated")
@@ -217,4 +218,21 @@ EndFunction
 Function RefreshTriggerCache()
 EndFunction
 
+Function CheckVersionUpdates()
+	int newVersion = GetModVersion()
+	If (SLT.Debug_Extension || SLT.Debug_Setup)
+		SLTDebugMsg("Extension(" + SLTExtensionKey + ").CheckVersionUpdates: oldVersion(" + SLTRVersion + ") newVersion(" + newVersion + ")")
+	EndIf
+	int oldVersion = SLTRVersion
+	SLTRVersion = newVersion
 
+	if (newVersion > oldVersion)
+		HandleVersionUpdate(oldVersion, newVersion)
+	endif
+EndFunction
+
+Function HandleVersionUpdate(int oldVersion, int newVersion)
+	If (SLT.Debug_Extension || SLT.Debug_Setup)
+		SLTDebugMsg("Extension(" + SLTExtensionKey + ").HandleVersionUpdate: oldVersion(" + SLTRVersion + ") newVersion(" + newVersion + "): no override defined")
+	EndIf
+EndFunction
