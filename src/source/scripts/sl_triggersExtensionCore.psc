@@ -11,7 +11,7 @@ FormList Property				TheContainersWeKnowAndLove Auto ; so many naming schemes to
 
 Actor Property pkSentinel Auto Hidden
 
-bool Property FF_VersionUpdate_Remove_EVENT_ID_PLAYER_LOADING_SCREEN = false Auto Hidden
+bool Property FF_VersionUpdate_Remove_EVENT_ID_PLAYER_LOADING_SCREEN = true Auto Hidden
 
 string	EVENT_TOP_OF_THE_HOUR					= "TopOfTheHour"
 string	EVENT_TOP_OF_THE_HOUR_HANDLER			= "OnTopOfTheHour"
