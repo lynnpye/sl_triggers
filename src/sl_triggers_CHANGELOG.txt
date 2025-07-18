@@ -1,4 +1,5 @@
 127
+    MAJOR CHANGE: JSON support has ended; please convert any JSON based scripts to SLTScript for future support
     Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log (or whichever folder you have your SKSE logs directed to)
     bugfix: removed extraneous logging output from event sinks
     bugfix: potential problem with script queuing
