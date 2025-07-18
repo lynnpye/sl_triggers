@@ -1,10 +1,18 @@
 127
+    Savegame compatible with v126
     MAJOR CHANGE: JSON support has ended; please convert any JSON based scripts to SLTScript for future support
+    
+    MAJOR CHANGE: "Player Loading Screen" event has been removed; triggers for this event will no longer run;
+        As part of this, the EVENT_ID values were changed for some events; Core triggers should be auto-updated to the correct EVENT_ID values
+        As part of this, code has been added to remove the sl_triggers_PlayerTrackerActor if it is present
+
     Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log (or whichever folder you have your SKSE logs directed to)
     bugfix: removed extraneous logging output from event sinks
     bugfix: potential problem with script queuing
     bugfix: util_sendevent erroneously reports imbalanced arguments
     bugfix: PetCollarGame had incorrect goto labels
+    bugfix: actor_advskill was using int internally instead of float when resolving values, losing precision
+    bugfix: sl_adjustenjoyment was expecting the wrong number of arguments and not functioning as a result
     enhancement: added Chinese translations (thank you to guliguliradish for donating the translation!)
     enhancement: added SexLabAroused/OSLAroused functions: sla_get_version, sla_get_arousal, sla_get_exposure, sla_set_exposure,
         sla_update_exposure, sla_send_exposure_event, sla_get_actor_days_since_last_orgasm, sla_get_actor_hours_since_last_sex
