@@ -1,3 +1,6 @@
+128
+    
+
 127
     Savegame compatible with v126
     MAJOR CHANGE: JSON support has ended; please convert any JSON based scripts to SLTScript for future support
