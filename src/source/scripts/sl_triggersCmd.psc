@@ -647,11 +647,17 @@ Event OnUpdate()
 
     isExecuting = true
 
+    if SLT.Debug_Cmd
+        SFD("Cmd.OnUpdate: before starting threadid(" + threadid + ") RunningScriptCount is :" + SLT.RunningScriptCount)
+    endif
     SLT.RunningScriptCount += 1
     if SLT.Debug_Cmd
         SFD("Cmd.OnUpdate: starting threadid(" + threadid + ") RunningScriptCount is :" + SLT.RunningScriptCount)
     endif
     RunScript()
+    if SLT.Debug_Cmd
+        SFD("Cmd.OnUpdate: before ending threadid(" + threadid + ") RunningScriptCount is :" + SLT.RunningScriptCount)
+    endif
     SLT.RunningScriptCount -= 1
     if SLT.Debug_Cmd
         SFD("Cmd.OnUpdate: ending threadid(" + threadid + ") RunningScriptCount is :" + SLT.RunningScriptCount)

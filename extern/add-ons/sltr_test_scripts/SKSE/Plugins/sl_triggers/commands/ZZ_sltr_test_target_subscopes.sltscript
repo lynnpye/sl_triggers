@@ -19,6 +19,15 @@ else
 endif
 
 inc $thread.testCount
+set $target.sltr_regression_test_target_val ""
+if $target.sltr_regression_test_target_val &!= ""
+    deb_msg "FAIL: set $target.sltr_regression_test_target_val to """", without having set it first, but it wasn't considered equivalent to an empty string"
+else
+    inc $thread.passCount
+    deb_msg "PASS: set $target.sltr_regression_test_target_val to """", without having set it first, and it was """""
+endif
+
+inc $thread.testCount
 set $testval $target.<system.player>.sltr_regression_test_target_val2
 if $testval &!= ""
     deb_msg "FAIL: set testval from target{system.player}.sltr_regression_test_target_val2, without having set it first, but it wasn't considered equivalent to an empty string"
@@ -47,4 +56,13 @@ if $testval &!= "fuzzball"
 else
     inc $thread.passCount
     deb_msg $"PASS: testval should be 'fuzzball' and is ({testval})"
+endif
+
+inc $thread.testCount
+set $target.<system.player>.sltr_regression_test_target_val2 ""
+if $target.<system.player>.sltr_regression_test_target_val2 &!= ""
+    deb_msg "FAIL: set $target.<system.player>.sltr_regression_test_target_val2 to """", without having set it first, but it wasn't considered equivalent to an empty string"
+else
+    inc $thread.passCount
+    deb_msg "PASS: set $target.<system.player>.sltr_regression_test_target_val2 to """", without having set it first, and it was """""
 endif

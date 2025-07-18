@@ -46,7 +46,23 @@ bool				Property bDebugMsg		= false	Auto Hidden
 Form[]				Property Extensions				Auto Hidden
 int					Property nextInstanceId			Auto Hidden
 
-int					Property RunningScriptCount = 0 Auto Hidden
+int _runningScriptCount = 0
+int					Property RunningScriptCount Hidden
+	int Function Get()
+		if (_runningScriptCount < 0)
+			_runningScriptCount = 0
+		endif
+		return _runningScriptCount
+	EndFunction
+	Function Set(int value)
+		if (value < 0)
+			SLTWarnMsg("Main.RunningScriptCount.Set: attempted to set negative value(" + value + "); setting to 0")
+			_runningScriptCount = 0
+		else
+			_runningScriptCount = value
+		endif
+	EndFunction
+EndProperty
 
 int					Property SLTRVersion = 0 Auto Hidden
 
