@@ -1,0 +1,53 @@
+set $difftime $system.gametime - $global.last_transform_time
+set $global.last_transform_time $system.gametime
+if $difftime < 0.125
+	return
+endif
+
+set $chance resultfrom rnd_int 0 100
+
+if $chance >= 97
+	item_adduse $system.player "TFEResetPotion" 1 1
+	return
+endif
+
+; comment unnecessary choices to improve performance
+; the reset potion, just documenting it, it isn't intended for the pool
+;set	$tfeResetPotion	"TFEResetPotion"
+
+; affixes (15)
+set	$magnification	"Magnification"
+set	$diminishing	"Diminishing"
+set	$expansion		"Expansion"
+set	$compacting		"Compacting"
+set	$curves			"Curves"
+set	$flattening		"Flattening"
+set	$nippleIncrease	"NippleIncrease"
+set	$nippleReduce	"NippleReduce"
+
+set	$boob			"Boob"
+set	$butt			"Butt"
+set	$hips			"Hips"
+set	$thighs			"Thighs"
+set	$arms			"Arms"
+set	$waist			"Waist"
+set	$belly			"Belly"
+
+; now arrange for your random selection
+; if you want an even distribution, just include one instance of each affix you want in your pool, e.g.:
+; set $selectedAffix resultfrom rnd_list $compacting $diminishing $expansion $magnification $boob $butt $hips $thighs $nippleIncrease $nippleReduce $arms $waist $belly $curves $flattening
+; and of course you would not comment out any of the original affix definitions
+;
+; but perhaps you want to change up the weighting, exclude a few things, you might do this:
+set $selectedAffix resultfrom rnd_list $curves $flattening $expansion $compacting $magnification $diminishing $boob $butt $butt $hips $hips $hips $thighs $thighs $thighs $thighs
+
+set $desiredElixir $"TFE{selectedAffix}Potion"
+
+item_adduse $system.player $desiredElixir 1 1
+
+; variants include
+; TFE<affix>Potion
+; TFE<stat>StealthPotion<affix> 
+;	where <stat> is one of: Health, Magicka, Stamina
+; So for each of the 15 affixex you have 4 variants; so 60 total if you wanted all of them in a pool
+; Plus the TFEResetPotion

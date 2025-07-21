@@ -1,0 +1,21 @@
+set $contaminant "MME_Lactacid"
+
+set $contaminant resultfrom form_getbyid $contaminant
+if $contaminant == none
+	; not present
+	deb_msg $"{system.currentScriptName}: MME_Lactacid not found via form lookup"
+	return
+endif
+
+set $chance resultfrom rnd_int 0 100
+
+if $chance > 67
+	return
+endif
+
+set $rndi resultfrom rnd_list 1 1 1 1 1 1 1 1 1 1 1 2 2 2 3
+
+while $rndi > 0
+	item_adduse $system.player $contaminant 1 1
+	inc $rndi -1
+endwhile

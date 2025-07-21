@@ -13,6 +13,8 @@
 		"c4": "'mercybase' used for the mercy transition (i.e. when taken off)",
 		"mercybase": 20,
 		"c5": "'perspective' : the perspective for the displayed feedback",
-		"perspective": 2
+		"perspective": 2,
+		"c6": "1: ignore requirement to use followers; any other value: follower is required",
+		"ignoreFollowerRequirement": 0
 	}
 }

@@ -18,6 +18,9 @@ set $perspective -1
 goto main
 
 [handleSexLab]
+json_getvalue $petCollarGameData "int" "ignoreFollowerRequirement" 0
+if $$ == true main
+
 set $selfname resultfrom actor_name $system.partner1
 actor_infaction $system.partner1 "skyrim.esm:378958"
 if $$ == true main

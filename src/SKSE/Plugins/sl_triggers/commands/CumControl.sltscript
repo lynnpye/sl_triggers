@@ -1,0 +1,22 @@
+sl_isin $system.self
+if $$ == true
+	return
+endif
+
+rnd_int 0 100
+if $$ > 50
+	set $noCumMessage resultfrom rnd_list "Mysterious forces are preventing you from cumming!" "Suddenly your clit feels hypersensitive." "Your clit stands rigidly at attention and yet cummies seem so far away..." "Mara refuses your desire for an orgasm." "Daedric forces surround your clit, enveloping it, engorging it..."
+	msg_notify $noCumMessage
+	deb_msg $"CumControl msg: no: {noCumMessage}"
+	msg_console $"CumControl msg: no: {noCumMessage}"
+	sl_disableorgasm $system.self 1
+	util_waitforend $system.self
+	
+	sl_disableorgasm $system.self 0
+else
+	set $yesCumMessage resultfrom rnd_list "You feel your clit has been released from control." "You have a sudden urge for cock." "You feel like you could cum again."
+	msg_notify $yesCumMessage
+	deb_msg $"CumControl msg: yes: {yesCumMessage}"
+	msg_console $"CumControl msg: yes: {yesCumMessage}"
+	sl_disableorgasm $system.self 0
+endif
