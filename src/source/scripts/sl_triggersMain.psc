@@ -107,6 +107,7 @@ bool Property Debug_Cmd_RunScript_While Auto Hidden
 bool Property Debug_Extension Auto Hidden
 bool Property Debug_Extension_Core Auto Hidden
 bool Property Debug_Extension_Core_Keymapping Auto Hidden
+bool Property Debug_Extension_Core_TopOfTheHour Auto Hidden
 bool Property Debug_Extension_SexLab Auto Hidden
 bool Property Debug_Extension_CustomResolveScoped Auto Hidden
 bool Property Debug_Setup Auto Hidden
@@ -135,6 +136,7 @@ Function SetupSettingsFlags()
 	Debug_Extension						= GetFlag(Debug_Setup, fns, "Debug_Extension")
 	Debug_Extension_Core				= GetFlag(Debug_Setup, fns, "Debug_Extension_Core")
 	Debug_Extension_Core_Keymapping		= GetFlag(Debug_Setup, fns, "Debug_Extension_Core_Keymapping")
+	Debug_Extension_Core_TopOfTheHour	= GetFlag(Debug_Setup, fns, "Debug_Extension_Core_TopOfTheHour")
 	Debug_Extension_SexLab				= GetFlag(Debug_Setup, fns, "Debug_Extension_SexLab")
 	Debug_Extension_CustomResolveScoped	= GetFlag(Debug_Setup, fns, "Debug_Extension_CustomResolveScoped")
 EndFunction

@@ -69,6 +69,7 @@ int 		oidDebug_Cmd_RunScript_While
 int 		oidDebug_Extension
 int 		oidDebug_Extension_Core
 int 		oidDebug_Extension_Core_Keymapping
+int 		oidDebug_Extension_Core_TopOfTheHour
 int 		oidDebug_Extension_SexLab
 int 		oidDebug_Extension_CustomResolveScoped
 int 		oidDebug_Setup
@@ -103,6 +104,7 @@ Function CallThisToResetTheOIDValuesHextun()
 	oidDebug_Extension						= 0
 	oidDebug_Extension_Core					= 0
 	oidDebug_Extension_Core_Keymapping		= 0
+	oidDebug_Extension_Core_TopOfTheHour	= 0
 	oidDebug_Extension_SexLab				= 0
 	oidDebug_Extension_CustomResolveScoped	= 0
 	oidDebug_Setup							= 0
@@ -802,6 +804,11 @@ Event OnOptionSelect(int option)
 		_boolVal = !SLT.Debug_Extension_Core_Keymapping
 		SLT.Debug_Extension_Core_Keymapping = DoSaveAndReset(option, _strVal, _boolVal)
 		return
+	elseIf option == oidDebug_Extension_Core_TopOfTheHour
+		_strVal = "Debug_Extension_Core_TopOfTheHour"
+		_boolVal = !SLT.Debug_Extension_Core_TopOfTheHour
+		SLT.Debug_Extension_Core_TopOfTheHour = DoSaveAndReset(option, _strVal, _boolVal)
+		return
 	elseIf option == oidDebug_Extension_SexLab
 		_strVal = "Debug_Extension_SexLab"
 		_boolVal = !SLT.Debug_Extension_SexLab
@@ -1318,6 +1325,7 @@ Function ShowHeaderPage()
 	oidDebug_Extension						= AddToggleOption("Debug_Extension", 						SLT.Debug_Extension)
 	oidDebug_Extension_Core					= AddToggleOption("Debug_Extension_Core", 					SLT.Debug_Extension_Core)
 	oidDebug_Extension_Core_Keymapping		= AddToggleOption("Debug_Extension_Core_Keymapping",		SLT.Debug_Extension_Core_Keymapping)
+	oidDebug_Extension_Core_TopOfTheHour	= AddToggleOption("Debug_Extension_Core_TopOfTheHour",		SLT.Debug_Extension_Core_TopOfTheHour)
 	oidDebug_Extension_SexLab				= AddToggleOption("Debug_Extension_SexLab", 				SLT.Debug_Extension_SexLab)
 	oidDebug_Extension_CustomResolveScoped	= AddToggleOption("Debug_Extension_CustomResolveScoped",	SLT.Debug_Extension_CustomResolveScoped)
 	oidDebug_Setup							= AddToggleOption("Debug_Setup",							SLT.Debug_Setup)

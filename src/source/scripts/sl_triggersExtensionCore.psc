@@ -338,10 +338,17 @@ Event OnUpdateGameTime()
 			tohElapsedTime = currentTime - lastTopOfTheHour
 			lastTopOfTheHour = currentTime
 			
+			If (SLT.Debug_Extension_Core_TopOfTheHour)
+				SLTDebugMsg("Core.OnUpdateGameTime: sending mod event EVENT_TOP_OF_THE_HOUR; currentTime(" + currentTime + ") NextTopOfTheHour(" + NextTopOfTheHour + ")")
+			EndIf
 			SendModEvent(EVENT_TOP_OF_THE_HOUR, "", tohElapsedTime)
 			AlignToNextHour(currentTime)
 		else
-			RegisterForSingleUpdateGameTime((nextTopOfTheHour - currentTime) * 24.0 * 1.04)
+			float deltaWait = (NextTopOfTheHour - currentTime) * 24.0 * 1.04
+			If (SLT.Debug_Extension_Core_TopOfTheHour)
+				SLTDebugMsg("Core.OnUpdateGameTime: gametime update ran too early, waiting extra deltaTime(" + deltaWait + ")  should be much less than 1.0; // currentTime(" + currentTime + ") NextTopOfTheHour(" + NextTopOfTheHour + ")")
+			EndIf
+			RegisterForSingleUpdateGameTime(deltaWait)
 		EndIf
 	EndIf
 EndEvent
@@ -706,10 +713,14 @@ EndFunction
 ; this function attempts to trigger a SingleUpdateGameTime just in time for the 
 ; next game-time top of the hour
 ; the 1.04 multiplier is to intentionally overshoot a tiny bit to ensure our trigger works
-Function AlignToNextHour(float _curTime = -1.0)
+Function AlignToNextHour(float _curTime)
 	if triggerKeys_topOfTheHour.Length <= 0
 		return
 	endif
+
+	If (SLT.Debug_Extension_Core_TopOfTheHour)
+		SLTDebugMsg("Core.AlignToNextHour: _curTime(" + _curTime + ")")
+	EndIf
 	
 	; days
     float currentTime = _curTime
@@ -719,14 +730,18 @@ Function AlignToNextHour(float _curTime = -1.0)
 	; days
 	float daysPassed = Math.Floor(currentTime) as float
 	; hours
-	float hoursToday = (currentTime - daysPassed) * 24.0
-	float nextHourToday = Math.Floor(hoursToday + 1.0) as float
-	float untilNextHour = nextHourToday - hoursToday
+	float currentHours = (currentTime - daysPassed) * 24.0
+	float hoursPassed = Math.Floor(currentHours) as float
+	float hoursNeeded = 1.0 - (currentHours - (Math.Floor(currentHours) as float))
 	
-	nextTopOfTheHour = currentTime + (untilNextHour / 24.0)
-	
-	; because the timing for this has been ornery to say the least
-    RegisterForSingleUpdateGameTime(untilNextHour * 1.04)
+	NextTopOfTheHour = currentTime + (hoursNeeded / 24.0)
+
+	If (SLT.Debug_Extension_Core_TopOfTheHour)
+		float _waitTime = hoursNeeded
+		SLTDebugMsg("Core.AlignToNextHour: RegisterForSingleUpdateGameTime(" + _waitTime + ") should typically be around 1.0")
+	EndIf
+
+    RegisterForSingleUpdateGameTime(hoursNeeded * 1.04)
 EndFunction
 
 Function UpdateDAKStatus()
@@ -785,7 +800,7 @@ Function RegisterEvents()
 	handlingTopOfTheHour = false
 	if triggerKeys_topOfTheHour.Length > 0
 		SafeRegisterForModEvent_Quest(self, EVENT_TOP_OF_THE_HOUR, EVENT_TOP_OF_THE_HOUR_HANDLER)
-		AlignToNextHour()
+		AlignToNextHour(Utility.GetCurrentGameTime())
 		handlingTopOfTheHour = true
 	endif
 	
@@ -907,6 +922,10 @@ Function HandleTopOfTheHour()
 			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
 
 			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+				If (SLT.Debug_Extension_Core_TopOfTheHour)
+					SLTDebugMsg("Core.HandleTopOfTheHour: running _triggerFile(" + _triggerFile + ")")
+				EndIf
+
 				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
 				if command
 					RequestCommand(PlayerRef, command)
