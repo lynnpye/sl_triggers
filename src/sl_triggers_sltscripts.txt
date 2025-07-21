@@ -118,11 +118,11 @@ int - current count of running scripts; will always be 1 or greater because you 
 
 $system.realtime
 
-float - the current real time (i.e. seconds since launch of SkyrimSE.exe) from Game.GetCurrentRealtime()
+float - the current real time (i.e. seconds since launch of SkyrimSE.exe) from Utility.GetCurrentRealtime()
 
 $system.gametime
 
-float - the current game time (i.e. in-game days since your save was created) from Game.GetCurrentGametime()
+float - the current game time (i.e. in-game days since your save was created) from Utility.GetCurrentGametime()
 
 $system.initialGameTime
 

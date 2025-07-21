@@ -11,6 +11,14 @@
             "Any", "Inside", "Outside", "Safe (Home/Jail/Inn)", "City / Town", "Wilderness", "Dungeon", "Player Home", "Jail", "Dungeon", "Cave", "Dwelling", "City", "Town", "Habitation", "Draugr Crypt", "Dragon Priest Lair", "Bandit Camp", "Falmer Hive", "Vampire Lair", "Dwarven Automatons", "Military Fort", "Mine", "Inn", "Hold"
         As part of this, the LOCATION filter was switched to the DEEPLOCATION filter automatically; SexLab triggers should be auto-updated to the correct filter
     enhancement: Added the 'chance' filter to Core events 'Keymapping' and 'New Session' for completeness
+    enhancement: New Core trigger: Timer
+        Included Filters:
+            Timer Delay: 1-60 minutes (1 minute increments)
+            Chance
+            Location
+            Is Weapon/Spell Equipped
+            Is Armor/Clothing Equipped
+            Is Weapon/Spell Drawn
 
 127
     Savegame compatible with v126

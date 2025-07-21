@@ -49,6 +49,7 @@ bool				Property IsResetting = false Auto Hidden
 bool				Property bDebugMsg		= false	Auto Hidden
 Form[]				Property Extensions				Auto Hidden
 int					Property nextInstanceId			Auto Hidden
+GlobalVariable 		Property GameDaysPassed Auto Hidden
 
 int _runningScriptCount = 0
 int					Property RunningScriptCount Hidden
@@ -111,6 +112,7 @@ bool Property Debug_Cmd_RunScript_While Auto Hidden
 bool Property Debug_Extension Auto Hidden
 bool Property Debug_Extension_Core Auto Hidden
 bool Property Debug_Extension_Core_Keymapping Auto Hidden
+bool Property Debug_Extension_Core_Timer Auto Hidden
 bool Property Debug_Extension_Core_TopOfTheHour Auto Hidden
 bool Property Debug_Extension_SexLab Auto Hidden
 bool Property Debug_Extension_CustomResolveScoped Auto Hidden
@@ -140,9 +142,14 @@ Function SetupSettingsFlags()
 	Debug_Extension						= GetFlag(Debug_Setup, fns, "Debug_Extension")
 	Debug_Extension_Core				= GetFlag(Debug_Setup, fns, "Debug_Extension_Core")
 	Debug_Extension_Core_Keymapping		= GetFlag(Debug_Setup, fns, "Debug_Extension_Core_Keymapping")
+	Debug_Extension_Core_Timer			= GetFlag(Debug_Setup, fns, "Debug_Extension_Core_Timer")
 	Debug_Extension_Core_TopOfTheHour	= GetFlag(Debug_Setup, fns, "Debug_Extension_Core_TopOfTheHour")
 	Debug_Extension_SexLab				= GetFlag(Debug_Setup, fns, "Debug_Extension_SexLab")
 	Debug_Extension_CustomResolveScoped	= GetFlag(Debug_Setup, fns, "Debug_Extension_CustomResolveScoped")
+EndFunction
+
+Float Function GetTheGameTime()
+	return GameDaysPassed.GetValue()
 EndFunction
 
 ; Variables
@@ -240,6 +247,8 @@ Function BootstrapSLTInit(bool bSetupFlags)
 	if !self
 		return
 	endif
+	
+	GameDaysPassed = sl_triggers.GetForm("GameDaysPassed") as GlobalVariable
 
 	CheckVersionUpdates()
 

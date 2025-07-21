@@ -41,6 +41,7 @@
         ["was_sneak_attack",        "triggerattribute_was_sneak_attack"],
         ["was_bash_attack",         "triggerattribute_was_bash_attack"],
         ["was_blocked",             "triggerattribute_was_blocked"],
+        ["timer_delay",             "triggerattribute_timer_delay"],
         ["do_1",                    "triggerattribute_do_1"],
         ["do_2",                    "triggerattribute_do_2"],
         ["do_3",                    "triggerattribute_do_3"]
@@ -48,7 +49,7 @@
     "triggerattribute_event" : [
         ["# here is where you define aspects of the attribute"],
         ["type", "int"],
-        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Key Mapping", "Top of the Hour", "New Session", "Player Cell Change (Frequent)", "Player Opened Container", "Player Location Change (Less Frequent)", "(Experimental) Player Equipment Change", "(Experimental) Player Combat State Changed", "(Experimental) Player Hit or Is Hit"],
+        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Key Mapping", "Top of the Hour", "New Session", "Player Cell Change (Frequent)", "Player Opened Container", "Player Location Change (Less Frequent)", "Player Equipment Change", "Player Combat State Changed", "Player Hit or Is Hit", "Timer Based"],
         ["info", "Choose which type of event this trigger will use."]
     ],
     "triggerattribute_keymapping" : 
@@ -63,6 +64,12 @@
         ["type", "string", ""],
         ["widget", "header"],
         ["info", "Location Leaving: "]
+    ],
+    "triggerattribute_timer_delay" :
+    [
+        ["type", "float", "5.0"],
+        ["widget", "slider", "Timer Delay: ", "1.0", "60.0", "1.0", "{0}"],
+        ["info", "The timer delay between executions of the trigger in real minutes. 0 disables the filter."]
     ],
     "triggerattribute_location_entering" :
     [
@@ -218,7 +225,8 @@
         ["6", "triggerlayout_locationchange"],
         ["7", "triggerlayout_equipment_change"],
         ["8", "triggerlayout_player_combat_status"],
-        ["9", "triggerlayout_player_on_hit"]
+        ["9", "triggerlayout_player_on_hit"],
+        ["10", "triggerlayout_timer"]
     ],
     "triggerlayout_keymapping" : [
         ["event", "chance"],
@@ -293,6 +301,14 @@
         ["player_attacking", "was_blocked"],
         ["was_power_attack", "was_sneak_attack"],
         ["was_bash_attack"],
+        ["is_armed", "is_clothed"],
+        ["is_weapon_drawn"],
+        ["do_1", "do_2"],
+        ["do_3"]
+    ],
+    "triggerlayout_timer" : [
+        ["event", "chance"],
+        ["timer_delay", "deeplocation"],
         ["is_armed", "is_clothed"],
         ["is_weapon_drawn"],
         ["do_1", "do_2"],

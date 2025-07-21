@@ -69,6 +69,7 @@ int 		oidDebug_Cmd_RunScript_While
 int 		oidDebug_Extension
 int 		oidDebug_Extension_Core
 int 		oidDebug_Extension_Core_Keymapping
+int 		oidDebug_Extension_Core_Timer
 int 		oidDebug_Extension_Core_TopOfTheHour
 int 		oidDebug_Extension_SexLab
 int 		oidDebug_Extension_CustomResolveScoped
@@ -104,6 +105,7 @@ Function CallThisToResetTheOIDValuesHextun()
 	oidDebug_Extension						= 0
 	oidDebug_Extension_Core					= 0
 	oidDebug_Extension_Core_Keymapping		= 0
+	oidDebug_Extension_Core_Timer			= 0
 	oidDebug_Extension_Core_TopOfTheHour	= 0
 	oidDebug_Extension_SexLab				= 0
 	oidDebug_Extension_CustomResolveScoped	= 0
@@ -804,6 +806,11 @@ Event OnOptionSelect(int option)
 		_boolVal = !SLT.Debug_Extension_Core_Keymapping
 		SLT.Debug_Extension_Core_Keymapping = DoSaveAndReset(option, _strVal, _boolVal)
 		return
+	elseIf option == oidDebug_Extension_Core_Timer
+		_strVal = "Debug_Extension_Core_Timer"
+		_boolVal = !SLT.Debug_Extension_Core_Timer
+		SLT.Debug_Extension_Core_Timer = DoSaveAndReset(option, _strVal, _boolVal)
+		return
 	elseIf option == oidDebug_Extension_Core_TopOfTheHour
 		_strVal = "Debug_Extension_Core_TopOfTheHour"
 		_boolVal = !SLT.Debug_Extension_Core_TopOfTheHour
@@ -1325,6 +1332,7 @@ Function ShowHeaderPage()
 	oidDebug_Extension						= AddToggleOption("Debug_Extension", 						SLT.Debug_Extension)
 	oidDebug_Extension_Core					= AddToggleOption("Debug_Extension_Core", 					SLT.Debug_Extension_Core)
 	oidDebug_Extension_Core_Keymapping		= AddToggleOption("Debug_Extension_Core_Keymapping",		SLT.Debug_Extension_Core_Keymapping)
+	oidDebug_Extension_Core_Timer			= AddToggleOption("Debug_Extension_Core_Timer",				SLT.Debug_Extension_Core_Timer)
 	oidDebug_Extension_Core_TopOfTheHour	= AddToggleOption("Debug_Extension_Core_TopOfTheHour",		SLT.Debug_Extension_Core_TopOfTheHour)
 	oidDebug_Extension_SexLab				= AddToggleOption("Debug_Extension_SexLab", 				SLT.Debug_Extension_SexLab)
 	oidDebug_Extension_CustomResolveScoped	= AddToggleOption("Debug_Extension_CustomResolveScoped",	SLT.Debug_Extension_CustomResolveScoped)

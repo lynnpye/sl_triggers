@@ -4694,7 +4694,7 @@ function util_getgametime(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 1)
-        float dayTime = Utility.GetCurrentGameTime()
+        float dayTime = CmdPrimary.SLT.GetTheGameTime()
         dayTime = Math.Floor(dayTime * 100.0) / 100.0
         CmdPrimary.MostRecentFloatResult = dayTime
     endif
@@ -4737,7 +4737,7 @@ function util_gethour(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthEQ(CmdPrimary, param.Length, 1)
-        float dayTime = Utility.GetCurrentGameTime()
+        float dayTime = CmdPrimary.SLT.GetTheGameTime()
     
         dayTime -= Math.Floor(dayTime)
         dayTime *= 24

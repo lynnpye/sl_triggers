@@ -23,6 +23,8 @@ int		EVENT_ID_LOCATION_CHANGE				= 6
 int		EVENT_ID_EQUIPMENT_CHANGE				= 7
 int		EVENT_ID_PLAYER_COMBAT_STATUS			= 8
 int		EVENT_ID_PLAYER_ON_HIT					= 9
+int		EVENT_ID_TIMER							= 10
+
 
 ; legacy, used for updates
 int		DEPRECATED_EVENT_ID_PLAYER_LOADING_SCREEN			= 5
@@ -57,6 +59,7 @@ string ATTR_WAS_POWER_ATTACK				= "was_power_attack"
 string ATTR_WAS_SNEAK_ATTACK				= "was_sneak_attack"
 string ATTR_WAS_BASH_ATTACK					= "was_bash_attack"
 string ATTR_WAS_BLOCKED						= "was_blocked"
+string ATTR_TIMER_DELAY						= "timer_delay"
 string ATTR_DO_1							= "do_1"
 string ATTR_DO_2							= "do_2"
 string ATTR_DO_3							= "do_3"
@@ -70,6 +73,8 @@ float				Property NextTopOfTheHour		Auto Hidden
 
 
 ; Variables
+
+
 bool	handlingTopOfTheHour = false ; only because the check is in a sensitive event handler
 
 ; this will contain a deduplicated list of all keycodes of interest, including modifiers
@@ -98,20 +103,26 @@ string[]	triggerKeys_location_change
 string[]	triggerKeys_equipment_change
 string[]	triggerKeys_player_combat_status
 string[]	triggerKeys_player_on_hit
+string[]	triggerKeys_timer
 
 bool		playerCellChangeHandlingReady
 float 		last_time_PlayerCellChangeEvent
 string[]	common_container_names
+float[]		timer_next_run_time
+float[]		timer_delays
 
 int Property CS_DEFAULT 		= 0 AutoReadOnly Hidden
 int Property CS_SLTINIT		 	= 1 AutoReadOnly Hidden
-int Property CS_POLLING 		= 2 AutoReadOnly Hidden
+int Property CS_SENTINEL_SETUP 	= 2 AutoReadOnly Hidden
+int Property CS_POLLING			= 3 AutoReadOnly Hidden
 
 int CoreCurrentState
 
 string Function CS_ToString(int csstate)
 	if CS_POLLING == csstate
 		return "CS_POLLING"
+	elseif CS_SENTINEL_SETUP == csstate
+		return "CS_SENTINEL_SETUP"
 	elseif CS_SLTINIT == csstate
 		return "CS_SLTINIT"
 	elseif CS_DEFAULT == csstate
@@ -151,19 +162,17 @@ Event OnUpdate()
 	if CS_SLTINIT == CoreCurrentState
 		SLTInit()
 		
-		CoreCurrentState = CS_POLLING
+		CoreCurrentState = CS_SENTINEL_SETUP
 		if SLT.Debug_Extension_Core
 			SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : should be Polling")
 		endif
 		QueueUpdateLoop(0.01)
-		return
-	elseif CS_POLLING == CoreCurrentState
+	elseif CS_SENTINEL_SETUP == CoreCurrentState
 		if PopulateSentinel()
-			CoreCurrentState = CS_DEFAULT
+			CoreCurrentState = CS_POLLING
 			if SLT.Debug_Extension_Core
 				SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : should be back to Default after PopulateSentinel()")
 			endif
-			return
 			;/
 			; no longer need to deal with actually populating it, just cleaning it up
 		elseif !PlayerRef
@@ -180,6 +189,10 @@ Event OnUpdate()
 			return
 			/;
 		endif
+		QueueUpdateLoop(0.01)
+	elseif CS_POLLING == CoreCurrentState
+		QueueUpdateLoop(60)
+		HandleTimers()
 	endif
 EndEvent
 
@@ -232,8 +245,8 @@ Function SLTReady()
 	if SLT.Debug_Extension_Core
 		SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ")")
 	endif
-	if CS_POLLING != CoreCurrentState
-		CoreCurrentState = CS_POLLING
+	if CS_SENTINEL_SETUP != CoreCurrentState
+		CoreCurrentState = CS_SENTINEL_SETUP
 		UnregisterForUpdate()
 		QueueUpdateLoop(0.01)
 	endif
@@ -333,7 +346,7 @@ Event OnUpdateGameTime()
 	EndIf
 	
 	if handlingTopOfTheHour
-		float currentTime = Utility.GetCurrentGameTime() ; Days as float
+		float currentTime = SLT.GetTheGameTime()
 		
 		If currentTime >= nextTopOfTheHour
 			tohElapsedTime = currentTime - lastTopOfTheHour
@@ -622,8 +635,15 @@ Function RefreshTriggerCache()
 	triggerKeys_equipment_change		= PapyrusUtil.StringArray(0)
 	triggerKeys_player_combat_status	= PapyrusUtil.StringArray(0)
 	triggerKeys_player_on_hit			= PapyrusUtil.StringArray(0)
+	; paired /
+	triggerKeys_timer					= PapyrusUtil.StringArray(0)
+	timer_next_run_time					= PapyrusUtil.FloatArray(0)
+	timer_delays						= PapyrusUtil.FloatArray(0)
+	; / paired
 
 	int i = 0
+
+	float nowtime = Utility.GetCurrentRealTime()
 	
 	while i < TriggerKeys.Length
 		string _triggerFile = FN_T(TriggerKeys[i])
@@ -665,6 +685,17 @@ Function RefreshTriggerCache()
 				triggerKeys_player_combat_status = PapyrusUtil.PushString(triggerKeys_player_combat_status, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_PLAYER_ON_HIT
 				triggerKeys_player_on_hit = PapyrusUtil.PushString(triggerKeys_player_on_hit, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_TIMER
+				float timerDelay = JsonUtil.GetFloatValue(FN_T(TriggerKeys[i]), ATTR_TIMER_DELAY)
+				if timerDelay > 0
+					triggerKeys_timer = PapyrusUtil.PushString(triggerKeys_timer, TriggerKeys[i])
+					timer_delays = PapyrusUtil.PushFloat(timer_delays, timerDelay * 60)
+					timer_next_run_time = PapyrusUtil.PushFloat(timer_next_run_time, nowtime + (timerDelay * 60.0))
+					If (SLT.Debug_Extension_Core_Timer)
+						int timerDelayIndex = timer_delays.Length - 1
+						SLTDebugMsg("Core.RefreshTriggerCache: Timer trigger(" + TriggerKeys[timerDelayIndex] + ") delay(" + timer_delays[timerDelayIndex] + ") nextruntime(" + timer_next_run_time[timerDelayIndex] + ") currentime(" + nowtime + ")")
+					EndIf
+				endif
 			endif
 		endif
 
@@ -725,9 +756,6 @@ Function AlignToNextHour(float _curTime)
 	
 	; days
     float currentTime = _curTime
-	if currentTime < 0.0
-		currentTime = Utility.GetCurrentGameTime() ; Days as float
-	endif
 	; days
 	float daysPassed = Math.Floor(currentTime) as float
 	; hours
@@ -801,7 +829,7 @@ Function RegisterEvents()
 	handlingTopOfTheHour = false
 	if triggerKeys_topOfTheHour.Length > 0
 		SafeRegisterForModEvent_Quest(self, EVENT_TOP_OF_THE_HOUR, EVENT_TOP_OF_THE_HOUR_HANDLER)
-		AlignToNextHour(Utility.GetCurrentGameTime())
+		AlignToNextHour(SLT.GetTheGameTime())
 		handlingTopOfTheHour = true
 	endif
 	
@@ -877,6 +905,184 @@ Function RegisterForKeyEvents()
 			SLTDebugMsg("Core.RegisterForKeyEvents: No keycodes registered, shouldn't be catching anything")
 		endif
 	endif
+EndFunction
+
+Function HandleTimers()
+	int i = 0
+	string triggerKey
+	string _triggerFile
+	string command
+	bool   	doRun
+	int ival
+	float chance
+
+	float nowtime = Utility.GetCurrentRealTime()
+	If (SLT.Debug_Extension_Core_Timer)
+		SLTDebugMsg("Core.HandleTimers: starting at nowtime(" + nowtime + ")")
+	EndIf
+
+	doRun = triggerKeys_timer.Length > 0
+	If (!doRun)
+		If (SLT.Debug_Extension_Core_Timer)
+			SLTDebugMsg("Core.HandleTimers: exiting, no timers set")
+		EndIf
+		return
+	EndIf
+
+	bool playerWasInInterior = PlayerRef.IsInInterior()
+	Keyword playerLocationKeyword = SLT.GetPlayerLocationKeyword()
+
+	while i < triggerKeys_timer.Length
+		if nowtime > timer_next_run_time[i]
+			; update values
+			timer_next_run_time[i] = nowtime + timer_delays[i]
+
+			; process it
+			triggerKey = triggerKeys_timer[i]
+			_triggerFile = FN_T(triggerKey)
+
+			If (SLT.Debug_Extension_Core_Timer)
+				SLTDebugMsg("Core.HandleTimers: running trigger (" + _triggerFile + ")")
+			EndIf
+
+			doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+
+			If (doRun)
+				chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
+
+				doRun = chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+				
+				If (SLT.Debug_Extension_Core_Timer)
+					SLTDebugMsg("Core.HandleTimers: doRun(" + doRun + ") from ATTR_CHANCE")
+				EndIf
+			EndIf
+
+			if doRun
+				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_ARMED)
+				if ival != 0
+					if ival == 1
+						doRun = PlayerRef.GetEquippedItemType(0) != 0 || PlayerRef.GetEquippedItemType(1) != 0
+					elseif ival == 2
+						doRun = PlayerRef.GetEquippedItemType(0) == 0 && PlayerRef.GetEquippedItemType(1) == 0
+					elseif ival == 3
+						doRun = PlayerRef.GetEquippedItemType(1) == 0
+					endif
+				endif
+				
+				If (SLT.Debug_Extension_Core_Timer)
+					SLTDebugMsg("Core.HandleTimers: doRun(" + doRun + ") from ATTR_IS_ARMED")
+				EndIf
+			endif
+
+			if doRun
+				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_CLOTHED)
+				if ival != 0
+					if ival == 1
+						doRun = PlayerRef.GetEquippedArmorInSlot(32) != none
+					elseif ival == 2
+						doRun = PlayerRef.GetEquippedArmorInSlot(32) == none
+					elseif ival == 3
+						Armor bodyItem = PlayerRef.GetEquippedArmorInSlot(32)
+						doRun = (bodyItem == none) || bodyItem.HasKeywordString("zad_Lockable")
+					endif
+				endif
+				
+				If (SLT.Debug_Extension_Core_Timer)
+					SLTDebugMsg("Core.HandleTimers: doRun(" + doRun + ") from ATTR_IS_CLOTHED")
+				EndIf
+			endif
+
+			if doRun
+				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_WEAPON_DRAWN)
+				if ival != 0
+					if ival == 1
+						doRun = PlayerRef.IsWeaponDrawn()
+					elseif ival == 2
+						doRun = !PlayerRef.IsWeaponDrawn()
+					endif
+				endif
+				
+				If (SLT.Debug_Extension_Core_Timer)
+					SLTDebugMsg("Core.HandleTimers: doRun(" + doRun + ") from ATTR_IS_WEAPON_DRAWN")
+				EndIf
+			endif
+
+			if doRun
+				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION)
+				if ival != 0
+	;/
+	0 - Any
+
+	1 - Inside
+	2 - Outside
+	3 - Safe (Home/Jail/Inn)
+	4 - City (City/Town/Habitation/Dwelling)
+	5 - Wilderness (!pLoc(DEFAULT)/Hold/Fort/Bandit Camp)
+	6 - Dungeon (Cave/et. al.)
+
+	; LocationKeywords[i - 7]
+	5 - Player Home
+	6 - Jail
+	...
+	/;
+
+					if ival == 1
+						doRun = playerWasInInterior
+					elseif ival == 2
+						doRun = !playerWasInInterior
+					elseif ival == 3
+						doRun = SLT.IsLocationKeywordSafe(playerLocationKeyword)
+					elseif ival == 4
+						doRun = SLT.IsLocationKeywordCity(playerLocationKeyword)
+					elseif ival == 5
+						doRun = SLT.IsLocationKeywordWilderness(playerLocationKeyword)
+					elseif ival == 6
+						doRun = SLT.IsLocationKeywordDungeon(playerLocationKeyword)
+					else
+						doRun = playerLocationKeyword == SLT.LocationKeywords[ival - 7]
+					endif
+				endif
+				
+				If (SLT.Debug_Extension_Core_Timer)
+					SLTDebugMsg("Core.HandleTimers: doRun(" + doRun + ") from ATTR_DEEPLOCATION")
+				EndIf
+			endIf
+				
+			if doRun ;do doRun
+				If (SLT.Debug_Extension_Core_Timer)
+					SLTDebugMsg("Core.HandleTimers: doRun(" + doRun + ") running SLTScript/1()")
+				EndIf
+				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+				string _instanceId
+				if command
+					If (SLT.Debug_Extension_Core_Timer)
+						SLTDebugMsg("Core.HandleTimers: doRun(" + doRun + ") running SLTScript/1(" + command + ")")
+					EndIf
+					RequestCommand(PlayerRef, command)
+				endIf
+				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+				if command
+					If (SLT.Debug_Extension_Core_Timer)
+						SLTDebugMsg("Core.HandleTimers: doRun(" + doRun + ") running SLTScript/2(" + command + ")")
+					EndIf
+					RequestCommand(PlayerRef, command)
+				endIf
+				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+				if command
+					If (SLT.Debug_Extension_Core_Timer)
+						SLTDebugMsg("Core.HandleTimers: doRun(" + doRun + ") running SLTScript/3(" + command + ")")
+					EndIf
+					RequestCommand(PlayerRef, command)
+				endIf
+			endIf
+		endif
+
+		i += 1
+	endwhile
+
+	If (SLT.Debug_Extension_Core_Timer)
+		SLTDebugMsg("Core.HandleTimers: exiting")
+	EndIf
 EndFunction
 
 Function HandleNewSession(int _newSessionId)

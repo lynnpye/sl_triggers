@@ -65,8 +65,8 @@ Variable names can include any of the following characters after the scope: `A-Z
 |`$system.is_player.in_wilderness`|bool - is the Player currently in a Hold, BanditCamp, MilitaryFort, or a Location with no keyword|
 |`$system.is_player.in_combat`|bool - true if the Player is currently in combat, false otherwise|
 |`$system.stats.running_scripts`|int - current count of running scripts; will always be 1 or greater because you will be calling it from a script|
-|`$system.realtime`|float - the current real time (i.e. seconds since launch of SkyrimSE.exe) from Game.GetCurrentRealtime()|
-|`$system.gametime`|float - the current game time (i.e. in-game days since your save was created) from Game.GetCurrentGametime()|
+|`$system.realtime`|float - the current real time (i.e. seconds since launch of SkyrimSE.exe) from Utility.GetCurrentRealtime()|
+|`$system.gametime`|float - the current game time (i.e. in-game days since your save was created) from Utility.GetCurrentGametime()|
 |`$system.initialGameTime`|float - the game time when the script was started|
 |`$system.initialScriptName`|string - the initial script that was requested; might differ from current script in case `call` was used|
 |`$system.currentScriptName`|string - the current script that is running; might differ from current script in case `call` was used|

@@ -564,7 +564,7 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
         SLTDebugMsg("Cmd.OnEffectStart")
     endif
 
-    initialGameTime = Utility.GetCurrentGameTime()
+    initialGameTime = SLT.GetTheGameTime()
 
 	CmdTargetActor = akCaster
     
@@ -918,7 +918,7 @@ bool Function InternalResolve(string token)
                 CustomResolveFloatResult = Utility.GetCurrentRealTime()
                 return true
             elseif "gametime" == vname
-                CustomResolveFloatResult = Utility.GetCurrentGameTime()
+                CustomResolveFloatResult = SLT.GetTheGameTime()
                 return true
             elseif "initialGameTime" == vname
                 CustomResolveFloatResult = initialGameTime

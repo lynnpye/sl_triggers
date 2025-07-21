@@ -128,7 +128,7 @@ int Function ActorPos(int idx, int count)
 endFunction
 
 bool Function DayTime()
-	float dayTime = Utility.GetCurrentGameTime()
+	float dayTime = SLT.GetTheGameTime()
  
 	dayTime -= Math.Floor(dayTime)
 	dayTime *= 24
