@@ -19,6 +19,13 @@
             Is Weapon/Spell Equipped
             Is Armor/Clothing Equipped
             Is Weapon/Spell Drawn
+    enhancement: New shipped SLTScripts
+            Contamination - MME_Lactacid.sltscript - Causes the player (specifically) to drink 1-3 MME Lactacids (decreasing odds of higher Lactacid amounts)
+            Contamination - Transformative Elixir - Causes the player (specifically) to drink 1 randomly selected Transformative Elixir (options exist in the script to change the selection criteria)
+            CumControl - Has a 50/50 chance of either enabling or disabling SexLab orgasms on the target
+                - Note that some mods will still force an orgasm; this will prevent "naturally" occurring orgasms
+        Any of them, for example, could be added to "Player Cell Change" (with a very low chance), "Player Location Change" (with a somewhat higher chance), or "Timer" (with the timer delay of your choosing)
+
 
 127
     Savegame compatible with v126

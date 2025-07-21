@@ -7,12 +7,6 @@ if $contaminant == none
 	return
 endif
 
-set $chance resultfrom rnd_int 0 100
-
-if $chance > 67
-	return
-endif
-
 set $rndi resultfrom rnd_list 1 1 1 1 1 1 1 1 1 1 1 2 2 2 3
 
 while $rndi > 0
