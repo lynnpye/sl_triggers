@@ -18,19 +18,25 @@ int		EVENT_ID_START 						= 1
 int		EVENT_ID_ORGASM						= 2
 int		EVENT_ID_STOP						= 3
 int		EVENT_ID_ORGASM_SLSO				= 4
-string	ATTR_EVENT							= "event"
-string	ATTR_CHANCE							= "chance"
-string	ATTR_RACE							= "race"
-string	ATTR_ROLE							= "role"
-string	ATTR_PLAYER							= "player"
-string	ATTR_GENDER							= "gender"
-string	ATTR_TAG							= "tag"
-string	ATTR_DAYTIME						= "daytime"
-string	ATTR_LOCATION						= "location"
-string	ATTR_POSITION						= "position"
-string	ATTR_DO_1							= "do_1"
-string	ATTR_DO_2							= "do_2"
-string	ATTR_DO_3							= "do_3"
+
+string ATTR_MOD_VERSION						= "__slt_mod_version__"
+string ATTR_EVENT							= "event"
+string ATTR_CHANCE							= "chance"
+string ATTR_RACE							= "race"
+string ATTR_ROLE							= "role"
+string ATTR_PLAYER							= "player"
+string ATTR_GENDER							= "gender"
+string ATTR_TAG								= "tag"
+string ATTR_DAYTIME							= "daytime"
+string ATTR_LOCATION						= "location"
+string ATTR_POSITION						= "position"
+string ATTR_DO_1							= "do_1"
+string ATTR_DO_2							= "do_2"
+string ATTR_DO_3							= "do_3"
+string ATTR_DEEPLOCATION					= "deeplocation"
+string ATTR_IS_ARMED						= "is_armed"
+string ATTR_IS_CLOTHED						= "is_clothed"
+string ATTR_IS_WEAPON_DRAWN					= "is_weapon_drawn"
 
 
 string[]	triggerKeys_Start
@@ -69,6 +75,40 @@ EndFunction
 
 sslThreadController Function GetThreadForActor(Actor theActor)
     return (SexLabForm as SexLabFramework).GetActorController(theActor)
+EndFunction
+
+Function HandleVersionUpdate(int oldVersion, int newVersion)
+	If (SLT.Debug_Extension || SLT.Debug_Setup || SLT.Debug_Extension_Core)
+		SLTDebugMsg("SexLab.HandleVersionUpdate: oldVersion(" + SLTRVersion + ") newVersion(" + newVersion + ")")
+	EndIf
+	If (SLT.FF_VersionUpdate_SexLab_Migrate_LOCATION_to_DEEPLOCATION)
+		; version 128: migrated LOCATION filter to DEEPLOCATION
+		int i = 0
+		string[] updateKeys = sl_triggers_internal.GetTriggerKeys(SLTExtensionKey)
+		while i < updateKeys.Length
+			string _triggerFile = FN_T(updateKeys[i])
+			
+			int triggerVersion = JsonUtil.GetIntValue(_triggerFile, ATTR_MOD_VERSION)
+			if (triggerVersion < 128)
+				JsonUtil.SetIntValue(_triggerFile, ATTR_MOD_VERSION, GetModVersion())
+
+				if (JsonUtil.HasIntValue(_triggerFile, ATTR_LOCATION))
+					int ival = JsonUtil.GetIntValue(_triggerFile, ATTR_LOCATION)
+					JsonUtil.UnsetIntValue(_triggerFile, ATTR_LOCATION)
+					if ival > 0
+						JsonUtil.SetIntValue(_triggerFile, ATTR_DEEPLOCATION, ival)
+						SLTInfoMsg("SexLab.HandleVersionUpdate: updating triggerFile(" + _triggerFile + ") to migrate LOCATION filter to DEEPLOCATION")
+					else
+						SLTInfoMsg("SexLab.HandleVersionUpdate: updating triggerFile(" + _triggerFile + ") to migrate LOCATION filter to DEEPLOCATION; clearing due to value 0")
+					endif
+				endif
+
+				JsonUtil.Save(_triggerFile)
+			endif
+
+			i += 1
+		endwhile
+	EndIf
 EndFunction
 
 bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string scope, string token)
@@ -237,6 +277,26 @@ Function RefreshTriggerCache()
 	int i = 0
 	while i < TriggerKeys.Length
 		string _triggerFile = FN_T(TriggerKeys[i])
+
+		If (SLT.FF_VersionUpdate_SexLab_Migrate_LOCATION_to_DEEPLOCATION)
+			; version 128: migrated LOCATION filter to DEEPLOCATION
+			int triggerVersion = JsonUtil.GetIntValue(_triggerFile, ATTR_MOD_VERSION)
+			if (triggerVersion < 128)
+				JsonUtil.SetIntValue(_triggerFile, ATTR_MOD_VERSION, GetModVersion())
+
+				if (JsonUtil.HasIntValue(_triggerFile, ATTR_LOCATION))
+					int ival = JsonUtil.GetIntValue(_triggerFile, ATTR_LOCATION)
+					JsonUtil.UnsetIntValue(_triggerFile, ATTR_LOCATION)
+					if ival > 0
+						JsonUtil.SetIntValue(_triggerFile, ATTR_DEEPLOCATION, ival)
+					endif
+					SLTInfoMsg("SexLab.RefreshTriggerCache: updating triggerFile(" + _triggerFile + ") to migrate LOCATION filter to DEEPLOCATION")
+				endif
+
+				JsonUtil.Save(_triggerFile)
+			endif
+		EndIf
+
 		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
 			int eventCode = JsonUtil.GetIntValue(_triggerFile, ATTR_EVENT)
 			if eventCode == EVENT_ID_START
@@ -288,25 +348,36 @@ Function RegisterEvents()
 EndFunction
 
 
-Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTriggerKeys)
+Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys)
 	sslThreadController thread = (SexLabForm as SexLabFramework).GetController(tid)
 	int actorCount = thread.Positions.Length
 	
 	int i = 0
 	string triggerKey
 	string command
+	string _triggerFile
+	string value
+	int    ival
+	bool   doRun
+	float chance
+
+	bool playerWasInInterior = PlayerRef.IsInInterior()
+	Keyword playerLocationKeyword = SLT.GetPlayerLocationKeyword()
+
 	while i < _eventTriggerKeys.Length
 		triggerKey = _eventTriggerKeys[i]
-		string _triggerFile = FN_T(triggerKey)
+		_triggerFile = FN_T(triggerKey)
+
+		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+
+		if doRun
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
+			doRun = chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+		endif
 		
-		string value
-		int    ival
-		bool   doRun
 		int    actorIdx = 0
 
-		float chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
-
-		if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+		if doRun
 			while actorIdx < actorCount
 				Actor theSelf = thread.Positions[actorIdx]
 				Actor theOther = none
@@ -315,7 +386,6 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTrigg
 					theOther = thread.Positions[ActorPos(actorIdx + 1, actorCount)]
 				endIf
 				
-				doRun = true
 				if doRun
 					;if eventId == 3 ; spec check for separate orgasm
 						; no need for the eventId, if you use 'specActor' it will only operate for that
@@ -336,6 +406,47 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTrigg
 					endIf
 				endIf
 				/;
+					
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_ARMED)
+					if ival != 0
+						if ival == 1
+							doRun = PlayerRef.GetEquippedItemType(0) != 0 || PlayerRef.GetEquippedItemType(1) != 0
+						elseif ival == 2
+							doRun = PlayerRef.GetEquippedItemType(0) == 0 && PlayerRef.GetEquippedItemType(1) == 0
+						elseif ival == 3
+							doRun = PlayerRef.GetEquippedItemType(1) == 0
+						endif
+					endif
+				endif
+
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_CLOTHED)
+					if ival != 0
+						if ival == 1
+							doRun = PlayerRef.GetEquippedArmorInSlot(32) != none
+						elseif ival == 2
+							doRun = PlayerRef.GetEquippedArmorInSlot(32) == none
+						elseif ival == 3
+							Armor bodyItem = PlayerRef.GetEquippedArmorInSlot(32)
+							doRun = (bodyItem == none) || bodyItem.HasKeywordString("zad_Lockable")
+						endif
+						if SLT.Debug_Extension_Core_Keymapping
+							SLTDebugMsg("Core.HandleOnKeyDown: doRun(" + doRun + ") due to ATTR_IS_CLOTHED/" + ival)
+						endif
+					endif
+				endif
+
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_WEAPON_DRAWN)
+					if ival != 0
+						if ival == 1
+							doRun = PlayerRef.IsWeaponDrawn()
+						elseif ival == 2
+							doRun = !PlayerRef.IsWeaponDrawn()
+						endif
+					endif
+				endif
 				
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_RACE)
@@ -442,6 +553,43 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string [] _eventTrigg
 							doRun = false
 						endIf
 					endIf
+				endIf
+
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION)
+					if ival != 0
+		;/
+		0 - Any
+
+		1 - Inside
+		2 - Outside
+		3 - Safe (Home/Jail/Inn)
+		4 - City (City/Town/Habitation/Dwelling)
+		5 - Wilderness (!pLoc(DEFAULT)/Hold/Fort/Bandit Camp)
+		6 - Dungeon (Cave/et. al.)
+
+		; LocationKeywords[i - 7]
+		5 - Player Home
+		6 - Jail
+		...
+		/;
+
+						if ival == 1
+							doRun = playerWasInInterior
+						elseif ival == 2
+							doRun = !playerWasInInterior
+						elseif ival == 3
+							doRun = SLT.IsLocationKeywordSafe(playerLocationKeyword)
+						elseif ival == 4
+							doRun = SLT.IsLocationKeywordCity(playerLocationKeyword)
+						elseif ival == 5
+							doRun = SLT.IsLocationKeywordWilderness(playerLocationKeyword)
+						elseif ival == 6
+							doRun = SLT.IsLocationKeywordDungeon(playerLocationKeyword)
+						else
+							doRun = playerLocationKeyword == SLT.LocationKeywords[ival - 7]
+						endif
+					endif
 				endIf
 
 				if doRun

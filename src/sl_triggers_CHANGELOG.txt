@@ -3,6 +3,14 @@
     bugfix: Keymapping: Use DAK logic was incorrect
     bugfix: Top of the Hour: was not aligning to hours properly; should be properly aligning and firing now
     change: Keymapping: keymappings that do not require a modifier will no longer run if a modifier key (L/R Ctrl, Shift, or Alt) is being pressed
+    enhancement: Added the following filters to all Core and SexLab events:
+        Is Weapon/Spell Equipped? : 'Any', 'Equipped In Either Hand', 'Not Equipped In Either Hand', 'Not Equipped In Main/Right Hand' (torches count as weapons for this)
+        Is Armor/Clothing Equipped? : 'Any', 'Equipped In Body Slot (32)', 'Not Equipped In Body Slot (32)'
+        Is Weapon/Spell Drawn? : 'Any', 'Weapon/Spell Is Drawn', 'Weapon/Spell Is Not Drawn'
+    enhancement: Expanded the 'Location:' filter for SexLab events, it now includes:
+            "Any", "Inside", "Outside", "Safe (Home/Jail/Inn)", "City / Town", "Wilderness", "Dungeon", "Player Home", "Jail", "Dungeon", "Cave", "Dwelling", "City", "Town", "Habitation", "Draugr Crypt", "Dragon Priest Lair", "Bandit Camp", "Falmer Hive", "Vampire Lair", "Dwarven Automatons", "Military Fort", "Mine", "Inn", "Hold"
+        As part of this, the LOCATION filter was switched to the DEEPLOCATION filter automatically; SexLab triggers should be auto-updated to the correct filter
+    enhancement: Added the 'chance' filter to Core events 'Keymapping' and 'New Session' for completeness
 
 127
     Savegame compatible with v126

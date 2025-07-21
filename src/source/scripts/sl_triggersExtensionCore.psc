@@ -11,8 +11,6 @@ FormList Property				TheContainersWeKnowAndLove Auto ; so many naming schemes to
 
 Actor Property pkSentinel Auto Hidden
 
-bool Property FF_VersionUpdate_Remove_EVENT_ID_PLAYER_LOADING_SCREEN = true Auto Hidden
-
 string	EVENT_TOP_OF_THE_HOUR					= "TopOfTheHour"
 string	EVENT_TOP_OF_THE_HOUR_HANDLER			= "OnTopOfTheHour"
 
@@ -29,36 +27,39 @@ int		EVENT_ID_PLAYER_ON_HIT					= 9
 ; legacy, used for updates
 int		DEPRECATED_EVENT_ID_PLAYER_LOADING_SCREEN			= 5
 
-string  ATTR_MOD_VERSION						= "__slt_mod_version__"
-string	ATTR_EVENT								= "event"
-string	ATTR_KEYMAPPING							= "keymapping"
-string	ATTR_MODIFIERKEYMAPPING 				= "modifierkeymapping"
-string	ATTR_USEDAK								= "usedak"
-string  ATTR_DAYTIME							= "daytime"
-string	ATTR_LOCATION							= "location"
-string  ATTR_COMMONCONTAINERMATCHING			= "comconmat"
-string  ATTR_DEEPLOCATION						= "deeplocation"
-string  ATTR_DEEPLOCATION_LEAVING				= "deeplocation_leaving"
-string  ATTR_DEEPLOCATION_ENTERING				= "deeplocation_entering"
-string  ATTR_CONTAINER_CORPSE					= "container_corpse"
-string  ATTR_CONTAINER_EMPTY					= "container_empty"
-string  ATTR_CLEARED_LEAVING					= "cleared_leaving"
-string  ATTR_CLEARED_ENTERING					= "cleared_entering"
-string  ATTR_HAS_ENCHANTMENTS					= "has_enchantments"
-string  ATTR_ITEM_IS_UNIQUE						= "item_is_unique"
-string 	ATTR_EQUIPPING							= "equipping"
-string  ATTR_EQUIPPED_ITEM_TYPE					= "equipped_item_type"
-string  ATTR_ARMOR_SLOT							= "armor_slot"
-string	ATTR_CHANCE								= "chance"
-string  ATTR_COMBAT_STATE						= "combat_state"
-string  ATTR_PLAYER_ATTACKING					= "player_attacking"
-string	ATTR_WAS_POWER_ATTACK					= "was_power_attack"
-string 	ATTR_WAS_SNEAK_ATTACK					= "was_sneak_attack"
-string 	ATTR_WAS_BASH_ATTACK					= "was_bash_attack"
-string	ATTR_WAS_BLOCKED						= "was_blocked"
-string	ATTR_DO_1								= "do_1"
-string	ATTR_DO_2								= "do_2"
-string	ATTR_DO_3								= "do_3"
+string ATTR_MOD_VERSION						= "__slt_mod_version__"
+string ATTR_EVENT							= "event"
+string ATTR_KEYMAPPING						= "keymapping"
+string ATTR_MODIFIERKEYMAPPING 				= "modifierkeymapping"
+string ATTR_USEDAK							= "usedak"
+string ATTR_DAYTIME							= "daytime"
+string ATTR_LOCATION						= "location"
+string ATTR_COMMONCONTAINERMATCHING			= "comconmat"
+string ATTR_DEEPLOCATION					= "deeplocation"
+string ATTR_DEEPLOCATION_LEAVING			= "deeplocation_leaving"
+string ATTR_DEEPLOCATION_ENTERING			= "deeplocation_entering"
+string ATTR_CONTAINER_CORPSE				= "container_corpse"
+string ATTR_CONTAINER_EMPTY					= "container_empty"
+string ATTR_CLEARED_LEAVING					= "cleared_leaving"
+string ATTR_CLEARED_ENTERING				= "cleared_entering"
+string ATTR_HAS_ENCHANTMENTS				= "has_enchantments"
+string ATTR_ITEM_IS_UNIQUE					= "item_is_unique"
+string ATTR_EQUIPPING						= "equipping"
+string ATTR_IS_ARMED						= "is_armed"
+string ATTR_IS_CLOTHED						= "is_clothed"
+string ATTR_IS_WEAPON_DRAWN					= "is_weapon_drawn"
+string ATTR_EQUIPPED_ITEM_TYPE				= "equipped_item_type"
+string ATTR_ARMOR_SLOT						= "armor_slot"
+string ATTR_CHANCE							= "chance"
+string ATTR_COMBAT_STATE					= "combat_state"
+string ATTR_PLAYER_ATTACKING				= "player_attacking"
+string ATTR_WAS_POWER_ATTACK				= "was_power_attack"
+string ATTR_WAS_SNEAK_ATTACK				= "was_sneak_attack"
+string ATTR_WAS_BASH_ATTACK					= "was_bash_attack"
+string ATTR_WAS_BLOCKED						= "was_blocked"
+string ATTR_DO_1							= "do_1"
+string ATTR_DO_2							= "do_2"
+string ATTR_DO_3							= "do_3"
 
 GlobalVariable		Property DAKStatus				Auto Hidden
 Bool				Property DAKAvailable			Auto Hidden
@@ -627,7 +628,7 @@ Function RefreshTriggerCache()
 	while i < TriggerKeys.Length
 		string _triggerFile = FN_T(TriggerKeys[i])
 			
-		If (FF_VersionUpdate_Remove_EVENT_ID_PLAYER_LOADING_SCREEN)
+		If (SLT.FF_VersionUpdate_Remove_EVENT_ID_PLAYER_LOADING_SCREEN)
 			int triggerVersion = JsonUtil.GetIntValue(_triggerFile, ATTR_MOD_VERSION)
 			if (triggerVersion < 127)
 				JsonUtil.SetIntValue(_triggerFile, ATTR_MOD_VERSION, GetModVersion())
@@ -758,7 +759,7 @@ Function HandleVersionUpdate(int oldVersion, int newVersion)
 	If (SLT.Debug_Extension || SLT.Debug_Setup || SLT.Debug_Extension_Core)
 		SLTDebugMsg("Core.HandleVersionUpdate: oldVersion(" + SLTRVersion + ") newVersion(" + newVersion + ")")
 	EndIf
-	If (FF_VersionUpdate_Remove_EVENT_ID_PLAYER_LOADING_SCREEN)
+	If (SLT.FF_VersionUpdate_Remove_EVENT_ID_PLAYER_LOADING_SCREEN)
 		; version 127: removed "Player Loading Screen" event handling, so Core triggers with an event_id
 		; of 5 or higher need to have it decremented by 1 and updated
 		int i = 0
@@ -883,12 +884,64 @@ Function HandleNewSession(int _newSessionId)
 	string triggerKey
 	string _triggerFile
 	string command
+	bool   	doRun
+	int ival
+	float chance
 	
 	while i < triggerKeys_newSession.Length
 		triggerKey = triggerKeys_newSession[i]
 		_triggerFile = FN_T(triggerKey)
 
-		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+
+		If (doRun)
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
+
+			doRun = chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+		EndIf
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_ARMED)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.GetEquippedItemType(0) != 0 || PlayerRef.GetEquippedItemType(1) != 0
+				elseif ival == 2
+					doRun = PlayerRef.GetEquippedItemType(0) == 0 && PlayerRef.GetEquippedItemType(1) == 0
+				elseif ival == 3
+					doRun = PlayerRef.GetEquippedItemType(1) == 0
+				endif
+			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_CLOTHED)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.GetEquippedArmorInSlot(32) != none
+				elseif ival == 2
+					doRun = PlayerRef.GetEquippedArmorInSlot(32) == none
+				elseif ival == 3
+					Armor bodyItem = PlayerRef.GetEquippedArmorInSlot(32)
+					doRun = (bodyItem == none) || bodyItem.HasKeywordString("zad_Lockable")
+				endif
+				if SLT.Debug_Extension_Core_Keymapping
+					SLTDebugMsg("Core.HandleOnKeyDown: doRun(" + doRun + ") due to ATTR_IS_CLOTHED/" + ival)
+				endif
+			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_WEAPON_DRAWN)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.IsWeaponDrawn()
+				elseif ival == 2
+					doRun = !PlayerRef.IsWeaponDrawn()
+				endif
+			endif
+		endif
+
+		if doRun
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
 			if command
 				RequestCommand(PlayerRef, command)
@@ -913,32 +966,78 @@ Function HandleTopOfTheHour()
 	string _triggerFile
 	string command
 	float chance
+	bool doRun
+	int ival
 	
 	while i < triggerKeys_topOfTheHour.Length
 		triggerKey = triggerKeys_topOfTheHour[i]
 		_triggerFile = FN_T(triggerKey)
 
-		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+
+		If (doRun)
 			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
 
-			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
-				If (SLT.Debug_Extension_Core_TopOfTheHour)
-					SLTDebugMsg("Core.HandleTopOfTheHour: running _triggerFile(" + _triggerFile + ")")
-				EndIf
-
-				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
-				if command
-					RequestCommand(PlayerRef, command)
-				endIf
-				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
-				if command
-					RequestCommand(PlayerRef, command)
-				endIf
-				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
-				if command
-					RequestCommand(PlayerRef, command)
-				endIf
+			doRun = chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+		EndIf
+			
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_ARMED)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.GetEquippedItemType(0) != 0 || PlayerRef.GetEquippedItemType(1) != 0
+				elseif ival == 2
+					doRun = PlayerRef.GetEquippedItemType(0) == 0 && PlayerRef.GetEquippedItemType(1) == 0
+				elseif ival == 3
+					doRun = PlayerRef.GetEquippedItemType(1) == 0
+				endif
 			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_CLOTHED)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.GetEquippedArmorInSlot(32) != none
+				elseif ival == 2
+					doRun = PlayerRef.GetEquippedArmorInSlot(32) == none
+				elseif ival == 3
+					Armor bodyItem = PlayerRef.GetEquippedArmorInSlot(32)
+					doRun = (bodyItem == none) || bodyItem.HasKeywordString("zad_Lockable")
+				endif
+				if SLT.Debug_Extension_Core_Keymapping
+					SLTDebugMsg("Core.HandleOnKeyDown: doRun(" + doRun + ") due to ATTR_IS_CLOTHED/" + ival)
+				endif
+			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_WEAPON_DRAWN)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.IsWeaponDrawn()
+				elseif ival == 2
+					doRun = !PlayerRef.IsWeaponDrawn()
+				endif
+			endif
+		endif
+
+		if doRun
+			If (SLT.Debug_Extension_Core_TopOfTheHour)
+				SLTDebugMsg("Core.HandleTopOfTheHour: running _triggerFile(" + _triggerFile + ")")
+			EndIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
 		endif
 		i += 1
 	endwhile
@@ -962,10 +1061,10 @@ Function HandleOnKeyDown()
 	string command
 	string _triggerFile
 	bool hasModifierKey
+	float chance
 	
 	while i < triggerKeys_keyDown.Length
 		triggerKey = triggerKeys_keyDown[i]
-
 		_triggerFile = FN_T(triggerKey)
 		
 		if SLT.Debug_Extension_Core_Keymapping
@@ -1051,6 +1150,53 @@ Function HandleOnKeyDown()
 				SLTDebugMsg("Core.HandleOnKeyDown: doRun(" + doRun + ") hasModifierKey(" + hasModifierKey + ") ; was looking for (doRun && !hasModifierKey)")
 			endif
 		endif
+			
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_ARMED)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.GetEquippedItemType(0) != 0 || PlayerRef.GetEquippedItemType(1) != 0
+				elseif ival == 2
+					doRun = PlayerRef.GetEquippedItemType(0) == 0 && PlayerRef.GetEquippedItemType(1) == 0
+				elseif ival == 3
+					doRun = PlayerRef.GetEquippedItemType(1) == 0
+				endif
+				if SLT.Debug_Extension_Core_Keymapping
+					SLTDebugMsg("Core.HandleOnKeyDown: doRun(" + doRun + ") due to ATTR_IS_ARMED/" + ival)
+				endif
+			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_CLOTHED)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.GetEquippedArmorInSlot(32) != none
+				elseif ival == 2
+					doRun = PlayerRef.GetEquippedArmorInSlot(32) == none
+				elseif ival == 3
+					Armor bodyItem = PlayerRef.GetEquippedArmorInSlot(32)
+					doRun = (bodyItem == none) || bodyItem.HasKeywordString("zad_Lockable")
+				endif
+				if SLT.Debug_Extension_Core_Keymapping
+					SLTDebugMsg("Core.HandleOnKeyDown: doRun(" + doRun + ") due to ATTR_IS_CLOTHED/" + ival)
+				endif
+			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_WEAPON_DRAWN)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.IsWeaponDrawn()
+				elseif ival == 2
+					doRun = !PlayerRef.IsWeaponDrawn()
+				endif
+				if SLT.Debug_Extension_Core_Keymapping
+					SLTDebugMsg("Core.HandleOnKeyDown: doRun(" + doRun + ") due to ATTR_IS_WEAPON_DRAWN/" + ival)
+				endif
+			endif
+		endif
 		
 		if doRun
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
@@ -1106,20 +1252,64 @@ Function HandleOnPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Keywo
 
 		if doRun
 			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
+			doRun = chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+		endif
 
-			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
-				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
-				if ival != 0 ; 0 is Any
-					if ival == 1
-						doRun = DayTime()
-					elseIf ival == 2
-						doRun = !DayTime()
-					endIf
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
+			if ival != 0 ; 0 is Any
+				if ival == 1
+					doRun = DayTime()
+				elseIf ival == 2
+					doRun = !DayTime()
 				endIf
+			endIf
+		endif
 
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION)
-					if ival != 0
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_ARMED)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.GetEquippedItemType(0) != 0 || PlayerRef.GetEquippedItemType(1) != 0
+				elseif ival == 2
+					doRun = PlayerRef.GetEquippedItemType(0) == 0 && PlayerRef.GetEquippedItemType(1) == 0
+				elseif ival == 3
+					doRun = PlayerRef.GetEquippedItemType(1) == 0
+				endif
+			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_CLOTHED)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.GetEquippedArmorInSlot(32) != none
+				elseif ival == 2
+					doRun = PlayerRef.GetEquippedArmorInSlot(32) == none
+				elseif ival == 3
+					Armor bodyItem = PlayerRef.GetEquippedArmorInSlot(32)
+					doRun = (bodyItem == none) || bodyItem.HasKeywordString("zad_Lockable")
+				endif
+				if SLT.Debug_Extension_Core_Keymapping
+					SLTDebugMsg("Core.HandleOnKeyDown: doRun(" + doRun + ") due to ATTR_IS_CLOTHED/" + ival)
+				endif
+			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_WEAPON_DRAWN)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.IsWeaponDrawn()
+				elseif ival == 2
+					doRun = !PlayerRef.IsWeaponDrawn()
+				endif
+			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION)
+			if ival != 0
 ;/
 0 - Any
 
@@ -1136,48 +1326,46 @@ Function HandleOnPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Keywo
 ...
 /;
 
-						if ival == 1
-							doRun = playerWasInInterior
-						elseif ival == 2
-							doRun = !playerWasInInterior
-						elseif ival == 3
-							doRun = SLT.IsLocationKeywordSafe(playerLocationKeyword)
-						elseif ival == 4
-							doRun = SLT.IsLocationKeywordCity(playerLocationKeyword)
-						elseif ival == 5
-							doRun = SLT.IsLocationKeywordWilderness(playerLocationKeyword)
-						elseif ival == 6
-							doRun = SLT.IsLocationKeywordDungeon(playerLocationKeyword)
-						else
-							j = ival - 7
-							doRun = playerLocationKeyword == SLT.LocationKeywords[j]
-						endif
-					endif
-				endIf
-				
-				if doRun
-					int cmdThreadId
-
-					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
-					if command
-						cmdRequestId = GetNextPlayerCellChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword)
-						cmdThreadId = SLT.GetNextInstanceId()
-						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
-					endIf
-					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
-					if command
-						cmdRequestId = GetNextPlayerCellChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword)
-						cmdThreadId = SLT.GetNextInstanceId()
-						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
-					endIf
-					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
-					if command
-						cmdRequestId = GetNextPlayerCellChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword)
-						cmdThreadId = SLT.GetNextInstanceId()
-						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
-					endIf
+				if ival == 1
+					doRun = playerWasInInterior
+				elseif ival == 2
+					doRun = !playerWasInInterior
+				elseif ival == 3
+					doRun = SLT.IsLocationKeywordSafe(playerLocationKeyword)
+				elseif ival == 4
+					doRun = SLT.IsLocationKeywordCity(playerLocationKeyword)
+				elseif ival == 5
+					doRun = SLT.IsLocationKeywordWilderness(playerLocationKeyword)
+				elseif ival == 6
+					doRun = SLT.IsLocationKeywordDungeon(playerLocationKeyword)
+				else
+					j = ival - 7
+					doRun = playerLocationKeyword == SLT.LocationKeywords[j]
 				endif
 			endif
+		endIf
+		
+		if doRun
+			int cmdThreadId
+
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+			if command
+				cmdRequestId = GetNextPlayerCellChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+			if command
+				cmdRequestId = GetNextPlayerCellChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				cmdRequestId = GetNextPlayerCellChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
 		endif
 		i += 1
 	endwhile
@@ -1193,40 +1381,6 @@ int Function GetNextPlayerCellChangeRequestId(int requestTargetFormId, int cmdRe
 	endif
 	return cmdRequestId
 EndFunction
-
-;/
-Function HandleOnPlayerLoadingScreen()
-	int i = 0
-	string triggerKey
-	string _triggerFile
-	string command
-	float  chance
-	while i < triggerKeys_playerloadingscreen.Length
-		triggerKey = triggerKeys_playerloadingscreen[i]
-		_triggerFile = FN_T(triggerKey)
-
-		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
-			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
-
-			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
-				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
-				if command
-					RequestCommand(PlayerRef, command)
-				endIf
-				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
-				if command
-					RequestCommand(PlayerRef, command)
-				endIf
-				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
-				if command
-					RequestCommand(PlayerRef, command)
-				endIf
-			endif
-		endif
-		i += 1
-	endwhile
-EndFunction
-/;
 
 Function HandlePlayerContainerActivation(ObjectReference containerRef, bool container_is_corpse, bool container_is_empty, Keyword playerLocationKeyword, bool playerWasInInterior)
 	int i = 0
@@ -1251,62 +1405,102 @@ Function HandlePlayerContainerActivation(ObjectReference containerRef, bool cont
 		triggerKey = triggerKeys_container[i]
 		_triggerFile = FN_T(triggerKey)
 
-		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+		
+		if doRun
 			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
+			doRun = chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+		endif
 
-			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
-				ival = 0
-
-				doRun =	true
-
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_CONTAINER_EMPTY)
-					if ival != 0
-						if ival == 1
-							doRun = !container_is_empty
-						elseif ival == 2
-							doRun = container_is_empty
-						endif
-					endif
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_CONTAINER_EMPTY)
+			if ival != 0
+				if ival == 1
+					doRun = !container_is_empty
+				elseif ival == 2
+					doRun = container_is_empty
 				endif
+			endif
+		endif
 
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_CONTAINER_CORPSE)
-					if ival != 0
-						if ival == 1
-							doRun = !container_is_corpse
-						elseif ival == 2
-							doRun = container_is_corpse
-						endif
-					endif
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_CONTAINER_CORPSE)
+			if ival != 0
+				if ival == 1
+					doRun = !container_is_corpse
+				elseif ival == 2
+					doRun = container_is_corpse
 				endif
+			endif
+		endif
 
-				; if needed: are we filtering for commons?
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_COMMONCONTAINERMATCHING)
-					if ival != 0 ; 0 is Any
-						if !isCommonalityDetermined
-							isCommonalityDetermined = true
-							container_is_common = false
-							j = 0
-							while j < common_container_names.Length && !bval
-								if common_container_names[j] == containerRef.GetDisplayName()
-									container_is_common = true
-								endif
-								j += 1
-							endwhile
-						endif
-						if ival == 1
-							doRun = !container_is_common
-						elseif ival == 2
-							doRun = container_is_common
-						endif
-					endif
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_ARMED)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.GetEquippedItemType(0) != 0 || PlayerRef.GetEquippedItemType(1) != 0
+				elseif ival == 2
+					doRun = PlayerRef.GetEquippedItemType(0) == 0 && PlayerRef.GetEquippedItemType(1) == 0
+				elseif ival == 3
+					doRun = PlayerRef.GetEquippedItemType(1) == 0
 				endif
+			endif
+		endif
 
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION)
-					if ival != 0
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_CLOTHED)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.GetEquippedArmorInSlot(32) != none
+				elseif ival == 2
+					doRun = PlayerRef.GetEquippedArmorInSlot(32) == none
+				elseif ival == 3
+					Armor bodyItem = PlayerRef.GetEquippedArmorInSlot(32)
+					doRun = (bodyItem == none) || bodyItem.HasKeywordString("zad_Lockable")
+				endif
+				if SLT.Debug_Extension_Core_Keymapping
+					SLTDebugMsg("Core.HandleOnKeyDown: doRun(" + doRun + ") due to ATTR_IS_CLOTHED/" + ival)
+				endif
+			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_WEAPON_DRAWN)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.IsWeaponDrawn()
+				elseif ival == 2
+					doRun = !PlayerRef.IsWeaponDrawn()
+				endif
+			endif
+		endif
+
+		; if needed: are we filtering for commons?
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_COMMONCONTAINERMATCHING)
+			if ival != 0 ; 0 is Any
+				if !isCommonalityDetermined
+					isCommonalityDetermined = true
+					container_is_common = false
+					j = 0
+					while j < common_container_names.Length && !bval
+						if common_container_names[j] == containerRef.GetDisplayName()
+							container_is_common = true
+						endif
+						j += 1
+					endwhile
+				endif
+				if ival == 1
+					doRun = !container_is_common
+				elseif ival == 2
+					doRun = container_is_common
+				endif
+			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION)
+			if ival != 0
 ;/
 0 - Any
 
@@ -1323,48 +1517,46 @@ Function HandlePlayerContainerActivation(ObjectReference containerRef, bool cont
 ...
 /;
 
-						if ival == 1
-							doRun = playerWasInInterior
-						elseif ival == 2
-							doRun = !playerWasInInterior
-						elseif ival == 3
-							doRun = SLT.IsLocationKeywordSafe(playerLocationKeyword)
-						elseif ival == 4
-							doRun = SLT.IsLocationKeywordCity(playerLocationKeyword)
-						elseif ival == 5
-							doRun = SLT.IsLocationKeywordWilderness(playerLocationKeyword)
-						elseif ival == 6
-							doRun = SLT.IsLocationKeywordDungeon(playerLocationKeyword)
-						else
-							j = ival - 7
-							doRun = playerLocationKeyword == SLT.LocationKeywords[j]
-						endif
-					endif
-				endif
-
-				if doRun
-					int cmdThreadId
-
-					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
-					if command
-						cmdRequestId = GetNextPlayerContainerActivationRequestId(requestTargetFormId, cmdRequestId, containerRef, container_is_corpse, container_is_empty, container_is_common, playerWasInInterior, playerLocationKeyword)
-						cmdThreadId = SLT.GetNextInstanceId()
-						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
-					endIf
-					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
-					if command
-						cmdRequestId = GetNextPlayerContainerActivationRequestId(requestTargetFormId, cmdRequestId, containerRef, container_is_corpse, container_is_empty, container_is_common, playerWasInInterior, playerLocationKeyword)
-						cmdThreadId = SLT.GetNextInstanceId()
-						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
-					endIf
-					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
-					if command
-						cmdRequestId = GetNextPlayerContainerActivationRequestId(requestTargetFormId, cmdRequestId, containerRef, container_is_corpse, container_is_empty, container_is_common, playerWasInInterior, playerLocationKeyword)
-						cmdThreadId = SLT.GetNextInstanceId()
-						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
-					endIf
+				if ival == 1
+					doRun = playerWasInInterior
+				elseif ival == 2
+					doRun = !playerWasInInterior
+				elseif ival == 3
+					doRun = SLT.IsLocationKeywordSafe(playerLocationKeyword)
+				elseif ival == 4
+					doRun = SLT.IsLocationKeywordCity(playerLocationKeyword)
+				elseif ival == 5
+					doRun = SLT.IsLocationKeywordWilderness(playerLocationKeyword)
+				elseif ival == 6
+					doRun = SLT.IsLocationKeywordDungeon(playerLocationKeyword)
+				else
+					j = ival - 7
+					doRun = playerLocationKeyword == SLT.LocationKeywords[j]
 				endif
 			endif
+		endif
+
+		if doRun
+			int cmdThreadId
+
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+			if command
+				cmdRequestId = GetNextPlayerContainerActivationRequestId(requestTargetFormId, cmdRequestId, containerRef, container_is_corpse, container_is_empty, container_is_common, playerWasInInterior, playerLocationKeyword)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+			if command
+				cmdRequestId = GetNextPlayerContainerActivationRequestId(requestTargetFormId, cmdRequestId, containerRef, container_is_corpse, container_is_empty, container_is_common, playerWasInInterior, playerLocationKeyword)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				cmdRequestId = GetNextPlayerContainerActivationRequestId(requestTargetFormId, cmdRequestId, containerRef, container_is_corpse, container_is_empty, container_is_common, playerWasInInterior, playerLocationKeyword)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
 		endif
 		i += 1
 	endwhile
@@ -1421,143 +1613,185 @@ Function HandleLocationChanged(Location akOldLoc, Location akNewLoc)
 		triggerKey = triggerKeys_location_change[i]
 		_triggerFile = FN_T(triggerKey)
 
-		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+
+		if doRun
 			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
 
-			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
-				doRun = true
+			doRun = chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+		endif
 
-				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
-				if ival != 0 ; 0 is Any
-					if ival == 1
-						doRun = DayTime()
-					elseIf ival == 2
-						doRun = !DayTime()
-					endIf
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
+			if ival != 0 ; 0 is Any
+				if ival == 1
+					doRun = DayTime()
+				elseIf ival == 2
+					doRun = !DayTime()
 				endIf
+			endIf
+		endif
 
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_CLEARED_LEAVING)
-					if ival != 0 ; 0 is Any
-						if ival == 1
-							doRun = akOldLoc.IsCleared()
-						elseIf ival == 2
-							doRun = !akOldLoc.IsCleared()
-						endIf
-					endIf
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_CLEARED_LEAVING)
+			if ival != 0 ; 0 is Any
+				if ival == 1
+					doRun = akOldLoc.IsCleared()
+				elseIf ival == 2
+					doRun = !akOldLoc.IsCleared()
 				endIf
+			endIf
+		endIf
 
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_CLEARED_ENTERING)
-					if ival != 0 ; 0 is Any
-						if ival == 1
-							doRun = akNewLoc.IsCleared()
-						elseIf ival == 2
-							doRun = !akNewLoc.IsCleared()
-						endIf
-					endIf
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_CLEARED_ENTERING)
+			if ival != 0 ; 0 is Any
+				if ival == 1
+					doRun = akNewLoc.IsCleared()
+				elseIf ival == 2
+					doRun = !akNewLoc.IsCleared()
 				endIf
+			endIf
+		endIf
 
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION_ENTERING)
-					if ival != 0
-;/
-0 - Any
-
-1 - Inside
-2 - Outside
-3 - Safe (Home/Jail/Inn)
-4 - City (City/Town/Habitation/Dwelling)
-5 - Wilderness (!pLoc(DEFAULT)/Hold/Fort/Bandit Camp)
-6 - Dungeon (Cave/et. al.)
-
-; LocationKeywords[i - 7]
-5 - Player Home
-6 - Jail
-...
-/;
-
-						if ival == 1
-							doRun = playerWasInInterior
-						elseif ival == 2
-							doRun = !playerWasInInterior
-						elseif ival == 3
-							doRun = SLT.IsFlagsetSafe(flagset_entering)
-						elseif ival == 4
-							doRun = SLT.IsFlagsetInCity(flagset_entering)
-						elseif ival == 5
-							doRun = SLT.IsFlagsetInWilderness(flagset_entering)
-						elseif ival == 6
-							doRun = SLT.IsFlagsetInDungeon(flagset_entering)
-						else
-							j = ival - 6
-							doRun = flagset_entering[j]
-						endif
-					endif
-				endIf
-
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION_LEAVING)
-					if ival != 0
-						SLT.GetLocationFlags(akOldLoc, flagset_leaving)
-;/
-0 - Any
-
-1 - Inside
-2 - Outside
-3 - Safe (Home/Jail/Inn)
-4 - City (City/Town/Habitation/Dwelling)
-5 - Wilderness (!pLoc(DEFAULT)/Hold/Fort/Bandit Camp)
-6 - Dungeon (Cave/et. al.)
-
-; LocationKeywords[i - 7]
-5 - Player Home
-6 - Jail
-...
-/;
-
-						if ival == 1
-							doRun = playerWasInInterior
-						elseif ival == 2
-							doRun = !playerWasInInterior
-						elseif ival == 3
-							doRun = SLT.IsFlagsetSafe(flagset_leaving)
-						elseif ival == 4
-							doRun = SLT.IsFlagsetInCity(flagset_leaving)
-						elseif ival == 5
-							doRun = SLT.IsFlagsetInWilderness(flagset_leaving)
-						elseif ival == 6
-							doRun = SLT.IsFlagsetInDungeon(flagset_leaving)
-						else
-							j = ival - 6
-							doRun = flagset_leaving[j]
-						endif
-					endif
-				endIf
-				
-				if doRun
-					int cmdThreadId
-					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
-					if command
-						cmdRequestId = GetNextLocationChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword, akOldLoc, akNewLoc)
-						cmdThreadId = SLT.GetNextInstanceId()
-						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
-					endIf
-					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
-					if command
-						cmdRequestId = GetNextLocationChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword, akOldLoc, akNewLoc)
-						cmdThreadId = SLT.GetNextInstanceId()
-						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
-					endIf
-					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
-					if command
-						cmdRequestId = GetNextLocationChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword, akOldLoc, akNewLoc)
-						cmdThreadId = SLT.GetNextInstanceId()
-						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
-					endIf
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_ARMED)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.GetEquippedItemType(0) != 0 || PlayerRef.GetEquippedItemType(1) != 0
+				elseif ival == 2
+					doRun = PlayerRef.GetEquippedItemType(0) == 0 && PlayerRef.GetEquippedItemType(1) == 0
+				elseif ival == 3
+					doRun = PlayerRef.GetEquippedItemType(1) == 0
 				endif
-
 			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_CLOTHED)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.GetEquippedArmorInSlot(32) != none
+				elseif ival == 2
+					doRun = PlayerRef.GetEquippedArmorInSlot(32) == none
+				elseif ival == 3
+					Armor bodyItem = PlayerRef.GetEquippedArmorInSlot(32)
+					doRun = (bodyItem == none) || bodyItem.HasKeywordString("zad_Lockable")
+				endif
+				if SLT.Debug_Extension_Core_Keymapping
+					SLTDebugMsg("Core.HandleOnKeyDown: doRun(" + doRun + ") due to ATTR_IS_CLOTHED/" + ival)
+				endif
+			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_WEAPON_DRAWN)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.IsWeaponDrawn()
+				elseif ival == 2
+					doRun = !PlayerRef.IsWeaponDrawn()
+				endif
+			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION_ENTERING)
+			if ival != 0
+;/
+0 - Any
+
+1 - Inside
+2 - Outside
+3 - Safe (Home/Jail/Inn)
+4 - City (City/Town/Habitation/Dwelling)
+5 - Wilderness (!pLoc(DEFAULT)/Hold/Fort/Bandit Camp)
+6 - Dungeon (Cave/et. al.)
+
+; LocationKeywords[i - 7]
+5 - Player Home
+6 - Jail
+...
+/;
+
+				if ival == 1
+					doRun = playerWasInInterior
+				elseif ival == 2
+					doRun = !playerWasInInterior
+				elseif ival == 3
+					doRun = SLT.IsFlagsetSafe(flagset_entering)
+				elseif ival == 4
+					doRun = SLT.IsFlagsetInCity(flagset_entering)
+				elseif ival == 5
+					doRun = SLT.IsFlagsetInWilderness(flagset_entering)
+				elseif ival == 6
+					doRun = SLT.IsFlagsetInDungeon(flagset_entering)
+				else
+					j = ival - 6
+					doRun = flagset_entering[j]
+				endif
+			endif
+		endIf
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION_LEAVING)
+			if ival != 0
+				SLT.GetLocationFlags(akOldLoc, flagset_leaving)
+;/
+0 - Any
+
+1 - Inside
+2 - Outside
+3 - Safe (Home/Jail/Inn)
+4 - City (City/Town/Habitation/Dwelling)
+5 - Wilderness (!pLoc(DEFAULT)/Hold/Fort/Bandit Camp)
+6 - Dungeon (Cave/et. al.)
+
+; LocationKeywords[i - 7]
+5 - Player Home
+6 - Jail
+...
+/;
+
+				if ival == 1
+					doRun = playerWasInInterior
+				elseif ival == 2
+					doRun = !playerWasInInterior
+				elseif ival == 3
+					doRun = SLT.IsFlagsetSafe(flagset_leaving)
+				elseif ival == 4
+					doRun = SLT.IsFlagsetInCity(flagset_leaving)
+				elseif ival == 5
+					doRun = SLT.IsFlagsetInWilderness(flagset_leaving)
+				elseif ival == 6
+					doRun = SLT.IsFlagsetInDungeon(flagset_leaving)
+				else
+					j = ival - 6
+					doRun = flagset_leaving[j]
+				endif
+			endif
+		endIf
+		
+		if doRun
+			int cmdThreadId
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+			if command
+				cmdRequestId = GetNextLocationChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword, akOldLoc, akNewLoc)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+			if command
+				cmdRequestId = GetNextLocationChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword, akOldLoc, akNewLoc)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				cmdRequestId = GetNextLocationChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword, akOldLoc, akNewLoc)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
 		endif
 
 		i += 1
@@ -1664,115 +1898,157 @@ Function HandleEquipmentChange(Form akBaseObject, ObjectReference akRef, bool is
 		triggerKey = triggerKeys_equipment_change[i]
 		_triggerFile = FN_T(triggerKey)
 
-		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+
+		if doRun
 			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
+			doRun = chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+		endif
 
-			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
-				doRun = true
-
-				ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
-				if ival != 0 ; 0 is Any
-					if ival == 1
-						doRun = DayTime()
-					elseIf ival == 2
-						doRun = !DayTime()
-					endIf
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
+			if ival != 0 ; 0 is Any
+				if ival == 1
+					doRun = DayTime()
+				elseIf ival == 2
+					doRun = !DayTime()
 				endIf
+			endIf
+		endif
 
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_EQUIPPING)
-					if ival != 0 ; 0 is Any
-						if ival == 1
-							doRun = is_equipping
-						elseIf ival == 2
-							doRun = !is_equipping
-						endIf
-					endIf
-				endif
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_EQUIPPING)
+			if ival != 0 ; 0 is Any
+				if ival == 1
+					doRun = is_equipping
+				elseIf ival == 2
+					doRun = !is_equipping
+				endIf
+			endIf
+		endif
 
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_ITEM_IS_UNIQUE)
-					if ival != 0 ; 0 is Any
-						if ival == 1
-							doRun = !is_unique
-						elseIf ival == 2
-							doRun = is_unique
-						endIf
-					endIf
-				endif
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_ITEM_IS_UNIQUE)
+			if ival != 0 ; 0 is Any
+				if ival == 1
+					doRun = !is_unique
+				elseIf ival == 2
+					doRun = is_unique
+				endIf
+			endIf
+		endif
 
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_HAS_ENCHANTMENTS)
-					if ival != 0 ; 0 is Any
-						if ival == 1
-							doRun = has_enchantments
-						elseIf ival == 2
-							doRun = !has_enchantments
-						endIf
-					endIf
-				endif
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_HAS_ENCHANTMENTS)
+			if ival != 0 ; 0 is Any
+				if ival == 1
+					doRun = has_enchantments
+				elseIf ival == 2
+					doRun = !has_enchantments
+				endIf
+			endIf
+		endif
 
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_EQUIPPED_ITEM_TYPE)
-					if ival != 0
-						if ival == item_type
-							doRun = true
-						endif
-					endif
-				endif
-
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_ARMOR_SLOT)
-					if ival != 0
-						if (akBaseObject as Armor) == none
-							doRun = false
-						elseif ival == 1
-							; only head/body/hands/feet slots
-							Armor baseArmor = akBaseObject as Armor
-							If (baseArmor)
-								int slotMask = baseArmor.GetSlotMask()
-								doRun = (Math.LogicalAnd(slotMask, kSlotMask30) || Math.LogicalAnd(slotMask, kSlotMask32) || Math.LogicalAnd(slotMask, kSlotMask33) || Math.LogicalAnd(slotMask, kSlotMask37))
-							EndIf
-						elseif ival == 2
-							; only ring/amulet/circlet slots
-							Armor baseArmor = akBaseObject as Armor
-							If (baseArmor)
-								int slotMask = baseArmor.GetSlotMask()
-								doRun = (Math.LogicalAnd(slotMask, kSlotMask36) || Math.LogicalAnd(slotMask, kSlotMask35) || Math.LogicalAnd(slotMask, kSlotMask42))
-							EndIf
-						else
-							; slot = ival - 3 + 30
-							Armor baseArmor = akBaseObject as Armor
-							If (baseArmor)
-								int slotMask = baseArmor.GetSlotMask()
-								doRun = Math.LogicalAnd(slotMask, Math.LeftShift(1, ival - 3 + 30))
-							EndIf
-						endif
-					endif
-				endif
-				
-				if doRun
-					int cmdThreadId
-					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
-					if command
-						cmdRequestId = GetNextEquipmentChangeRequestId(requestTargetFormId, cmdRequestId, akBaseObject, akRef, is_equipping, is_unique, has_enchantments, item_type_str)
-						cmdThreadId = SLT.GetNextInstanceId()
-						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
-					endIf
-					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
-					if command
-						cmdRequestId = GetNextEquipmentChangeRequestId(requestTargetFormId, cmdRequestId, akBaseObject, akRef, is_equipping, is_unique, has_enchantments, item_type_str)
-						cmdThreadId = SLT.GetNextInstanceId()
-						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
-					endIf
-					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
-					if command
-						cmdRequestId = GetNextEquipmentChangeRequestId(requestTargetFormId, cmdRequestId, akBaseObject, akRef, is_equipping, is_unique, has_enchantments, item_type_str)
-						cmdThreadId = SLT.GetNextInstanceId()
-						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
-					endIf
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_EQUIPPED_ITEM_TYPE)
+			if ival != 0
+				if ival == item_type
+					doRun = true
 				endif
 			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_ARMOR_SLOT)
+			if ival != 0
+				if (akBaseObject as Armor) == none
+					doRun = false
+				elseif ival == 1
+					; only head/body/hands/feet slots
+					Armor baseArmor = akBaseObject as Armor
+					If (baseArmor)
+						int slotMask = baseArmor.GetSlotMask()
+						doRun = (Math.LogicalAnd(slotMask, kSlotMask30) || Math.LogicalAnd(slotMask, kSlotMask32) || Math.LogicalAnd(slotMask, kSlotMask33) || Math.LogicalAnd(slotMask, kSlotMask37))
+					EndIf
+				elseif ival == 2
+					; only ring/amulet/circlet slots
+					Armor baseArmor = akBaseObject as Armor
+					If (baseArmor)
+						int slotMask = baseArmor.GetSlotMask()
+						doRun = (Math.LogicalAnd(slotMask, kSlotMask36) || Math.LogicalAnd(slotMask, kSlotMask35) || Math.LogicalAnd(slotMask, kSlotMask42))
+					EndIf
+				else
+					; slot = ival - 3 + 30
+					Armor baseArmor = akBaseObject as Armor
+					If (baseArmor)
+						int slotMask = baseArmor.GetSlotMask()
+						doRun = Math.LogicalAnd(slotMask, Math.LeftShift(1, ival - 3 + 30))
+					EndIf
+				endif
+			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_ARMED)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.GetEquippedItemType(0) != 0 || PlayerRef.GetEquippedItemType(1) != 0
+				elseif ival == 2
+					doRun = PlayerRef.GetEquippedItemType(0) == 0 && PlayerRef.GetEquippedItemType(1) == 0
+				elseif ival == 3
+					doRun = PlayerRef.GetEquippedItemType(1) == 0
+				endif
+			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_CLOTHED)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.GetEquippedArmorInSlot(32) != none
+				elseif ival == 2
+					doRun = PlayerRef.GetEquippedArmorInSlot(32) == none
+				elseif ival == 3
+					Armor bodyItem = PlayerRef.GetEquippedArmorInSlot(32)
+					doRun = (bodyItem == none) || bodyItem.HasKeywordString("zad_Lockable")
+				endif
+				if SLT.Debug_Extension_Core_Keymapping
+					SLTDebugMsg("Core.HandleOnKeyDown: doRun(" + doRun + ") due to ATTR_IS_CLOTHED/" + ival)
+				endif
+			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_WEAPON_DRAWN)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.IsWeaponDrawn()
+				elseif ival == 2
+					doRun = !PlayerRef.IsWeaponDrawn()
+				endif
+			endif
+		endif
+		
+		if doRun
+			int cmdThreadId
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+			if command
+				cmdRequestId = GetNextEquipmentChangeRequestId(requestTargetFormId, cmdRequestId, akBaseObject, akRef, is_equipping, is_unique, has_enchantments, item_type_str)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+			if command
+				cmdRequestId = GetNextEquipmentChangeRequestId(requestTargetFormId, cmdRequestId, akBaseObject, akRef, is_equipping, is_unique, has_enchantments, item_type_str)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				cmdRequestId = GetNextEquipmentChangeRequestId(requestTargetFormId, cmdRequestId, akBaseObject, akRef, is_equipping, is_unique, has_enchantments, item_type_str)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
 		endif
 
 		i += 1
@@ -1821,39 +2097,80 @@ Function HandlePlayerCombatStateChanged(Actor target, bool player_in_combat)
 		triggerKey = triggerKeys_player_combat_status[i]
 		_triggerFile = FN_T(triggerKey)
 
-		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+
+		if doRun
 			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
 
-			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
-				doRun = true
+			doRun = chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+		endif
 
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_COMBAT_STATE)
-					if ival != 0 ; 0 is Any
-						if ival == 1
-							doRun = player_in_combat
-						elseIf ival == 2
-							doRun = !player_in_combat
-						endIf
-					endIf
-				endif
-				
-				if doRun
-					int cmdThreadId
-					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
-					if command
-						RequestCommand(PlayerRef, command)
-					endIf
-					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
-					if command
-						RequestCommand(PlayerRef, command)
-					endIf
-					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
-					if command
-						RequestCommand(PlayerRef, command)
-					endIf
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_COMBAT_STATE)
+			if ival != 0 ; 0 is Any
+				if ival == 1
+					doRun = player_in_combat
+				elseIf ival == 2
+					doRun = !player_in_combat
+				endIf
+			endIf
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_ARMED)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.GetEquippedItemType(0) != 0 || PlayerRef.GetEquippedItemType(1) != 0
+				elseif ival == 2
+					doRun = PlayerRef.GetEquippedItemType(0) == 0 && PlayerRef.GetEquippedItemType(1) == 0
+				elseif ival == 3
+					doRun = PlayerRef.GetEquippedItemType(1) == 0
 				endif
 			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_CLOTHED)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.GetEquippedArmorInSlot(32) != none
+				elseif ival == 2
+					doRun = PlayerRef.GetEquippedArmorInSlot(32) == none
+				elseif ival == 3
+					Armor bodyItem = PlayerRef.GetEquippedArmorInSlot(32)
+					doRun = (bodyItem == none) || bodyItem.HasKeywordString("zad_Lockable")
+				endif
+				if SLT.Debug_Extension_Core_Keymapping
+					SLTDebugMsg("Core.HandleOnKeyDown: doRun(" + doRun + ") due to ATTR_IS_CLOTHED/" + ival)
+				endif
+			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_WEAPON_DRAWN)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.IsWeaponDrawn()
+				elseif ival == 2
+					doRun = !PlayerRef.IsWeaponDrawn()
+				endif
+			endif
+		endif
+		
+		if doRun
+			int cmdThreadId
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
 		endif
 
 		i += 1
@@ -1888,89 +2205,130 @@ Function HandlePlayerOnHit(Form kattacker, Form ktarget, int ksourceFormID, int 
 		triggerKey = triggerKeys_player_on_hit[i]
 		_triggerFile = FN_T(triggerKey)
 
-		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+
+		if doRun
 			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
 
-			if chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
-				doRun = true
+			doRun = chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+		endif
 
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PLAYER_ATTACKING)
-					if ival != 0 ; 0 is Any
-						if ival == 1
-							doRun = was_player_attacker
-						elseIf ival == 2
-							doRun = !was_player_attacker
-						endIf
-					endIf
-				endif
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PLAYER_ATTACKING)
+			if ival != 0 ; 0 is Any
+				if ival == 1
+					doRun = was_player_attacker
+				elseIf ival == 2
+					doRun = !was_player_attacker
+				endIf
+			endIf
+		endif
 
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_WAS_BLOCKED)
-					if ival != 0 ; 0 is Any
-						if ival == 1
-							doRun = kHitBlocked
-						elseIf ival == 2
-							doRun = !kHitBlocked
-						endIf
-					endIf
-				endif
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_WAS_BLOCKED)
+			if ival != 0 ; 0 is Any
+				if ival == 1
+					doRun = kHitBlocked
+				elseIf ival == 2
+					doRun = !kHitBlocked
+				endIf
+			endIf
+		endif
 
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_WAS_POWER_ATTACK)
-					if ival != 0 ; 0 is Any
-						if ival == 1
-							doRun = kPowerAttack
-						elseIf ival == 2
-							doRun = !kPowerAttack
-						endIf
-					endIf
-				endif
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_WAS_POWER_ATTACK)
+			if ival != 0 ; 0 is Any
+				if ival == 1
+					doRun = kPowerAttack
+				elseIf ival == 2
+					doRun = !kPowerAttack
+				endIf
+			endIf
+		endif
 
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_WAS_SNEAK_ATTACK)
-					if ival != 0 ; 0 is Any
-						if ival == 1
-							doRun = kSneakAttack
-						elseIf ival == 2
-							doRun = !kSneakAttack
-						endIf
-					endIf
-				endif
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_WAS_SNEAK_ATTACK)
+			if ival != 0 ; 0 is Any
+				if ival == 1
+					doRun = kSneakAttack
+				elseIf ival == 2
+					doRun = !kSneakAttack
+				endIf
+			endIf
+		endif
 
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_WAS_BASH_ATTACK)
-					if ival != 0 ; 0 is Any
-						if ival == 1
-							doRun = kBashAttack
-						elseIf ival == 2
-							doRun = !kBashAttack
-						endIf
-					endIf
-				endif
-				
-				if doRun
-					int cmdThreadId
-					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
-					if command
-						cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget, ksourceFormID, kprojectileFormID)
-						cmdThreadId = SLT.GetNextInstanceId()
-						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
-					endIf
-					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
-					if command
-						cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget, ksourceFormID, kprojectileFormID)
-						cmdThreadId = SLT.GetNextInstanceId()
-						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
-					endIf
-					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
-					if command
-						cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget, ksourceFormID, kprojectileFormID)
-						cmdThreadId = SLT.GetNextInstanceId()
-						RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
-					endIf
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_WAS_BASH_ATTACK)
+			if ival != 0 ; 0 is Any
+				if ival == 1
+					doRun = kBashAttack
+				elseIf ival == 2
+					doRun = !kBashAttack
+				endIf
+			endIf
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_ARMED)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.GetEquippedItemType(0) != 0 || PlayerRef.GetEquippedItemType(1) != 0
+				elseif ival == 2
+					doRun = PlayerRef.GetEquippedItemType(0) == 0 && PlayerRef.GetEquippedItemType(1) == 0
+				elseif ival == 3
+					doRun = PlayerRef.GetEquippedItemType(1) == 0
 				endif
 			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_CLOTHED)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.GetEquippedArmorInSlot(32) != none
+				elseif ival == 2
+					doRun = PlayerRef.GetEquippedArmorInSlot(32) == none
+				elseif ival == 3
+					Armor bodyItem = PlayerRef.GetEquippedArmorInSlot(32)
+					doRun = (bodyItem == none) || bodyItem.HasKeywordString("zad_Lockable")
+				endif
+				if SLT.Debug_Extension_Core_Keymapping
+					SLTDebugMsg("Core.HandleOnKeyDown: doRun(" + doRun + ") due to ATTR_IS_CLOTHED/" + ival)
+				endif
+			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_WEAPON_DRAWN)
+			if ival != 0
+				if ival == 1
+					doRun = PlayerRef.IsWeaponDrawn()
+				elseif ival == 2
+					doRun = !PlayerRef.IsWeaponDrawn()
+				endif
+			endif
+		endif
+		
+		if doRun
+			int cmdThreadId
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+			if command
+				cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget, ksourceFormID, kprojectileFormID)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+			if command
+				cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget, ksourceFormID, kprojectileFormID)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget, ksourceFormID, kprojectileFormID)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
 		endif
 
 		i += 1
