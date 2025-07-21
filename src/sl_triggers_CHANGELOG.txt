@@ -1,6 +1,7 @@
 128
     Savegame compatible with v127
     bugfix: Keymapping: Use DAK logic was incorrect
+    bugfix: Top of the Hour: was not aligning to hours properly; should be properly aligning and firing now
     change: Keymapping: keymappings that do not require a modifier will no longer run if a modifier key (L/R Ctrl, Shift, or Alt) is being pressed
 
 127
