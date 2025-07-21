@@ -497,3 +497,23 @@ deb_msg "PASS: [label] literal as goto target"
 inc $thread.passCount
 
 [gotolabelliteralfail]
+
+
+inc $thread.testCount
+set $dollarVar "$"
+if $dollarVar &= "$"
+    inc $thread.passCount
+    deb_msg $"PASS: dollar string literal dollarVar({dollarVar}) should be '$'"
+else
+    deb_msg $"FAIL: dollar string literal dollarVar({dollarVar}) should be '$'"
+endif
+
+inc $thread.testCount
+set $dollarChecker 27
+set $dollarVar "$dollarChecker"
+if $dollarVar &= "$dollarChecker"
+    inc $thread.passCount
+    deb_msg $"PASS: dollar string literal that could pass as variable; dollarVar({dollarVar}) should be '$dollarChecker'"
+else
+    deb_msg $"FAIL: dollar string literal that could pass as variable; dollarVar({dollarVar}) should be '$dollarChecker'"
+endif
