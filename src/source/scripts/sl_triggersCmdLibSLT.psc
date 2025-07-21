@@ -158,7 +158,7 @@ function msg_notify(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         endwhile
         string msg = PapyrusUtil.StringJoin(darr, "")
         Debug.Notification(msg)
-        SLTInfoMsg(msg)
+        CmdPrimary.SFI(msg)
     endif
 
 	CmdPrimary.CompleteOperationOnActor()

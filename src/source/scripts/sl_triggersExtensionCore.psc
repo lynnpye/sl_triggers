@@ -74,9 +74,16 @@ bool	handlingTopOfTheHour = false ; only because the check is in a sensitive eve
 ; this will contain a deduplicated list of all keycodes of interest, including modifiers
 ; so with 4 keycodes and 2 modifiers (assuming none of the modifiers are themselves also keycodes) this would be 6 in length
 int[]		_keycodes_of_interest
+int[]		__checked_modifier_keys
 ; matching length boolean state array for fast lookup
 ;bool[]		_keycode_status
 bool[]		_keystates
+
+int[] Property CheckedModifierKeys Hidden
+	int[] Function Get()
+		return __checked_modifier_keys
+	EndFunction
+EndProperty
 
 ; onInit we will refresh these with what we find
 ; and edit them during MCM updates as needed
@@ -229,8 +236,9 @@ Function SLTReady()
 		UnregisterForUpdate()
 		QueueUpdateLoop(0.01)
 	endif
-
+	
 	_keystates = PapyrusUtil.BoolArray(256, false)
+
 	ClearKeystates()
 	UpdateDAKStatus()
 	RefreshData()
@@ -369,6 +377,10 @@ Event OnKeyUp(int KeyCode, float holdTime)
 	endif
 
 	_keystates[KeyCode] = false
+
+	If (SLT.Debug_Extension_Core_Keymapping)
+		SLTDebugMsg("Core.OnKeyUp: key(" + KeyCode + ")")
+	EndIf
 EndEvent
 
 Event OnKeyDown(Int KeyCode)
@@ -377,6 +389,10 @@ Event OnKeyDown(Int KeyCode)
 	endif
 
 	_keystates[KeyCode] = true
+
+	If (SLT.Debug_Extension_Core_Keymapping)
+		SLTDebugMsg("Core.OnKeyDown: key(" + KeyCode + ")")
+	EndIf
 	
 	If !IsEnabled
 		SLTWarnMsg("Not enabled yet, exiting OnKeyDown early")
@@ -650,6 +666,15 @@ Function RefreshTriggerCache()
 	_keycodes_of_interest = PapyrusUtil.IntArray(0)
 	;_keycode_status = PapyrusUtil.BoolArray(0)
 	if triggerKeys_keyDown.Length > 0
+		If (!__checked_modifier_keys.Length)
+			__checked_modifier_keys = new int[6]
+			__checked_modifier_keys[0] = 29
+			__checked_modifier_keys[1] = 157
+			__checked_modifier_keys[2] = 56
+			__checked_modifier_keys[3] = 184
+			__checked_modifier_keys[4] = 42
+			__checked_modifier_keys[5] = 54
+		EndIf
 
 		i = 0
 
@@ -670,6 +695,7 @@ Function RefreshTriggerCache()
 			endif
 			i += 1
 		endwhile
+		_keycodes_of_interest = PapyrusUtil.MergeIntArray(_keycodes_of_interest, CheckedModifierKeys, true)
 		;_keycode_status = PapyrusUtil.BoolArray(_keycodes_of_interest.Length)
 	endif
 	if SLT.Debug_Extension_Core_Keymapping
@@ -901,7 +927,7 @@ EndFunction
 
 Function HandleOnKeyDown()
 	if SLT.Debug_Extension_Core || SLT.Debug_Extension_Core_Keymapping
-		SLTDebugMsg("Core.HandleOnKeyDown")
+		SLTDebugMsg("Core.HandleOnKeyDown: starting")
 	endif
 
 	; all we know at this point is that at least one of the keys of interest were pressed
@@ -916,6 +942,7 @@ Function HandleOnKeyDown()
 	string triggerKey
 	string command
 	string _triggerFile
+	bool hasModifierKey
 	
 	while i < triggerKeys_keyDown.Length
 		triggerKey = triggerKeys_keyDown[i]
@@ -941,9 +968,10 @@ Function HandleOnKeyDown()
 			;if statusidx < 0
 			;	doRun = false
 			;else
-			if ival
+			if ival > 0
 				;doRun = _keycode_status[statusidx]
 				doRun = _keystates[ival]
+				hasModifierKey = false
 			endif
 		
 			if SLT.Debug_Extension_Core_Keymapping
@@ -953,11 +981,13 @@ Function HandleOnKeyDown()
 		
 		; check dynamic activation key if in use and specified
 		if doRun && DAKAvailable && JsonUtil.HasIntValue(_triggerFile, ATTR_USEDAK)
-			doRun = (JsonUtil.GetIntValue(_triggerFile, ATTR_USEDAK) != 0)
-			if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_USEDAK)
+			if ival == 1
 				; if they had DAK setting AND it was true, then dakused is true
 				; and doRun is determined by DAK status
 				dakused = true
+				hasModifierKey = true
+
 				doRun = DAKStatus.GetValue() as bool
 			endif
 		
@@ -972,20 +1002,34 @@ Function HandleOnKeyDown()
 			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_MODIFIERKEYMAPPING)
 			
 			; only if mapped
-			if ival > -1
-				;statusidx = _keycodes_of_interest.Find(ival)
+			if ival > 0
+				hasModifierKey = true
 				
-				;if statusidx < 0
-				;	doRun = false
-				;else
-				if ival
-					;doRun = _keycode_status[statusidx]
-					doRun = _keystates[ival]
-				endif
+				doRun = _keystates[ival]
 			endif
 		
 			if SLT.Debug_Extension_Core_Keymapping
 				SLTDebugMsg("Core.HandleOnKeyDown: DAK not used, checking modifier key; has matching keystate(" + doRun + ")   ival(" + ival + ")  keystate[ival](" + _keystates[ival] + ")")
+			endif
+		endif
+
+		if doRun && !hasModifierKey
+			; do not run if no modifier key was specified but one was pressed
+			; we check:
+			; L CTRL/29, R CTRL/157, L ALT/56, R ALT/184, L SHIFT/42, R SHIFT/54
+			If (_keystates[29] || _keystates[157] || _keystates[56] || _keystates[184] || _keystates[42] || _keystates[54])
+				if SLT.Debug_Extension_Core_Keymapping
+					SLTDebugMsg("Core.HandleOnKeyDown: no modifier key requested, but one is pressed; negating run request for trigger (" + _triggerFile + ")")
+				endif
+				doRun = false
+			else
+				if SLT.Debug_Extension_Core_Keymapping
+					SLTDebugMsg("Core.HandleOnKeyDown: no modifier key requested, and none are pressed; allowing run request for trigger (" + _triggerFile + ")")
+				endif
+			EndIf
+		else
+			if SLT.Debug_Extension_Core_Keymapping
+				SLTDebugMsg("Core.HandleOnKeyDown: doRun(" + doRun + ") hasModifierKey(" + hasModifierKey + ") ; was looking for (doRun && !hasModifierKey)")
 			endif
 		endif
 		

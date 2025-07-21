@@ -460,7 +460,7 @@ Function DoRegistrationActivity(sl_triggersExtension _extensionToRegister)
 		Extensions = newForms
 		
 		if bDebugMsg
-			SLTDebugMsg("Main: Setting extension pages for SLTMCM")
+			SLTDebugMsg("Main: Setting extension pages for SLTMCM (" + PapyrusUtil.StringJoin(extensionFriendlyNames, "),(") + ")")
 		endif
 		SLTMCM.SetExtensionPages(extensionFriendlyNames, extensionKeys)
 	else

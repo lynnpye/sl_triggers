@@ -1,5 +1,7 @@
 128
-    
+    Savegame compatible with v127
+    bugfix: Keymapping: Use DAK logic was incorrect
+    change: Keymapping: keymappings that do not require a modifier will no longer run if a modifier key (L/R Ctrl, Shift, or Alt) is being pressed
 
 127
     Savegame compatible with v126
