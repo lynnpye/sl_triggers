@@ -1,3 +1,11 @@
+129
+    Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)
+    
+    Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log (or whichever folder you have your SKSE logs directed to)
+    
+    bugfix: Timer: timer progress now persists across saves (i.e. if you save 59 minutes into a 60 minute timer and reload that save, you only have 1 minute remaining before it runs)
+        - or as I like to call it, the "Why Didn't You Do This In The First Place" patch
+
 128
     Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)
     

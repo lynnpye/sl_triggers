@@ -110,6 +110,7 @@ float 		last_time_PlayerCellChangeEvent
 string[]	common_container_names
 float[]		timer_next_run_time
 float[]		timer_delays
+float 		_lastRealTimeTimerProcessed
 
 int Property CS_DEFAULT 		= 0 AutoReadOnly Hidden
 int Property CS_SLTINIT		 	= 1 AutoReadOnly Hidden
@@ -635,16 +636,36 @@ Function RefreshTriggerCache()
 	triggerKeys_equipment_change		= PapyrusUtil.StringArray(0)
 	triggerKeys_player_combat_status	= PapyrusUtil.StringArray(0)
 	triggerKeys_player_on_hit			= PapyrusUtil.StringArray(0)
-	; paired /
-	triggerKeys_timer					= PapyrusUtil.StringArray(0)
-	timer_next_run_time					= PapyrusUtil.FloatArray(0)
-	timer_delays						= PapyrusUtil.FloatArray(0)
+
+	; paired - and handled differently /
+	;/
+	; we want timers that don't change between trigger refreshes to retain any 
+	; existing timer progress.
+	; "not changing" - for a given triggerKey, the timer_delay is unchanged
+	/;
+	int i
+	int timerKeyLength = triggerKeys_timer.Length
+
+	string[] new_triggerKeys_timer		= PapyrusUtil.StringArray(timerKeyLength)
+	float[] new_timer_next_run_time		= PapyrusUtil.FloatArray(timerKeyLength)
+	float[] new_timer_delays			= PapyrusUtil.FloatArray(timerKeyLength)
+	i = 0
+	while i < timerKeyLength
+		new_triggerKeys_timer[i] = triggerKeys_timer[i]
+		new_timer_next_run_time[i] = timer_next_run_time[i]
+		new_timer_delays[i] = timer_delays[i]
+		i += 1
+	endwhile
+
+	;triggerKeys_timer					= PapyrusUtil.StringArray(0)
+	;timer_next_run_time					= PapyrusUtil.FloatArray(0)
+	;timer_delays						= PapyrusUtil.FloatArray(0)
 	; / paired
 
-	int i = 0
 
 	float nowtime = Utility.GetCurrentRealTime()
-	
+
+	i = 0	
 	while i < TriggerKeys.Length
 		string _triggerFile = FN_T(TriggerKeys[i])
 			
@@ -686,16 +707,63 @@ Function RefreshTriggerCache()
 			elseif eventCode == EVENT_ID_PLAYER_ON_HIT
 				triggerKeys_player_on_hit = PapyrusUtil.PushString(triggerKeys_player_on_hit, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_TIMER
-				float timerDelay = JsonUtil.GetFloatValue(FN_T(TriggerKeys[i]), ATTR_TIMER_DELAY)
-				if timerDelay > 0
-					triggerKeys_timer = PapyrusUtil.PushString(triggerKeys_timer, TriggerKeys[i])
-					timer_delays = PapyrusUtil.PushFloat(timer_delays, timerDelay * 60)
-					timer_next_run_time = PapyrusUtil.PushFloat(timer_next_run_time, nowtime + (timerDelay * 60.0))
-					If (SLT.Debug_Extension_Core_Timer)
-						int timerDelayIndex = timer_delays.Length - 1
-						SLTDebugMsg("Core.RefreshTriggerCache: Timer trigger(" + TriggerKeys[timerDelayIndex] + ") delay(" + timer_delays[timerDelayIndex] + ") nextruntime(" + timer_next_run_time[timerDelayIndex] + ") currentime(" + nowtime + ")")
+				string triggerKey = TriggerKeys[i]
+				float timerDelay = JsonUtil.GetFloatValue(_triggerFile, ATTR_TIMER_DELAY)
+				
+				int tkeyidx = new_triggerKeys_timer.Find(triggerKey)
+				If (tkeyidx > -1)
+					; found
+					if timerDelay == timer_delays[tkeyidx]
+						; update timer_next_run_time to reflect the new reality
+						timer_next_run_time[tkeyidx] = (timer_next_run_time[tkeyidx] - _lastRealTimeTimerProcessed) + nowtime
+						If (SLT.Debug_Extension_Core_Timer)
+							SLTDebugMsg("Core.RefreshTriggerCache: Timer: refreshing timer_next_run_time, no timerDelay change detected;  trigger(" + triggerKey + ") delay(" + timer_delays[tkeyidx] + ") nextruntime(" + timer_next_run_time[tkeyidx] + ") currentime(" + nowtime + ")")
+						EndIf
+					else
+						if timerDelay > 0
+							; new timerDelay, no mercy
+							timer_delays[tkeyidx] = timerDelay * 60
+							timer_next_run_time[tkeyidx] = nowtime + (timerDelay * 60)
+							If (SLT.Debug_Extension_Core_Timer)
+								SLTDebugMsg("Core.RefreshTriggerCache: Timer: updating with new timerDelay;  trigger(" + triggerKey + ") delay(" + timer_delays[tkeyidx] + ") nextruntime(" + timer_next_run_time[tkeyidx] + ") currentime(" + nowtime + ")")
+							EndIf
+						else
+							; timerDelay is now zero, remove it
+							string sukey = "SLTR:extension:Core:TMP_STRING[]"
+							StorageUtil.StringListCopy(self, sukey, triggerKeys_timer)
+							StorageUtil.StringListPluck(self, sukey, tkeyidx, "")
+							triggerKeys_timer = StorageUtil.StringListToArray(self, sukey)
+							StorageUtil.StringListClear(self, sukey)
+							sukey = "SLTR:extension:Core:TMP_FLOAT[]"
+							StorageUtil.FloatListCopy(self, sukey, timer_delays)
+							StorageUtil.FloatListPluck(self, sukey, tkeyidx, 0.0)
+							timer_delays = StorageUtil.FloatListToArray(self, sukey)
+							StorageUtil.FloatListClear(self, sukey)
+							StorageUtil.FloatListCopy(self, sukey, timer_next_run_time)
+							StorageUtil.FloatListPluck(self, sukey, tkeyidx, 0.0)
+							timer_next_run_time = StorageUtil.FloatListToArray(self, sukey)
+							StorageUtil.FloatListClear(self, sukey)
+
+							If (SLT.Debug_Extension_Core_Timer)
+								SLTDebugMsg("Core.RefreshTriggerCache: Timer: removing due to now having timerDelay 0;  trigger(" + triggerKey + ") delay(" + timer_delays[tkeyidx] + ") nextruntime(" + timer_next_run_time[tkeyidx] + ") currentime(" + nowtime + ")")
+							EndIf
+						endif
+					endif
+				else
+					If (timerDelay > 0)
+						; new
+						new_triggerKeys_timer = PapyrusUtil.PushString(new_triggerKeys_timer, triggerKey)
+						timer_delays = PapyrusUtil.PushFloat(timer_delays, timerDelay * 60)
+						timer_next_run_time = PapyrusUtil.PushFloat(timer_next_run_time, nowtime + (timerDelay * 60))
+						If (SLT.Debug_Extension_Core_Timer)
+							SLTDebugMsg("Core.RefreshTriggerCache: Timer: adding;  trigger(" + triggerKey + ") delay(" + timer_delays[tkeyidx] + ") nextruntime(" + timer_next_run_time[tkeyidx] + ") currentime(" + nowtime + ")")
+						EndIf
+					else
+						If (SLT.Debug_Extension_Core_Timer)
+							SLTDebugMsg("Core.RefreshTriggerCache: Timer: not adding due to now having timerDelay 0;  trigger(" + triggerKey + ") delay(" + timer_delays[tkeyidx] + ") nextruntime(" + timer_next_run_time[tkeyidx] + ") currentime(" + nowtime + ")")
+						EndIf
 					EndIf
-				endif
+				EndIf
 			endif
 		endif
 
@@ -917,6 +985,7 @@ Function HandleTimers()
 	float chance
 
 	float nowtime = Utility.GetCurrentRealTime()
+	_lastRealTimeTimerProcessed = nowtime
 	If (SLT.Debug_Extension_Core_Timer)
 		SLTDebugMsg("Core.HandleTimers: starting at nowtime(" + nowtime + ")")
 	EndIf
