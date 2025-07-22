@@ -25,6 +25,12 @@
             CumControl - Has a 50/50 chance of either enabling or disabling SexLab orgasms on the target
                 - Note that some mods will still force an orgasm; this will prevent "naturally" occurring orgasms
         Any of them, for example, could be added to "Player Cell Change" (with a very low chance), "Player Location Change" (with a somewhat higher chance), or "Timer" (with the timer delay of your choosing)
+    enhancement: New SLT functions
+        global_getvalue <global variable formID>
+        global_setvalue <global variable formID> <new float value>
+            Used to get/set GLOB (GlobalVariable) records
+            e.g. global_getvalue "_DWill" ; get current Devious Followers willpower
+                 global_setvvalu "_DWill" 20.0 ; set current Devious Followers willpower to 20.0
 
 
 127

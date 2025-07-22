@@ -187,6 +187,57 @@ Function form_getbyid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
+
+; sltname global_getvalue
+; sltgrup GlobalVariable
+; sltdesc Finds the indicated GlobalVariable and returns its current value as a float.
+; sltargs formID: FormID as: "modfile.esp:012345", "012345" (absolute ID), "anEditorId" (will attempt an editorId lookup)
+; sltsamp global_getvalue "GameDaysPassed"
+; sltsamp  $$ will contain the number of in-game days passed as a float
+Function global_getvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    GlobalVariable gvar
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        gvar = CmdPrimary.ResolveForm(param[1]) as GlobalVariable
+    endif
+
+    if gvar
+        CmdPrimary.MostRecentFloatResult = gvar.GetValue()
+    else
+        CmdPrimary.SFE("Unable to resolve GlobalVariable from (" + param[1] + ")")
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname global_setvalue
+; sltgrup GlobalVariable
+; sltdesc Finds the indicated GlobalVariable and sets its current value.
+; sltargs formID: FormID as: "modfile.esp:012345", "012345" (absolute ID), "anEditorId" (will attempt an editorId lookup)
+; sltargs newValue: float
+; sltsamp global_setvalue "_Dwill" 20.0
+; sltsamp Sets the Devious Followers willpower global to 20.0
+Function global_setvalue(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    GlobalVariable gvar
+    float newvalue
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        gvar = CmdPrimary.ResolveForm(param[1]) as GlobalVariable
+        newvalue = CmdPrimary.ResolveFloat(param[2])
+
+        if gvar
+            gvar.SetValue(newvalue)
+        else
+            CmdPrimary.SFE("Unable to resolve GlobalVariable from (" + param[1] + ")")
+        endif
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
  
 ; sltname av_restore
 ; sltgrup Actor Value

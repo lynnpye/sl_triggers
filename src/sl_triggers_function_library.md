@@ -1242,6 +1242,45 @@ Note that if multiple mods introduce an object with the same editorId, the looku
 
 
 
+# GlobalVariable
+
+### global_getvalue
+
+**Description**
+
+Finds the indicated GlobalVariable and returns its current value as a float.
+
+**Parameters**
+
+    formID: FormID as: "modfile.esp:012345", "012345" (absolute ID), "anEditorId" (will attempt an editorId lookup)  
+
+
+**Example**
+
+    global_getvalue "GameDaysPassed"  
+    $$ will contain the number of in-game days passed as a float  
+
+
+
+### global_setvalue
+
+**Description**
+
+Finds the indicated GlobalVariable and sets its current value.
+
+**Parameters**
+
+    formID: FormID as: "modfile.esp:012345", "012345" (absolute ID), "anEditorId" (will attempt an editorId lookup)  
+    newValue: float  
+
+
+**Example**
+
+    global_setvalue "_Dwill" 20.0  
+    Sets the Devious Followers willpower global to 20.0  
+
+
+
 # Imagespace Modifier
 
 ### ism_applyfade
