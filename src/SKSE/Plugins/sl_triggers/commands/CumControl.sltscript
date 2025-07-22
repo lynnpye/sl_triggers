@@ -10,9 +10,6 @@ if $$ > 50
 	deb_msg $"CumControl msg: no: {noCumMessage}"
 	msg_console $"CumControl msg: no: {noCumMessage}"
 	sl_disableorgasm $system.self 1
-	util_waitforend $system.self
-	
-	sl_disableorgasm $system.self 0
 else
 	set $yesCumMessage resultfrom rnd_list "You feel your clit has been released from control." "You have a sudden urge for cock." "You feel like you could cum again."
 	msg_notify $yesCumMessage
