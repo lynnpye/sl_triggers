@@ -33,7 +33,7 @@
         global_setvalue <global variable formID> <new float value>
             Used to get/set GLOB (GlobalVariable) records
             e.g. global_getvalue "_DWill" ; get current Devious Followers willpower
-                 global_setvvalu "_DWill" 20.0 ; set current Devious Followers willpower to 20.0
+                 global_setvalue "_DWill" 20.0 ; set current Devious Followers willpower to 20.0
 
 
 127
