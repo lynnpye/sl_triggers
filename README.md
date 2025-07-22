@@ -1,4 +1,4 @@
-# SL Triggers Redux (SLTR)
+# SL Triggers Redux (SLTR) 
 
 # What Does It Do:
 SLTR lets you run simple scripts without the need to compile and without worrying about Papyrus script dependencies or whether your script will build. SLTR comes with some scripts for you, thinks like giving yourself a little gold, healing yourself, giving yourself a drink. You can also write your own custom SLTScripts. And finally, you can set up triggers, ways to make SLTScripts run in response to game events, like on game load, on changing location, or even tied to custom keymappings of your choice. All of this is configurable via MCM or text files if you prefer.
