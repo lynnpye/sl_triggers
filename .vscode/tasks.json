@@ -1,0 +1,86 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Build Papyrus",
+        "group":{
+          "kind": "build",
+          "isDefault": true
+        },
+        "type": "pyro",
+        "projectFile": "skyrimse.ppj",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": [
+          "$PapyrusCompiler"
+        ]
+      },
+      {
+        "label": "Build Plugin",
+        "group": "build",
+        "type": "shell",
+        "command": "just buildplugin"
+      },
+      {
+        "label": "Build Mod",
+        "group": "build",
+        "dependsOn": [
+          "Build Papyrus",
+          "Build Plugin"
+        ],
+        "dependsOrder": "sequence"
+      },
+      {
+        "label": "Prep SME",
+        "group": "build",
+        "type": "shell",
+        "command": "just populateSME"
+      },
+      {
+        "label": "Prep NEF",
+        "group": "build",
+        "type": "shell",
+        "command": "just populateNEF"
+      },
+      {
+        "label": "Build SME",
+        "group": "build",
+        "dependsOn": [
+          "Build Mod",
+          "Prep SME"
+        ],
+        "dependsOrder": "sequence"
+      },
+      {
+        "label": "Build NEF",
+        "group": "build",
+        "dependsOn": [
+          "Build Mod",
+          "Prep NEF"
+        ],
+        "dependsOrder": "sequence"
+      },
+      {
+        "label": "Package All",
+        "group": "build",
+        "type": "shell",
+        "command": "just packageall"
+      },
+      {
+        "label": "Generate Docs",
+        "group": "build",
+        "type": "shell",
+        "command": "just generatedocs"
+      },
+      {
+        "label": "Update Version",
+        "group": "build",
+        "type": "shell",
+        "command": "just update-version-safe"
+      }
+    ]
+  }

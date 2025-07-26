@@ -23,6 +23,7 @@
         <Import>.\inc\slso</Import>
         <Import>.\inc\conutil</Import>
         <Import>.\inc\dfr</Import>
+        <Import>.\inc\racemenu</Import>
     </Imports>
     <Folders>
         <Folder>.\src\Source\Scripts</Folder>
