@@ -1025,6 +1025,46 @@ mfg_setphonememodifier: Set facial expression (requires MfgFix https://www.nexus
 -=-
 
 
+NiOverride:
+==============
+
+apply_overlay: use NiOverride to apply change/parameters to overlay in previous functions
+
+-=-
+
+changeoverlay_transparency: use NiOverride to change overlay transparency
+	- parameter 1: actor: target Actor
+	- parameter 2: isFemale : bool
+	- parameter 3: nodeName (see getoverlay function) : string
+	- parameter 4: transparency : float
+
+-=-
+
+getoverlay_slot: use NiOverride to get free overlay slot
+	- parameter 1: actor: target Actor
+	- parameter 2: isFemale : bool
+	- parameter 3: node (body, face, etc...) : string
+
+-=-
+
+param_overlay: use NiOverride to params overlays
+	- parameter 1: actor: target Actor
+	- parameter 2: isFemale : bool
+	- parameter 3: nodeName (see getoverlay function) : string
+	- parameter 4: tatoo : string
+	- parameter 5: transparency : float
+
+-=-
+
+remove_overlay: use NiOverride to remove overlay
+	- parameter 1: actor: target Actor
+	- parameter 2: isFemale : bool
+	- parameter 3: nodeName (see getoverlay function) : string
+	- parameter 4: transparency : float
+
+-=-
+
+
 ObjectReference:
 ==============
 

@@ -1607,6 +1607,85 @@ Set facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecialed
 
 
 
+# NiOverride
+
+### apply_overlay
+
+**Description**
+
+use NiOverride to apply change/parameters to overlay in previous functions
+
+**Parameters**
+
+    actor: target Actor  
+
+
+
+
+### changeoverlay_transparency
+
+**Description**
+
+use NiOverride to change overlay transparency
+
+**Parameters**
+
+    actor: target Actor  
+    isFemale : bool  
+    nodeName (see getoverlay function) : string  
+    transparency : float  
+
+
+
+
+### getoverlay_slot
+
+**Description**
+
+use NiOverride to get free overlay slot
+
+**Parameters**
+
+    actor: target Actor  
+    isFemale : bool  
+    node (body, face, etc...) : string  
+
+
+
+
+### param_overlay
+
+**Description**
+
+use NiOverride to params overlays
+
+**Parameters**
+
+    actor: target Actor  
+    isFemale : bool  
+    nodeName (see getoverlay function) : string  
+    tatoo : string  
+    transparency : float  
+
+
+
+
+### remove_overlay
+
+**Description**
+
+use NiOverride to remove overlay
+
+**Parameters**
+
+    actor: target Actor  
+    isFemale : bool  
+    nodeName (see getoverlay function) : string  
+    transparency : float  
+
+
+
+
 # ObjectReference
 
 ### objectreference_doaction
