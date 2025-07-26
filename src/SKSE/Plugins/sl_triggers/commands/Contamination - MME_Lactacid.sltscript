@@ -1,6 +1,4 @@
-set $contaminant "MME_Lactacid"
-
-set $contaminant resultfrom form_getbyid $contaminant
+set $contaminant resultfrom form_getbyid "MME_Lactacid"
 if $contaminant == none
 	; not present
 	deb_msg $"{system.currentScriptName}: MME_Lactacid not found via form lookup"

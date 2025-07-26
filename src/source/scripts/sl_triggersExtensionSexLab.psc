@@ -307,11 +307,34 @@ Function RefreshTriggerCache()
 				triggerKeys_Stop = PapyrusUtil.PushString(triggerKeys_Stop, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_ORGASM_SLSO
 				triggerKeys_Orgasm_S = PapyrusUtil.PushString(triggerKeys_Orgasm_S, TriggerKeys[i])
+			else
+				If (SLT.Debug_Extension_SexLab)
+					SLTDebugMsg("SexLab.RefreshTriggerCache: _triggerFile(" + _triggerFile + ") has unknown eventCode(" + eventCode + "); skipping")
+				EndIf
 			endif
+		else
+			If (SLT.Debug_Extension_SexLab)
+				SLTDebugMsg("SexLab.RefreshTriggerCache: _triggerFile(" + _triggerFile + ") has DELETED_ATTRIBUTE; skipping")
+			EndIf
 		endif
 		
 		i += 1
 	endwhile
+	
+	If (SLT.Debug_Extension_SexLab)
+		string inmsg = "\n\n===========\ntriggerKeys_Start:\n"
+		int inside = 0
+		string t_key
+		string t_file
+		while inside < triggerKeys_Start.Length
+			t_key = triggerKeys_Start[inside]
+			t_file = FN_T(t_key)
+			inmsg += "key(" + t_key + ") file(" + t_file +")\n"
+			inside += 1
+		endwhile
+		inmsg += "===========\n\n"
+		SLTDebugMsg(inmsg)
+	EndIf
 EndFunction
 
 Function UpdateSexLabStatus()
@@ -368,11 +391,23 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 		triggerKey = _eventTriggerKeys[i]
 		_triggerFile = FN_T(triggerKey)
 
+		If (SLT.Debug_Extension_SexLab)
+			SLTDebugMsg("SexLab: checking trigger(" + triggerKey + ")")
+		EndIf
+
 		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+
+		If (SLT.Debug_Extension_SexLab && !doRun)
+			SLTDebugMsg("SexLab: doRun(" + doRun + ") due to DELETED")
+		EndIf
 
 		if doRun
 			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
 			doRun = chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+
+			If (SLT.Debug_Extension_SexLab && !doRun)
+				SLTDebugMsg("SexLab: doRun(" + doRun + ") due to ATTR_CHANCE")
+			EndIf
 		endif
 		
 		int    actorIdx = 0
@@ -386,12 +421,22 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 					theOther = thread.Positions[ActorPos(actorIdx + 1, actorCount)]
 				endIf
 				
+				If (SLT.Debug_Extension_SexLab)
+					SLTDebugMsg("SexLab: actorCount(" + actorCount + ") / theSelf(" + theSelf + ") actorRace(theSelf)=>(" + actorRace(theSelf) + ") / theOther(" + theOther + ") actorRace(theOther)=>(" + actorRace(theOther) + ")")
+				EndIf
+
+				doRun = true
+				
 				if doRun
 					;if eventId == 3 ; spec check for separate orgasm
 						; no need for the eventId, if you use 'specActor' it will only operate for that
 						; actor in the scene
 						if specActor && theSelf != specActor
 							doRun = false
+
+							If (SLT.Debug_Extension_SexLab && !doRun)
+								SLTDebugMsg("SexLab: doRun(" + doRun + ") due to specActor")
+							EndIf
 						endIf
 					;endIf
 				endIf
@@ -417,6 +462,10 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 						elseif ival == 3
 							doRun = PlayerRef.GetEquippedItemType(1) == 0
 						endif
+
+						If (SLT.Debug_Extension_SexLab && !doRun)
+							SLTDebugMsg("SexLab: doRun(" + doRun + ") due to ATTR_IS_ARMED")
+						EndIf
 					endif
 				endif
 
@@ -431,9 +480,10 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 							Armor bodyItem = PlayerRef.GetEquippedArmorInSlot(32)
 							doRun = (bodyItem == none) || bodyItem.HasKeywordString("zad_Lockable")
 						endif
-						if SLT.Debug_Extension_Core_Keymapping
-							SLTDebugMsg("Core.HandleOnKeyDown: doRun(" + doRun + ") due to ATTR_IS_CLOTHED/" + ival)
-						endif
+
+						If (SLT.Debug_Extension_SexLab && !doRun)
+							SLTDebugMsg("SexLab: doRun(" + doRun + ") due to ATTR_IS_CLOTHED")
+						EndIf
 					endif
 				endif
 
@@ -445,6 +495,10 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 						elseif ival == 2
 							doRun = !PlayerRef.IsWeaponDrawn()
 						endif
+
+						If (SLT.Debug_Extension_SexLab && !doRun)
+							SLTDebugMsg("SexLab: doRun(" + doRun + ") due to ATTR_IS_WEAPON_DRAWN")
+						EndIf
 					endif
 				endif
 				
@@ -471,11 +525,16 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 								endIf
 							endIf
 						endIf
+
+						If (SLT.Debug_Extension_SexLab && !doRun)
+							SLTDebugMsg("SexLab: doRun(" + doRun + ") due to ATTR_RACE")
+						EndIf
 					endIf
 				endIf
 
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PLAYER)
+
 					if ival != 0 ; 0 is Any
 						if ival == 1 && actorRace(theSelf) != 1 ; should be player
 							doRun = false
@@ -493,6 +552,10 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 								endIf
 							endIf
 						endIf
+
+						If (SLT.Debug_Extension_SexLab && !doRun)
+							SLTDebugMsg("SexLab: doRun(" + doRun + ") due to ATTR_PLAYER")
+						EndIf
 					endIf
 				endIf
 
@@ -506,6 +569,10 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 						elseIf ival == 3 && thread.IsAggressive ; not
 							doRun = false
 						endIf
+
+						If (SLT.Debug_Extension_SexLab && !doRun)
+							SLTDebugMsg("SexLab: doRun(" + doRun + ") due to ATTR_ROLE")
+						EndIf
 					endIf
 				endIf
 
@@ -517,6 +584,10 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 						elseIf ival == 2 && (SexLabForm as SexLabFramework).GetGender(theSelf) != 1
 							doRun = false
 						endIf
+
+						If (SLT.Debug_Extension_SexLab && !doRun)
+							SLTDebugMsg("SexLab: doRun(" + doRun + ") due to ATTR_GENDER")
+						EndIf
 					endIf
 				endIf
 
@@ -530,6 +601,10 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 						elseIf ival == 3 && !thread.IsOral
 							doRun = false
 						endIf
+
+						If (SLT.Debug_Extension_SexLab && !doRun)
+							SLTDebugMsg("SexLab: doRun(" + doRun + ") due to ATTR_TAG")
+						EndIf
 					endIf
 				endIf
 
@@ -541,9 +616,14 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 						elseIf ival == 2 && dayTime()
 							doRun = false
 						endIf
+
+						If (SLT.Debug_Extension_SexLab && !doRun)
+							SLTDebugMsg("SexLab: doRun(" + doRun + ") due to ATTR_DAYTIME")
+						EndIf
 					endIf
 				endIf
 
+				;/
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_LOCATION)
 					if ival != 0 ; 0 is Any
@@ -552,8 +632,13 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 						elseIf ival == 2 && theSelf.IsInInterior()
 							doRun = false
 						endIf
+
+						If (SLT.Debug_Extension_SexLab && !doRun)
+							SLTDebugMsg("SexLab: doRun(" + doRun + ") due to ATTR_LOCATION")
+						EndIf
 					endIf
 				endIf
+				/;
 
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION)
@@ -589,6 +674,10 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 						else
 							doRun = playerLocationKeyword == SLT.LocationKeywords[ival - 7]
 						endif
+
+						If (SLT.Debug_Extension_SexLab && !doRun)
+							SLTDebugMsg("SexLab: doRun(" + doRun + ") due to ATTR_DEEPLOCATION")
+						EndIf
 					endif
 				endIf
 
@@ -610,10 +699,18 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 							endif
 							_slposition += 1
 						endwhile
+
+						If (SLT.Debug_Extension_SexLab && !doRun)
+							SLTDebugMsg("SexLab: doRun(" + doRun + ") due to ATTR_POSITION")
+						EndIf
 					endIf
 				endIf
 				
 				if doRun ;do doRun
+					If (SLT.Debug_Extension_SexLab)
+						SLTDebugMsg("SexLab: doRun(" + doRun + ") running scripts")
+					EndIf
+
 					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
 					string _instanceId
 					if command
