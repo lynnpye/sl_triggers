@@ -7,6 +7,8 @@
         - or as I like to call it, the "Why Didn't You Do This In The First Place" patch
     bugfix: CumControl.sltscript was still partially built for running during a scene
     bugfix: nested if/if/endif/endif constructs were erroneously reporting imbalanced endif
+    bugfix: 'Contamination - MME_Lactacid.sltscript' was not using editorid correctly
+    bugfix: SexLab event handler not resetting doRun flag back to true during each actor loop iteration, causing some triggers to fail to run
     enhancement: Added NiOverride/Racemenu functions:
         - getoverlay_slot
         - param_overlay
