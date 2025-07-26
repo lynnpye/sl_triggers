@@ -517,3 +517,31 @@ if $dollarVar &= "$dollarChecker"
 else
     deb_msg $"FAIL: dollar string literal that could pass as variable; dollarVar({dollarVar}) should be '$dollarChecker'"
 endif
+
+inc $thread.testCount
+set $ifcheckvarouter true
+set $ifcheckvarinner true
+set $ifcheckoutcome false
+set $ifcheckcounter 0
+
+if $ifcheckvarouter
+    if $ifcheckvarinner
+        set $ifcheckoutcome true
+    endif
+    inc $ifcheckcounter 1
+endif
+
+if $ifcheckoutcome
+    inc $thread.passCount
+    deb_msg $"PASS: nested if/if/endif/endif ifcheckoutcome({ifcheckoutcome}); should be true"
+else
+    deb_msg $"FAIL: nested if/if/endif/endif ifcheckoutcome({ifcheckoutcome}); should be true"
+endif
+
+inc $thread.testCount
+if $ifcheckcounter == 1
+    inc $thread.passCount
+    deb_msg $"PASS: nested if/if/endif/withcode/endif ifcheckcounter({ifcheckcounter}); should be 1"
+else
+    deb_msg $"FAIL: nested if/if/endif/withcode/endif ifcheckcounter({ifcheckcounter}); should be 1"
+endif

@@ -6,6 +6,7 @@
     bugfix: Timer: timer progress now persists across saves (i.e. if you save 59 minutes into a 60 minute timer and reload that save, you only have 1 minute remaining before it runs)
         - or as I like to call it, the "Why Didn't You Do This In The First Place" patch
     bugfix: CumControl.sltscript was still partially built for running during a scene
+    bugfix: nested if/if/endif/endif constructs were erroneously reporting imbalanced endif
     enhancement: Added NiOverride/Racemenu functions:
         - getoverlay_slot
         - param_overlay

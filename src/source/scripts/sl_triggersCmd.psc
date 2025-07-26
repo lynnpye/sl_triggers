@@ -498,7 +498,22 @@ string      initialScriptName = ""
 bool hasValidFrame
 bool IsResetRequested = false
 
-bool IsInsideIfBlock = false
+
+int _ifNestLevel
+int Property IfNestLevel Hidden
+    int Function Get()
+        return _ifNestLevel
+    EndFunction
+    Function Set(int value)
+        if value < 0
+            _ifNestLevel = 0
+        else
+            _ifNestLevel = value
+        endif
+    EndFunction
+EndProperty
+
+;bool IsInsideIfBlock = false
 bool IfBlockSatisfied = false
 
 int Property BE_NONE        = 0 AutoReadOnly Hidden
@@ -1382,10 +1397,11 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                 SFE("'endif' is not a valid subcommand")
             endif
             __searchFoundBlockEnd = false
-            if !IsInsideIfBlock
+            if !IfNestLevel
                 SFE("'endif' encountered outside of if-block; ignoring")
             endif
-            IsInsideIfBlock = false
+            IfNestLevel -= 1
+            ;IsInsideIfBlock = false
             IfBlockSatisfied = true
             ;currentLine += 1
         elseIf command == "else"
@@ -1393,7 +1409,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                 SFE("'else' is not a valid subcommand")
             endif
             __searchFoundBlockEnd = false
-            if !IsInsideIfBlock
+            if !IfNestLevel
                 SFE("'else' encountered outside of if-block; ignoring")
             else
                 if IfBlockSatisfied
@@ -1490,7 +1506,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                 endif
             endif
         elseIf (command == "if" || command == "elseif")
-            if !IsInsideIfBlock && command == "elseif"
+            if !IfNestLevel && command == "elseif"
                 SFW("'elseif' should be preceded by an 'if' to open the block; allowing it but you should change it to make sure your script semantics are as you expect")
             endif
             __searchFoundBlockEnd = false
@@ -1500,7 +1516,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                 else
                     SFE("'elseif' is not a valid subcommand")
                 endif
-            elseif IsInsideIfBlock && IfBlockSatisfied && command == "elseif"
+            elseif IfNestLevel && IfBlockSatisfied && command == "elseif"
                 SetBlockEndTarget(BE_IF)
                 ; inside an if block but it's already been satisfied, keep going until we hit endif
             elseif cmdLine.Length == 2
@@ -1513,7 +1529,11 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                     endif
                 endif
                 
-                IsInsideIfBlock = true
+                if command == "if"
+                    IfNestLevel += 1
+                endif
+
+                ;IsInsideIfBlock = true
                 if !ResolveBool(cmdLine[1])
                     ; find the matching endif
                     IfBlockSatisfied = false
@@ -1594,7 +1614,10 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                     __bVal = false
                 endif
 
-                IsInsideIfBlock = true
+                if command == "if"
+                    IfNestLevel += 1
+                endif
+                ;IsInsideIfBlock = true
                 if !__bVal
                     if SLT.Debug_Cmd_RunScript_If
                         SFD("\t\tif: EVALUATED (" + (__bVal) + "): searching for endif")
@@ -2072,7 +2095,8 @@ Form[]      pushed_recentresultform
 int[]       pushed_mostrecentresulttype
 Actor[]     pushed_iteractor
 string[]    pushed_currentscriptname
-bool[]      pushed_insideifblock
+;bool[]      pushed_insideifblock
+int[]       pushed_ifnestlevel
 bool[]      pushed_ifsatisfied
 
 bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
@@ -2161,7 +2185,8 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
             pushed_iteractor = new Actor[1]
             pushed_iteractor = PapyrusUtil.ResizeActorArray(pushed_iteractor, 0)
             pushed_currentscriptname = PapyrusUtil.StringArray(0)
-            pushed_insideifblock = PapyrusUtil.BoolArray(0)
+            ;pushed_insideifblock = PapyrusUtil.BoolArray(0)
+            pushed_ifnestlevel = PapyrusUtil.IntArray(0)
             pushed_ifsatisfied = PapyrusUtil.BoolArray(0)
         endif
 
@@ -2178,7 +2203,8 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
 
         pushed_iteractor = PapyrusUtil.PushActor(pushed_iteractor, iterActor)
         pushed_currentscriptname = PapyrusUtil.PushString(pushed_currentscriptname, currentScriptName)
-        pushed_insideifblock = PapyrusUtil.PushBool(pushed_insideifblock, IsInsideIfBlock)
+        pushed_ifnestlevel = PapyrusUtil.PushInt(pushed_ifnestlevel, IfNestLevel)
+        ;pushed_insideifblock = PapyrusUtil.PushBool(pushed_insideifblock, IsInsideIfBlock)
         pushed_ifsatisfied = PapyrusUtil.PushBool(pushed_ifsatisfied, IfBlockSatisfied)
 
         int varcount
@@ -2536,7 +2562,8 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
 
     hasValidFrame = true
     IfBlockSatisfied = true
-    IsInsideIfBlock = false
+    IfNestLevel = 0
+    ;IsInsideIfBlock = false
 
     ResetBlockEndTarget()
 
@@ -2571,7 +2598,8 @@ bool Function slt_Frame_Pop()
     _recentResultForm           = pushed_recentresultform[pushed_recentresultform.Length - 1]
     currentScriptName           = pushed_currentscriptname[pushed_currentscriptname.Length - 1]
     iterActor                   = pushed_iteractor[pushed_iteractor.Length - 1]
-    IsInsideIfBlock             = pushed_insideifblock[pushed_insideifblock.Length - 1]
+    ;IsInsideIfBlock             = pushed_insideifblock[pushed_insideifblock.Length - 1]
+    IfNestLevel                 = pushed_ifnestlevel[pushed_ifnestlevel.Length - 1]
     IfBlockSatisfied            = pushed_ifsatisfied[pushed_ifsatisfied.Length - 1]
 
     pushed_currentLine          = PapyrusUtil.ResizeIntArray(pushed_currentLine, pushed_currentLine.Length - 1)
@@ -2586,7 +2614,8 @@ bool Function slt_Frame_Pop()
     pushed_recentresultform     = PapyrusUtil.ResizeFormArray(pushed_recentresultform, pushed_recentresultform.Length - 1)
     pushed_currentscriptname    = PapyrusUtil.ResizeStringArray(pushed_currentscriptname, pushed_currentscriptname.Length - 1)
     pushed_iteractor            = PapyrusUtil.ResizeActorArray(pushed_iteractor, pushed_iteractor.Length - 1)
-    pushed_insideifblock        = PapyrusUtil.ResizeBoolArray(pushed_insideifblock, pushed_insideifblock.Length - 1)
+    ;pushed_insideifblock        = PapyrusUtil.ResizeBoolArray(pushed_insideifblock, pushed_insideifblock.Length - 1)
+    pushed_ifnestlevel          = PapyrusUtil.ResizeIntArray(pushed_ifnestlevel, pushed_ifnestlevel.Length - 1)
     pushed_ifsatisfied          = PapyrusUtil.ResizeBoolArray(pushed_ifsatisfied, pushed_ifsatisfied.Length - 1)
 
     int varcount
