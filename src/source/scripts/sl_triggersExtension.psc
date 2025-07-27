@@ -236,3 +236,7 @@ Function HandleVersionUpdate(int oldVersion, int newVersion)
 		SLTDebugMsg("Extension(" + SLTExtensionKey + ").HandleVersionUpdate: oldVersion(" + SLTRVersion + ") newVersion(" + newVersion + "): no override defined")
 	EndIf
 EndFunction
+
+bool Function IsMCMConfigurable()
+	return false
+EndFunction

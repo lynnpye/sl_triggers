@@ -1,5 +1,12 @@
+130
+    Savegame compatibility: Should be savegame compatible with v129
+    
+    Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log (or whichever folder you have your SKSE logs directed to)
+
+    change: extensions can (and should) be configured not to appear in the MCM if they are incapable of functioning (different from being disabled)
+
 129
-    Savegame compatibility: CLEAN SAVE REQUIRED (New game or (not supported) Uninstalling SLTR, Cleaning your save (e.g. Load, click through the warning, Save; use a cleaner), Reinstall SLTR and reapply your customizations, Load)
+    Savegame compatibility: Should be savegame compatible with v128
     
     Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log (or whichever folder you have your SKSE logs directed to)
     

@@ -457,7 +457,7 @@ Function DoRegistrationActivity(sl_triggersExtension _extensionToRegister)
 		while i < Extensions.Length
 			sl_triggersExtension _ext = Extensions[i] as sl_triggersExtension
 
-			if _ext
+			if _ext && _ext.IsMCMConfigurable()
 				extensionFriendlyNames[j] = _ext.SLTFriendlyName
 				extensionKeys[j] = _ext.SLTExtensionKey
 				newForms[j] = _ext

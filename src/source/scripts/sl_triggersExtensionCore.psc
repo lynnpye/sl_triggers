@@ -132,6 +132,10 @@ string Function CS_ToString(int csstate)
 	return "CS: invalid(" + csstate + ")"
 EndFunction
 
+bool Function IsMCMConfigurable()
+	return true
+EndFunction
+
 Function QueueUpdateLoop(float afDelay = 1.0)
 	if !self
 		return

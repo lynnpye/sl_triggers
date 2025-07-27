@@ -44,6 +44,15 @@ string[]	triggerKeys_Orgasm
 string[]	triggerKeys_Stop
 string[]	triggerKeys_Orgasm_S
 
+bool Function IsMCMConfigurable()
+	if SexLabForm != none
+		return true
+	endif
+	
+	SexLabForm = GetForm_SexLab_Framework()
+	return SexLabForm != none
+EndFunction
+
 Event OnInit()
 	if !self
 		return
