@@ -14,7 +14,8 @@ It is ESL flagged to minimize impact on your load order and most dependencies ar
 These mods provide additional functionality, mostly in the form of integration, i.e. bindings in SLTScript to run functions in the mod, or, as in SexLab's case, full on extensions to provide trigger support and a broad set of additional functions for SLTScript. Not having them simply means your SLTScripts will not have access to functions provided for that mod.
 - [SexLab Framework](https://www.loverslab.com/files/file/20058-sexlab-se-sex-animation-framework-v166b-01182024/) (if you want SexLab events and commands)
 - [SexLab P+ Framework](https://www.loverslab.com/files/file/25318-sexlab-p/) (this version works as well)
-- [Console Util Extended](https://www.nexusmods.com/skyrimspecialedition/mods/133569)) (if you want to execute Skyrim console commands in your scripts) (or another ConsoleUtil variant)
+- [OStim Standalone](https://www.nexusmods.com/skyrimspecialedition/mods/98163)
+- [Console Util Extended](https://www.nexusmods.com/skyrimspecialedition/mods/133569) (if you want to execute Skyrim console commands in your scripts) (or another ConsoleUtil variant)
 - [MfgFix](https://www.nexusmods.com/skyrimspecialedition/mods/11669) (if you want facial expression related commands in your scripts)
 - [Devious Followers Continued](https://www.loverslab.com/files/file/11732-devious-followers-continued-se/)
 - [OSLAroused](https://www.loverslab.com/files/file/20867-osl-aroused-arousal-reborn-sse-ae/)
