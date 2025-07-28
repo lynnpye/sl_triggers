@@ -7,6 +7,7 @@ actor               property playerref auto
 sl_triggersmain  property slt auto hidden ; will be populated on startup
 keyword    property actortypenpc auto hidden ; will be populated on startup
 keyword    property actortypeundead auto hidden ; will be populated on startup
+int property sltrversion = 0 auto hidden
 bool    property isenabled hidden
 bool function get()
 endfunction
@@ -51,5 +52,13 @@ endfunction
 event onsltinternalready(string eventname, string strarg, float numarg, form sender)
 endevent
 function _slt_refreshtriggers()
+endfunction
+function refreshtriggercache()
+endfunction
+function checkversionupdates()
+endfunction
+function handleversionupdate(int oldversion, int newversion)
+endfunction
+bool function ismcmconfigurable()
 endfunction
 ;This file was cleaned with PapyrusSourceHeadliner 1

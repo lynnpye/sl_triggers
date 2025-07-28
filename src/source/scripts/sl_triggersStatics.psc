@@ -142,6 +142,10 @@ Form Function GetForm_SLT_ExtensionSexLab() global
 	return Game.GetFormFromFile(0x83D, "sl_triggers.esp")
 EndFunction
 
+Form Function GetForm_SLT_ExtensionOStim() global
+	return Game.GetFormFromFile(0x06E, "sl_triggers.esp")
+EndFunction
+
 Form Function GetForm_Skyrim_ActorTypeNPC() global
 	return Game.GetFormFromFile(0x13794, "Skyrim.esm")
 EndFunction
@@ -172,6 +176,10 @@ EndFunction
 
 Form Function GetForm_DeviousFollowers_dfQuest() global
 	return Game.GetFormFromFile(0xD62, "DeviousFollowers.esp")
+EndFunction
+
+Form Function GetForm_OStim_Integration_Main() global
+	return Game.GetFormFromFile(0x000801, "OStim.esp")
 EndFunction
 
 int Function GetRelativeFormID_DeviousFollowers_MCM() global

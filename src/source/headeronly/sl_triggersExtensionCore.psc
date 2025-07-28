@@ -8,10 +8,17 @@ globalvariable  property dakhotkey    auto hidden
 float    property tohelapsedtime   auto hidden
 float    property lasttopofthehour  auto hidden
 float    property nexttopofthehour  auto hidden
+int[] property checkedmodifierkeys hidden
+int[] function get()
+endfunction
+endproperty
 int property cs_default   = 0 autoreadonly hidden
 int property cs_sltinit    = 1 autoreadonly hidden
-int property cs_polling   = 2 autoreadonly hidden
+int property cs_sentinel_setup  = 2 autoreadonly hidden
+int property cs_polling   = 3 autoreadonly hidden
 string function cs_tostring(int csstate)
+endfunction
+bool function ismcmconfigurable()
 endfunction
 function queueupdateloop(float afdelay = 1.0)
 endfunction
@@ -41,28 +48,16 @@ event onkeyup(int keycode, float holdtime)
 endevent
 event onkeydown(int keycode)
 endevent
-event onsltrplayercellchange(bool isnewgamelaunch, bool isnewsession, form fkwplayerlocation, bool playerwasininterior)
-endevent
 event onsltrplayerequipevent(form baseform, objectreference objref, bool is_equipping)
 endevent
 event onsltrplayercombatstatechanged(actor target, bool player_in_combat)
 endevent
-event onsltrplayerhit(form kattacker, form ktarget, form ksource, form kprojectile, bool was_player_attacker, bool kpowerattack, bool ksneakattack, bool kbashattack, bool khitblocked)
+event onsltrplayerhit(form kattacker, form ktarget, int ksourceformid, int kprojectileformid, bool was_player_attacker, bool kpowerattack, bool ksneakattack, bool kbashattack, bool khitblocked)
 endevent
 function send_sltr_onplayercellchange()
 endfunction
 function sltr_internal_playercellchange()
 endfunction
-function relocateplayerloadingscreensentinel()
-endfunction
-event onsltrplayerloadingscreen(string _eventname, string _strvalue, float _fltvalue, form _frmvalue)
-endevent
-function send_sltr_onplayerloadingscreen()
-endfunction
-function sltr_internal_playernewspaceevent()
-endfunction
-event onsltrplayercontaineractivate(form fcontainerref, bool isconcorpse, bool isconempty, form fkwplayerlocation, bool playerwasininterior)
-endevent
 function send_sltr_onplayeractivatecontainer(objectreference containerref, bool container_is_corpse, bool container_is_empty)
 endfunction
 function sltr_internal_playeractivatedcontainer(objectreference containerref, bool container_is_corpse, bool container_is_empty)
@@ -71,13 +66,17 @@ function refreshthecontainersweknowandlove()
 endfunction
 function refreshtriggercache()
 endfunction
-function aligntonexthour(float _curtime = -1.0)
+function aligntonexthour(float _curtime)
 endfunction
 function updatedakstatus()
+endfunction
+function handleversionupdate(int oldversion, int newversion)
 endfunction
 function registerevents()
 endfunction
 function registerforkeyevents()
+endfunction
+function handletimers()
 endfunction
 function handlenewsession(int _newsessionid)
 endfunction
@@ -88,8 +87,6 @@ endfunction
 function handleonplayercellchange(bool isnewgamelaunch, bool isnewsession, keyword playerlocationkeyword, bool playerwasininterior)
 endfunction
 int function getnextplayercellchangerequestid(int requesttargetformid, int cmdrequestid, bool playerwasininterior, keyword playerlocationkeyword)
-endfunction
-function handleonplayerloadingscreen()
 endfunction
 function handleplayercontaineractivation(objectreference containerref, bool container_is_corpse, bool container_is_empty, keyword playerlocationkeyword, bool playerwasininterior)
 endfunction
@@ -137,8 +134,8 @@ int function getnextequipmentchangerequestid(int requesttargetformid, int cmdreq
 endfunction
 function handleplayercombatstatechanged(actor target, bool player_in_combat)
 endfunction
-function handleplayeronhit(form kattacker, form ktarget, form ksource, form kprojectile, bool was_player_attacker, bool kpowerattack, bool ksneakattack, bool kbashattack, bool khitblocked)
+function handleplayeronhit(form kattacker, form ktarget, int ksourceformid, int kprojectileformid, bool was_player_attacker, bool kpowerattack, bool ksneakattack, bool kbashattack, bool khitblocked)
 endfunction
-int function getnextplayeronhitrequestid(int requesttargetformid, int cmdrequestid, form kattacker, form ktarget, form ksource, form kprojectile)
+int function getnextplayeronhitrequestid(int requesttargetformid, int cmdrequestid, form kattacker, form ktarget, int ksourceformid, int kprojectileformid)
 endfunction
 ;This file was cleaned with PapyrusSourceHeadliner 1

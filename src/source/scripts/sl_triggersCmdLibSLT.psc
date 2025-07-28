@@ -245,8 +245,8 @@ endFunction
 ; sltargs actor: target Actor
 ; sltargs av name: Actor Value name e.g. Health
 ; sltargs amount: amount to restore
-; sltsamp av_restore $self Health 100
-; sltsamp av_restore $self   $3   100 ;where $3 might be "Health"
+; sltsamp av_restore $system.self Health 100
+; sltsamp av_restore $system.self   $3   100 ;where $3 might be "Health"
 ; sltrslt Restores Health by 100 e.g. healing
 function av_restore(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -267,8 +267,8 @@ endFunction
 ; sltargs actor: target Actor
 ; sltargs av name: Actor Value name e.g. Health
 ; sltargs amount: amount to damage
-; sltsamp av_damage $self Health 100
-; sltsamp av_damage $self   $3   100 ;where $3 might be "Health"
+; sltsamp av_damage $system.self Health 100
+; sltsamp av_damage $system.self   $3   100 ;where $3 might be "Health"
 ; sltrslt Damages Health by 100. This can result in death.
 function av_damage(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -289,8 +289,8 @@ endFunction
 ; sltargs actor: target Actor
 ; sltargs av name: Actor Value name e.g. Health
 ; sltargs amount: amount to modify by
-; sltsamp av_mod $self Health 100
-; sltsamp av_mod $self   $3   100 ;where $3 might be "Health"
+; sltsamp av_mod $system.self Health 100
+; sltsamp av_mod $system.self   $3   100 ;where $3 might be "Health"
 ; sltrslt Changes the max value of the actor value. Not the same as restore/damage.
 function av_mod(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -311,8 +311,8 @@ endFunction
 ; sltargs actor: target Actor
 ; sltargs av name: Actor Value name e.g. Health
 ; sltargs amount: amount to modify by
-; sltsamp av_set $self Health 100
-; sltsamp av_set $self   $3   100 ;where $3 might be "Health"
+; sltsamp av_set $system.self Health 100
+; sltsamp av_set $system.self   $3   100 ;where $3 might be "Health"
 ; sltrslt Sets the value of the actor value.
 function av_set(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -332,7 +332,7 @@ endFunction
 ; sltdesc Sets $$ to the actor's base value for the specified Actor Value
 ; sltargs actor: target Actor
 ; sltargs av name: Actor Value name e.g. Health
-; sltsamp av_getbase $self Health
+; sltsamp av_getbase $system.self Health
 ; sltrslt Sets the actor's base Health into $$
 function av_getbase(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -357,7 +357,7 @@ endFunction
 ; sltdesc Set $$ to the actor's current value for the specified Actor Value
 ; sltargs actor: target Actor
 ; sltargs av name: Actor Value name e.g. Health
-; sltsamp av_get $self Health
+; sltsamp av_get $system.self Health
 ; sltrslt Sets the actor's current Health into $$
 function av_get(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -392,7 +392,7 @@ endFunction
 ; sltdesc Set $$ to the actor's max value for the specified Actor Value
 ; sltargs actor: target Actor
 ; sltargs av name: Actor Value name e.g. Health
-; sltsamp av_get $self Health
+; sltsamp av_get $system.self Health
 ; sltrslt Sets the actor's max Health into $$
 function av_getmax(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -417,7 +417,7 @@ endFunction
 ; sltdesc Set $$ to the actor's value as a percentage of max for the specified Actor Value
 ; sltargs actor: target Actor
 ; sltargs av name: Actor Value name e.g. Health
-; sltsamp av_getpercentage $self Health
+; sltsamp av_getpercentage $system.self Health
 ; sltrslt Sets the actor's percentage of Health remaining into $$
 function av_getpercent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -441,7 +441,7 @@ endFunction
 ; sltdesc Cast spell at target
 ; sltargs spell: SPEL FormID
 ; sltargs actor: target Actor
-; sltsamp spell_cast "skyrim.esm:275236" $self
+; sltsamp spell_cast "skyrim.esm:275236" $system.self
 ; sltrslt Casts light spell on self
 function spell_cast(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -469,7 +469,7 @@ endFunction
 ; sltdesc are part of a melee attack (like animals that also carry poison or disease).
 ; sltargs spell: SPEL FormId
 ; sltargs actor: target Actor
-; sltsamp spell_dcsa "skyrim.esm:275236" $self
+; sltsamp spell_dcsa "skyrim.esm:275236" $system.self
 function spell_dcsa(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -495,8 +495,8 @@ endFunction
 ; sltdesc Dispels specified SPEL by FormId from targeted Actor
 ; sltargs spell: SPEL FormId
 ; sltargs actor: target Actor
-; sltsamp spell_dispel "skyrim.esm:275236" $self
-; sltrslt If light was currently on $self, it would now be dispelled
+; sltsamp spell_dispel "skyrim.esm:275236" $system.self
+; sltrslt If light was currently on $system.self, it would now be dispelled
 function spell_dispel(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -522,7 +522,7 @@ endFunction
 ; sltdesc Adds the specified SPEL by FormId to the targeted Actor, usually to add as an available power or spell in the spellbook.
 ; sltargs spell: SPEL FormId
 ; sltargs actor: target Actor
-; sltsamp spell_add "skyrim.esm:275236" $self
+; sltsamp spell_add "skyrim.esm:275236" $system.self
 ; sltrslt The light spell is now in the actor's spellbook
 function spell_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -549,7 +549,7 @@ endFunction
 ; sltdesc Removes the specified SPEL by FormId from the targeted Actor, usually to remove as an available power or spell in the spellbook.
 ; sltargs spell: SPEL FormId
 ; sltargs actor: target Actor
-; sltsamp spell_remove "skyrim.esm:275236" $self
+; sltsamp spell_remove "skyrim.esm:275236" $system.self
 ; sltrslt The light spell should no longer be in the actor's spellbook
 function spell_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -578,7 +578,7 @@ endFunction
 ; sltargs item: ITEM FormId
 ; sltargs count: number (optional: default 1)
 ; sltargs displaymessage: 0 - show message | 1 - silent (optional: default 0 - show message)
-; sltsamp item_add $self "skyrim.esm:15" 10 0
+; sltsamp item_add $system.self "skyrim.esm:15" 10 0
 ; sltrslt Adds 10 gold to the actor, displaying the notification
 function item_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -616,7 +616,7 @@ endFunction
 ; sltargs item: ITEM FormId
 ; sltargs count: number (optional: default 1)
 ; sltargs displaymessage: 0 - show message | 1 - silent (optional: default 0 - show message)
-; sltsamp item_addex $self "skyrim.esm:15" 10 0
+; sltsamp item_addex $system.self "skyrim.esm:15" 10 0
 function item_addex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -701,7 +701,7 @@ endFunction
 ; sltargs item: ITEM FormId
 ; sltargs count: number
 ; sltargs displaymessage: 0 - show message | 1 - silent (optional: default 0 - show message)
-; sltsamp item_remove $self "skyrim.esm:15" 10 0
+; sltsamp item_remove $system.self "skyrim.esm:15" 10 0
 ; sltrslt Removes up to 10 gold from the actor
 function item_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -736,7 +736,7 @@ endFunction
 ; sltargs item: ITEM FormId
 ; sltargs count: number (optional: default 1)
 ; sltargs displaymessage: 0 - show message | 1 - silent (optional: default 0 - show message)
-; sltsamp item_adduse $self "skyrim.esm:216158" 1 0
+; sltsamp item_adduse $system.self "skyrim.esm:216158" 1 0
 ; sltrslt Add and drink some booze
 function item_adduse(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -775,8 +775,8 @@ endFunction
 ; sltargs armorslot: number e.g. 32 for body slot
 ; sltargs sound: 0 - no sound | 1 - with sound
 ; sltargs removalallowed: 0 - removal allowed | 1 - removal not allowed
-; sltsamp item_equipex $self "ZaZAnimationPack.esm:159072" 32 0 1
-; sltrslt Equip the ZaZ armor on $self, at body slot 32, silently, with no removal allowed
+; sltsamp item_equipex $system.self "ZaZAnimationPack.esm:159072" 32 0 1
+; sltrslt Equip the ZaZ armor on $system.self, at body slot 32, silently, with no removal allowed
 ; sltrslt Equips item directly, Workaround for "NPCs re-equip all armor, if they get an item that looks like armor"
 function item_equipex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -809,8 +809,8 @@ endFunction
 ; sltargs removalallowed: 0 - removal allowed | 1 - removal not allowed
 ; sltargs sound: 0 - no sound | 1 - with sound
 ; sltargs <actor variable> <ITEM FormId> <0 - removal allowed | 1 - removal not allowed> <0 - no sound | 1 - with sound>
-; sltsamp item_equip $self "ZaZAnimationPack.esm:159072" 1 0
-; sltrslt Equip the ZaZ armor on $self, silently, with no removal allowed (uses whatever slot the armor uses)
+; sltsamp item_equip $system.self "ZaZAnimationPack.esm:159072" 1 0
+; sltrslt Equip the ZaZ armor on $system.self, silently, with no removal allowed (uses whatever slot the armor uses)
 function item_equip(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -839,8 +839,8 @@ endFunction
 ; sltargs actor: target Actor
 ; sltargs item: ITEM FormId
 ; sltargs armorslot: number e.g. 32 for body slot
-; sltsamp item_unequipex $self "ZaZAnimationPack.esm:159072" 32
-; sltrslt Unequips the ZaZ armor from slot 32 on $self
+; sltsamp item_unequipex $system.self "ZaZAnimationPack.esm:159072" 32
+; sltrslt Unequips the ZaZ armor from slot 32 on $system.self
 function item_unequipex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -867,7 +867,7 @@ endFunction
 ; sltdesc Set $$ to how many of a specified item an actor has
 ; sltargs actor: target Actor
 ; sltargs item: ITEM FormId
-; sltsamp item_getcount $self "skyrim.esm:15"
+; sltsamp item_getcount $system.self "skyrim.esm:15"
 function item_getcount(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -1069,7 +1069,7 @@ endFunction
 ; sltdesc Add specified perk to the targeted actor
 ; sltargs perk: PERK FormID
 ; sltargs actor: target Actor
-; sltsamp perk_add "skyrim.esm:12384" $self
+; sltsamp perk_add "skyrim.esm:12384" $system.self
 function perk_add(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -1095,7 +1095,7 @@ endFunction
 ; sltdesc Remove specified perk from the targeted actor
 ; sltargs perk: PERK FormID
 ; sltargs actor: target Actor
-; sltsamp perk_remove "skyrim.esm:12384" $self
+; sltsamp perk_remove "skyrim.esm:12384" $system.self
 function perk_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -1122,7 +1122,7 @@ endFunction
 ; sltargs actor: target Actor
 ; sltargs skill: skillname e.g. Alteration, Destruction
 ; sltargs value: number
-; sltsamp actor_advskill $self Alteration 1
+; sltsamp actor_advskill $system.self Alteration 1
 ; sltrslt Boost Alteration by 1 point
 ; sltrslt Note: Currently only works on PC/Player
 function actor_advskill(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
@@ -1151,7 +1151,7 @@ endFunction
 ; sltargs actor: target Actor
 ; sltargs skill: skillname e.g. Alteration, Destruction
 ; sltargs value: number
-; sltsamp actor_incskill $self Alteration 1
+; sltsamp actor_incskill $system.self Alteration 1
 ; sltrslt Boost Alteration by 1 point
 function actor_incskill(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1255,7 +1255,7 @@ endFunction
 ; sltdesc Set $$ to 1 if first actor can see second actor, 0 if not.
 ; sltargs first actor: target Actor
 ; sltargs second actor: target Actor
-; sltsamp actor_haslos $actor $self
+; sltsamp actor_haslos $actor $system.self
 ; sltsamp if $$ = 0 cannotseeme
 function actor_haslos(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1507,7 +1507,7 @@ endFunction
 ; sltdesc Sets $$ to the 'scale' value of the specified Actor
 ; sltdesc Note: this is properly a function of ObjectReference, so may get pushed to a different group at some point
 ; sltargs actor: target Actor
-; sltsamp actor_getscale $self
+; sltsamp actor_getscale $system.self
 ; sltsamp msg_console "Scale reported: " $$
 function actor_getscale(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1532,7 +1532,7 @@ endFunction
 ; sltdesc Note: this is properly a function of ObjectReference, so may get pushed to a different group at some point
 ; sltargs actor: target Actor
 ; sltargs scale: float, new scale value to replace the old
-; sltsamp actor_setscale $self 1.01
+; sltsamp actor_setscale $system.self 1.01
 function actor_setscale(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -1626,7 +1626,7 @@ endFunction
 ; sltdesc Set $$ to the relationship rank between the two actors
 ; sltargs first actor: target Actor
 ; sltargs second actor: target Actor
-; sltsamp actor_getrelation $actor $player
+; sltsamp actor_getrelation $actor $system.player
 ; sltrslt  4  - Lover
 ; sltrslt  3  - Ally
 ; sltrslt  2  - Confidant
@@ -1660,7 +1660,7 @@ endFunction
 ; sltargs first actor: target Actor
 ; sltargs second actor: target Actor
 ; sltargs rank: number
-; sltsamp actor_setrelation $actor $player 0
+; sltsamp actor_setrelation $actor $system.player 0
 ; sltrslt See actor_getrelation for ranks
 function actor_setrelation(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -1849,7 +1849,7 @@ endFunction
 ; sltdesc Causes the actor to play the specified animation
 ; sltargs actor: target Actor
 ; sltargs animation: animation name
-; sltsamp actor_playanim $self "IdleChildCryingStart"
+; sltsamp actor_playanim $system.self "IdleChildCryingStart"
 function actor_playanim(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -1867,7 +1867,7 @@ endFunction
 ; sltargs event: name of the event
 ; sltargs string arg: string argument (meaning varies by event sent) (optional: default "")
 ; sltargs float arg: float argument (meaning varies by event sent) (optional: default 0.0)
-; sltsamp actor_sendmodevent $self "IHaveNoIdeaButEventNamesShouldBeEasyToFind" "strarg" 20.0
+; sltsamp actor_sendmodevent $system.self "IHaveNoIdeaButEventNamesShouldBeEasyToFind" "strarg" 20.0
 function actor_sendmodevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -1905,7 +1905,7 @@ endFunction
 ; sltargsmore if parameter 2 is "IsPlayerTeammate": is actor PC team member
 ; sltargsmore if parameter 2 is "SetPlayerTeammate" (parameter 3: <bool true to set, false to unset>): set actor as PC team member
 ; sltargsmore if parameter 2 is "SendAssaultAlarm": actor will send out alarm 
-; sltsamp actor_state $self "GetCombatState"
+; sltsamp actor_state $system.self "GetCombatState"
 function actor_state(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -1951,7 +1951,7 @@ endFunction
 ; sltargsmore if parameter 2 is "RegenerateHead": regenerate head
 ; sltargsmore if parameter 2 is "GetWeight": get actors weight (0-100)
 ; sltargsmore if parameter 2 is "SetWeight" (parameter 3: <float, weight>): set actors weight
-; sltsamp actor_body $self "SetWeight" 110
+; sltsamp actor_body $system.self "SetWeight" 110
 function actor_body(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -1998,7 +1998,7 @@ endFunction
 ; sltargs actor: target Actor
 ; sltargs sub-function: sub-function
 ; sltargsmore if parameter 2 is "": return actors race name. Skyrims, original name. Like: "Nord", "Breton"
-; sltsamp actor_race $self ""
+; sltsamp actor_race $system.self ""
 function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -2055,8 +2055,8 @@ endFunction
 ; sltargs actor: target Actor
 ; sltargs alpha: 0.0 to 1.0 (higher is more visible)
 ; sltargs fade: 0 - instance | 1 - fade to the new alpha gradually (optional: default 1 - fade)
-; sltsamp actor_setalpha $self 0.5 1 
-; sltrslt $self will fade to new alpha of 0.5, not instantly
+; sltsamp actor_setalpha $system.self 0.5 1 
+; sltrslt $system.self will fade to new alpha of 0.5, not instantly
 function actor_setalpha(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -2754,7 +2754,7 @@ endFunction
 ; sltdesc For the targeted Actor, set $$ to the result of the specified getter
 ; sltdesc 'Getter' in this case specifically refers to functions that take no parameters but return a value
 ; sltdesc https://ck.uesp.net/wiki/Actor_Script
-; sltargs actor: target Actor  (accepts special variable names ($self, $player) and both relative "Skyrim.esm:0f" and absolute "0f" values)
+; sltargs actor: target Actor  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0f" and absolute "0f" values)
 ; sltargs getter: getter name
 ; sltargsmore ;;;; These are from Actor
 ; sltargsmore CanFlyHere
@@ -4456,7 +4456,7 @@ endFunction
 ; sltdesc For the targeted Form, set $$ to the result of the specified function
 ; sltdesc 'Function' in this case specifically refers to functions that take one or more parameters and return a value
 ; sltdesc https://ck.uesp.net/wiki/Form_Script
-; sltargs actor: target Form  (accepts special variable names ($self, $player) and both relative "Skyrim.esm:0f" and absolute "0f" values)
+; sltargs actor: target Form  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0f" and absolute "0f" values)
 ; sltargs function: function name
 ; sltargsmore HasKeywordString
 ; sltargsmore HasKeyword
@@ -4488,7 +4488,7 @@ endFunction
 ; sltdesc For the targeted ObjectReference, set $$ to the result of the specified function
 ; sltdesc 'Function' in this case specifically refers to functions that take one or more parameters and return a value
 ; sltdesc https://ck.uesp.net/wiki/ObjectReference_Script
-; sltargs actor: target ObjectReference  (accepts special variable names ($self, $player) and both relative "Skyrim.esm:0f" and absolute "0f" values)
+; sltargs actor: target ObjectReference  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0f" and absolute "0f" values)
 ; sltargs function: function name
 ; sltargsmore CalculateEncounterLevel
 ; sltargsmore CountLinkedRefChain
@@ -4547,7 +4547,7 @@ endFunction
 ; sltdesc For the targeted Actor, set $$ to the result of the specified Function
 ; sltdesc 'Function' in this case specifically refers to functions that take one or more parameters and return a value
 ; sltdesc https://ck.uesp.net/wiki/Actor_Script
-; sltargs actor: target Actor  (accepts special variable names ($self, $player) and both relative "Skyrim.esm:0f" and absolute "0f" values)
+; sltargs actor: target Actor  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0f" and absolute "0f" values)
 ; sltargs function: function name
 ; sltargsmore AddShout
 ; sltargsmore AddSpell
@@ -4654,7 +4654,7 @@ endFunction
 
 ; sltname util_sendmodevent
 ; sltgrup Utility
-; sltdesc Shorthand for actor_sendmodevent $player <event name> <string argument> <float argument>
+; sltdesc Shorthand for actor_sendmodevent $system.player <event name> <string argument> <float argument>
 ; sltargs event: name of the event
 ; sltargs string arg: string argument (meaning varies by event sent) (optional: default "")
 ; sltargs float arg: float argument (meaning varies by event sent) (optional: default 0.0)
@@ -4691,8 +4691,8 @@ endFunction
 ; sltargs param value: value of parameter
 ; sltargs [type/value, type/value ...]
 ; sltargsmore <type> can be any of [bool, int, float, string, form]
-; sltsamp util_sendevent "slaUpdateExposure" form $self float 33
-; sltrslt The "slaUpdateExposure" event will be sent with $self, and the float value of 33.0 as the two arguments
+; sltsamp util_sendevent "slaUpdateExposure" form $system.self float 33
+; sltrslt The "slaUpdateExposure" event will be sent with $system.self, and the float value of 33.0 as the two arguments
 function util_sendevent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
@@ -4834,7 +4834,7 @@ endFunction
 ; sltdesc Return the sound instance handle from playing the specified audio from the specified actor
 ; sltargs audio: AUDIO FormID
 ; sltargs actor: target Actor
-; sltsamp snd_play "skyrim.esm:318128" $self
+; sltsamp snd_play "skyrim.esm:318128" $system.self
 function snd_play(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -4896,8 +4896,8 @@ endFunction
 ; sltdesc Recommend ConsoleUtil-Extended https://www.nexusmods.com/skyrimspecialedition/mods/133569)
 ; sltargs actor: target Actor
 ; sltargs command: <command fragment> [<command fragment> ...] ; all <command fragments> will be concatenated
-; sltsamp console $self "sgtm" "" "0.5"
-; sltsamp console $self "sgtm 0.5"
+; sltsamp console $system.self "sgtm" "" "0.5"
+; sltsamp console $system.self "sgtm 0.5"
 ; sltrslt Both are the same
 function console(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -4928,7 +4928,7 @@ endFunction
 ; sltgrup MfgFix
 ; sltdesc Resets facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecialedition/mods/11669)
 ; sltargs actor: target Actor
-; sltsamp mfg_reset $self
+; sltsamp mfg_reset $system.self
 function mfg_reset(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
@@ -4950,7 +4950,7 @@ endFunction
 ; sltargs id: an id  (I'm not familiar with MfgFix :/)
 ; sltargs value: int
 ; sltargs <actor variable> <mode> <id> <value>
-; sltsamp mfg_setphonememodifier $self 0 $1 $2
+; sltsamp mfg_setphonememodifier $system.self 0 $1 $2
 function mfg_setphonememodifier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 	
@@ -4970,7 +4970,7 @@ endFunction
 ; sltargs actor: target Actor
 ; sltargs mode: number, 0 - set phoneme | 1 - set modifier
 ; sltargs id: an id (I'm not familiar with MfgFix :/)
-; sltsamp mfg_getphonememodifier $self 0 $1
+; sltsamp mfg_getphonememodifier $system.self 0 $1
 function mfg_getphonememodifier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -4990,7 +4990,8 @@ endFunction
 
 ; sltname util_waitforkbd
 ; sltgrup Utility
-; sltdesc Sets $$ to the keycode pressed after waiting for user to press any of the specified keys. (See https://ck.uesp.net/wiki/Input_Script for the DXScanCodes)
+; sltdesc Sets $$ to the keycode pressed after waiting for user to press any of the specified keys.
+; sltdesc (See https://ck.uesp.net/wiki/Input_Script for the DXScanCodes)
 ; sltargs dxscancode: <DXScanCode of key> [<DXScanCode of key> ...]
 ; sltsamp util_waitforkbd 74 78 181 55
 function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
@@ -5482,7 +5483,7 @@ endFunction
 ; sltargsmore    For SLTScript purposes, any identifier that will resolve to a Form object can be used
 ; sltargsmore    Or you may specify the empty string ("") for the global space
 ; sltargsmore    For example, any of the following might be valid:
-; sltargsmore      $self, $player, $actor   ; these all resolve to Actor
+; sltargsmore      $system.self, $system.player, $actor   ; these all resolve to Actor
 ; sltargsmore      "sl_triggers.esp:3426"   ; the FormID for the main Quest object for sl_triggers
 ; sltargsmore    Read more about StorageUtil for more details
 ; sltargsmore Valid sub-functions are:
@@ -5871,6 +5872,7 @@ function util_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
         endif
     endif
 
+    CmdPrimary.MostRecentFormResult = nextIterActor
     CmdPrimary.iterActor = nextIterActor
 
     CmdPrimary.CompleteOperationOnActor()

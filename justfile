@@ -125,8 +125,13 @@ update-version-safe:
     @echo "Updating version to {{version_mod}} in sl_triggersStatics.psc"
     powershell.exe -File update-version.ps1 -ScriptPath "{{file_sl_triggersStatics}}" -NewVersion "{{version_mod}}"
 
-packageall: 
+_package_preclean:
     powershell.exe -File clean-deps.ps1 -dir_dep "{{dir_dep}}"
+
+packagemodonly: 
+    powershell.exe -Command "Remove-Item -Path '{{raw_file_dep_mod}}'"
     powershell.exe -Command "Compress-Archive -Path '{{raw_dir_project_src}}\\*' -DestinationPath '{{raw_file_dep_mod}}'"
+
+packageall: _package_preclean packagemodonly
     powershell.exe -Command "Compress-Archive -Path '{{raw_dir_pet_collar_game}}\\*' -DestinationPath '{{raw_file_pet_collar_game}}'"
     powershell.exe -Command "Compress-Archive -Path '{{raw_dir_test_scripts}}\\*' -DestinationPath '{{raw_file_test_scripts}}'"

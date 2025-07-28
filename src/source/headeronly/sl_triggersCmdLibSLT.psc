@@ -1,5 +1,5 @@
 scriptname sl_triggerscmdlibslt
-function hextun_test(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
+function hextun_test(actor cmdtargetactor, activemagiceffect _cmdprimary, string param) global
 endfunction
 function hextun_test2(actor cmdtargetactor, activemagiceffect _cmdprimary, string param) global
 endfunction
@@ -12,6 +12,10 @@ endfunction
 function msg_notify(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
 function form_getbyid(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
+endfunction
+function global_getvalue(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
+endfunction
+function global_setvalue(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
 function av_restore(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
@@ -238,5 +242,15 @@ endfunction
 function math(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
 function topicinfo_getresponsetext(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
+endfunction
+function getoverlay_slot(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
+endfunction
+function param_overlay(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
+endfunction
+function changeoverlay_transparency(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
+endfunction
+function remove_overlay(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
+endfunction
+function apply_overlay(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
 ;This file was cleaned with PapyrusSourceHeadliner 1

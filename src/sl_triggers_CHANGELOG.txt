@@ -3,7 +3,35 @@
     
     Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log (or whichever folder you have your SKSE logs directed to)
 
+    Script-breaking change:
+    change: renamed util_waitforkbd to sl_waitforkbd (for SexLab purposes); sl_waitforkbd differs from util_waitforkbd in that it will also end if the scene ends
+
+    Non-breaking changes:
+    bugfix: sl_getrndactor/util_getrndactor should now properly work with $$ return values instead of solely relying on the $system.iterActor variable
+    enhancement: New Extension: OStim: Provides OnStart, OnOrgasm, OnEnd for all OStim threads (not just player thread)
+    enhancement: New OStim function library: adding the following OStim specific functions for SLTScript usage:
+        ostim_getrndactor
+        ostim_waitforkbd
+        ostim_getexcitement
+        ostim_setexcitement
+        ostim_getexcitementmultiplier
+        ostim_setexcitementmultiplier
+        ostim_modifyexcitement
+        ostim_isin
+        ostim_findaction
+        ostim_hasaction
+        ostim_stallclimax
+        ostim_permitclimax
+        ostim_isclimaxstalled
+        ostim_getthreadid
+        ostim_getsceneid
+        ostim_animname
+        ostim_actorcount
+        ostim_isinslot
+        ostim_climax
+    enhancement: new keyword, 'none'; resolves to Form value 'none'
     change: extensions can (and should) be configured not to appear in the MCM if they are incapable of functioning (different from being disabled)
+    documentation: updated examples to use appropriate syntax for e.g. $system.self, $system.player, $system.partner
 
 129
     Savegame compatibility: Should be savegame compatible with v128

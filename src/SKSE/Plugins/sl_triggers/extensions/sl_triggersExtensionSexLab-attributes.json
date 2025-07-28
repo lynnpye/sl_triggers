@@ -32,7 +32,7 @@
         ["# here is where you define aspects of the attribute"],
         ["type", "int"],
         ["widget", "menu", "Event: ", "0", "- Select an Event -", "Begin", "Orgasm", "End", "Orgasm(SLSO)"],
-        ["info", "Choose which type of awesome event this trigger will use."]
+        ["info", "Choose which type of event this trigger will use."]
     ],
     "triggerattribute_chance" : [
         ["type", "float", "100.0"],

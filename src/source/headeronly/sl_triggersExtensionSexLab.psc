@@ -1,6 +1,8 @@
 scriptname sl_triggersextensionsexlab extends sl_triggersextension
 form    property sexlabform     auto hidden
 faction             property sexlabanimatingfaction  auto hidden
+bool function ismcmconfigurable()
+endfunction
 event oninit()
 endevent
 event onupdate()
@@ -12,6 +14,8 @@ endfunction
 bool function _slt_additionalrequirementssatisfied()
 endfunction
 sslthreadcontroller function getthreadforactor(actor theactor)
+endfunction
+function handleversionupdate(int oldversion, int newversion)
 endfunction
 bool function customresolvescoped(sl_triggerscmd cmdprimary, string scope, string token)
 endfunction
@@ -29,6 +33,6 @@ function updatesexlabstatus()
 endfunction
 function registerevents()
 endfunction
-function handlesexlabcheckevents(int tid, actor specactor, string [] _eventtriggerkeys)
+function handlesexlabcheckevents(int tid, actor specactor, string[] _eventtriggerkeys)
 endfunction
 ;This file was cleaned with PapyrusSourceHeadliner 1

@@ -55,6 +55,8 @@ form function getform_slt_extensioncore() global
 endfunction
 form function getform_slt_extensionsexlab() global
 endfunction
+form function getform_slt_extensionostim() global
+endfunction
 form function getform_skyrim_actortypenpc() global
 endfunction
 form function getform_skyrim_actortypeundead() global
@@ -70,6 +72,8 @@ endfunction
 form function getform_deviousdevices_zadlibs() global
 endfunction
 form function getform_deviousfollowers_dfquest() global
+endfunction
+form function getform_ostim_integration_main() global
 endfunction
 int function getrelativeformid_deviousfollowers_mcm() global
 endfunction

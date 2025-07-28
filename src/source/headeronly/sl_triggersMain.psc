@@ -1,4 +1,6 @@
 scriptname sl_triggersmain extends quest
+bool property ff_versionupdate_remove_event_id_player_loading_screen = true auto hidden
+bool property ff_versionupdate_sexlab_migrate_location_to_deeplocation = true auto hidden
 actor               property playerref    auto
 sl_triggerssetup property sltmcm     auto
 sl_triggersplayeronloadgamehandler property sltplyref auto hidden
@@ -27,7 +29,14 @@ bool    property isresetting = false auto hidden
 bool    property bdebugmsg  = false auto hidden
 form[]    property extensions    auto hidden
 int     property nextinstanceid   auto hidden
-int     property runningscriptcount = 0 auto hidden
+globalvariable   property gamedayspassed auto hidden
+int     property runningscriptcount hidden
+int function get()
+endfunction
+function set(int value)
+endfunction
+endproperty
+int     property sltrversion = 0 auto hidden
 int     property rt_invalid =    0 autoreadonly
 int     property rt_string =     1 autoreadonly
 int     property rt_bool =       2 autoreadonly
@@ -51,10 +60,15 @@ bool property debug_cmd_runscript_while auto hidden
 bool property debug_extension auto hidden
 bool property debug_extension_core auto hidden
 bool property debug_extension_core_keymapping auto hidden
+bool property debug_extension_core_timer auto hidden
+bool property debug_extension_core_topofthehour auto hidden
 bool property debug_extension_sexlab auto hidden
+bool property debug_extension_ostim auto hidden
 bool property debug_extension_customresolvescoped auto hidden
 bool property debug_setup auto hidden
 function setupsettingsflags()
+endfunction
+float function getthegametime()
 endfunction
 bool    property isenabled hidden
 bool function get()
@@ -132,9 +146,11 @@ float function setglobalvarfloat(string _key, float value)
 endfunction
 form function setglobalvarform(string _key, form value)
 endfunction
-string[] function claimnextthread(int targetformid)
-endfunction
 function startcommand(form targetform, string initialscriptname)
+endfunction
+function pushscriptfortarget(form targetform, int requestid, int threadid, string initialscriptname)
+endfunction
+function popscriptfortarget(form targetform, int[] requestid, int[] threadid, string[] initialscriptname)
 endfunction
 function startcommandwiththreadid(form targetform, string initialscriptname, int requestid, int threadid)
 endfunction
@@ -187,5 +203,7 @@ endfunction
 bool function actorisincity(actor theactor)
 endfunction
 bool function actorisinsafelocation(actor theactor)
+endfunction
+function checkversionupdates()
 endfunction
 ;This file was cleaned with PapyrusSourceHeadliner 1

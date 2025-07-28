@@ -8,8 +8,8 @@ namespace SLT {
 enum ScriptType {
     INVALID = 0,
 
-    INI,
-    JSON,
+    SLTSCRIPT,
+    //JSON,
 
 
     END
@@ -25,6 +25,8 @@ extern const std::string_view BASE_AME;
 
 #pragma region Random function declarations
 fs::path GetPluginPath();
+fs::path GetCommandStorePath();
+fs::path GetCommandStoreFilePath(std::string_view filename);
 fs::path GetScriptfilePath(std::string_view scriptfilename);
 fs::path GetCapricaExe();
 fs::path GetCapricaFlagsFile();
@@ -36,7 +38,6 @@ SLTSessionId GetSessionId();
 #pragma endregion
 
 #pragma region LoggerGuard
-// RAII Logger Guard - logs on construction and destruction
 class LoggerGuard {
 private:
     std::string function_name;
@@ -54,12 +55,10 @@ public:
         logger::debug("\n\t\t<<<<<{} {}\n", function_name, exit_message);
     }
     
-    // Prevent copying to avoid double logging
     LoggerGuard(const LoggerGuard&) = delete;
     LoggerGuard& operator=(const LoggerGuard&) = delete;
 };
 
-// Macro for convenience (optional)
 #define LOG_FUNCTION_SCOPE(func_name) LoggerGuard _log_guard(func_name)
 #define LOG_FUNCTION_SCOPE_CUSTOM(func_name, entry, exit) LoggerGuard _log_guard(func_name, entry, exit)
 #pragma endregion

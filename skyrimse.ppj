@@ -16,6 +16,7 @@
         <Import>.\inc\mfg</Import>
         <Import>.\inc\dd52</Import>
         <Import>.\inc\sexlab</Import>
+        <Import>.\inc\ostim</Import>
         <Import>.\inc\osla</Import>
         <Import>.\inc\slang</Import>
         <Import>.\inc\advfwk</Import>

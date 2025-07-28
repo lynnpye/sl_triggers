@@ -10,6 +10,17 @@ fs::path GetPluginPath() {
     return pluginPath;
 }
 
+fs::path GetCommandStorePath() {
+    fs::path pluginPath = fs::path("Data") / "SKSE" / "Plugins" / "sl_triggers" / "commandstore";
+    return pluginPath;
+}
+
+fs::path GetCommandStoreFilePath(std::string_view filename) {
+    std::string strfn(filename);
+    fs::path pluginPath = fs::path("Data") / "SKSE" / "Plugins" / "sl_triggers" / "commandstore" / strfn;
+    return pluginPath;
+}
+
 fs::path GetScriptfilePath(std::string_view scriptfilename) {
     std::string strfn(scriptfilename);
     fs::path scriptfilepath = fs::path("Data") / "SKSE" / "Plugins" / "sl_triggers" / "commands" / strfn;

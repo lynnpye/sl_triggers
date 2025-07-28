@@ -98,9 +98,11 @@ public class SltParser {
     }
 
     public static void exportMD(
-        Map<String, List<SltSection>> sortedslts,
-        Map<String, List<SltSection>> sortedsexlabs,
-        Map<String, List<SltSection>> sortedcores) {
+        Map<String, List<SltSection>> sortedslts
+        ,Map<String, List<SltSection>> sortedsexlabs
+        ,Map<String, List<SltSection>> sortedcores
+        ,Map<String, List<SltSection>> sortedadults
+        ,Map<String, List<SltSection>> sortedostims) {
 /*
         sortedGroupedAndSorted.forEach((group, sectionsInGroup) -> {
             //System.out.println("# " + group);
@@ -122,6 +124,16 @@ public class SltParser {
             });
         });
 
+        sb.append("\n\n***\n\n# Core Function Library (supports the Core extension)\n\n***\n\n");
+
+        sortedcores.forEach((group, sectionsInGroup) -> {
+            sb.append(String.format("# %s\n\n", group ));
+            //sb.append(String.format("\n%s:\n==============\n\n", group));
+            sectionsInGroup.forEach(section -> {
+                sb.append(Tmpl01(section));
+            });
+        });
+
         sb.append("\n\n***\n\n# SexLab Function Library (only functional if SexLab is present)\n\n***\n\n");
 
         sortedsexlabs.forEach((group, sectionsInGroup) -> {
@@ -132,9 +144,19 @@ public class SltParser {
             });
         });
 
-        sb.append("\n\n***\n\n# Core Function Library (supports the Core extension)\n\n***\n\n");
+        sb.append("\n\n***\n\n# OStim Function Library (only functional if OStim is present)\n\n***\n\n");
 
-        sortedcores.forEach((group, sectionsInGroup) -> {
+        sortedostims.forEach((group, sectionsInGroup) -> {
+            sb.append(String.format("# %s\n\n", group ));
+            //sb.append(String.format("\n%s:\n==============\n\n", group));
+            sectionsInGroup.forEach(section -> {
+                sb.append(Tmpl01(section));
+            });
+        });
+
+        sb.append("\n\n***\n\n# Adult Function Library (e.g. Devious Devices, SexLabAroused)\n\n***\n\n");
+
+        sortedadults.forEach((group, sectionsInGroup) -> {
             sb.append(String.format("# %s\n\n", group ));
             //sb.append(String.format("\n%s:\n==============\n\n", group));
             sectionsInGroup.forEach(section -> {
@@ -154,9 +176,11 @@ public class SltParser {
     }
 
     public static void exportTXT(
-        Map<String, List<SltSection>> sortedslts,
-        Map<String, List<SltSection>> sortedsexlabs,
-        Map<String, List<SltSection>> sortedcores) {
+        Map<String, List<SltSection>> sortedslts
+        ,Map<String, List<SltSection>> sortedsexlabs
+        ,Map<String, List<SltSection>> sortedcores
+        ,Map<String, List<SltSection>> sortedadults
+        ,Map<String, List<SltSection>> sortedostims) {
         
         StringBuilder sb = new StringBuilder();
 
@@ -170,7 +194,17 @@ public class SltParser {
             });
         });
 
-        sb.append("\n\n===================================================================================\n\nSexLab Function Library (only functional with SexLab present, contains multiple overrides for SLT behavior)\n\n");
+        sb.append("\n\n===================================================================================\n\nCore Function Library (provides functionality for the Core extension)\n\n");
+
+        sortedcores.forEach((group, sectionsInGroup) -> {
+            //System.out.println("# " + group);
+            sb.append(String.format("\n%s:\n==============\n\n", group));
+            sectionsInGroup.forEach(section -> {
+                sb.append(Tmpl02(section));
+            });
+        });
+
+        sb.append("\n\n===================================================================================\n\nSexLab Function Library (only functional with SexLab present)\n\n");
 
         sortedsexlabs.forEach((group, sectionsInGroup) -> {
             //System.out.println("# " + group);
@@ -180,9 +214,19 @@ public class SltParser {
             });
         });
 
-        sb.append("\n\n===================================================================================\n\nCore Function Library (provides functionality for the Core extension)\n\n");
+        sb.append("\n\n===================================================================================\n\nOStim Function Library (only functional with OStim present)\n\n");
 
-        sortedcores.forEach((group, sectionsInGroup) -> {
+        sortedostims.forEach((group, sectionsInGroup) -> {
+            //System.out.println("# " + group);
+            sb.append(String.format("\n%s:\n==============\n\n", group));
+            sectionsInGroup.forEach(section -> {
+                sb.append(Tmpl02(section));
+            });
+        });
+
+        sb.append("\n\n===================================================================================\n\nAdult Function Library (e.g. Devious Devices, SexLabAroused)\n\n");
+
+        sortedadults.forEach((group, sectionsInGroup) -> {
             //System.out.println("# " + group);
             sb.append(String.format("\n%s:\n==============\n\n", group));
             sectionsInGroup.forEach(section -> {
@@ -204,16 +248,20 @@ public class SltParser {
     public static void main(String[] args) throws IOException {
         
         List<SltSection> slts = parseSltSections("./src/source/scripts/sl_triggersCmdLibSLT.psc");
-        List<SltSection> sexlabs = parseSltSections("./src/source/scripts/sl_triggersCmdLibSexLab.psc");
         List<SltSection> cores = parseSltSections("./src/source/scripts/sl_triggersCmdLibCore.psc");
+        List<SltSection> sexlabs = parseSltSections("./src/source/scripts/sl_triggersCmdLibSexLab.psc");
+        List<SltSection> ostims = parseSltSections("./src/source/scripts/sl_triggersCmdLibOStim.psc");
+        List<SltSection> adults = parseSltSections("./src/source/scripts/sl_triggersCmdLibAdult.psc");
 
         Map<String, List<SltSection>> sortedslts = sortSltSections(slts);
-        Map<String, List<SltSection>> sortedsexlabs = sortSltSections(sexlabs);
         Map<String, List<SltSection>> sortedcores = sortSltSections(cores);
+        Map<String, List<SltSection>> sortedsexlabs = sortSltSections(sexlabs);
+        Map<String, List<SltSection>> sortedostims = sortSltSections(ostims);
+        Map<String, List<SltSection>> sortedAdults = sortSltSections(adults);
         
 
-        exportMD(sortedslts, sortedsexlabs, sortedcores);
-        exportTXT(sortedslts, sortedsexlabs, sortedcores);
+        exportMD(sortedslts, sortedsexlabs, sortedcores, sortedAdults, sortedostims);
+        exportTXT(sortedslts, sortedsexlabs, sortedcores, sortedAdults, sortedostims);
     }
 
     public static String Tmpl01(SltSection section) {

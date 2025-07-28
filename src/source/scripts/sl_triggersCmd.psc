@@ -800,6 +800,14 @@ bool Function InternalResolve(string token)
         EndIf
         return true
     endif
+    if token == "none"
+        IsCRLiteral = true
+        CustomResolveFormResult = none
+        If (SLT.Debug_Cmd_InternalResolve)
+            SFD("InternalResolve token(none) returning literal Form none")
+        EndIf
+        return true
+    endif
 
     int tokenlength = StringUtil.GetLength(token)
     string[] varscopestringlist = new string[2]

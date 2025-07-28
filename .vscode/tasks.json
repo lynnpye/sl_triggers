@@ -71,6 +71,12 @@
         "command": "just packageall"
       },
       {
+        "label": "Package ModOnly",
+        "group": "build",
+        "type": "shell",
+        "command": "just packagemodonly"
+      },
+      {
         "label": "Generate Docs",
         "group": "build",
         "type": "shell",

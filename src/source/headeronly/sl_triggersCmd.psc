@@ -154,6 +154,12 @@ endfunction
 endproperty
 function invalidatemostrecentresult()
 endfunction
+int property ifnestlevel hidden
+int function get()
+endfunction
+function set(int value)
+endfunction
+endproperty
 int property be_none        = 0 autoreadonly hidden
 int property be_if          = 1 autoreadonly hidden
 int property be_beginsub    = 2 autoreadonly hidden
