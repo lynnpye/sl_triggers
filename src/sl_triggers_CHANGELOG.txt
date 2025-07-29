@@ -1,3 +1,28 @@
+131
+    Savegame compatibility: Should be savegame compatible with v129
+    
+    Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
+        (or whichever folder you have your SKSE logs directed to)
+
+    enhancement: Added new filters for SexLab and OStim:
+        Partner Race
+            - Note that the "Race" filter already includes 'Partner' options, but makes it impossible to combine both (target race and partner race)
+                For now, I will continue to respect the 'partner' options under the "Race" filter but consider them deprecated, and to instead 
+                switch over to using "Partner Race" explicitly
+            - As an additional warning, keep in mind it is possible currently to create conflict "Race"/"Partner Race" settings by selecting 
+                "Race:Partner..." and "Partner Race:..." such that they conflict and no triggers get through.
+                This will cease to be a problem once the deprecated options are removed.
+        Partner Role
+        Partner Gender
+    enhancement: new SLTScript function: actor_race_type
+        Uses the same logic applied for the "Race Type" filter:
+            0 - error occurred
+            1 - Player
+            2 - Humanoid - Actor.HasKeyword(ActorTypeNPC)
+            3 - Undead - Actor.HasKeyword(ActorTypeUndead)
+            4 - Creature - presumed, default if nothing else matches
+    bugfix: added SexLab actor_getgender override back
+
 130
     Savegame compatibility: Should be savegame compatible with v129
     

@@ -1992,6 +1992,36 @@ function actor_body(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
+; sltname actor_race_type
+; sltgrup Actor
+; sltdesc Returns the "race type". This is what the "Race" filter uses for filtering.
+; sltdesc 0 - error occurred
+; sltdesc 1 - Player
+; sltdesc 2 - Humanoid - Actor.HasKeyword(ActorTypeNPC)
+; sltdesc 3 - Undead - Actor.HasKeyword(ActorTypeUndead)
+; sltdesc 4 - Creature - presumed, default if nothing else matches
+; sltargs actor: target Actor
+; sltsamp actor_race_type $system.self
+function actor_race_type(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    int nextResult
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        
+        if _targetActor
+            nextResult = CmdPrimary.ActorRaceType(_targetActor)
+        else
+            CmdPrimary.SFW("_targetActor not able to be loaded")
+        endIf
+    endif
+
+    CmdPrimary.MostRecentIntResult = nextResult
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
 ; sltname actor_race
 ; sltgrup Actor
 ; sltdesc Sets $$ to the race name based on sub-function. Blank, empty sub-function returns Vanilla racenames. e.g. "SL" can return SexLab race keynames.

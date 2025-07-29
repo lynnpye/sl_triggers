@@ -41,6 +41,9 @@ Perk Property SLTRContainerPerk Auto
 
 Keyword[] Property LocationKeywords Auto Hidden
 
+Keyword				Property ActorTypeNPC Auto Hidden ; will be populated on startup
+Keyword				Property ActorTypeUndead Auto Hidden ; will be populated on startup
+
 ; this is a save-unique timestamp, specifically the timestamp at the time this save was created
 ; (as each save gets it's own copy of the quest object, we simply store that timestamp during OnInit)
 string				Property SaveTimestamp Auto Hidden
@@ -248,6 +251,13 @@ Function BootstrapSLTInit(bool bSetupFlags)
 	
 	if !self
 		return
+	endif
+	
+	if !ActorTypeNPC
+		ActorTypeNPC = GetForm_Skyrim_ActorTypeNPC() as Keyword
+	endif
+	if !ActorTypeUndead
+		ActorTypeUndead = GetForm_Skyrim_ActorTypeUndead() as Keyword
 	endif
 	
 	GameDaysPassed = sl_triggers.GetForm("GameDaysPassed") as GlobalVariable
@@ -1062,4 +1072,19 @@ Function CheckVersionUpdates()
 	SLTDebugMsg("Main.CheckVersionUpdates: oldVersion(" + SLTRVersion + ") newVersion(" + newVersion + ")")
 
 	SLTRVersion = newVersion
+EndFunction
+
+
+; some helper methods
+Int Function ActorRaceType(Actor _actor)
+    if _actor == PlayerRef
+        return 1
+    endIf
+	If _actor.HasKeyword(ActorTypeUndead)
+		return 3
+	EndIf
+	If _actor.HasKeyword(ActorTypeNPC)
+		return 2
+	EndIf
+	return 4
 EndFunction

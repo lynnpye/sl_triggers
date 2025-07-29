@@ -14,8 +14,6 @@ Actor               Property PlayerRef Auto
 ; sl_triggersMain SLT
 ; access to the sl_triggers API and framework
 sl_triggersMain		Property SLT Auto Hidden ; will be populated on startup
-Keyword				Property ActorTypeNPC Auto Hidden ; will be populated on startup
-Keyword				Property ActorTypeUndead Auto Hidden ; will be populated on startup
 
 int Property SLTRVersion = 0 Auto Hidden
 
@@ -105,17 +103,8 @@ bool				Property IsDebugMsg
 EndProperty
 
 ; some helper methods
-Int Function ActorRace(Actor _actor)
-    if _actor == PlayerRef
-        return 1
-    endIf
-	If _actor.HasKeyword(ActorTypeUndead)
-		return 3
-	EndIf
-	If _actor.HasKeyword(ActorTypeNPC)
-		return 2
-	EndIf
-	return 4
+Int Function ActorRaceType(Actor _actor)
+	return SLT.ActorRaceType(_actor)
 EndFunction
 
 int Function ActorPos(int idx, int count)
@@ -165,12 +154,6 @@ Function SLTInit()
 
 	if !SLT
 		SLT = GetSLTMain()
-	endif
-	if !ActorTypeNPC
-		ActorTypeNPC = GetForm_Skyrim_ActorTypeNPC() as Keyword
-	endif
-	if !ActorTypeUndead
-		ActorTypeUndead = GetForm_Skyrim_ActorTypeUndead() as Keyword
 	endif
 
 	sl_triggers_internal.SetExtensionEnabled(SLTExtensionKey, bEnabled)

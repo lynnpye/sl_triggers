@@ -738,6 +738,10 @@ Function CompleteOperationOnActor()
     endif
 EndFunction
 
+Int Function ActorRaceType(Actor _actor)
+	return SLT.ActorRaceType(_actor)
+EndFunction
+
 ; InternalResolve - returns true if resolution succeeded, false otherwise
 ; string token - any input that needs to be "resolved" into one of the CustomResolve<Type>Result properties.
 ; token resolution will be performed, meaning if what is provided is just a string, just a string will be returned (i.e. CustomResolveResult)

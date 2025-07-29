@@ -131,11 +131,17 @@ int Function GetVersion()
 EndFunction
 
 Event OnConfigInit()
+	If (SLT.Debug_Setup)
+		SLTDebugMsg("Setup.OnConfigInit")
+	EndIf
 	headerPages = new string[1]
 	headerPages[0] = "SLTriggers Redux"
 EndEvent
 
 Event OnConfigOpen()
+	If (SLT.Debug_Setup)
+		SLTDebugMsg("Setup.OnConfigOpen")
+	EndIf
 	ScriptsList = sl_triggers.GetScriptsList()
 	if extensionPages.Length > 0
 		Pages = PapyrusUtil.MergeStringArray(headerPages, extensionPages)
@@ -149,6 +155,9 @@ Event OnConfigOpen()
 EndEvent
 
 event OnConfigClose()
+	If (SLT.Debug_Setup)
+		SLTDebugMsg("Setup.OnConfigClose")
+	EndIf
 	SLT.SendInternalSettingsUpdateEvents()
 
 	if refreshOnClose
@@ -269,6 +278,9 @@ EndFunction
 
 
 Function ShowExtensionSettings()
+	If (SLT.Debug_Setup)
+		SLTDebugMsg("Setup.ShowExtensionSettings")
+	EndIf
 	SetCursorFillMode(TOP_TO_BOTTOM)
 
 	string _dataFile = FN_X_Settings(CurrentExtensionKey)
@@ -342,6 +354,10 @@ EndFunction
 	
 /;
 Function ShowExtensionPage()
+	If (SLT.Debug_Setup)
+		SLTDebugMsg("Setup.ShowExtensionPage")
+	EndIf
+
 	if extensionPages.Length < 1
 		return
 	endif
@@ -491,6 +507,10 @@ EndFunction
 
 
 Event OnPageReset(string page)
+	If (SLT.Debug_Setup)
+		SLTDebugMsg("Setup.OnPageReset page(" + page + ")  currentSLTPage(" + currentSLTPage + ") firstPageReset(" + firstPageReset + ") extensionPages(" + PapyrusUtil.StringJoin(extensionPages, "), (") + ")")
+	EndIf
+
 	CallThisToResetTheOIDValuesHextun()
 	bool doPageChanged = false
 
@@ -521,6 +541,10 @@ Event OnPageReset(string page)
 	int extensionIndex = extensionPages.find(page)
 	if extensionIndex > -1
 		CurrentExtensionKey = extensionKeys[extensionIndex]
+		
+		If (SLT.Debug_Setup)
+			SLTDebugMsg("Setup.OnPageReset: extensionIndex(" + extensionIndex + ") CurrentExtensionKey(" + CurrentExtensionKey + ")")
+		EndIf
 
 		if displayExtensionSettings
 			attributeNames = GetAttributeNames(false)

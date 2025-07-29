@@ -6,6 +6,30 @@ sl_triggersExtensionSexLab Function GetExtension() global
     return GetForm_SLT_ExtensionSexLab() as sl_triggersExtensionSexLab
 EndFunction
 
+; sltname actor_getgender
+; sltgrup SexLab
+; sltdesc Returns the actor's SexLab gender, 0 - male, 1 - female, 2 - creature
+; sltargs actor: target Actor
+; sltsamp actor_getgender $actor
+function actor_getgender(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    int nextResult
+
+    if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+        if _targetActor
+            nextResult = (slExtension.SexLabForm as SexLabFramework).GetGender(_targetActor)
+        endif
+    endif
+
+    CmdPrimary.MostRecentIntResult = nextResult
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
 ; sltname util_waitforend
 ; sltgrup SexLab
 ; sltdesc Wait until specified actor is not in SexLab scene

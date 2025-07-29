@@ -26,6 +26,9 @@ string ATTR_DEEPLOCATION					= "deeplocation"
 string ATTR_IS_ARMED						= "is_armed"
 string ATTR_IS_CLOTHED						= "is_clothed"
 string ATTR_IS_WEAPON_DRAWN					= "is_weapon_drawn"
+string ATTR_PARTNER_RACE					= "partner_race"
+string ATTR_PARTNER_ROLE					= "partner_role"
+string ATTR_PARTNER_GENDER					= "partner_gender"
 
 
 string[]	triggerKeys_Start
@@ -371,7 +374,7 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 				endIf
 				
 				If (SLT.Debug_Extension_OStim)
-					SLTDebugMsg("OStim: actorCount(" + actorCount + ") / theSelf(" + theSelf + ") actorRace(theSelf)=>(" + actorRace(theSelf) + ") / theOther(" + theOther + ") actorRace(theOther)=>(" + actorRace(theOther) + ")")
+					SLTDebugMsg("OStim: actorCount(" + actorCount + ") / theSelf(" + theSelf + ") actorRaceType(theSelf)=>(" + ActorRaceType(theSelf) + ") / theOther(" + theOther + ") actorRaceType(theOther)=>(" + ActorRaceType(theOther) + ")")
 				EndIf
 
 				doRun = true
@@ -454,22 +457,22 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_RACE)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && actorRace(theSelf) != 2 ; should be humanoid
+						if ival == 1 && ActorRaceType(theSelf) != 2 ; should be humanoid
 							doRun = false
-						elseIf ival == 2 && actorRace(theSelf) != 4 ; should be creature
+						elseIf ival == 2 && ActorRaceType(theSelf) != 4 ; should be creature
 							doRun = false
-						elseIf ival == 3 && actorRace(theSelf) != 3 ; should be undead
+						elseIf ival == 3 && ActorRaceType(theSelf) != 3 ; should be undead
 							doRun = false
 						else
 							;check other
 							if actorCount <= 1 ; is solo, Partner is auto-false
 								doRun = false
 							else
-								if ival == 4 && actorRace(theOther) != 2 ; should be humanoid
+								if ival == 4 && ActorRaceType(theOther) != 2 ; should be humanoid
 									doRun = false
-								elseIf ival == 5 && actorRace(theOther) != 4 ; should be creature
+								elseIf ival == 5 && ActorRaceType(theOther) != 4 ; should be creature
 									doRun = false
-								elseIf ival == 6 && actorRace(theOther) != 3 ; should be undead
+								elseIf ival == 6 && ActorRaceType(theOther) != 3 ; should be undead
 									doRun = false
 								endIf
 							endIf
@@ -480,23 +483,40 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 				If (SLT.Debug_Extension_OStim)
 					SLTDebugMsg("OStim: doRun(" + doRun + ") after ATTR_RACE")
 				EndIf
+				
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PARTNER_RACE)
+					if ival != 0 ; 0 is Any
+						if ival == 1 && ActorRaceType(theOther) != 2 ; should be humanoid
+							doRun = false
+						elseIf ival == 2 && ActorRaceType(theOther) != 4 ; should be creature
+							doRun = false
+						elseIf ival == 3 && ActorRaceType(theOther) != 3 ; should be undead
+							doRun = false
+						endIf
+					endIf
+				endIf
+
+				If (SLT.Debug_Extension_OStim)
+					SLTDebugMsg("OStim: doRun(" + doRun + ") after ATTR_PARTNER_RACE")
+				EndIf
 
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PLAYER)
 
 					if ival != 0 ; 0 is Any
-						if ival == 1 && actorRace(theSelf) != 1 ; should be player
+						if ival == 1 && ActorRaceType(theSelf) != 1 ; should be player
 							doRun = false
-						elseIf ival == 2 && actorRace(theSelf) == 1 ; should be not-player
+						elseIf ival == 2 && ActorRaceType(theSelf) == 1 ; should be not-player
 							doRun = false
 						else
 							; check other
 							if actorCount <= 1
 								doRun = false
 							else
-								if ival == 3 && actorRace(theOther) != 1 ; should be player
+								if ival == 3 && ActorRaceType(theOther) != 1 ; should be player
 									doRun = false
-								elseIf ival == 4 && actorRace(theOther) == 1 ; should be not-player
+								elseIf ival == 4 && ActorRaceType(theOther) == 1 ; should be not-player
 									doRun = false
 								endIf
 							endIf
@@ -545,6 +565,42 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 				EndIf
 
 				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PARTNER_ROLE)
+					if ival != 0 ; 0 is Any
+						if ival == 1 && !OMetadata.HasActorTag(sceneId, idx_Other, "dominant") ; aggresor
+							doRun = false
+						elseIf ival == 2
+                            int x = actorCount
+                            bool hasDominance
+                            while x && doRun
+                                x -= 1
+                                If (OMetadata.HasActorTag(sceneId, x, "dominant"))
+                                    If (x == idx_Other)
+                                        doRun = false
+                                    EndIf
+                                    hasDominance = true
+                                EndIf
+                            endwhile
+                            If (!hasDominance)
+                                doRun = false
+                            EndIf
+						elseIf ival == 3
+                            int x = actorCount
+                            while x && doRun
+                                x -= 1
+                                If (OMetadata.HasActorTag(sceneId, x, "dominant"))
+                                    doRun = false
+                                EndIf
+                            endwhile
+						endIf
+					endIf
+				endIf
+
+				If (SLT.Debug_Extension_OStim)
+					SLTDebugMsg("OStim: doRun(" + doRun + ") after ATTR_PARTNER_ROLE")
+				EndIf
+
+				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_GENDER)
 					if ival != 0 ; 0 is Any
 						if ival == 1 && ostim.IsFemale(theSelf)
@@ -557,6 +613,21 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 
 				If (SLT.Debug_Extension_OStim)
 					SLTDebugMsg("OStim: doRun(" + doRun + ") after ATTR_GENDER")
+				EndIf
+
+				if doRun
+					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PARTNER_GENDER)
+					if ival != 0 ; 0 is Any
+						if ival == 1 && ostim.IsFemale(theOther)
+							doRun = false
+						elseIf ival == 2 && !ostim.IsFemale(theOther)
+							doRun = false
+						endIf
+					endIf
+				endIf
+
+				If (SLT.Debug_Extension_OStim)
+					SLTDebugMsg("OStim: doRun(" + doRun + ") after ATTR_PARTNER_GENDER")
 				EndIf
 
 				if doRun

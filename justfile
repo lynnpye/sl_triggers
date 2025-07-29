@@ -129,7 +129,7 @@ _package_preclean:
     powershell.exe -File clean-deps.ps1 -dir_dep "{{dir_dep}}"
 
 packagemodonly: 
-    powershell.exe -Command "Remove-Item -Path '{{raw_file_dep_mod}}'"
+    powershell.exe -Command "if (Test-Path '{{raw_file_dep_mod}}') { Remove-Item -Path '{{raw_file_dep_mod}}' }"
     powershell.exe -Command "Compress-Archive -Path '{{raw_dir_project_src}}\\*' -DestinationPath '{{raw_file_dep_mod}}'"
 
 packageall: _package_preclean packagemodonly

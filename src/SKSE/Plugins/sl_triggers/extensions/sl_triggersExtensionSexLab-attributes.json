@@ -26,7 +26,10 @@
         ["is_weapon_drawn", "triggerattribute_is_weapon_drawn"],
         ["do_1",            "triggerattribute_do_1"],
         ["do_2",            "triggerattribute_do_2"],
-        ["do_3",            "triggerattribute_do_3"]
+        ["do_3",            "triggerattribute_do_3"],
+        ["partner_role",    "triggerattribute_partner_role"],
+        ["partner_gender",  "triggerattribute_partner_gender"],
+        ["partner_race",    "triggerattribute_partner_race"]
     ],
     "triggerattribute_event" : [
         ["# here is where you define aspects of the attribute"],
@@ -51,7 +54,7 @@
     ],
     "triggerattribute_player" : [
         ["type", "int"],
-        ["widget", "menu", "Player: ", "0", "Any", "Player", "Not Player", "Partner Player", "Partner Not Player"],
+        ["widget", "menu", "Player Relationship: ", "0", "Any", "Player", "Not Player", "Partner Player", "Partner Not Player"],
         ["info", "The relationship to the Player of a scene participant."]
     ],
     "triggerattribute_gender" : [
@@ -114,10 +117,27 @@
         ["widget", "menu", "Location :", "0", "Any", "Inside", "Outside", "Safe (Home/Jail/Inn)", "City / Town", "Wilderness", "Dungeon", "Player Home", "Jail", "Dungeon", "Cave", "Dwelling", "City", "Town", "Habitation", "Draugr Crypt", "Dragon Priest Lair", "Bandit Camp", "Falmer Hive", "Vampire Lair", "Dwarven Automatons", "Military Fort", "Mine", "Inn", "Hold"],
         ["info", "The location, indoors or outdoors, as well as Safe/City/Wilderness/Dungeon and others, the cell qualifies as."]
     ],
+    "triggerattribute_partner_race" : [
+        ["type", "int"],
+        ["widget", "menu", "Race: ", "0", "Any", "Humanoid", "Creature", "Undead"],
+        ["info", "Requires the script target's partner to be of the selected 'race', if any."]
+    ],
+    "triggerattribute_partner_role" : [
+        ["type", "int"],
+        ["widget", "menu", "Role: ", "0", "Any", "Aggressor", "Victim", "Not part of rape"],
+        ["info", "Requires the script target's partner to be in the selected role, if any."]
+    ],
+    "triggerattribute_partner_gender" : [
+        ["type", "int"],
+        ["widget", "menu", "Gender: ", "0", "Any", "Male", "Female"],
+        ["info", "Requires the script target's partner to be of the selected gender."]
+    ],
     "triggerlayout" : [
         ["event", "chance"],
         ["race", "role"],
         ["player", "gender"],
+        ["partner_race", "partner_role"],
+        ["partner_gender"],
         ["tag", "daytime"],
         ["deeplocation", "position"],
         ["is_armed", "is_clothed"],
