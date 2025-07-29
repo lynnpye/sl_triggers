@@ -608,7 +608,7 @@ Function DoStartup()
         int[] requestresult = new int[1]
         int[] threadresult = new int[1]
         string[] scriptresult = new string[1]
-        SLT.PopScriptForTarget(CmdTargetActor, requestresult, threadresult, scriptresult)
+        SLT.DequeueScriptForTarget(CmdTargetActor, requestresult, threadresult, scriptresult)
 
         if (requestresult[0] && threadresult[0] && scriptresult[0])
             CmdRequestId = requestresult[0]

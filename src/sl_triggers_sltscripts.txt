@@ -4,7 +4,7 @@ SLTScript Documentation
 Overview
 --------
 
-Script for SL Triggers Redux, or SLTScript, is primarily a text file using a simple marker-to-enclose tokenization strategy. Lines are tokenized by splitting on whitespace, except when fields are enclosed in either double-quotes (""), dollar-double-quotes for string interpolation ($"") or square brackets ([]). Enclosed strings may contain whitespace, and embedded double quotes are escaped by doubling them ("").
+Script for SL Triggers, or SLTScript, is primarily a text file using a simple marker-to-enclose tokenization strategy. Lines are tokenized by splitting on whitespace, except when fields are enclosed in either double-quotes (""), dollar-double-quotes for string interpolation ($"") or square brackets ([]). Enclosed strings may contain whitespace, and embedded double quotes are escaped by doubling them ("").
 
 The legacy option of .JSON still exists but is deprecated.
 
@@ -39,6 +39,35 @@ Generally, you won't need to worry about the distinction between 'intrinsics' an
  Script Execution
 
 Scripts run each command in sequence until they encounter a return or reach the end of the script. This allows for very long-running scripts.
+
+Literals
+--------
+
+SLTScript supports the following literals and literal types.
+
+Literal
+
+Description
+
+string literals
+
+Anything surrounded in "", e.g.: "string", "Hello world!"
+
+numeric values
+
+Any integer or float value. Integers can be expressed in hexadecimal notation e.g. 0x12
+
+true
+
+boolean: true
+
+false
+
+boolean: false
+
+none
+
+Form: none
 
 Variables
 ---------
@@ -413,7 +442,13 @@ Resets execution to begin on the line immediately following the indicated label.
 
 Performs a conditional check and redirects execution to a label if true.
 
-Syntax: if <value1> <operator> <value2> <label>
+Syntax:
+
+    ; variant 1 - compare value1 and value 2
+    if <value1> <operator> <value2> <label>
+    ; variant 2 - check value1 for "truthiness"
+    if <value1> <label>
+    
 
 Operators:
 
@@ -428,6 +463,83 @@ Operators:
     
     [goeq]
     ; execution continues here if $2 equals $3
+    
+
+ if/elseif/else/endif - Conditional Block
+
+Performs conditional checks and executes the commands in the block where the conditional check matches. else is the default.
+
+Syntax:
+
+    ; variant 1 - compare value1 and value 2
+    if <value1> <operator> <value2>
+    ; variant 2 - check value1 for "truthiness"
+    if <value1>
+    
+    ; variant 1 - compare value1 and value 2
+    elseif <value1> <operator> <value2>
+    ; variant 2 - check value1 for "truthiness"
+    elseif <value1>
+    
+    ; optional, default block if specified
+    else
+    
+    ; end of if-block
+    endif
+    
+
+Operators:
+
+   Numeric: =/== (equality), != (inequality), >, >=, <, <=
+   String: &= (equality), &!= (inequality)
+
+    set $zeroth 0
+    set $first 1
+    set $second 2
+    set $third 3
+    set $istrue true
+    
+    if $first > $second
+        ; won't execute because 1 < 2
+    elseif $zeroth
+        ; won't execute because 0 is not "truthy"
+    elseif $istrue
+        ; this will execute because true is "truthy"
+    elseif $first < $second
+        ; won't execute becuse the if-block has already been satisfied
+    else
+        ; won't execute becuse the if-block has already been satisfied
+    endif
+    
+
+ while/endwhile - Conditional Block Loop
+
+Performs conditional checks and executes the commands in the block if the condition is true. Repeats the block until the condition is no longer true. WARNING: You must ensure you do something to make the condition false at some point, or return from the script, or else you will have an infinite loop.
+
+Syntax:
+
+    ; variant 1 - compare value1 and value 2
+    while <value1> <operator> <value2>
+    ; variant 2 - check value1 for "truthiness"
+    while <value1>
+    
+    ; end of while-block, if the conditional is still true, execution will begin again at the top of the block
+    endwhile
+    
+
+Operators:
+
+   Numeric: =/== (equality), != (inequality), >, >=, <, <=
+   String: &= (equality), &!= (inequality)
+
+    set $counter 0
+    set $goal 10
+    
+    while $counter < $goal
+        ; this loop will iterate 10 times
+        msgconsole $"Iteration {counter}"
+        inc $counter 1
+    endwhile
     
 
  return - Exit Script

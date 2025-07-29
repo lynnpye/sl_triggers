@@ -840,9 +840,9 @@ Function StartCommand(Form targetForm, string initialScriptName)
 	StartCommandWithThreadId(targetForm, initialScriptName, requestId, threadId)
 EndFunction
 
-Function PushScriptForTarget(Form targetForm, int requestId, int threadid, string initialScriptName)
+Function EnqueueScriptForTarget(Form targetForm, int requestId, int threadid, string initialScriptName)
 	If (!targetForm || !threadid || !initialScriptName || !requestId)
-		SLTErrMsg("PushScriptForTarget: Invalid arguments")
+		SLTErrMsg("EnqueueScriptForTarget: Invalid arguments")
 		return
 	EndIf
 	StorageUtil.IntListAdd(targetForm, "SLTR:pending_requestid_list", requestid)
@@ -850,14 +850,14 @@ Function PushScriptForTarget(Form targetForm, int requestId, int threadid, strin
 	StorageUtil.StringListAdd(targetForm, "SLTR:pending_initialscriptname_list", initialScriptName)
 EndFunction
 
-Function PopScriptForTarget(Form targetForm, int[] requestId, int[] threadid, string[] initialScriptName)
+Function DequeueScriptForTarget(Form targetForm, int[] requestId, int[] threadid, string[] initialScriptName)
 	If (!targetForm || !threadid.Length || !initialScriptName.Length || !requestId.Length)
-		SLTErrMsg("PopScriptForTarget: Invalid arguments")
+		SLTErrMsg("DequeueScriptForTarget: Invalid arguments")
 		return
 	EndIf
-	requestid[0] = StorageUtil.IntListPop(targetForm, "SLTR:pending_requestid_list")
-	threadid[0] = StorageUtil.IntListPop(targetForm, "SLTR:pending_threadid_list")
-	initialScriptName[0] = StorageUtil.StringListPop(targetForm, "SLTR:pending_initialscriptname_list")
+	requestid[0] = StorageUtil.IntListShift(targetForm, "SLTR:pending_requestid_list")
+	threadid[0] = StorageUtil.IntListShift(targetForm, "SLTR:pending_threadid_list")
+	initialScriptName[0] = StorageUtil.StringListShift(targetForm, "SLTR:pending_initialscriptname_list")
 EndFunction
 
 ; StartCommand
@@ -876,7 +876,7 @@ Function StartCommandWithThreadId(Form targetForm, string initialScriptName, int
 		target = PlayerRef
 	endif
 
-	PushScriptForTarget(targetForm, requestId, threadid, initialScriptName)
+	EnqueueScriptForTarget(targetForm, requestId, threadid, initialScriptName)
 	
 	if bDebugMsg
 		SLTDebugMsg("Calling sl_triggers_internal.StartScript(target=<" + target + ">, initialScriptName=<" + initialScriptName + ">)")

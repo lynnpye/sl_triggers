@@ -35,6 +35,17 @@ Each command and its parameters must reside on one line, with any amount of sepa
 ### Script Execution
 Scripts run each command in sequence until they encounter a `return` or reach the end of the script. This allows for very long-running scripts.
 
+## Literals
+SLTScript supports the following literals and literal types.
+
+|Literal|Description|
+|---|---|
+|___string literals___|Anything surrounded in `""`, e.g.: `"string"`, `"Hello world!"`|
+|___numeric values___|Any integer or float value. Integers can be expressed in hexadecimal notation e.g. `0x12`|
+|`true`|boolean: true|
+|`false`|boolean: false|
+|`none`|Form: none|
+
 ## Variables
 
 ### Variables and Scopes
@@ -229,7 +240,13 @@ goto $1          ; jumps to 'done' label using variable
 #### `if` - Conditional Jump
 Performs a conditional check and redirects execution to a label if true.
 
-**Syntax:** `if <value1> <operator> <value2> <label>`
+**Syntax:**
+```sltscript
+; variant 1 - compare value1 and value 2
+if <value1> <operator> <value2> <label>
+; variant 2 - check value1 for "truthiness"
+if <value1> <label>
+```
 
 **Operators:**
 - Numeric: `=`/`==` (equality), `!=` (inequality), `>`, `>=`, `<`, `<=`
@@ -244,6 +261,82 @@ if $2 = $3 goeq
 
 [goeq]
 ; execution continues here if $2 equals $3
+```
+
+#### `if`/`elseif`/`else`/`endif` - Conditional Block
+Performs conditional checks and executes the commands in the block where the conditional check matches. `else` is the default.
+
+**Syntax:** 
+```sltscript
+; variant 1 - compare value1 and value 2
+if <value1> <operator> <value2>
+; variant 2 - check value1 for "truthiness"
+if <value1>
+
+; variant 1 - compare value1 and value 2
+elseif <value1> <operator> <value2>
+; variant 2 - check value1 for "truthiness"
+elseif <value1>
+
+; optional, default block if specified
+else
+
+; end of if-block
+endif
+```
+
+**Operators:**
+- Numeric: `=`/`==` (equality), `!=` (inequality), `>`, `>=`, `<`, `<=`
+- String: `&=` (equality), `&!=` (inequality)
+
+```sltscript
+set $zeroth 0
+set $first 1
+set $second 2
+set $third 3
+set $istrue true
+
+if $first > $second
+    ; won't execute because 1 < 2
+elseif $zeroth
+    ; won't execute because 0 is not "truthy"
+elseif $istrue
+    ; this will execute because true is "truthy"
+elseif $first < $second
+    ; won't execute becuse the if-block has already been satisfied
+else
+    ; won't execute becuse the if-block has already been satisfied
+endif
+```
+
+#### `while`/`endwhile` - Conditional Block Loop
+Performs conditional checks and executes the commands in the block if the condition is true. Repeats the block until the condition is no longer true.
+WARNING: You *must* ensure you do *something* to make the condition false at some point, or return from the script, or else you will have an infinite loop.
+
+**Syntax:**
+```sltscript
+; variant 1 - compare value1 and value 2
+while <value1> <operator> <value2>
+; variant 2 - check value1 for "truthiness"
+while <value1>
+
+; end of while-block, if the conditional is still true, execution will begin again at the top of the block
+endwhile
+```
+
+**Operators:**
+- Numeric: `=`/`==` (equality), `!=` (inequality), `>`, `>=`, `<`, `<=`
+- String: `&=` (equality), `&!=` (inequality)
+
+```sltscript
+set $counter 0
+set $goal 10
+
+while $counter < $goal
+    ; this loop will iterate 10 times
+    msg_console $"Iteration {counter}"
+    inc $counter 1
+endwhile
 ```
 
 #### `return` - Exit Script

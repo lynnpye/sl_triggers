@@ -22,6 +22,7 @@
             3 - Undead - Actor.HasKeyword(ActorTypeUndead)
             4 - Creature - presumed, default if nothing else matches
     bugfix: added SexLab actor_getgender override back
+    bugfix: replaced script execution implementation from stack to queue
 
 130
     Savegame compatibility: Should be savegame compatible with v129
