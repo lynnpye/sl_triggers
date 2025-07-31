@@ -119,17 +119,17 @@
     ],
     "triggerattribute_partner_race" : [
         ["type", "int"],
-        ["widget", "menu", "Race: ", "0", "Any", "Humanoid", "Creature", "Undead"],
+        ["widget", "menu", "Partner Race: ", "0", "Any", "Humanoid", "Creature", "Undead"],
         ["info", "Requires the script target's partner to be of the selected 'race', if any."]
     ],
     "triggerattribute_partner_role" : [
         ["type", "int"],
-        ["widget", "menu", "Role: ", "0", "Any", "Aggressor", "Victim", "Not part of rape"],
+        ["widget", "menu", "Partner Role: ", "0", "Any", "Aggressor", "Victim", "Not part of rape"],
         ["info", "Requires the script target's partner to be in the selected role, if any."]
     ],
     "triggerattribute_partner_gender" : [
         ["type", "int"],
-        ["widget", "menu", "Gender: ", "0", "Any", "Male", "Female"],
+        ["widget", "menu", "Partner Gender: ", "0", "Any", "Male", "Female"],
         ["info", "Requires the script target's partner to be of the selected gender."]
     ],
     "triggerlayout" : [
