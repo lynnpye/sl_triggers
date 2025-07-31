@@ -727,6 +727,28 @@ Sets $$ to the race name based on sub-function. Blank, empty sub-function return
 
 
 
+### actor_race_type
+
+**Description**
+
+Returns the "race type". This is what the "Race" filter uses for filtering.
+0 - error occurred
+1 - Player
+2 - Humanoid - Actor.HasKeyword(ActorTypeNPC)
+3 - Undead - Actor.HasKeyword(ActorTypeUndead)
+4 - Creature - presumed, default if nothing else matches
+
+**Parameters**
+
+    actor: target Actor  
+
+
+**Example**
+
+    actor_race_type $system.self  
+
+
+
 ### actor_removefaction
 
 **Description**
@@ -2821,6 +2843,23 @@ Returns the race name based on sub-function. Blank, empty sub-function returns V
 
 
 # SexLab
+
+### actor_getgender
+
+**Description**
+
+Returns the actor's SexLab gender, 0 - male, 1 - female, 2 - creature
+
+**Parameters**
+
+    actor: target Actor  
+
+
+**Example**
+
+    actor_getgender $actor  
+
+
 
 ### sl_advance
 

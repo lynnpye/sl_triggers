@@ -485,6 +485,18 @@ if parameter 2 is "": return actors race name. Skyrims, original name. Like: "No
 
 -=-
 
+actor_race_type: Returns the "race type". This is what the "Race" filter uses for filtering.
+0 - error occurred
+1 - Player
+2 - Humanoid - Actor.HasKeyword(ActorTypeNPC)
+3 - Undead - Actor.HasKeyword(ActorTypeUndead)
+4 - Creature - presumed, default if nothing else matches
+
+	Example
+		actor_race_type $system.self
+
+-=-
+
 actor_removefaction: Removes the actor from the specified faction
 	- parameter 1: actor: target Actor
 	- parameter 2: faction: FACTION FormID
@@ -1878,6 +1890,13 @@ if parameter 2 is "SL": return actors Sexlab frameworks race key name. Like: "do
 
 SexLab:
 ==============
+
+actor_getgender: Returns the actor's SexLab gender, 0 - male, 1 - female, 2 - creature
+
+	Example
+		actor_getgender $actor
+
+-=-
 
 sl_advance: Changes the stage of the current SexLab scene, for the target Actor; advances a single stage if positive, reverses a single stage if negative
 	- parameter 1: direction: integer, <negative - backwards / non-negative (including zero) - forwards>
