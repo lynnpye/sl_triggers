@@ -21,6 +21,30 @@ fs::path GetCommandStoreFilePath(std::string_view filename) {
     return pluginPath;
 }
 
+fs::path GetExtensionsFolder() {
+    fs::path pluginPath = fs::path("Data") / "SKSE" / "Plugins" / "sl_triggers" / "extensions";
+    return pluginPath;
+}
+
+fs::path GetExtensionAttributesFile(std::string_view extensionKey) {
+    std::string strfn = std::format("{}-attributes.json", extensionKey);
+    fs::path pluginPath = fs::path("Data") / "SKSE" / "Plugins" / "sl_triggers" / "extensions" / strfn;
+    return pluginPath;
+}
+
+fs::path GetExtensionSettingsFile(std::string_view extensionKey) {
+    std::string strfn = std::format("{}-settings.json", extensionKey);
+    fs::path pluginPath = fs::path("Data") / "SKSE" / "Plugins" / "sl_triggers" / "extensions" / strfn;
+    return pluginPath;
+}
+
+fs::path GetTriggerFile(std::string_view extensionKey, std::string_view triggerFile) {
+    std::string strextkey(extensionKey);
+    std::string strfn = std::format("{}", triggerFile);
+    fs::path pluginPath = fs::path("Data") / "SKSE" / "Plugins" / "sl_triggers" / "extensions" / strextkey / strfn;
+    return pluginPath;
+}
+
 fs::path GetScriptfilePath(std::string_view scriptfilename) {
     std::string strfn(scriptfilename);
     fs::path scriptfilepath = fs::path("Data") / "SKSE" / "Plugins" / "sl_triggers" / "commands" / strfn;

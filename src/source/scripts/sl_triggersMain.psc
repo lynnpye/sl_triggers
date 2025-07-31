@@ -461,17 +461,19 @@ Function DoRegistrationActivity(sl_triggersExtension _extensionToRegister)
 	endif
 	
 	if SLTMCM
+		If (Debug_Setup)
+			SLTDebugMsg("Main.DoRegistrationActivity: setting extension pages for MCM")
+		EndIf
 		int i = 0
 		int j = 0
-		string[] extensionFriendlyNames = PapyrusUtil.StringArray(Extensions.Length)
-		string[] extensionKeys = PapyrusUtil.StringArray(Extensions.Length)
 		Form[] newForms = PapyrusUtil.FormArray(Extensions.Length)
 		while i < Extensions.Length
 			sl_triggersExtension _ext = Extensions[i] as sl_triggersExtension
 
 			if _ext && _ext.IsMCMConfigurable()
-				extensionFriendlyNames[j] = _ext.SLTFriendlyName
-				extensionKeys[j] = _ext.SLTExtensionKey
+				If (Debug_Setup)
+					SLTDebugMsg("_ext(" + _ext + ") _ext key(" + _ext.SLTExtensionKey + ") _ext.IsMCMConfigurable(" + _ext.IsMCMConfigurable() + ")")
+				EndIf
 				newForms[j] = _ext
 				j += 1
 			endif
@@ -479,17 +481,14 @@ Function DoRegistrationActivity(sl_triggersExtension _extensionToRegister)
 			i += 1
 		endwhile
 
+		If (Debug_Setup)
+			SLTDebugMsg("total,i(" + i + ") new,j(" + j + ")")
+		EndIf
+
 		if j < i
-			extensionFriendlyNames = PapyrusUtil.ResizeStringArray(extensionFriendlyNames, j)
-			extensionKeys = PapyrusUtil.ResizeStringArray(extensionKeys, j)
 			newForms = PapyrusUtil.ResizeFormArray(newForms, j)
 		endif
 		Extensions = newForms
-		
-		if bDebugMsg
-			SLTDebugMsg("Main: Setting extension pages for SLTMCM (" + PapyrusUtil.StringJoin(extensionFriendlyNames, "),(") + ")")
-		endif
-		SLTMCM.SetExtensionPages(extensionFriendlyNames, extensionKeys)
 	else
 		SLTErrMsg("SLTMCM is empty")
 	endif

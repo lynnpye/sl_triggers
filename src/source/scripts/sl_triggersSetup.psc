@@ -38,7 +38,7 @@ bool		firstPageReset
 string[]	headerPages
 string[]	extensionPages
 string[]	extensionKeys
-string[]	attributeNames
+;string[]	attributeNames
 
 string		currentSLTPage
 int			currentCardination
@@ -143,7 +143,18 @@ Event OnConfigOpen()
 		SLTDebugMsg("Setup.OnConfigOpen")
 	EndIf
 	ScriptsList = sl_triggers.GetScriptsList()
-	if extensionPages.Length > 0
+	if SLT.Extensions.Length > 0
+		extensionPages = PapyrusUtil.StringArray(0)
+		extensionKeys = PapyrusUtil.StringArray(0)
+		int i = 0
+		while i < SLT.Extensions.Length
+			sl_triggersExtension slext = SLT.Extensions[i] as sl_triggersExtension
+			If (slext && slext.IsMCMConfigurable())
+				extensionPages = PapyrusUtil.PushString(extensionPages, slext.SLTFriendlyName)
+				extensionKeys = PapyrusUtil.PushString(extensionKeys, slext.SLTExtensionKey)
+			EndIf
+			i += 1
+		endwhile
 		Pages = PapyrusUtil.MergeStringArray(headerPages, extensionPages)
 	else
 		Pages = headerPages
@@ -165,6 +176,72 @@ event OnConfigClose()
 		SLT.DoInMemoryReset()
 	endif
 endEvent
+
+Event OnPageReset(string page)
+	If (SLT.Debug_Setup)
+		SLTDebugMsg("Setup.OnPageReset page(" + page + ")  currentSLTPage(" + currentSLTPage + ") firstPageReset(" + firstPageReset + ") extensionPages(" + PapyrusUtil.StringJoin(extensionPages, "), (") + ")")
+	EndIf
+
+	CallThisToResetTheOIDValuesHextun()
+	bool doPageChanged = false
+
+	if !page
+		firstPageReset = true
+	endif
+
+	if page != currentSLTPage
+		doPageChanged = true
+	endif
+	currentSLTPage = page
+
+	bool doDisplayExtensionSettingsChanged = false
+	if displayExtensionSettings != previousDisplayExtensionSettings
+		previousDisplayExtensionSettings = displayExtensionSettings
+		oidExtensionBack = 0
+		oidExtensionSettings = 0
+	endif
+
+	if firstPageReset
+		doPageChanged = true
+		firstPageReset = false
+	endif
+
+	if doPageChanged
+		CurrentExtensionKey = ""
+		currentCardination = 0
+		displayExtensionSettings = false
+		extensionIndex = -1
+	endif
+
+	int extensionIndex = extensionPages.find(page)
+	if extensionIndex > -1
+		CurrentExtensionKey = extensionKeys[extensionIndex]
+	
+		If (SLT.Debug_Setup)
+			SLTDebugMsg("Setup.OnPageReset: Displaying extension page: displayExtensionSettings(" + displayExtensionSettings + ") extensionIndex(" + extensionIndex + ") CurrentExtensionKey(" + CurrentExtensionKey + ")")
+		EndIf
+
+		if displayExtensionSettings
+			;attributeNames = sl_triggers_internal.MCMGetAttributeNames(false, CurrentExtensionKey) ;GetAttributeNames(false)
+			ShowExtensionSettings()
+		else
+			;attributeNames = sl_triggers_internal.MCMGetAttributeNames(true, CurrentExtensionKey) ;GetAttributeNames(true)
+			ShowExtensionPage()
+		endif
+		return
+	else
+		If (SLT.Debug_Setup)
+			SLTDebugMsg("Setup.OnPageReset: Displaying header page: extensionIndex(" + extensionIndex + ") CurrentExtensionKey(" + CurrentExtensionKey + ")")
+		EndIf
+		; needs special SLT level attribute names
+		;attributeNames = sl_triggers_internal.MCMGetAttributeNames(false, CurrentExtensionKey) ;GetAttributeNames(false)
+		ShowHeaderPage()
+		return
+	endif
+	
+	; obviously it should be one or the other and yet here we are
+	Debug.Trace("SLT: Setup: Page is neither header nor extension")
+EndEvent
 
 ;;;;;;;;;
 ; Simple constants for Papyrus types
@@ -305,37 +382,45 @@ Function ShowExtensionSettings()
 		AddHeaderOption("$SLT_MSG_EXTENSION_DISABLED_1")
 	endif
 
-	string[] _layoutData = GetLayout(false, _dataFile)
+	string[] _layoutData = sl_triggers_internal.MCMGetLayout(false, CurrentExtensionKey) ;GetLayout(false, _dataFile)
 
 	string _layout = _layoutData[0]
 
 	int tlidx = 0
 	string[] tlattributes
 
-	tlattributes = GetExtensionLayoutData(false, _layout, tlidx)
-	while tlattributes.Length > 0
-		if tlattributes[0]
-			_oid = ShowAttribute(tlattributes[0], widgetOptions, "", _dataFile, false)
-			if _layoutData[1] && _layoutData[1] == tlattributes[0]
-				oidForcePageReset = PapyrusUtil.PushInt(oidForcePageReset, _oid)
-			endif
-		else
-			AddEmptyOption()
-		endif
+	tlattributes = sl_triggers_internal.MCMGetLayoutData(false, CurrentExtensionKey, _layout, tlidx) ;GetExtensionLayoutData(false, _layout, tlidx)
+	tlidx = 0
+	while tlidx < tlattributes.Length
+		string elem = tlattributes[tlidx]
+		if elem != "/"
+			If (elem)
+				_oid = ShowAttribute(elem, widgetOptions, "", _dataFile, false)
+				if _layoutData[1] && _layoutData[1] == elem
+					oidForcePageReset = PapyrusUtil.PushInt(oidForcePageReset, _oid)
+				endif
+			else
+				AddEmptyOption()
+			EndIf
 
-		if tlattributes.Length > 1 && tlattributes[1]
-			_oid = ShowAttribute(tlattributes[1], widgetOptions, "", _dataFile, false)
-			if _layoutData[1] && _layoutData[1] == tlattributes[1]
-				oidForcePageReset = PapyrusUtil.PushInt(oidForcePageReset, _oid)
+			tlidx += 1
+			if (tlidx < tlattributes.Length)
+				elem = tlattributes[tlidx]
+				if elem && elem != "/"
+					_oid = ShowAttribute(elem, widgetOptions, "", _dataFile, false)
+					if _layoutData[1] && _layoutData[1] == elem
+						oidForcePageReset = PapyrusUtil.PushInt(oidForcePageReset, _oid)
+					endif
+				else
+					AddEmptyOption()
+				endif
+			else
+				AddEmptyOption()
 			endif
-		else
-			AddEmptyOption()
 		endif
 
 		tlidx += 1
-		tlattributes = GetExtensionLayoutData(false, _layout, tlidx)
 	endwhile
-
 EndFunction
 
 ;/
@@ -441,34 +526,43 @@ Function ShowExtensionPage()
 			AddHeaderOption("$SLT_MSG_SOFT_DELETE_3")
 		endif
 
-		string _dataFile = FN_Trigger(CurrentExtensionKey, triggerKey)
-		string[] _layoutData = GetLayout(true, _dataFile)
+		;string _dataFile = FN_Trigger(CurrentExtensionKey, triggerKey)
+		string[] _layoutData = sl_triggers_internal.MCMGetLayout(true, CurrentExtensionKey, triggerKey) ;GetLayout(true, _dataFile)
 		string _triggerLayout = _layoutData[0]
 		int tlidx = 0
 		string[] tlattributes
 
-		tlattributes = GetExtensionLayoutData(true, _triggerLayout, tlidx)
-		while tlattributes.Length > 0
-			if tlattributes[0]
-				_oid = ShowAttribute(tlattributes[0], widgetOptions, triggerKey, _triggerFile, true)
-				if _layoutData[1] && _layoutData[1] == tlattributes[0]
-					oidForcePageReset = PapyrusUtil.PushInt(oidForcePageReset, _oid)
-				endif
-			else
-				AddEmptyOption()
-			endif
+		tlattributes = sl_triggers_internal.MCMGetLayoutData(true, CurrentExtensionKey, _triggerLayout, tlidx) ;GetExtensionLayoutData(false, _layout, tlidx)
+		tlidx = 0
+		while tlidx < tlattributes.Length
+			string elem = tlattributes[tlidx]
+			if elem != "/"
+				If (elem)
+					_oid = ShowAttribute(elem, widgetOptions, triggerKey, _triggerFile, true)
+					if _layoutData[1] && _layoutData[1] == elem
+						oidForcePageReset = PapyrusUtil.PushInt(oidForcePageReset, _oid)
+					endif
+				else
+					AddEmptyOption()
+				EndIf
 
-			if tlattributes.Length > 1 && tlattributes[1]
-				_oid = ShowAttribute(tlattributes[1], widgetOptions, triggerKey, _triggerFile, true)
-				if _layoutData[1] && _layoutData[1] == tlattributes[1]
-					oidForcePageReset = PapyrusUtil.PushInt(oidForcePageReset, _oid)
+				tlidx += 1
+				if (tlidx < tlattributes.Length)
+					elem = tlattributes[tlidx]
+					if elem && elem != "/"
+						_oid = ShowAttribute(elem, widgetOptions, triggerKey, _triggerFile, true)
+						if _layoutData[1] && _layoutData[1] == elem
+							oidForcePageReset = PapyrusUtil.PushInt(oidForcePageReset, _oid)
+						endif
+					else
+						AddEmptyOption()
+					endif
+				else
+					AddEmptyOption()
 				endif
-			else
-				AddEmptyOption()
 			endif
 
 			tlidx += 1
-			tlattributes = GetExtensionLayoutData(true, _triggerLayout, tlidx)
 		endwhile
 		
 		; blank row
@@ -504,67 +598,39 @@ Function ShowExtensionPage()
 	
 EndFunction
 
-
-
-Event OnPageReset(string page)
-	If (SLT.Debug_Setup)
-		SLTDebugMsg("Setup.OnPageReset page(" + page + ")  currentSLTPage(" + currentSLTPage + ") firstPageReset(" + firstPageReset + ") extensionPages(" + PapyrusUtil.StringJoin(extensionPages, "), (") + ")")
-	EndIf
-
-	CallThisToResetTheOIDValuesHextun()
-	bool doPageChanged = false
-
-	if page != currentSLTPage
-		doPageChanged = true
-	endif
-	currentSLTPage = page
-
-	bool doDisplayExtensionSettingsChanged = false
-	if displayExtensionSettings != previousDisplayExtensionSettings
-		previousDisplayExtensionSettings = displayExtensionSettings
-		oidExtensionBack = 0
-		oidExtensionSettings = 0
-	endif
-
-	if firstPageReset
-		doPageChanged = true
-		firstPageReset = false
-	endif
-
-	if doPageChanged
-		CurrentExtensionKey = ""
-		currentCardination = 0
-		displayExtensionSettings = false
-		extensionIndex = -1
-	endif
-
-	int extensionIndex = extensionPages.find(page)
-	if extensionIndex > -1
-		CurrentExtensionKey = extensionKeys[extensionIndex]
-		
-		If (SLT.Debug_Setup)
-			SLTDebugMsg("Setup.OnPageReset: extensionIndex(" + extensionIndex + ") CurrentExtensionKey(" + CurrentExtensionKey + ")")
-		EndIf
-
-		if displayExtensionSettings
-			attributeNames = GetAttributeNames(false)
-			ShowExtensionSettings()
-		else
-			attributeNames = GetAttributeNames(true)
-			ShowExtensionPage()
-		endif
-		return
-	else
-		; needs special SLT level attribute names
-		attributeNames = GetAttributeNames(false)
-		ShowHeaderPage()
-		return
-	endif
+Function ShowHeaderPage()
+	SetCursorFillMode(TOP_TO_BOTTOM)
+	int ver = GetVersion()
+	AddHeaderOption("SLTriggers Redux")
+	AddHeaderOption("(" + sl_triggers.GetTranslatedString("$SLT_LBL_VERSION") + " " + (ver as string) + ")")
 	
-	; obviously it should be one or the other and yet here we are
-	Debug.Trace("SLT: Setup: Page is neither header nor extension")
-EndEvent
-
+	AddHeaderOption("$SLT_LBL_GLOBAL_SETTINGS")
+	AddEmptyOption()
+	oidEnabled    							= AddToggleOption("$SLT_LBL_ENABLED_QUESTION", 				SLT.IsEnabled)
+	oidDebugMsg   							= AddToggleOption("$SLT_LBL_DEBUG_MESSAGES", 				SLT.bDebugMsg)
+	AddEmptyOption()
+	AddHeaderOption("$SLT_LBL_DEBUG_FLAGS")
+	oidDebug_Cmd							= AddToggleOption("Debug_Cmd", 								SLT.Debug_Cmd)
+	oidDebug_Cmd_Functions					= AddToggleOption("Debug_Cmd_Functions", 					SLT.Debug_Cmd_Functions)
+	oidDebug_Cmd_InternalResolve			= AddToggleOption("Debug_Cmd_InternalResolve", 				SLT.Debug_Cmd_InternalResolve)
+	oidDebug_Cmd_ResolveForm				= AddToggleOption("Debug_Cmd_ResolveForm", 					SLT.Debug_Cmd_ResolveForm)
+	oidDebug_Cmd_RunScript					= AddToggleOption("Debug_Cmd_RunScript", 					SLT.Debug_Cmd_RunScript)
+	oidDebug_Cmd_RunScript_Blocks 			= AddToggleOption("Debug_Cmd_RunScript_Blocks", 			SLT.Debug_Cmd_RunScript_Blocks)
+	oidDebug_Cmd_RunScript_Set				= AddToggleOption("Debug_Cmd_RunScript_Set", 				SLT.Debug_Cmd_RunScript_Set)
+	oidDebug_Cmd_RunScript_While			= AddToggleOption("Debug_Cmd_RunScript_While",				SLT.Debug_Cmd_RunScript_While)
+	oidDebug_Extension						= AddToggleOption("Debug_Extension", 						SLT.Debug_Extension)
+	oidDebug_Extension_Core					= AddToggleOption("Debug_Extension_Core", 					SLT.Debug_Extension_Core)
+	oidDebug_Extension_Core_Keymapping		= AddToggleOption("Debug_Extension_Core_Keymapping",		SLT.Debug_Extension_Core_Keymapping)
+	oidDebug_Extension_Core_Timer			= AddToggleOption("Debug_Extension_Core_Timer",				SLT.Debug_Extension_Core_Timer)
+	oidDebug_Extension_Core_TopOfTheHour	= AddToggleOption("Debug_Extension_Core_TopOfTheHour",		SLT.Debug_Extension_Core_TopOfTheHour)
+	oidDebug_Extension_SexLab				= AddToggleOption("Debug_Extension_SexLab", 				SLT.Debug_Extension_SexLab)
+	oidDebug_Extension_OStim				= AddToggleOption("Debug_Extension_OStim",	 				SLT.Debug_Extension_OStim)
+	oidDebug_Extension_CustomResolveScoped	= AddToggleOption("Debug_Extension_CustomResolveScoped",	SLT.Debug_Extension_CustomResolveScoped)
+	oidDebug_Setup							= AddToggleOption("Debug_Setup",							SLT.Debug_Setup)
+	AddEmptyOption()
+	AddEmptyOption()
+	oidResetSLT		= AddTextOption("$SLT_BTN_RESET_SL_TRIGGERS", "")
+EndFunction
 
 ; All
 Event OnOptionHighlight(int option)
@@ -1339,51 +1405,9 @@ Event OnOptionInputAccept(int option, string _input)
 	endif
 EndEvent
 
-
-Function ShowHeaderPage()
-	SetCursorFillMode(TOP_TO_BOTTOM)
-	int ver = GetVersion()
-	AddHeaderOption("SL Triggers")
-	AddHeaderOption("(" + sl_triggers.GetTranslatedString("$SLT_LBL_VERSION") + " " + (ver as string) + ")")
-	
-	AddHeaderOption("$SLT_LBL_GLOBAL_SETTINGS")
-	AddEmptyOption()
-	oidEnabled    							= AddToggleOption("$SLT_LBL_ENABLED_QUESTION", 				SLT.IsEnabled)
-	oidDebugMsg   							= AddToggleOption("$SLT_LBL_DEBUG_MESSAGES", 				SLT.bDebugMsg)
-	AddEmptyOption()
-	AddHeaderOption("$SLT_LBL_DEBUG_FLAGS")
-	oidDebug_Cmd							= AddToggleOption("Debug_Cmd", 								SLT.Debug_Cmd)
-	oidDebug_Cmd_Functions					= AddToggleOption("Debug_Cmd_Functions", 					SLT.Debug_Cmd_Functions)
-	oidDebug_Cmd_InternalResolve			= AddToggleOption("Debug_Cmd_InternalResolve", 				SLT.Debug_Cmd_InternalResolve)
-	oidDebug_Cmd_ResolveForm				= AddToggleOption("Debug_Cmd_ResolveForm", 					SLT.Debug_Cmd_ResolveForm)
-	oidDebug_Cmd_RunScript					= AddToggleOption("Debug_Cmd_RunScript", 					SLT.Debug_Cmd_RunScript)
-	oidDebug_Cmd_RunScript_Blocks 			= AddToggleOption("Debug_Cmd_RunScript_Blocks", 			SLT.Debug_Cmd_RunScript_Blocks)
-	oidDebug_Cmd_RunScript_Set				= AddToggleOption("Debug_Cmd_RunScript_Set", 				SLT.Debug_Cmd_RunScript_Set)
-	oidDebug_Cmd_RunScript_While			= AddToggleOption("Debug_Cmd_RunScript_While",				SLT.Debug_Cmd_RunScript_While)
-	oidDebug_Extension						= AddToggleOption("Debug_Extension", 						SLT.Debug_Extension)
-	oidDebug_Extension_Core					= AddToggleOption("Debug_Extension_Core", 					SLT.Debug_Extension_Core)
-	oidDebug_Extension_Core_Keymapping		= AddToggleOption("Debug_Extension_Core_Keymapping",		SLT.Debug_Extension_Core_Keymapping)
-	oidDebug_Extension_Core_Timer			= AddToggleOption("Debug_Extension_Core_Timer",				SLT.Debug_Extension_Core_Timer)
-	oidDebug_Extension_Core_TopOfTheHour	= AddToggleOption("Debug_Extension_Core_TopOfTheHour",		SLT.Debug_Extension_Core_TopOfTheHour)
-	oidDebug_Extension_SexLab				= AddToggleOption("Debug_Extension_SexLab", 				SLT.Debug_Extension_SexLab)
-	oidDebug_Extension_OStim				= AddToggleOption("Debug_Extension_OStim",	 				SLT.Debug_Extension_OStim)
-	oidDebug_Extension_CustomResolveScoped	= AddToggleOption("Debug_Extension_CustomResolveScoped",	SLT.Debug_Extension_CustomResolveScoped)
-	oidDebug_Setup							= AddToggleOption("Debug_Setup",							SLT.Debug_Setup)
-	AddEmptyOption()
-	AddEmptyOption()
-	oidResetSLT		= AddTextOption("$SLT_BTN_RESET_SL_TRIGGERS", "")
-EndFunction
-
 bool Function IsExtensionPage()
 	return (CurrentExtensionKey != "")
 EndFunction
-
-
-Function SetExtensionPages(string[] _extensionFriendlyNames, string[] _extensionKeys)
-	extensionPages = _extensionFriendlyNames
-	extensionKeys = _extensionKeys
-EndFunction
-
 
 string Function Trigger_Create()
 	string triggerKey
@@ -1451,36 +1475,10 @@ EndFunction
 
 ;;;;;;;;;;;;;;;
 ;; Attribute related functions
-string[] Function GetAttributeNames(bool _istk)
-	string _filename = FN_X_Attributes(CurrentExtensionKey)
-
-	string jkey
-	if _istk
-		jkey = "trigger_attributes"
-	else
-		jkey = "settings_attributes"
-	endif
-	
-	int listcount = JsonUtil.PathCount(_filename, jkey)
-	int idx = 0
-	string[] list
-	string[] results
-	while idx < listcount
-		list = JsonUtil.PathStringElements(_filename, jkey + "[" + idx + "]")
-		if list.Length && StringUtil.GetNthChar(list[0], 0) != "#"
-			if !results
-				results = PapyrusUtil.StringArray(0)
-			endif
-			results = PapyrusUtil.PushString(results, list[0])
-		endif
-		idx += 1
-	endwhile
-
-	return results
-EndFunction
 
 int Function GetAttrWidget(bool _istk, string _attr)
-	string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	;string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	string[] data = sl_triggers_internal.MCMGetAttributeData(_istk, CurrentExtensionKey, _attr, "widget")
 	if data.Length > 0
 		string strwidg = data[0]
 		if strwidg == "slider"
@@ -1503,7 +1501,8 @@ int Function GetAttrWidget(bool _istk, string _attr)
 EndFunction
 
 int Function GetAttrType(bool _istk, string _attr)
-	string[] data = GetExtensionAttributeData(_istk, _attr, "type")
+	;string[] data = GetExtensionAttributeData(_istk, _attr, "type")
+	string[] data = sl_triggers_internal.MCMGetAttributeData(_istk, CurrentExtensionKey, _attr, "type")
 	int ptype = -1
 	if data.Length > 0
 		string strtype = data[0]
@@ -1521,7 +1520,8 @@ int Function GetAttrType(bool _istk, string _attr)
 EndFunction
 
 float Function GetAttrMinValue(bool _istk, string _attr)
-	string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	;string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	string[] data = sl_triggers_internal.MCMGetAttributeData(_istk, CurrentExtensionKey, _attr, "widget")
 	float info
 	if data.Length >= 5 && data[0] == "slider"
 		info = data[2] as float
@@ -1530,7 +1530,8 @@ float Function GetAttrMinValue(bool _istk, string _attr)
 EndFunction
 
 float Function GetAttrMaxValue(bool _istk, string _attr)
-	string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	;string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	string[] data = sl_triggers_internal.MCMGetAttributeData(_istk, CurrentExtensionKey, _attr, "widget")
 	float info
 	if data.Length >= 5 && data[0] == "slider"
 		info = data[3] as float
@@ -1539,7 +1540,8 @@ float Function GetAttrMaxValue(bool _istk, string _attr)
 EndFunction
 
 float Function GetAttrInterval(bool _istk, string _attr)
-	string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	;string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	string[] data = sl_triggers_internal.MCMGetAttributeData(_istk, CurrentExtensionKey, _attr, "widget")
 	float info
 	if data.Length >= 5 && data[0] == "slider"
 		info = data[4] as float
@@ -1548,7 +1550,8 @@ float Function GetAttrInterval(bool _istk, string _attr)
 EndFunction
 
 int Function GetAttrDefaultValue(bool _istk, string _attr)
-	string[] data = GetExtensionAttributeData(_istk, _attr, "type")
+	;string[] data = GetExtensionAttributeData(_istk, _attr, "type")
+	string[] data = sl_triggers_internal.MCMGetAttributeData(_istk, CurrentExtensionKey, _attr, "type")
 	int info
 	if data.Length > 1 && data[0] == "int"
 		info = data[1] as int
@@ -1557,7 +1560,8 @@ int Function GetAttrDefaultValue(bool _istk, string _attr)
 EndFunction
 
 float Function GetAttrDefaultFloat(bool _istk, string _attr)
-	string[] data = GetExtensionAttributeData(_istk, _attr, "type")
+	;string[] data = GetExtensionAttributeData(_istk, _attr, "type")
+	string[] data = sl_triggers_internal.MCMGetAttributeData(_istk, CurrentExtensionKey, _attr, "type")
 	float info
 	if data.Length > 1 && data[0] == "float"
 		info = data[1] as float
@@ -1566,7 +1570,8 @@ float Function GetAttrDefaultFloat(bool _istk, string _attr)
 EndFunction
 
 string Function GetAttrDefaultString(bool _istk, string _attr)
-	string[] data = GetExtensionAttributeData(_istk, _attr, "type")
+	;string[] data = GetExtensionAttributeData(_istk, _attr, "type")
+	string[] data = sl_triggers_internal.MCMGetAttributeData(_istk, CurrentExtensionKey, _attr, "type")
 	string info
 	if data.Length > 1 && data[0] == "string"
 		info = data[1]
@@ -1575,7 +1580,8 @@ string Function GetAttrDefaultString(bool _istk, string _attr)
 EndFunction
 
 string Function GetAttrLabel(bool _istk, string _attr)
-	string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	;string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	string[] data = sl_triggers_internal.MCMGetAttributeData(_istk, CurrentExtensionKey, _attr, "widget")
 	string info
 	if data.Length > 1
 		info = data[1]
@@ -1584,7 +1590,8 @@ string Function GetAttrLabel(bool _istk, string _attr)
 EndFunction
 
 string Function GetAttrFormatString(bool _istk, string _attr)
-	string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	;string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	string[] data = sl_triggers_internal.MCMGetAttributeData(_istk, CurrentExtensionKey, _attr, "widget")
 	string info
 	if data.Length > 5 && data[0] == "slider"
 		info = data[5] as string
@@ -1593,7 +1600,8 @@ string Function GetAttrFormatString(bool _istk, string _attr)
 EndFunction
 
 int Function GetAttrDefaultIndex(bool _istk, string _attr)
-	string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	;string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	string[] data = sl_triggers_internal.MCMGetAttributeData(_istk, CurrentExtensionKey, _attr, "widget")
 	int info
 	if data.Length >= 2 && data[0] == "menu"
 		info = data[2] as int
@@ -1602,7 +1610,8 @@ int Function GetAttrDefaultIndex(bool _istk, string _attr)
 EndFunction
 
 string[] Function GetAttrMenuSelections(bool _istk, string _attr)
-	string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	;string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	string[] data = sl_triggers_internal.MCMGetAttributeData(_istk, CurrentExtensionKey, _attr, "widget")
 	string[] info
 	if data.Length > 3 && data[0] == "menu"
 		info = PapyrusUtil.SliceStringArray(data, 3)
@@ -1612,7 +1621,8 @@ EndFunction
 
 
 int Function GetAttrMenuSelectionIndex(bool _istk, string _attr, string _selection)
-	string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	;string[] data = GetExtensionAttributeData(_istk, _attr, "widget")
+	string[] data = sl_triggers_internal.MCMGetAttributeData(_istk, CurrentExtensionKey, _attr, "widget")
 	int info
 	if data.Length > 0
 		info = data.Find(_selection, 3)
@@ -1621,7 +1631,8 @@ int Function GetAttrMenuSelectionIndex(bool _istk, string _attr, string _selecti
 EndFunction
 
 bool Function HasAttrHighlight(bool _istk, string _attr)
-	string[] data = GetExtensionAttributeData(_istk, _attr, "info")
+	;string[] data = GetExtensionAttributeData(_istk, _attr, "info")
+	string[] data = sl_triggers_internal.MCMGetAttributeData(_istk, CurrentExtensionKey, _attr, "info")
 	string info
 	if data.Length > 0
 		info = data[0]
@@ -1630,200 +1641,11 @@ bool Function HasAttrHighlight(bool _istk, string _attr)
 EndFunction
 
 string Function GetAttrHighlight(bool _istk, string _attr)
-	string[] data = GetExtensionAttributeData(_istk, _attr, "info")
+	;string[] data = GetExtensionAttributeData(_istk, _attr, "info")
+	string[] data = sl_triggers_internal.MCMGetAttributeData(_istk, CurrentExtensionKey, _attr, "info")
 	string info
 	if data.Length > 0
 		info = data[0]
 	endif
 	return info
-EndFunction
-
-
-string[] Function GetLayout(bool _istk, string _dataFile)
-	string[] _layoutData = new string[2]
-
-	; needs to be fixed for our hypothetical FN_SettingsAttributes()
-	string _filename = FN_X_Attributes(CurrentExtensionKey)
-
-	string jkey
-	if _istk
-		jkey = "trigger_layoutconditions"
-	else
-		jkey = "settings_layoutconditions"
-	endif
-
-	int listcount = JsonUtil.PathCount(_filename, jkey)
-	if listcount < 1
-		return _layoutData
-	endif
-
-	int idx = 0
-	string[] list
-	string visibilityKey
-	string _layout
-	string _layoutValue
-	while idx < listcount
-		list = UncommentStringArray(JsonUtil.PathStringElements(_filename, jkey + "[" + idx + "]"))
-		if list.Length > 0 && StringUtil.GetNthChar(list[0], 0) != "#"
-			if !visibilityKey
-				visibilityKey = list[0]
-				_layoutData[1] = visibilityKey
-			elseif list.Length > 1
-				_layout = list[1]
-				_layoutValue = list[0]
-		
-				int ptype = GetAttrType(_istk, visibilityKey)
-				if ptype == PTYPE_INT
-					int _layoutTest = _layoutValue as int
-					int _dataTest = JsonUtil.GetIntValue(_dataFile, visibilityKey)
-					bool _matches = (_layoutTest == _dataTest)
-					if _matches
-						; but only if it has an entry.. no fair sending us on a wild goose chase
-						string[] rowone = GetExtensionLayoutData(_istk, _layout, 0)
-						if rowone
-							; FOUND
-							_layoutData[0] = _layout
-							_layoutData[1] = visibilityKey
-							return _layoutData
-						endif
-					endif
-				elseif ptype == PTYPE_STRING
-					string _dataTest = JsonUtil.GetStringValue(_dataFile, visibilityKey)
-					bool _matches = (_layoutValue == _dataTest)
-					if _matches
-						; but only if it has an entry.. no fair sending us on a wild goose chase
-						string[] rowone = GetExtensionLayoutData(_istk, _layout, 0)
-						if rowone
-							; FOUND
-							_layoutData[0] = _layout
-							_layoutData[1] = visibilityKey
-							return _layoutData
-						endif
-					endif
-				else
-					; they specified it, it somehow got past, and now we have to deal with it
-					; or ignore it
-				endif
-
-			endif
-		endif
-		idx += 1
-	endwhile
-
-	return _layoutData
-EndFunction
-
-
-
-string[] Function UncommentStringArray(string[] _commentedStringArray)
-	string[] result
-
-	int i = 0
-	while i < _commentedStringArray.Length
-		string strtest = _commentedStringArray[i]
-		string firstchar = StringUtil.GetNthChar(strtest, 0)
-		if firstchar == "#"
-			i = _commentedStringArray.Length
-		endif
-		if !result
-			result = PapyrusUtil.StringArray(0)
-		endif
-		result = PapyrusUtil.PushString(result, strtest)
-		i += 1
-	endwhile
-
-	return result
-EndFunction
-
-string[] Function GetExtensionAttributeData(bool _istk, string _attr, string _info)
-	if !_attr || !_info
-		Debug.Trace("_attr and _info are required")
-		return none
-	endif
-
-	string _filename = FN_X_Attributes(CurrentExtensionKey)
-
-	string jkey
-	if _istk
-		jkey = "trigger_attributes"
-	else
-		jkey = "settings_attributes"
-	endif
-	int listcount = JsonUtil.PathCount(_filename, jkey)
-	int idx = 0
-	string[] list
-
-	while idx < listcount
-		list = JsonUtil.PathStringElements(_filename, jkey + "[" + idx + "]")
-		if list.Length && StringUtil.GetNthChar(list[0], 0) != "#" && list[0] == _attr
-			jkey = list[1]
-			idx = listcount
-		endif
-		idx += 1
-	endwhile
-	
-	listcount = JsonUtil.PathCount(_filename, jkey)
-	idx = 0
-	
-	int jdx = 0
-	string[] results
-	while idx < listcount
-		string ijkey = jkey + "[" + idx + "]"
-		list = JsonUtil.PathStringElements(_filename, ijkey)
-		if list.Length
-			if list[0] == _info
-				jdx = 1
-				while jdx < list.Length
-					string candidate = list[jdx]
-					if StringUtil.GetNthChar(candidate, 1) != "#"
-						if !results
-							results = PapyrusUtil.StringArray(0)
-						endif
-						results = PapyrusUtil.PushString(results, candidate)
-					else
-						jdx = list.Length
-					endif
-					jdx += 1
-				endwhile
-				idx = listcount
-			endif
-		endif
-		idx += 1
-	endwhile
-
-	return results
-EndFunction
-
-
-string[] Function GetExtensionLayoutData(bool _istk, string _layout, int _row)
-	if _row < 0
-		Debug.Trace("_row must be non-negative")
-		return none
-	endif
-
-	; needs to be fixed for our hypothetical FN_SettingsAttributes()
-	string _filename = FN_X_Attributes(CurrentExtensionKey)
-
-	string jkey = _layout
-	if !jkey
-		if _istk
-			jkey = "triggerlayout"
-		else
-			jkey = "settingslayout"
-		endif
-	endif
-	
-	int listcount = JsonUtil.PathCount(_filename, jkey)
-
-	if _row >= listcount
-		Debug.Trace("_row(" + _row + ") out of bounds for listcount(" + listcount + ")")
-		return none
-	endif
-
-	string[] list = UncommentStringArray(JsonUtil.PathStringElements(_filename, jkey + "[" + _row + "]"))
-	if list.Length >= 1
-		return list
-	endif
-
-	return none
 EndFunction

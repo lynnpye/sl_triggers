@@ -32,6 +32,12 @@ static void LogInfo(PAPYRUS_NATIVE_DECL, std::string_view logmsg);
 
 static void LogWarn(PAPYRUS_NATIVE_DECL, std::string_view logmsg);
 
+static std::vector<std::string> MCMGetAttributeData(PAPYRUS_NATIVE_DECL, bool isTriggerAttribute, std::string_view extensionKey, std::string_view attrName, std::string_view info);
+
+static std::vector<std::string> MCMGetLayout(PAPYRUS_NATIVE_DECL, bool isTriggerAttribute, std::string_view extensionKey, std::string_view dataFile);
+
+static std::vector<std::string> MCMGetLayoutData(PAPYRUS_NATIVE_DECL, bool isTriggerAttribute, std::string_view extensionKey, std::string_view layout, int row);
+
 static std::int32_t NormalizeScriptfilename(PAPYRUS_NATIVE_DECL, std::string_view scriptfilename);
 
 static std::vector<std::int32_t> NormalizeTimestamp(PAPYRUS_NATIVE_DECL, std::string_view sourceTimestamp);
@@ -198,6 +204,18 @@ public:
         SLT::SLTNativeFunctions::LogWarn(PAPYRUS_FN_PARMS, logmsg);
     }
 
+    static std::vector<std::string> MCMGetAttributeData(PAPYRUS_STATIC_ARGS, bool isTriggerAttribute, std::string_view extensionKey, std::string_view attrName, std::string_view info) {
+        return SLTNativeFunctions::MCMGetAttributeData(PAPYRUS_FN_PARMS, isTriggerAttribute, extensionKey, attrName, info);
+    }
+
+    static std::vector<std::string> MCMGetLayout(PAPYRUS_STATIC_ARGS, bool isTriggerAttribute, std::string_view extensionKey, std::string_view dataFile) {
+        return SLTNativeFunctions::MCMGetLayout(PAPYRUS_FN_PARMS, isTriggerAttribute, extensionKey, dataFile);
+    }
+
+    static std::vector<std::string> MCMGetLayoutData(PAPYRUS_STATIC_ARGS, bool isTriggerAttribute, std::string_view extensionKey, std::string_view layout, std::int32_t row) {
+        return SLTNativeFunctions::MCMGetLayoutData(PAPYRUS_FN_PARMS, isTriggerAttribute, extensionKey, layout, row);
+    }
+
     static bool RunOperationOnActor(PAPYRUS_STATIC_ARGS, RE::Actor* cmdTarget, RE::ActiveEffect* cmdPrimary,
                                             std::vector<std::string> tokens) {
         return SLT::SLTNativeFunctions::RunOperationOnActor(PAPYRUS_FN_PARMS, cmdTarget, cmdPrimary, tokens);
@@ -249,6 +267,9 @@ public:
         reg.RegisterStatic("LogError", &SLTInternalPapyrusFunctionProvider::LogError);
         reg.RegisterStatic("LogInfo", &SLTInternalPapyrusFunctionProvider::LogInfo);
         reg.RegisterStatic("LogWarn", &SLTInternalPapyrusFunctionProvider::LogWarn);
+        reg.RegisterStatic("MCMGetAttributeData", &SLTInternalPapyrusFunctionProvider::MCMGetAttributeData);
+        reg.RegisterStatic("MCMGetLayout", &SLTInternalPapyrusFunctionProvider::MCMGetLayout);
+        reg.RegisterStatic("MCMGetLayoutData", &SLTInternalPapyrusFunctionProvider::MCMGetLayoutData);
         reg.RegisterStatic("RunOperationOnActor", &SLTInternalPapyrusFunctionProvider::RunOperationOnActor);
         reg.RegisterStatic("SetExtensionEnabled", &SLTInternalPapyrusFunctionProvider::SetExtensionEnabled);
         reg.RegisterStatic("SetCombatSinkEnabled", &SLTInternalPapyrusFunctionProvider::SetCombatSinkEnabled);

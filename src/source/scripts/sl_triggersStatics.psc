@@ -241,6 +241,10 @@ EndFunction
 
 ;;;;;;;;
 ; Utility functions
+string Function debstrjoin(string[] strlist) global
+	return PapyrusUtil.StringJoin(strlist, "), (")
+EndFunction
+
 bool Function GetFlag(bool bDbgOut, string filename, string flagname, bool defaultValue = false) global
 	if JsonUtil.HasIntValue(filename, flagname)
 		JsonUtil.UnsetIntValue(filename, flagname)

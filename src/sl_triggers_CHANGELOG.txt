@@ -21,6 +21,7 @@
             2 - Humanoid - Actor.HasKeyword(ActorTypeNPC)
             3 - Undead - Actor.HasKeyword(ActorTypeUndead)
             4 - Creature - presumed, default if nothing else matches
+    enhancement: Improved MCM performance
     bugfix: added SexLab actor_getgender override back
     bugfix: replaced script execution implementation from stack to queue
 

@@ -352,6 +352,269 @@ void SLTNativeFunctions::LogWarn(PAPYRUS_NATIVE_DECL, std::string_view logmsg) {
     logger::warn("{}", logmsg);
 }
 
+std::vector<std::string> SLTNativeFunctions::MCMGetAttributeData(PAPYRUS_NATIVE_DECL, bool isTriggerAttribute, std::string_view extensionKey, std::string_view attrName, std::string_view info) {
+    std::vector<std::string> result;
+
+    if (extensionKey.empty() || attrName.empty() || info.empty()) {
+        logger::error("MCMGetAttributeData: extensionKey({}), attrName({}), and info({}) are all required to be non-empty; returning empty list", extensionKey, attrName, info);
+        return result;
+    }
+
+    fs::path file = GetExtensionAttributesFile(extensionKey);
+
+    if (fs::exists(file)) {
+        std::string jkey = isTriggerAttribute ? "trigger_attributes" : "settings_attributes";
+        
+        nlohmann::json j;
+
+        try {
+            std::ifstream in(file);
+            in >> j;
+        } catch (...) {
+            logger::error("MCMGetAttributeData: Exception while loading JSON from {}", file.filename().string());
+        }
+
+        if (j.contains(jkey)) {
+            if (j[jkey].is_array()) {
+                std::string mappedKey;
+                for (const auto& attributeEntry : j[jkey]) {
+                    if (attributeEntry.is_array() && !attributeEntry.empty() && attributeEntry.size() > 1) {
+                        std::string firstElement = attributeEntry[0];
+                        if (!firstElement.empty() && firstElement[0] != '#' && Util::String::iEquals(attrName, firstElement)) {
+                            mappedKey = attributeEntry[1];
+                            break;
+                        }
+                    }
+                }
+                
+                if (j.contains(mappedKey)) {
+                    if (j[mappedKey].is_array()) {
+                        for (const auto& mappedEntry : j[mappedKey]) {
+                            if (mappedEntry.is_array() && !mappedEntry.empty() && mappedEntry.size() > 1) {
+                                std::string firstElement = mappedEntry[0];
+                                if (!firstElement.empty() && firstElement[0] != '#' && Util::String::iEquals(info, firstElement)) {
+                                    for (int i = 1; i < mappedEntry.size(); i++) {
+                                        std::string mappedEntryValue = mappedEntry[i];
+                                        if (mappedEntryValue[0] == '#')
+                                            break;
+                                        result.push_back(mappedEntry[i]);
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        logger::error("MCMGetAttributeData: Mapped attribute key {} not an array in file {}", mappedKey, file.filename().string());    
+                    }
+                } else {
+                    logger::error("MCMGetAttributeData: Mapped attribute key {} missing in file {}", mappedKey, file.filename().string());
+                }
+            } else {
+                logger::error("MCMGetAttributeData: Extension attributes file {} entry for {} is not an array", file.filename().string(), jkey);
+            }
+        } else {
+            logger::error("MCMGetAttributeData: Extension attributes file {} does not have an entry for {}", file.filename().string(), jkey);
+        }
+    } else {
+        logger::error("MCMGetAttributeData: File does not exist: {}", file.filename().string());
+    }
+
+    return result;
+}
+
+namespace {
+enum PTYPE {
+    PTYPE_STRING    = 1,
+    PTYPE_INT       = 2,
+    PTYPE_FLOAT     = 3,
+    PTYPE_FORM      = 4
+};
+
+int MCMGetAttrType(PAPYRUS_NATIVE_DECL, bool isTriggerAttribute, std::string_view extensionKey, std::string_view attrName) {
+    auto data = SLTNativeFunctions::MCMGetAttributeData(PAPYRUS_FN_PARMS, isTriggerAttribute, extensionKey, attrName, "type");
+    if (data.size() > 0) {
+        if (Util::String::iEquals(data[0], "int")) return PTYPE_INT;
+        if (Util::String::iEquals(data[0], "float")) return PTYPE_FLOAT;
+        if (Util::String::iEquals(data[0], "string")) return PTYPE_STRING;
+        if (Util::String::iEquals(data[0], "form")) return PTYPE_FORM;
+    }
+    return -1;
+}
+}
+
+std::vector<std::string> SLTNativeFunctions::MCMGetLayout(PAPYRUS_NATIVE_DECL, bool isTriggerAttribute, std::string_view extensionKey, std::string_view dataFileName) {
+    std::vector<std::string> result;
+    result.resize(2);
+
+    if (extensionKey.empty() || dataFileName.empty()) {
+        logger::error("MCMGetLayout: extensionKey({}), dataFileName({}) are both required to be non-empty; returning empty list", extensionKey, dataFileName);
+        return result;
+    }
+
+    fs::path file = GetExtensionAttributesFile(extensionKey);
+    fs::path dataFile;
+    if (isTriggerAttribute) {
+        dataFile = GetTriggerFile(extensionKey, dataFileName);
+    } else {
+        dataFile = GetExtensionSettingsFile(extensionKey);
+    }
+
+    if (fs::exists(file)) {
+        std::string jkey = isTriggerAttribute ? "trigger_layoutconditions" : "settings_layoutconditions";
+        
+        nlohmann::json j;
+
+        try {
+            std::ifstream in(file);
+            in >> j;
+        } catch (...) {
+            logger::error("MCMGetLayout: Exception while loading JSON from {}", file.filename().string());
+            return result;
+        }
+
+        if (j.contains(jkey) && j[jkey].is_array()) {
+            std::string visibilityKey;
+
+            for (const auto& attributeEntry : j[jkey]) {
+                if (attributeEntry.is_array() && !attributeEntry.empty()) {
+                    std::string layoutConditionValue = attributeEntry[0];
+                    if (!layoutConditionValue.empty() && layoutConditionValue[0] != '#') {
+                        // the first uncommented list in trigger_layoutconditions provides us the key for comparisons
+                        if (visibilityKey.empty()) {
+                            visibilityKey = layoutConditionValue;
+                        // afterward, any pair (or higher) gets processed
+                        } else if (attributeEntry.size() > 1) {
+                            int ptype = MCMGetAttrType(PAPYRUS_FN_PARMS, isTriggerAttribute, extensionKey, visibilityKey);
+                            if (PTYPE_INT == ptype) {
+                                int checkValue = Util::String::StringToIntWithImplicitHexConversion(layoutConditionValue).value_or(0);
+                                nlohmann::json data;
+
+                                try {
+                                    std::ifstream in(dataFile);
+                                    in >> data;
+                                } catch (...) {
+                                    logger::error("MCMGetLayout: Exception while loading JSON from {}", dataFile.filename().string());
+                                    return result;
+                                }
+
+                                int dataValue = 0;
+                                if (data.contains("int") && data["int"].contains(visibilityKey)) {
+                                    dataValue = data["int"][visibilityKey];
+                                }
+
+                                if (checkValue == dataValue) {
+                                    std::string layoutName = attributeEntry[1];
+                                    std::vector<std::string> rowone = MCMGetLayoutData(PAPYRUS_FN_PARMS, isTriggerAttribute, extensionKey, layoutName, 0);
+                                    if (rowone.size() > 0) {
+                                        result[0] = layoutName;
+                                        result[1] = visibilityKey;
+                                        return result;
+                                    }
+                                }
+                            } else if (PTYPE_STRING == ptype) {
+                                nlohmann::json data;
+
+                                try {
+                                    std::ifstream in(dataFile);
+                                    in >> data;
+                                } catch (...) {
+                                    logger::error("MCMGetLayout: Exception while loading JSON from {}", dataFile.filename().string());
+                                    return result;
+                                }
+
+                                std::string dataValue;
+                                if (data.contains("int") && data["int"].contains(visibilityKey)) {
+                                    dataValue = data["int"][visibilityKey];
+                                }
+
+                                if (layoutConditionValue == dataValue) {
+                                    std::string layoutName = attributeEntry[1];
+                                    std::vector<std::string> rowone = MCMGetLayoutData(PAPYRUS_FN_PARMS, isTriggerAttribute, extensionKey, layoutName, 0);
+                                    if (rowone.size() > 0) {
+                                        result[0] = layoutName;
+                                        result[1] = visibilityKey;
+                                        return result;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (result.size() == 0) {
+                logger::warn("MCMGetLayout: Extension attributes file {} entry for {} returned no valid attribute names", file.filename().string(), jkey);
+            }
+        } else {
+            return result;
+        }
+    } else {
+        logger::error("MCMGetLayout: File does not exist: {}", file.filename().string());
+    }
+
+    return result;
+}
+
+std::vector<std::string> SLTNativeFunctions::MCMGetLayoutData(PAPYRUS_NATIVE_DECL, bool isTriggerAttribute, std::string_view extensionKey, std::string_view layout, std::int32_t row) {
+    std::vector<std::string> result;
+
+    if (extensionKey.empty()) {
+        logger::error("MCMGetLayoutData: extensionKey({}) is required to be non-empty; returning empty list", extensionKey);
+        return result;
+    }
+
+    fs::path file = GetExtensionAttributesFile(extensionKey);
+
+    if (fs::exists(file)) {
+        std::string jkey = std::string(layout);
+        if (jkey.empty()) {
+            if (isTriggerAttribute) {
+                jkey = "triggerlayout";
+            } else {
+                jkey = "settingslayout";
+            }
+        }
+        
+        nlohmann::json j;
+
+        try {
+            std::ifstream in(file);
+            in >> j;
+        } catch (...) {
+            logger::error("MCMGetLayoutData: Exception while loading JSON from {}", file.filename().string());
+            return result;
+        }
+
+        if (j.contains(jkey)) {
+            if (j[jkey].is_array()) {
+                for (auto it = j[jkey].begin(); it != j[jkey].end(); ++it) {
+                    const auto& attributeEntry = *it;
+                    if (attributeEntry.is_array() && !attributeEntry.empty()) {
+                        std::string elem = attributeEntry[0];
+                        if (!elem.empty() && elem[0] != '#') {
+                            result.push_back(elem);
+                        }
+                        if (attributeEntry.size() > 1) {
+                            elem = attributeEntry[1];
+                            if (!elem.empty() && elem[0] != '#') {
+                                result.push_back(elem);
+                            }
+                        }
+                        if (std::next(it) != j[jkey].end()) {
+                            result.push_back("/");
+                        }
+                    }
+                }
+            } else {
+                logger::error("MCMGetLayoutData: Extension attributes file {} entry for {} is not an array", file.filename().string(), jkey);
+            }
+        } else {
+            logger::error("MCMGetLayoutData: Extension attributes file {} does not have an entry for {}", file.filename().string(), jkey);
+        }
+    } else {
+        logger::error("MCMGetLayoutData: File does not exist: {}", file.filename().string());
+    }
+
+    return result;
+}
 /*
 0 - unrecognized
 1 - is explicitly .json

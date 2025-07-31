@@ -202,11 +202,12 @@ Function RefreshTriggerCache()
 EndFunction
 
 Function CheckVersionUpdates()
+	int oldVersion = SLTRVersion
 	int newVersion = GetModVersion()
 	If (SLT.Debug_Extension || SLT.Debug_Setup)
-		SLTDebugMsg("Extension(" + SLTExtensionKey + ").CheckVersionUpdates: oldVersion(" + SLTRVersion + ") newVersion(" + newVersion + ")")
+		SLTDebugMsg("Extension(" + SLTExtensionKey + ").CheckVersionUpdates: oldVersion(" + oldVersion + ") newVersion(" + newVersion + ")")
 	EndIf
-	int oldVersion = SLTRVersion
+	
 	SLTRVersion = newVersion
 
 	if (newVersion > oldVersion)
@@ -216,7 +217,7 @@ EndFunction
 
 Function HandleVersionUpdate(int oldVersion, int newVersion)
 	If (SLT.Debug_Extension || SLT.Debug_Setup)
-		SLTDebugMsg("Extension(" + SLTExtensionKey + ").HandleVersionUpdate: oldVersion(" + SLTRVersion + ") newVersion(" + newVersion + "): no override defined")
+		SLTDebugMsg("Extension(" + SLTExtensionKey + ").HandleVersionUpdate: oldVersion(" + oldVersion + ") newVersion(" + newVersion + "): no override defined")
 	EndIf
 EndFunction
 
