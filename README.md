@@ -150,3 +150,20 @@ Fotogen's original sl_triggers effort is great and still works well. Plus I had 
 - API support - You can also access the same features through an API if you prefer
 - Console command support - Some features available from the console
 - Additional SLTScript language features - subroutines; script-to-script execution with call arguments; named variables; multiple variable scopes including target(i.e. persistent by Actor) and global(i.e. persistent for lifetime of save)
+
+# Build Instructions
+If you are looking to build anything here, here are a few things to keep in mind:
+
+- The root for sl-triggers development on my machine happens to be `D:\src\sksemods\sl_triggers`
+- I use VSCode (Visual Studio Code) for development
+- I have Visual Studio 2022 for the build tools
+- Prior to launch, I open a Visual Studio Developer Prompt
+  - To start developing for Papyrus: `code <sl_triggers root>`
+    - So in my case, `code D:\src\sksemods\sl_triggers`
+  - To start developing for the C++ Plugin: `code <sl_triggers root>\plugin\sl-triggers`
+    - Yes, that is a hyphen, not an underscore, unlike the root folder
+    - So in my case, `code D:\src\sksemods\sl_triggers\plugin\sl-triggers`
+  - Use of the Developer Prompt is required to make sure the appropriate tools are in the path
+- There are VScode tasks for builds and packaging
+- Uses `jump` for task execution
+- I do *not* reuse the Papyrus VSCode instance to do C++ development, but YMMV
