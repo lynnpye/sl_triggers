@@ -1,3 +1,8 @@
+132
+    Savegame compatibility: Should be savegame compatible
+
+    update: documented target-scope-extended variables
+
 131
     Savegame compatibility: Should be savegame compatible
     

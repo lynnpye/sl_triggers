@@ -76,10 +76,11 @@ Variables
 
 SLTScript supports scoped variables:
 
-   Local variables: $<name> | $local.<name> - Available only to the currently executing script
-   Thread variables: $thread.<name> - Available to any script on the current thread/callchain
-   Target variables: $target.<name> - Available to any script running on the target
-   Global variables: $global.<name> - Available to all scripts, persistent across saves
+   Local variables: $variableName | $local.variableName - Available only to the currently executing script
+   Thread variables: $thread.variableName - Available to any script on the current thread/callchain
+   Target variables: $target.variableName - Available to any script running on the target
+       Target scope extension: $target<otherActor>.variableName - Allows access to another target's variables (i.e. not $system.self)
+   Global variables: $global.variableName - Available to all scripts, persistent across saves
 
 Variable names can include any of the following characters after the scope: A-Za-z0-9..
 
