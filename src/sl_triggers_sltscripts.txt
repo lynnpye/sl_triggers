@@ -178,6 +178,10 @@ $system.isavailable.core
 
 bool - (Added by SLTR Core) is the SLTR Core extension available and enabled (very rare you would want this false)
 
+$system.tohelapsed
+
+float - (Added by SLTR Core) actual elapsed time in hours since the previous top of the hour (may be larger than 1.0 if e.g. sleeping or traveling)
+
 $system.isavailable.sexlab
 
 bool - (Added by SLTR SexLab) is the SLTR SexLab extension available and enabled (would be false if you installed on a system without SexLab)
@@ -301,18 +305,6 @@ int - (Added by SLTR Core) (for Player On Hit) the source FormID (weapon/spell) 
 $request.core.playeronhit.projectile
 
 int - (Added by SLTR Core) (for Player On Hit) the projectile FormID used for the attack if one was involved
-
- Core
-
-core scoped variables are provided by the Core extension
-
-Variable
-
-Returns
-
-$core.tohelapsed
-
-float - actual elapsed time in hours since the previous top of the hour (may be larger than 1.0 if e.g. sleeping or traveling)
 
  Data Types
 

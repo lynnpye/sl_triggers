@@ -286,6 +286,9 @@ bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string scope, strin
 		if token == "is_available.core"
 			CmdPrimary.CustomResolveBoolResult = IsEnabled
 			return true
+		elseif token == "toh_elapsed"
+			CmdPrimary.CustomResolveFloatResult = TohElapsedTime
+			return true
 		endif
 	elseif scope == "request"
 		if token == "core.activatedContainer"

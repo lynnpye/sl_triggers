@@ -2,6 +2,7 @@
     Savegame compatibility: Should be savegame compatible
 
     update: documented target-scope-extended variables
+    change: $core.toh_elapsed has been moved to $system.toh_elapsed (technicall a script breaking change, but raise your hand if you are using this... didn't think so :)
 
 131
     Savegame compatibility: Should be savegame compatible

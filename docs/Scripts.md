@@ -85,6 +85,7 @@ Variable names can include any of the following characters after the scope: `A-Z
 |`$system.sessionid`|int - the current SLTR sessionid (changes with each load of a save or creation of a new game)|
 |`$system.forms.gold`|Form - returns the Form for gold (i.e. "0xf|Skyrim.esm")|
 |`$system.is_available.core`|bool - (Added by SLTR Core) is the SLTR Core extension available and enabled (very rare you would want this false)|
+|`$system.toh_elapsed`|float - (Added by SLTR Core) actual elapsed time in hours since the previous top of the hour (may be larger than 1.0 if e.g. sleeping or traveling)|
 |`$system.is_available.sexlab`|bool - (Added by SLTR SexLab) is the SLTR SexLab extension available and enabled (would be false if you installed on a system without SexLab)|
 |`$system.partner`|Actor - (Added by SLTR SexLab) the first member of the target Actor's current SexLab scene that is not the target Actor (same as `$sexlab.partner1`)|
 |`$system.partner1`|Actor - (Added by SLTR SexLab) the first member of the target Actor's current SexLab scene that is not the target Actor (same as `$sexlab.partner`)|
@@ -120,12 +121,6 @@ Variable names can include any of the following characters after the scope: `A-Z
 |`$request.core.player_on_hit.target`|Form - (Added by SLTR Core) (for Player On Hit) the Player if the Player was being attacked, their opponent if the Player was attacking|
 |`$request.core.player_on_hit.source`|int - (Added by SLTR Core) (for Player On Hit) the source FormID (weapon/spell) used for the attack|
 |`$request.core.player_on_hit.projectile`|int - (Added by SLTR Core) (for Player On Hit) the projectile FormID used for the attack if one was involved|
-
-#### Core
-`core` scoped variables are provided by the Core extension
-|Variable|Returns|
-|---|---|
-|`$core.toh_elapsed`|float - actual elapsed time in hours since the previous top of the hour (may be larger than 1.0 if e.g. sleeping or traveling)|
 
 ### Data Types
 Data types are preserved and coerced, with `string` as a default fallback. Forms will be "coerced" to their FormID.
