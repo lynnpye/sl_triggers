@@ -74,7 +74,7 @@ EndProperty
 
 int					Property SLTRVersion = 0 Auto Hidden
 
-string kglobal_map_prefix = "SLTR:global:maps:"
+string Property kglobal_map_prefix = "SLTR:global:maps:" Auto Hidden
 
 ; duplicated from sl_triggersCmd
 int Property VS_SCOPE = 0 AutoReadOnly
@@ -863,12 +863,23 @@ Form Function GetGlobalVarForm(sl_triggersCmd cmdPrimary, string[] varscope, For
 	return missing
 EndFunction
 
+function UnsetGlobalMapKey(sl_triggersCmd cmdPrimary, string[] varscope, string mapkey)
+    if !mapkey
+        cmdPrimary.SFW("Attempted to unset empty map key: varscope(" + VarScopeToString(varscope) + ") mapkey(" + mapkey + ")")
+    else
+        StorageUtil.UnsetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + mapkey)
+        StorageUtil.UnsetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + mapkey)
+        StorageUtil.StringListRemove(self, kglobal_map_prefix + varscope[VS_NAME] + ":", mapkey)
+    endif
+endfunction
+
 string Function SetGlobalVarString(string[] varscope, string value)
 	int i = globalVarKeys.Find(varscope[VS_NAME], 0)
 	if i < 0
 		globalVarKeys = PapyrusUtil.PushString(globalVarKeys, varscope[VS_NAME])
 		If (varscope[VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(self, kglobal_map_prefix + varscope[VS_NAME] + ":", varscope[VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_STRING)
 			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
 			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_MAP)
@@ -879,6 +890,7 @@ string Function SetGlobalVarString(string[] varscope, string value)
 	else
 		If (varscope[VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(self, kglobal_map_prefix + varscope[VS_NAME] + ":", varscope[VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_STRING)
 			globalVarTypes[i] = RT_MAP
 		else
@@ -895,6 +907,7 @@ string Function SetGlobalVarLabel(string[] varscope, string value)
 		globalVarKeys = PapyrusUtil.PushString(globalVarKeys, varscope[VS_NAME])
 		If (varscope[VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(self, kglobal_map_prefix + varscope[VS_NAME] + ":", varscope[VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_LABEL)
 			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
 			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_MAP)
@@ -905,6 +918,7 @@ string Function SetGlobalVarLabel(string[] varscope, string value)
 	else
 		If (varscope[VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(self, kglobal_map_prefix + varscope[VS_NAME] + ":", varscope[VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_LABEL)
 			globalVarTypes[i] = RT_MAP
 		else
@@ -925,6 +939,7 @@ bool Function SetGlobalVarBool(string[] varscope, bool boolvalue)
 		globalVarKeys = PapyrusUtil.PushString(globalVarKeys, varscope[VS_NAME])
 		If (varscope[VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(self, kglobal_map_prefix + varscope[VS_NAME] + ":", varscope[VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_BOOL)
 			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
 			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_MAP)
@@ -935,6 +950,7 @@ bool Function SetGlobalVarBool(string[] varscope, bool boolvalue)
     else
 		If (varscope[VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(self, kglobal_map_prefix + varscope[VS_NAME] + ":", varscope[VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_BOOL)
 			globalVarTypes[i] = RT_MAP
 		else
@@ -951,6 +967,7 @@ int Function SetGlobalVarInt(string[] varscope, int value)
 		globalVarKeys = PapyrusUtil.PushString(globalVarKeys, varscope[VS_NAME])
 		If (varscope[VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(self, kglobal_map_prefix + varscope[VS_NAME] + ":", varscope[VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_INT)
 			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
 			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_MAP)
@@ -961,6 +978,7 @@ int Function SetGlobalVarInt(string[] varscope, int value)
     else
 		If (varscope[VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(self, kglobal_map_prefix + varscope[VS_NAME] + ":", varscope[VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_INT)
 			globalVarTypes[i] = RT_MAP
 		else
@@ -977,6 +995,7 @@ float Function SetGlobalVarFloat(string[] varscope, float value)
 		globalVarKeys = PapyrusUtil.PushString(globalVarKeys, varscope[VS_NAME])
 		If (varscope[VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(self, kglobal_map_prefix + varscope[VS_NAME] + ":", varscope[VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_FLOAT)
 			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
 			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_MAP)
@@ -987,6 +1006,7 @@ float Function SetGlobalVarFloat(string[] varscope, float value)
     else
 		If (varscope[VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(self, kglobal_map_prefix + varscope[VS_NAME] + ":", varscope[VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_FLOAT)
 			globalVarTypes[i] = RT_MAP
 		else
@@ -1007,6 +1027,7 @@ Form Function SetGlobalVarForm(string[] varscope, Form formvalue)
 		globalVarKeys = PapyrusUtil.PushString(globalVarKeys, varscope[VS_NAME])
 		If (varscope[VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(self, kglobal_map_prefix + varscope[VS_NAME] + ":", varscope[VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_FORM)
 			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
 			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_MAP)
@@ -1017,6 +1038,7 @@ Form Function SetGlobalVarForm(string[] varscope, Form formvalue)
     else
 		If (varscope[VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(self, kglobal_map_prefix + varscope[VS_NAME] + ":", varscope[VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_FORM)
 			globalVarTypes[i] = RT_MAP
 		else

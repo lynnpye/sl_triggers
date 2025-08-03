@@ -416,9 +416,8 @@ Function SetCustomResolveFromVar(string[] varscope)
     elseif SLT.RT_LABEL == vtype
         CustomResolveLabelResult = GetVarLabel(varscope, "")
     elseif SLT.RT_MAP == vtype
-        if varscope[SLT.VS_MAP_KEY]
-            CustomResolveStringResult = GetVarString(varscope, "")
-        endif
+        SFW("Map not currently valid for assignment")
+        CustomResolveStringResult = ""
     else
         CustomResolveStringResult = ""
     endif
@@ -1772,6 +1771,28 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                 endif
             else
                 SFE("'if': invalid number of arguments")
+            endif
+            ;currentLine += 1
+        elseIf command == "mapunset"
+            if subCommand
+                SFE("'mapunset' is not a valid subcommand")
+            elseif ParamLengthEQ(self, cmdLine.Length, 3)
+                string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
+                if varscope[SLT.VS_SCOPE]
+                    int vt = GetVarType(varscope)
+                    if SLT.RT_MAP == vt
+                        string mapkey = ResolveString(cmdLine[2])
+                        if mapkey
+                            UnsetMapKey(varscope, mapkey)
+                        else
+                            SFE("cannot unset with empty mapkey: resolved from(" + cmdLine[2] + ")")
+                        endif
+                    else
+                        SFE("invalid target for unset: varscope(" + SLT.VarScopeToString(varscope) + ")")
+                    endif
+                else
+                    SFE("no resolve found for variable parameter (" + cmdLine[1] + ") varstr(" + cmdLine[1] + ") varscope(" + SLT.VarScopeToString(varscope) + ")")
+                endif
             endif
             ;currentLine += 1
         elseIf command == "inc"
@@ -3219,6 +3240,7 @@ string Function SetFrameVarString(string[] varscope, string value)
 		frameVarKeys = PapyrusUtil.PushString(frameVarKeys, varscope[SLT.VS_NAME])
 		If (varscope[SLT.VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_STRING)
 			frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
 			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_MAP)
@@ -3229,6 +3251,7 @@ string Function SetFrameVarString(string[] varscope, string value)
     else
         if (varscope[SLT.VS_RESOLVED_MAP_KEY])
             StorageUtil.SetStringValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_STRING)
             frameVarTypes[i] = SLT.RT_MAP
         else
@@ -3245,6 +3268,7 @@ string Function SetFrameVarLabel(string[] varscope, string value)
 		frameVarKeys = PapyrusUtil.PushString(frameVarKeys, varscope[SLT.VS_NAME])
 		If (varscope[SLT.VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_LABEL)
 			frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
 			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_MAP)
@@ -3255,6 +3279,7 @@ string Function SetFrameVarLabel(string[] varscope, string value)
     else
         if (varscope[SLT.VS_RESOLVED_MAP_KEY])
             StorageUtil.SetStringValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_LABEL)
             frameVarTypes[i] = SLT.RT_MAP
         else
@@ -3275,6 +3300,7 @@ bool Function SetFrameVarBool(string[] varscope, bool boolvalue)
 		frameVarKeys = PapyrusUtil.PushString(frameVarKeys, varscope[SLT.VS_NAME])
 		If (varscope[SLT.VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_BOOL)
 			frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
 			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_MAP)
@@ -3285,6 +3311,7 @@ bool Function SetFrameVarBool(string[] varscope, bool boolvalue)
     else
         if (varscope[SLT.VS_RESOLVED_MAP_KEY])
             StorageUtil.SetStringValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_BOOL)
             frameVarTypes[i] = SLT.RT_MAP
         else
@@ -3301,6 +3328,7 @@ int Function SetFrameVarInt(string[] varscope, int value)
 		frameVarKeys = PapyrusUtil.PushString(frameVarKeys, varscope[SLT.VS_NAME])
 		If (varscope[SLT.VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_INT)
 			frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
 			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_MAP)
@@ -3311,6 +3339,7 @@ int Function SetFrameVarInt(string[] varscope, int value)
     else
         if (varscope[SLT.VS_RESOLVED_MAP_KEY])
             StorageUtil.SetStringValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_INT)
             frameVarTypes[i] = SLT.RT_MAP
         else
@@ -3327,6 +3356,7 @@ float Function SetFrameVarFloat(string[] varscope, float value)
 		frameVarKeys = PapyrusUtil.PushString(frameVarKeys, varscope[SLT.VS_NAME])
 		If (varscope[SLT.VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_FLOAT)
 			frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
 			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_MAP)
@@ -3337,6 +3367,7 @@ float Function SetFrameVarFloat(string[] varscope, float value)
     else
         if (varscope[SLT.VS_RESOLVED_MAP_KEY])
             StorageUtil.SetStringValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_FLOAT)
             frameVarTypes[i] = SLT.RT_MAP
         else
@@ -3357,6 +3388,7 @@ Form Function SetFrameVarForm(string[] varscope, Form formvalue)
 		frameVarKeys = PapyrusUtil.PushString(frameVarKeys, varscope[SLT.VS_NAME])
 		If (varscope[SLT.VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_FORM)
 			frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
 			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_MAP)
@@ -3367,6 +3399,7 @@ Form Function SetFrameVarForm(string[] varscope, Form formvalue)
     else
         if (varscope[SLT.VS_RESOLVED_MAP_KEY])
             StorageUtil.SetStringValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_FORM)
             frameVarTypes[i] = SLT.RT_MAP
         else
@@ -3610,6 +3643,7 @@ string Function SetThreadVarString(string[] varscope, string value)
 		threadVarKeys = PapyrusUtil.PushString(threadVarKeys, varscope[SLT.VS_NAME])
 		If (varscope[SLT.VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_STRING)
 			threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
 			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_MAP)
@@ -3620,6 +3654,7 @@ string Function SetThreadVarString(string[] varscope, string value)
     else
         if (varscope[SLT.VS_RESOLVED_MAP_KEY])
             StorageUtil.SetStringValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_STRING)
             threadVarTypes[i] = SLT.RT_MAP
         else
@@ -3636,6 +3671,7 @@ string Function SetThreadVarLabel(string[] varscope, string value)
 		threadVarKeys = PapyrusUtil.PushString(threadVarKeys, varscope[SLT.VS_NAME])
 		If (varscope[SLT.VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_LABEL)
 			threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
 			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_MAP)
@@ -3646,6 +3682,7 @@ string Function SetThreadVarLabel(string[] varscope, string value)
     else
         if (varscope[SLT.VS_RESOLVED_MAP_KEY])
             StorageUtil.SetStringValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_LABEL)
             threadVarTypes[i] = SLT.RT_MAP
         else
@@ -3666,6 +3703,7 @@ bool Function SetThreadVarBool(string[] varscope, bool boolvalue)
 		threadVarKeys = PapyrusUtil.PushString(threadVarKeys, varscope[SLT.VS_NAME])
 		If (varscope[SLT.VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_BOOL)
 			threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
 			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_MAP)
@@ -3676,6 +3714,7 @@ bool Function SetThreadVarBool(string[] varscope, bool boolvalue)
     else
         if (varscope[SLT.VS_RESOLVED_MAP_KEY])
             StorageUtil.SetStringValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_BOOL)
             threadVarTypes[i] = SLT.RT_MAP
         else
@@ -3692,6 +3731,7 @@ int Function SetThreadVarInt(string[] varscope, int value)
 		threadVarKeys = PapyrusUtil.PushString(threadVarKeys, varscope[SLT.VS_NAME])
 		If (varscope[SLT.VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_INT)
 			threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
 			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_MAP)
@@ -3702,6 +3742,7 @@ int Function SetThreadVarInt(string[] varscope, int value)
     else
         if (varscope[SLT.VS_RESOLVED_MAP_KEY])
             StorageUtil.SetStringValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_INT)
             threadVarTypes[i] = SLT.RT_MAP
         else
@@ -3718,6 +3759,7 @@ float Function SetThreadVarFloat(string[] varscope, float value)
 		threadVarKeys = PapyrusUtil.PushString(threadVarKeys, varscope[SLT.VS_NAME])
 		If (varscope[SLT.VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_FLOAT)
 			threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
 			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_MAP)
@@ -3728,6 +3770,7 @@ float Function SetThreadVarFloat(string[] varscope, float value)
     else
         if (varscope[SLT.VS_RESOLVED_MAP_KEY])
             StorageUtil.SetStringValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_FLOAT)
             threadVarTypes[i] = SLT.RT_MAP
         else
@@ -3748,6 +3791,7 @@ Form Function SetThreadVarForm(string[] varscope, Form formvalue)
 		threadVarKeys = PapyrusUtil.PushString(threadVarKeys, varscope[SLT.VS_NAME])
 		If (varscope[SLT.VS_RESOLVED_MAP_KEY])
 			StorageUtil.SetStringValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_FORM)
 			threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
 			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_MAP)
@@ -3758,6 +3802,7 @@ Form Function SetThreadVarForm(string[] varscope, Form formvalue)
     else
         if (varscope[SLT.VS_RESOLVED_MAP_KEY])
             StorageUtil.SetStringValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_FORM)
             threadVarTypes[i] = SLT.RT_MAP
         else
@@ -3984,6 +4029,7 @@ string Function SetTargetVarString(string typeprefix, string dataprefix, string 
     If (varscope[SLT.VS_RESOLVED_MAP_KEY])
         SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_MAP)
         StorageUtil.SetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_STRING)
+        StorageUtil.StringListAdd(SLT, mapprefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
         SetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
     else
         SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_STRING)
@@ -3996,6 +4042,7 @@ string Function SetTargetVarLabel(string typeprefix, string dataprefix, string m
     If (varscope[SLT.VS_RESOLVED_MAP_KEY])
         SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_MAP)
         StorageUtil.SetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_LABEL)
+        StorageUtil.StringListAdd(SLT, mapprefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
         SetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
     else
         SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_LABEL)
@@ -4012,6 +4059,7 @@ bool Function SetTargetVarBool(string typeprefix, string dataprefix, string mapp
         endif
         SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_MAP)
         StorageUtil.SetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_BOOL)
+        StorageUtil.StringListAdd(SLT, mapprefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
         SetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
     else
         SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_BOOL)
@@ -4024,6 +4072,7 @@ int Function SetTargetVarInt(string typeprefix, string dataprefix, string mappre
     If (varscope[SLT.VS_RESOLVED_MAP_KEY])
         SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_MAP)
         StorageUtil.SetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_INT)
+        StorageUtil.StringListAdd(SLT, mapprefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
         SetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
     else
         SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INT)
@@ -4036,6 +4085,7 @@ float Function SetTargetVarFloat(string typeprefix, string dataprefix, string ma
     If (varscope[SLT.VS_RESOLVED_MAP_KEY])
         SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_MAP)
         StorageUtil.SetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_FLOAT)
+        StorageUtil.StringListAdd(SLT, mapprefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
         SetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
     else
         SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_FLOAT)
@@ -4052,6 +4102,7 @@ Form Function SetTargetVarForm(string typeprefix, string dataprefix, string mapp
         endif
         SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_MAP)
         StorageUtil.SetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_FORM)
+        StorageUtil.StringListAdd(SLT, mapprefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
         SetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
     else
         SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_FORM)
@@ -4365,6 +4416,64 @@ Form function GetVarForm(string[] varscope, Form missing)
         return GetTargetVarForm(typeprefix, dataprefix, mapprefix, varscope, missing)
     endif
     return missing
+endfunction
+
+function UnsetFrameMapKey(string[] varscope, string mapkey)
+    if !mapkey
+        SFW("Attempted to unset empty map key: varscope(" + SLT.VarScopeToString(varscope) + ") mapkey(" + mapkey + ")")
+    else
+        StorageUtil.UnsetStringValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + mapkey)
+        StorageUtil.UnsetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + mapkey)
+        StorageUtil.StringListRemove(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", mapkey)
+    endif
+endfunction
+
+function UnsetThreadMapKey(string[] varscope, string mapkey)
+    if !mapkey
+        SFW("Attempted to unset empty map key: varscope(" + SLT.VarScopeToString(varscope) + ") mapkey(" + mapkey + ")")
+    else
+        StorageUtil.UnsetStringValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + mapkey)
+        StorageUtil.UnsetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + mapkey)
+        StorageUtil.StringListRemove(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", mapkey)
+    endif
+endfunction
+
+function UnsetTargetMapKey(string mapprefix, string[] varscope, string mapkey)
+    if !mapkey
+        SFW("Attempted to unset empty map key: varscope(" + SLT.VarScopeToString(varscope) + ") mapkey(" + mapkey + ")")
+    else
+        StorageUtil.UnsetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + mapkey)
+        StorageUtil.UnsetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + mapkey)
+        StorageUtil.StringListRemove(SLT, mapprefix + varscope[SLT.VS_NAME] + ":", mapkey)
+    endif
+endfunction
+
+function UnsetMapKey(string[] varscope, string mapkey)
+    string scope = varscope[SLT.VS_SCOPE]
+    if scope == "local"
+        UnsetFrameMapKey(varscope, mapkey)
+    elseif scope == "global"
+        SLT.UnsetGlobalMapKey(self, varscope, mapkey)
+    elseif scope == "thread"
+        UnsetThreadMapKey(varscope, mapkey)
+    elseif scope == "target"
+        string varname = varscope[SLT.VS_NAME]
+        string mapprefix
+        if varscope[SLT.VS_TARGET_EXT]
+            Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
+            if targetForm
+                mapprefix = Make_ktarget_map_prefix(targetForm.GetFormID())
+            else
+                SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
+            endif
+        endif
+        if !mapprefix
+            mapprefix = ktarget_map_prefix
+        endif
+        UnsetTargetMapKey(mapprefix, varscope, mapkey)
+    elseif scope
+        SFE("Attempted to unset invalid scope (" + scope + ")")
+    endif
 endfunction
 
 string function SetVarString(string[] varscope, string value)

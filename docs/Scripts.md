@@ -244,6 +244,14 @@ set $total $var1 + $var2
 ; $total now contains 8
 ```
 
+#### `mapunset` - Unset a map key for a map
+Removes the key-value pair identified by the `map-key` argument.
+```sltscript
+set $mapvar{key} = "value"
+mapunset $mapvar "key"
+; $mapvar{key} no longer has a value and will now return default values again
+```
+
 #### `inc` - Increment
 Increments the numeric value of a variable by the specified amount (default: 1; float values like 2.3 are allowed).
 ```sltscript

@@ -154,3 +154,25 @@ if $mapval{test} == false
 else
     deb_msg $"FAIL: map equality to bool false"
 endif
+
+inc $thread.testCount
+set $mapval{test} = 123.456
+
+if $mapval{test} == 123.456
+    inc $thread.passCount
+    deb_msg $"PASS: map equality to float"
+else
+    deb_msg $"FAIL: map equality to float"
+endif
+
+inc $thread.testCount
+
+mapunset $mapval "test"
+
+if $mapval{test} &= ""
+    inc $thread.passCount
+    inc $thread.passCount
+    deb_msg $"PASS: mapunset"
+else
+    deb_msg $"FAIL: mapunset"
+endif
