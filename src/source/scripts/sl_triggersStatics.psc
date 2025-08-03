@@ -241,8 +241,8 @@ EndFunction
 
 ;;;;;;;;
 ; Utility functions
-string Function debstrjoin(string[] strlist) global
-	return PapyrusUtil.StringJoin(strlist, "), (")
+string Function debstrjoin(string[] strlist, string delim = "), (") global
+	return PapyrusUtil.StringJoin(strlist, delim)
 EndFunction
 
 bool Function GetFlag(bool bDbgOut, string filename, string flagname, bool defaultValue = false) global

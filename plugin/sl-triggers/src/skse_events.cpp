@@ -137,6 +137,7 @@ RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESCombatEvent* e
         // Register the provider
         REGISTER_PAPYRUS_PROVIDER(SLTPapyrusFunctionProvider, "sl_triggers");
         REGISTER_PAPYRUS_PROVIDER(SLTInternalPapyrusFunctionProvider, "sl_triggers_internal");
+        REGISTER_PAPYRUS_PROVIDER(SLTCmdPapyrusFunctionProvider, "sl_triggersCmd");
 
         auto* eventSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
         if (eventSourceHolder) {

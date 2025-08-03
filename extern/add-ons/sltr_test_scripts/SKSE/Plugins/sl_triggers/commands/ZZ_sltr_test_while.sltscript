@@ -1,3 +1,6 @@
+deb_msg "============================="
+deb_msg "    SLTR Test While Loop"
+
 inc $thread.testCount
 set $counter 0
 while $counter < 5

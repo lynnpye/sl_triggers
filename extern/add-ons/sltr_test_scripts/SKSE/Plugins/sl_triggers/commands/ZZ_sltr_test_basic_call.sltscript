@@ -1,1 +1,4 @@
+deb_msg "============================="
+deb_msg "    SLTR Test Basic Call"
+
 inc $thread.passCount

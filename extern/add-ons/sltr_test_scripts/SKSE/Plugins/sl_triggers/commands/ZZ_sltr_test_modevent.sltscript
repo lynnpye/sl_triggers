@@ -1,3 +1,6 @@
+deb_msg "============================="
+deb_msg "    SLTR Test ModEvent"
+
 inc $thread.testCount
 
 util_sendmodevent "OnSLTRequestCommand" "ZZ_sltr_test_modevent_worker"

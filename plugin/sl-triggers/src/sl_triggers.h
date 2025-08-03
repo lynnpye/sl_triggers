@@ -24,6 +24,8 @@ static std::string GetTranslatedString(PAPYRUS_NATIVE_DECL, std::string_view inp
 
 static std::vector<std::string> GetTriggerKeys(PAPYRUS_NATIVE_DECL, std::string_view extensionKey);
 
+static std::vector<std::string> GetVarScope(PAPYRUS_NATIVE_DECL, std::string_view variable, bool forAssignment = false);
+
 static void LogDebug(PAPYRUS_NATIVE_DECL, std::string_view logmsg);
 
 static void LogError(PAPYRUS_NATIVE_DECL, std::string_view logmsg);
@@ -279,6 +281,22 @@ public:
         reg.RegisterStatic("IsEquipSinkEnabled", &SLTInternalPapyrusFunctionProvider::IsEquipSinkEnabled);
         reg.RegisterStatic("IsHitSinkEnabled", &SLTInternalPapyrusFunctionProvider::IsHitSinkEnabled);
         reg.RegisterStatic("StartScript", &SLTInternalPapyrusFunctionProvider::StartScript);
+    }
+};
+#pragma endregion
+
+#pragma region SLTCmdPapyrusFunctionProvider
+class SLTCmdPapyrusFunctionProvider : public SLT::binding::PapyrusFunctionProvider<SLTCmdPapyrusFunctionProvider> {
+public:
+    // Static Papyrus function implementations
+    static std::vector<std::string> GetVarScope(PAPYRUS_STATIC_ARGS, std::string_view variable, bool forAssignment) {
+        return SLT::SLTNativeFunctions::GetVarScope(PAPYRUS_FN_PARMS, variable, forAssignment);
+    }
+
+    void RegisterAllFunctions(RE::BSScript::Internal::VirtualMachine* vm, std::string_view className) {
+        SLT::binding::PapyrusRegistrar<SLTCmdPapyrusFunctionProvider> reg(vm, className);
+
+        reg.RegisterStatic("GetVarScope", &SLTCmdPapyrusFunctionProvider::GetVarScope);
     }
 };
 #pragma endregion

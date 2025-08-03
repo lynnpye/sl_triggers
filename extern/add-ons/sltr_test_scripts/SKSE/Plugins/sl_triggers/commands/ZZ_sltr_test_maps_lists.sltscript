@@ -1,0 +1,156 @@
+deb_msg "============================="
+deb_msg "    SLTR Test Maps & Lists"
+
+inc $thread.testCount
+inc $thread.testCount
+
+set $mapval{key} "fourty"
+
+set $mval_01 $mapval{key}
+
+if $mval_01 &= "fourty"
+    inc $thread.passCount
+    inc $thread.passCount
+    deb_msg $"PASS: assign to map with key; mval_01({mval_01}); should be ""fourty"""
+    deb_msg $"PASS: set from map with key; mval_01({mval_01}); should be ""fourty"""
+else
+    deb_msg $"FAIL: assign to map with key; mval_01({mval_01}); should be ""fourty"""
+    deb_msg $"FAIL: set from map with key; mval_01({mval_01}); should be ""fourty"""
+endif
+
+inc $thread.testCount
+
+set $keyvar "key"
+
+set $mval_02 $mapval{$keyvar}
+
+if $mval_02 &= "fourty"
+    inc $thread.passCount
+    deb_msg $"PASS: assign to map with variable as key; mval_02({mval_02}); should be ""fourty"""
+else
+    deb_msg $"FAIL: assign to map with variable as key; mval_02({mval_02}); should be ""fourty"""
+endif
+
+set $keyvar "key2"
+
+set $mapval{$keyvar} "thirty"
+
+set $mval_03 $mapval{key}
+
+inc $thread.testCount
+if $mval_03 &= "fourty"
+    inc $thread.passCount
+    deb_msg $"PASS: assign to map, with second key present; mval_03({mval_03}); should be ""fourty"""
+else
+    deb_msg $"FAIL: assign to map, with second key present; mval_03({mval_03}); should be ""fourty"""
+endif
+
+set $mval_04 $mapval{$keyvar}
+
+inc $thread.testCount
+if $mval_04 &= "thirty"
+    inc $thread.passCount
+    deb_msg $"PASS: assign to map with variable as key, as second key; mval_04({mval_04}); should be ""thirty"""
+else
+    deb_msg $"FAIL: assign to map with variable as key, as second key; mval_04({mval_04}); should be ""thirty"""
+endif
+
+inc $thread.testCount
+set $mapval{test} = 10
+
+if $mapval{test} == 10
+    inc $thread.passCount
+    deb_msg $"PASS: map equality to positive int"
+else
+    deb_msg $"FAIL: map equality to positive int"
+endif
+
+inc $thread.testCount
+set $mapval{test} = -10
+
+if $mapval{test} == -10
+    inc $thread.passCount
+    deb_msg $"PASS: map equality to negative int"
+else
+    deb_msg $"FAIL: map equality to negative int"
+endif
+
+inc $thread.testCount
+set $mapval{test} = 0
+
+if $mapval{test} == 0
+    inc $thread.passCount
+    deb_msg $"PASS: map equality to zero int"
+else
+    deb_msg $"FAIL: map equality to zero int"
+endif
+
+inc $thread.testCount
+set $mapval{test} = 1
+
+if $mapval{test} != 0
+    inc $thread.passCount
+    deb_msg $"PASS: map inequality to zero int"
+else
+    deb_msg $"FAIL: map inequality to zero int"
+endif
+
+inc $thread.testCount
+set $mapval{test} = 10
+
+if $mapval{test} != -10
+    inc $thread.passCount
+    deb_msg $"PASS: map inequality to negative int"
+else
+    deb_msg $"FAIL: map inequality to negative int"
+endif
+
+inc $thread.testCount
+set $mapval{test} = -10
+
+if $mapval{test} != 10
+    inc $thread.passCount
+    deb_msg $"PASS: map inequality to positive int"
+else
+    deb_msg $"FAIL: map inequality to positive int"
+endif
+
+inc $thread.testCount
+set $mapval{test} = true
+
+if $mapval{test} != false
+    inc $thread.passCount
+    deb_msg $"PASS: map inequality to bool false"
+else
+    deb_msg $"FAIL: map inequality to bool false"
+endif
+
+inc $thread.testCount
+set $mapval{test} = false
+
+if $mapval{test} != true
+    inc $thread.passCount
+    deb_msg $"PASS: map inequality to bool true"
+else
+    deb_msg $"FAIL: map inequality to bool false"
+endif
+
+inc $thread.testCount
+set $mapval{test} = true
+
+if $mapval{test} == true
+    inc $thread.passCount
+    deb_msg $"PASS: map equality to bool true"
+else
+    deb_msg $"FAIL: map equality to bool true"
+endif
+
+inc $thread.testCount
+set $mapval{test} = false
+
+if $mapval{test} == false
+    inc $thread.passCount
+    deb_msg $"PASS: map equality to bool false"
+else
+    deb_msg $"FAIL: map equality to bool false"
+endif

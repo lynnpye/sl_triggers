@@ -1,3 +1,6 @@
+deb_msg "============================="
+deb_msg "    SLTR Test JsonUtil"
+
 set $testfile "../sl_triggers/commandstore/jsonutil_function_test"
 
 inc $thread.testCount

@@ -1,3 +1,6 @@
+deb_msg "============================="
+deb_msg "    SLTR Test ModEvent Worker"
+
 set $target.sltr_regression_test_target_testCount = 1
 if $system.stats.running_scripts > 1
     set $target.sltr_regression_test_target_passCount = 1

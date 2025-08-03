@@ -1,3 +1,6 @@
+deb_msg "============================="
+deb_msg "    SLTR Test System Variables"
+
 set $now $system.realtime
 
 inc $thread.testCount
@@ -60,12 +63,11 @@ else
     deb_msg $"PASS: system.random.100 >= 0"
 endif
 
-
 inc $thread.testCount
-; the next line is line 66
+; the next line is line 68
 set $testval $system.linenumber
-if $testval != 66
-    deb_msg $"FAIL: system.linenumber: expected 66, got ({testval}); NOTE: if this is failing, double-check the actual line number in this test script"
+if $testval != 68
+    deb_msg $"FAIL: system.linenumber: expected 68, got ({testval}); NOTE: if this is failing, double-check the actual line number in this test script"
 else
     inc $thread.passCount
     deb_msg "PASS: system.linenumber"

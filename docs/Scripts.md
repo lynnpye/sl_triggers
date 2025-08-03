@@ -35,6 +35,77 @@ Each command and its parameters must reside on one line, with any amount of sepa
 ### Script Execution
 Scripts run each command in sequence until they encounter a `return` or reach the end of the script. This allows for very long-running scripts.
 
+## Data Types
+Data types are preserved and coerced, with `string` as a default fallback. Forms will be "coerced" to their FormID.
+
+**All variables are ultimately strings.** SLTScript automatically handles conversion between types as needed.
+
+For purposes of SLTScript, you have the following data types available:
+|Data Type|Description|
+|---|---|
+|`string`|Sequence of characters, delimited by double quotes, e.g. `"Hello, world!"`.|
+|`label`|Sequence of characters, delimited by square brackets, used for `goto`/`if` targets, e.g. `[label target]`. This form allows spaces in the label.|
+|`int`|32-bit integer numeric value. Can be expressed in hexadecimal form by using a `0x` prefix. e.g. `-12`, `0`, `100`, `0x23`|
+|`float`|floating point (float) numeric value. e.g. `-12.23`, `0.44`, `100.48`|
+|`bool`|boolean value, expressed either `true` or `false`|
+|`Form`|Form values|
+|`map`|A set of key-value pairs associated with the variable name. See the `Maps` section below. Reference values by using map key notation e.g. `$var{$mapkey}` where `$mapkey` contains the value of the key; literals may be used e.g. `$var{literalvalue}` will look for a value with the key `"literalvalue"`|
+
+### Maps
+A variable becomes a map when you assign to it using a map key. Map keys are specified using map key notation.
+
+```sltscript
+set $keyvalue "somekey"
+set $mapvariable{$keyvalue} 23
+set $intvalue $mapvariable{$keyvalue}
+```
+
+If you do not use a variable for the map key, it will assume the specified map key is a string literal.
+
+```sltscript
+; this is identical to the previous example
+set $mapvariable{somekey} 23
+set $intvalue $mapvariable{somekey}
+```
+
+The data type of the assigned value will be retained for coercion later as needed. This means you can do this reliably.
+
+```sltscript
+set $mapvariable{test} = true
+if $mapvariable{test}
+    ; this will run so long as $mapvariable{test} is 'truthy'
+endif
+```
+
+### FormID, Forms, and You
+For any function that expects a Form like thing (e.g. Actor, ObjectReference, Form, ActorBase), you can provide any of the following:
+
+- **Special Scoped Variables** `system` variables and perhaps variables in other scopes such as `request` may return Forms and can always be used where a Form is expected
+- **Variables** If you perform a function that returns a Form and set a variable to store that result, you should be able to trust that using that variable where a Form is expected will work. For example:
+    ```sltscript
+    actor_name $system.player
+    set $targetActor $$
+    ; anything that expects an Actor should work with $targetActor
+    actor_isvalid $targetActor
+    ; $$ will either be true or false depending on the validity of $targetActor
+    ```
+- **FormID Strings** You can also directly provide a FormID string; likewise, setting a variable to such a FormID string will also allow it to be used; FormID strings can be provided in several formats:
+   - **&lt;modfile&gt;:&lt;relative formid&gt;** this is a commonly used format e.g. "skyrim.esm:0xf" or "skyrim.esm:15" for a septim (modfile: "skyrim.esm", formid: 0xf or 15)
+   - **&lt;relative formid&gt;|&lt;modfile&gt;** another commonly used format e.g. "0xf|skyrim.esm" or "15|skyrim.esm"
+     - **&lt;relative formid&gt;** keep in mind the difference between an ESL flagged vs a non-ESL flagged mod; the ESL flagged mod has *only* (it's still a lot) 0xFFF room to work with, whereas other mods have the full 0xFFFFFF
+        ```sltscript
+        ; this is a relative FormID and 'Quick Start - SE.esp' is not ESL flagged, so we can safely assume the whole 0xFFFFFF is available
+        ; although the high order bits aren't specified, for sake of discussion, let's assume Quick Start is at 0x23
+        set $quickstartchest = "0x003881|Quick Start - SE.esp"
+        ; this is one of the containers in the Quick Start mod
+        form_dogetter $quickstartchest GetFormID
+        ;  $$ would now contain something like 587,217,025 (i.e. int value of '587217025'), which is base 10 for hex value of 0x23003881
+        form_dogetter $quickstartchest GetName
+        ; $$ would now contain something like "Chest" or whatever the name is from the mod
+        ```
+   - **&lt;absolute formid&gt;** not so common but useful for local tinkering; note that absolute formids will change if your load order changes
+     - **accepts decimal or hexadecimal** formid values can be specified as either decimal or hexadecimal; hexadecimal requires a leading `0x`
+
 ## Literals
 SLTScript supports the following literals and literal types.
 
@@ -58,6 +129,19 @@ SLTScript supports scoped variables:
 - **Global variables**: `$global.variableName` - Available to all scripts, persistent across saves
 
 Variable names can include any of the following characters after the scope: `A-Za-z0-9._`.
+
+CRITICAL: Because the scripts are tokenized based on whitespace, it is critical to note that you MUST NOT HAVE ANY WHITESPACE INSIDE YOUR VARIABLE NAMES.
+For example:
+```sltscript
+; this is valid
+$target<otherActor>.varname
+
+; but this will result in three separate tokens, the first of which, having a leading '$', will be treated like a variable, but will fail to parse because it will be considered malformed
+$target< otherActor >.varname
+; token 1: $target<
+; token 2: otherActor
+; token 3: >.varname
+```
 
 ### Special Scopes
 #### System
@@ -121,40 +205,6 @@ Variable names can include any of the following characters after the scope: `A-Z
 |`$request.core.player_on_hit.target`|Form - (Added by SLTR Core) (for Player On Hit) the Player if the Player was being attacked, their opponent if the Player was attacking|
 |`$request.core.player_on_hit.source`|int - (Added by SLTR Core) (for Player On Hit) the source FormID (weapon/spell) used for the attack|
 |`$request.core.player_on_hit.projectile`|int - (Added by SLTR Core) (for Player On Hit) the projectile FormID used for the attack if one was involved|
-
-### Data Types
-Data types are preserved and coerced, with `string` as a default fallback. Forms will be "coerced" to their FormID.
-
-**All variables are ultimately strings.** SLTScript automatically handles conversion between string, int, float, and bool types as needed. While Papyrus supports `Form` types, these require special handling in SLTScript.
-
-#### FormID, Forms, and You
-For any function that expects a Form like thing (e.g. Actor, ObjectReference, Form, ActorBase), you can provide any of the following:
-
-- **Special Scoped Variables** `system` variables and perhaps variables in other scopes such as `request` may return Forms and can always be used where a Form is expected
-- **Variables** If you perform a function that returns a Form and set a variable to store that result, you should be able to trust that using that variable where a Form is expected will work. For example:
-```sltscript
-actor_name $system.player
-set $targetActor $$
-; anything that expects an Actor should work with $targetActor
-actor_isvalid $targetActor
-; $$ will either be true or false depending on the validity of $targetActor
-```
-- **FormID Strings** You can also directly provide a FormID string; likewise, setting a variable to such a FormID string will also allow it to be used; FormID strings can be provided in several formats:
-   - **<modfile>:<relative formid>** this is a commonly used format e.g. "skyrim.esm:0xf" or "skyrim.esm:15" for a septim (modfile: "skyrim.esm", formid: 0xf or 15)
-   - **<relative formid>|<modfile>** another commonly used format e.g. "0xf|skyrim.esm" or "15|skyrim.esm"
-   - **<absolute formid>** not so common but useful for local tinkering; note that absolute formids will change if your load order changes
-   - **accepts decimal or hexadecimal** formid values can be specified as either decimal or hexadecimal; hexadecimal requires a leading `0x`
-   - **<relative formid>** keep in mind the difference between an ESL flagged vs a non-ESL flagged mod; the ESL flagged mod has *only* (it's still a lot) 0xFFF room to work with, whereas other mods have the full 0xFFFFFF
-```sltscript
-; this is a relative FormID and 'Quick Start - SE.esp' is not ESL flagged, so we can safely assume the whole 0xFFFFFF is available
-; although the high order bits aren't specified, for sake of discussion, let's assume Quick Start is at 0x23
-set $quickstartchest = "0x003881|Quick Start - SE.esp"
-; this is one of the containers in the Quick Start mod
-form_dogetter $quickstartchest GetFormID
-;  $$ would now contain something like 587,217,025 (i.e. int value of '587217025'), which is base 10 for hex value of 0x23003881
-form_dogetter $quickstartchest GetName
-; $$ would now contain something like "Chest" or whatever the name is from the mod
-```
 
 ## Basic Operations
 

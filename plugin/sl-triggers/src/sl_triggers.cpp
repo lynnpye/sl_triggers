@@ -336,6 +336,359 @@ std::vector<std::string> SLTNativeFunctions::GetTriggerKeys(PAPYRUS_NATIVE_DECL,
     return result;
 }
 
+namespace {
+bool IsAssignableScope(std::string_view scope) {
+    if (
+        Util::String::iEquals("local", scope)
+        || Util::String::iEquals("thread", scope)
+        || Util::String::iEquals("target", scope)
+        || Util::String::iEquals("global", scope)
+    )
+        return true;
+    return false;
+}
+
+bool IsValidScope(std::string_view scope) {
+    if (
+        IsAssignableScope(scope)
+        || Util::String::iEquals("system", scope)
+        || Util::String::iEquals("request", scope)
+    )
+        return true;
+    return false;
+}
+} 
+
+/*
+OnAfterSKSEInit([]{
+    using namespace std;
+    auto variables = vector<string>({
+        ""
+        , "$varname"
+        , "$local.varname"
+        , "$thread.varname"
+        , "$target.varname"
+        , "$global.varname"
+        , "$system.varname"
+        , "$request.varname"
+        , "$var.name"
+        , "$var.n.ame"
+        , "$target.var.name"
+        , "$target.<foo>.varname"
+        , "$target.<foo>varname"
+        , "$target<foo>.varname"
+        , "$target.<foo.bar>.var.name"
+        , "$varname[]"
+        , "$varname[12]"
+        , "$varname[]{}"
+        , "$varname[12]{}"
+        , "$global.mapval{test}"
+        , "$local.varname[12]"
+        , "$target.<foo>.varname[12]"
+        , "$target.<foo>.varname[12]{}"
+        , "$target.<foo>.varname[12]{$thekey}"
+        , "$varname{akey}"
+        , "$varname{\"whee\"}"
+        , "$varname{23}"
+    });
+
+    logger::debug("Testing GetVarScope with forAssignment == false");
+    for (const auto& var : variables) {
+        auto varscope = SLTNativeFunctions::GetVarScope(nullptr, 0, var, false);
+        logger::debug("\n {} \n\t / {} \n", var, Util::String::Join(varscope, ", "));
+    }
+
+    logger::debug("Testing GetVarScope with forAssignment == true");
+    for (const auto& var : variables) {
+        auto varscope = SLTNativeFunctions::GetVarScope(nullptr, 0, var, true);
+        logger::debug("\n {} \n\t / {} \n", var, Util::String::Join(varscope, ", "));
+    }
+})
+*/
+
+std::vector<std::string> SLTNativeFunctions::GetVarScope(PAPYRUS_NATIVE_DECL, std::string_view variable, bool forAssignment) {
+
+/*
+this is the syntax possible for variable:
+$<OPTIONAL: scope := default='local'>.<OPTIONAL: target_extension_scope : only valid if scope == 'target'>.<varname>[OPTIONAL: list_index]{OPTIONAL: map_key}
+
+NOTE: varname may contain 0 or more '.', but ONLY IF a scope is specified (otherwise it will assume the first period-separated block is a scope)
+
+valid scope values: ''/'local', 'thread', 'target', 'global'
+
+Some possible versions:
+
+$local.varname
+$varname -- same as $local.varname
+
+$local.var.name -- valid
+$var.name -- NOT valid because it thinks 'var' is the scope, which is not a valid scope; only a problem for local scope as other scopes must be specified
+
+$thread.varname
+$global.varname
+$target.varname
+
+$target.<partner>.varname -- the target_extension_scope is only valid if scope is 'target'
+$target.<partner>.var.name -- another example
+
+$varname[] -- references the variable generally, list_index would be "[]"
+$varname[0] -- references the 0th value, list_index would be "0"
+$varname[17], etc.
+
+$thread.varname[]
+$thread.varname[0]
+$thread.var.name[0]
+
+$target.varname[]
+$target.<actor>.varname[] -- with target_extension_scope
+$target.<actor>.var.name[]
+
+$varname{"key"} -- map_key would be ""key""
+$varname{$foo} -- map_key would be "$foo"
+$varname{} -- references the variable generally, map_key would be "{}"
+$varname[0]{$foo} -- list_index would be "0", map_key would be "$foo"
+$varname[17]{} -- list_index would be "17", map_key would be "{}"
+
+$target.varname[100]{$bar}
+$target.va.rname[100]{$bar}
+
+NOTE: an empty list index CANNOT be used with a map_key, so $varname[]{} and $varname[]{$foo} are both invalid
+
+So the fullest example would be:
+$target.<actor>.var.n.ame[23]{$key}
+for which:
+scope - "target"
+target_extension_scope - "actor"
+varname - "var.n.ame"
+list_index - "23"
+map_key - "$key"
+
+Provide C++ code that will parse variable and then place the values into the result vector
+result[0] - scope
+result[1] - varname
+result[2] - target_extension_scope
+result[3] - list_index
+result[4] - map_key
+result[5] - resolved_map_key ; allotted but used on the papyrus side
+
+*/
+    using namespace std;
+
+    vector<string> result;
+    result.resize(6);
+
+    if (variable.size() < 2 || variable[0] != '$') {
+        result[1] = variable;
+        return result;
+    }
+
+    string& scope = result[0];
+    string& varname = result[1]; 
+    string& target_extension_scope = result[2];
+    string& list_index = result[3];
+    string& map_key = result[4];
+
+    size_t startPos = 1;
+
+    size_t endPos = variable.find(".", startPos);
+    if (endPos == string::npos) {
+        scope = "local";
+    } else {
+        if (startPos >= endPos) {
+            // $.varname => $local.varname, we're being kind
+            scope = "local";
+        } else {
+            // $global.varname
+            // 0123456789
+            scope = Util::String::ToLower(variable.substr(startPos, endPos - startPos));
+        }
+        startPos = endPos + 1;
+    }
+
+    // $global. => invalid
+    // $. => invalid
+    // $ => invalid
+    if (startPos >= variable.size()) {
+        scope = "";
+        varname = variable;
+        return result;
+    }
+
+    // check for valid scope
+    if (!IsValidScope(scope)) {
+        scope = "local";
+        startPos = 1;
+    }
+
+    if (forAssignment && !IsAssignableScope(scope)) {
+        logger::error("Scope ({}) is not assignable but is on LHS of assignment", scope);
+
+        scope = "";
+        varname = variable;
+        return result;
+    }
+
+    // check for target extension scope
+    if (variable[startPos] == '<') {
+        if (scope != "target") {
+            logger::error("Scope ({}) is not valid for use with <target-extension-scope>", scope);
+
+            scope = "";
+            varname = variable;
+            return result;
+        }
+
+        endPos = variable.find(">.", startPos + 1);
+        if (endPos == string::npos) {
+            logger::error("Malformed target extension scope for variable ({})", variable);
+
+            scope = "";
+            varname = variable;
+            return result;
+        }
+
+        target_extension_scope = variable.substr(startPos + 1, endPos - startPos - 1);
+
+        startPos = endPos + 2;
+    }
+
+    if (startPos >= variable.size()) {
+        scope = "";
+        varname = variable;
+        return result;
+    }
+
+    /*
+     *  e.g. for:
+     *      $target.<foo.bar>.baz.ban[23]{"whee"}
+     *                        ^
+     *                        |-- startPos
+     */
+    size_t bracketStartPos = variable.find("[", startPos);
+    if (bracketStartPos != string::npos) {
+        if (bracketStartPos == startPos) {
+            // malformed
+            logger::error("Variable ({}) has list index with no variable name", variable);
+
+            scope = "";
+            varname = variable;
+            return result;
+        }
+        endPos = variable.rfind("]");
+        if (endPos == string::npos) {
+            // malformed
+            logger::error("Variable ({}) has imbalanced list index", variable);
+
+            scope = "";
+            varname = variable;
+            return result;
+        }
+
+        list_index = variable.substr(bracketStartPos + 1, endPos - bracketStartPos - 1);
+        if (list_index.empty()) {
+            // malformed
+            logger::error("Variable ({}) used list syntax with an empty list index", variable);
+
+            scope = "";
+            varname = variable;
+            return result;
+        } else {
+            auto newval = Util::String::StringToIntWithImplicitHexConversion(list_index).value_or(-1);
+            if (newval < 0) {
+                // malformed
+                logger::error("Variable ({}) has invalid non-negative list index; list_index ({})", variable, list_index);
+
+                scope = "";
+                varname = variable;
+                return result;
+            } else {
+                list_index = to_string(newval);
+            }
+        }
+
+        varname = variable.substr(startPos, bracketStartPos - startPos);
+
+        if (varname.empty()) {
+            // malformed
+            logger::error("Variable ({}) has list index with no variable name", variable);
+
+            scope = "";
+            varname = variable;
+            return result;
+        }
+
+        bracketStartPos = variable.find("{", endPos);
+    } else {
+        bracketStartPos = variable.find("{", startPos);
+    }
+
+    if (bracketStartPos != string::npos) {
+        if (bracketStartPos == startPos) {
+            // malformed
+            logger::error("Variable ({}) has map key with no variable name", variable);
+
+            scope = "";
+            varname = variable;
+            return result;
+        }
+        if (list_index == "[]") {
+            // malformed
+            logger::error("Variable ({}) map key with empty list index; map keys are invalid without a non-empty list index", variable);
+
+            scope = "";
+            varname = variable;
+            return result;
+        }
+        endPos = variable.rfind("}");
+        if (endPos == string::npos) {
+            // malformed
+            logger::error("Variable ({}) has imbalanced map key", variable);
+
+            scope = "";
+            varname = variable;
+            return result;
+        }
+
+        map_key = variable.substr(bracketStartPos + 1, endPos - bracketStartPos - 1);
+        if (map_key.empty()) {
+            // malformed
+            logger::error("Variable ({}) used map syntax with an empty key", variable);
+
+            scope = "";
+            varname = variable;
+            return result;
+        }
+
+        if (varname.empty()) {
+            varname = variable.substr(startPos, bracketStartPos - startPos);
+        }
+
+        if (varname.empty()) {
+            // malformed
+            logger::error("Variable ({}) has map key with no variable name", variable);
+
+            scope = "";
+            varname = variable;
+            return result;
+        }
+    }
+
+    if (varname.empty()) {
+        varname = variable.substr(startPos);
+    }
+
+    if (varname.empty()) {
+        // malformed
+        logger::error("Variable ({}) has no variable name", variable);
+
+        scope = "";
+        varname = variable;
+        return result;
+    }
+
+    return result;
+}
+
 void SLTNativeFunctions::LogDebug(PAPYRUS_NATIVE_DECL, std::string_view logmsg) {
     logger::debug("{}", logmsg);
 }
@@ -1049,16 +1402,53 @@ std::vector<std::string> SLTNativeFunctions::Tokenizev2(PAPYRUS_NATIVE_DECL, std
 namespace {
 bool IsValidVariableName(const std::string& name) {
     if (name.empty()) return false;
+
+    std::string testname = name.starts_with('$') ? name.substr(1) : name;
     
     // less sloppy would be to make sure the <> is appropriately placed and only on target scope
-    for (char c : name) {
-        if (!std::isalnum(c) && c != '_' && c != '.' && c != '<' && c != '>') {
+    for (char c : testname) {
+        if (!std::isalnum(c) && c != '_' && c != '.' && c != '<' && c != '>' && c!= '{' && c != '}' && c != '[' && c != ']') {
             return false;
         }
     }
     
     // Don't allow names starting or ending with dots
     return name.front() != '.' && name.back() != '.';
+}
+
+/**
+ * FindClosingChar - Searches chars for the paired matching closeChar, skipping nested pairs
+ * 
+ * startPos - the position of the openChar which we are to search for a mate for (so "a{0}", startPos would be 1 and we should return 3)
+ */
+size_t FindClosingChar(std::string_view chars, std::size_t startPos, char openChar, char closeChar) {
+    // Check if startPos is valid
+    if (startPos >= chars.size()) {
+        return std::string_view::npos;
+    }
+    
+    // Initialize counter with 1 since we start with one opening character
+    size_t openCount = 1;
+    
+    // Start searching from the position after startPos
+    for (size_t i = startPos + 1; i < chars.size(); ++i) {
+        if (chars[i] == openChar) {
+            // Found another opening character, increment counter
+            ++openCount;
+        } else if (chars[i] == closeChar) {
+            // Found a closing character, decrement counter
+            --openCount;
+            
+            // If counter reaches 0, we found the matching closing character
+            if (openCount == 0) {
+                return i;
+            }
+        }
+        // For any other character, just continue
+    }
+    
+    // No matching closing character found
+    return std::string_view::npos;
 }
 }
 
@@ -1092,13 +1482,15 @@ std::vector<std::string> SLTNativeFunctions::TokenizeForVariableSubstitution(PAP
         }
         
         // Find matching closing brace
-        size_t closeBrace = input.find('}', openBrace + 1);
+        size_t closeBrace = FindClosingChar(input, openBrace, '{', '}');
+        //input.find('}', openBrace + 1);
         if (closeBrace == std::string::npos) {
             // No matching closing brace, treat as literal
             currentLiteral += input.substr(openBrace);
             break;
         }
         
+        /*
         // Check for escaped closing brace }}
         if (closeBrace + 1 < input.length() && input[closeBrace + 1] == '}') {
             // This is an escaped closing brace, not end of variable
@@ -1107,6 +1499,7 @@ std::vector<std::string> SLTNativeFunctions::TokenizeForVariableSubstitution(PAP
             pos = closeBrace + 2;
             continue;
         }
+        */
         
         // Extract variable name between braces
         std::string varName = std::string(input.substr(openBrace + 1, closeBrace - openBrace - 1));
@@ -1124,7 +1517,11 @@ std::vector<std::string> SLTNativeFunctions::TokenizeForVariableSubstitution(PAP
             }
             
             // Add variable name bare (with $ prefix)
-            result.push_back("$" + varName);
+            if (varName.starts_with('$')) {
+                result.push_back(varName);
+            } else {
+                result.push_back("$" + varName);
+            }
         } else {
             // Invalid or empty variable name, treat braces as literal
             currentLiteral += input.substr(openBrace, closeBrace - openBrace + 1);

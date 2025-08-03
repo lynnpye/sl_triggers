@@ -1,5 +1,5 @@
-deb_msg  "============================="
-deb_msg $"SLTR Regression Test Starting"
+deb_msg "============================="
+deb_msg "SLTR Regression Test Starting"
 
 set $thread.testCount = 0
 set $thread.passCount = 0
@@ -92,9 +92,8 @@ else
 endif
 
 call "ZZ_sltr_test_basics"
-if $thread.testCount != $thread.passCount
-    gosub finish_regression_testing
-endif
+
+call "ZZ_sltr_test_maps_lists"
 
 call "ZZ_sltr_test_while"
 

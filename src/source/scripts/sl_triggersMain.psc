@@ -74,6 +74,23 @@ EndProperty
 
 int					Property SLTRVersion = 0 Auto Hidden
 
+string kglobal_map_prefix = "SLTR:global:maps:"
+
+; duplicated from sl_triggersCmd
+int Property VS_SCOPE = 0 AutoReadOnly
+int Property VS_NAME = 1 AutoReadOnly
+int Property VS_TARGET_EXT = 2 AutoReadOnly
+int Property VS_LIST_INDEX = 3 AutoReadOnly
+int Property VS_MAP_KEY = 4 AutoReadOnly
+int Property VS_RESOLVED_MAP_KEY = 5 AutoReadOnly
+
+string Function VarScopeToString(string[] varscope)
+	if varscope.Length >= VS_RESOLVED_MAP_KEY
+		return "(SCOPE[" + varscope[VS_SCOPE] + "] / NAME[" + varscope[VS_NAME] + "] / TARGET_EXT[" + varscope[VS_TARGET_EXT] + "] / LIST_INDEX[" + varscope[VS_LIST_INDEX] + "] / MAP_KEY[" + varscope[VS_MAP_KEY] + "] / RESOLVED_MAP_KEY[" + varscope[VS_RESOLVED_MAP_KEY] + "])"
+	else
+		return "(varscope.Length is only " + varscope.Length + ")"
+	endif
+EndFunction
 
 ; duplicated from sl_triggersCmd
 int     Property RT_INVALID =   	0 AutoReadOnly
@@ -83,6 +100,7 @@ int     Property RT_INT =       	3 AutoReadOnly
 int     Property RT_FLOAT =     	4 AutoReadOnly
 int     Property RT_FORM =      	5 AutoReadOnly
 int		Property RT_LABEL =			6 AutoReadOnly
+int		Property RT_MAP	=			7 AutoReadOnly
 
 string Function RT_ToString(int rt_type)
     if RT_STRING == rt_type
@@ -97,6 +115,8 @@ string Function RT_ToString(int rt_type)
         return "RT_FORM"
 	elseif RT_LABEL == rt_type
 		return "RT_LABEL"
+	elseif RT_MAP == rt_type
+		return "RT_MAP"
     endif
     return "<invalid RT type: " + rt_type + ">"
 EndFunction
@@ -161,9 +181,9 @@ EndFunction
 int			SLTUpdateState
 int			_registrationBeaconCount
 
-string[] global_var_keys
-string[] global_var_vals
-int[]    global_var_types
+string[] globalVarKeys
+string[] globalVarVals
+int[]    globalVarTypes
 
 bool	__IsEnabled = true
 bool				Property IsEnabled Hidden
@@ -264,10 +284,10 @@ Function BootstrapSLTInit(bool bSetupFlags)
 
 	CheckVersionUpdates()
 
-	if !global_var_keys || !global_var_vals
-		global_var_keys = PapyrusUtil.StringArray(0)
-		global_var_vals = PapyrusUtil.StringArray(0)
-		global_var_types = PapyrusUtil.IntArray(0)
+	if !globalVarKeys || !globalVarVals
+		globalVarKeys = PapyrusUtil.StringArray(0)
+		globalVarVals = PapyrusUtil.StringArray(0)
+		globalVarTypes = PapyrusUtil.IntArray(0)
 	endif
 
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_RESET(), "OnSLTReset")
@@ -511,9 +531,9 @@ Event OnSLTReset(string eventName, string strArg, float numArg, Form sender)
 	StorageUtil.ClearAllObjPrefix(self, "SLTR:")
 
 	; Clear global context
-	global_var_keys = none
-	global_var_vals = none
-	global_var_types = none
+	globalVarKeys = none
+	globalVarVals = none
+	globalVarTypes = none
 	
 	BootstrapSLTInit(true)
 EndEvent
@@ -616,214 +636,395 @@ Event OnSLTDelayStartCommand(string eventName, string initialScriptName, float r
 	endif
 EndEvent
 
-bool Function HasGlobalVar(string _key)
-	return (global_var_keys.Find(_key, 0) > -1)
+bool Function HasGlobalVar(string[] varscope)
+	return (globalVarKeys.Find(varscope[VS_NAME], 0) > -1)
 EndFunction
 
-int Function GetGlobalVarType(string _key)
-	int i = global_var_keys.Find(_key, 0)
+int Function GetGlobalVarType(sl_triggersCmd cmdPrimary, string[] varscope)
+	int i = globalVarKeys.Find(varscope[VS_NAME], 0)
 	if i > -1
-		return global_var_types[i]
+		int rt = globalVarTypes[i]
+		if RT_MAP == rt
+			if (varscope[VS_RESOLVED_MAP_KEY])
+				return StorageUtil.GetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY])
+			elseif (!varscope[VS_MAP_KEY])
+				return RT_MAP
+			endif
+		else
+			return rt
+		endif
 	endif
     return RT_INVALID
 EndFunction
 
-string Function GetGlobalVarString(string _key, string missing)
-	int i = global_var_keys.Find(_key, 0)
+string Function GetGlobalVarString(sl_triggersCmd cmdPrimary, string[] varscope, string missing)
+	int i = globalVarKeys.Find(varscope[VS_NAME], 0)
 	if i > -1
-		int rt = global_var_types[i]
+		int rt = globalVarTypes[i]
 		if RT_BOOL == rt
-			return (global_var_vals[i] != "")
+			return (globalVarVals[i] != "")
+		elseIf RT_MAP == rt
+			If (varscope[VS_RESOLVED_MAP_KEY])
+				int subrt = StorageUtil.GetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY])
+				if RT_BOOL == subrt
+					return (StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]) != "")
+				endif
+				return StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY])
+			else
+        		cmdPrimary.SFW("GetGlobalVarString: unable to coerce map to string; did you forget a map key?")
+				return missing
+			EndIf
 		endif
-		return global_var_vals[i]
+		return globalVarVals[i]
 	endif
 	return missing
 EndFunction
 
-string Function GetGlobalVarLabel(string _key, string missing)
-	int i = global_var_keys.Find(_key, 0)
+string Function GetGlobalVarLabel(sl_triggersCmd cmdPrimary, string[] varscope, string missing)
+	int i = globalVarKeys.Find(varscope[VS_NAME], 0)
 	if i > -1
-		int rt = global_var_types[i]
+		int rt = globalVarTypes[i]
 		if RT_BOOL == rt
-			return (global_var_vals[i] != "")
+			return (globalVarVals[i] != "")
+		elseIf RT_MAP == rt
+			If (varscope[VS_RESOLVED_MAP_KEY])
+				int subrt = StorageUtil.GetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY])
+				if RT_BOOL == subrt
+					return (StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]) != "")
+				endif
+				return StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY])
+			else
+        		cmdPrimary.SFW("GetGlobalVarLabel: unable to coerce map to label; did you forget a map key?")
+				return missing
+			EndIf
 		endif
-		return global_var_vals[i]
+		return globalVarVals[i]
 	endif
 	return missing
 EndFunction
 
-bool Function GetGlobalVarBool(string _key, bool missing)
-	int i = global_var_keys.Find(_key, 0)
+bool Function GetGlobalVarBool(sl_triggersCmd cmdPrimary, string[] varscope, bool missing)
+	int i = globalVarKeys.Find(varscope[VS_NAME], 0)
 	if i > -1
-        int rt = global_var_types[i]
+        int rt = globalVarTypes[i]
         if RT_BOOL == rt
-            return global_var_vals[i] != ""
+            return globalVarVals[i] != ""
         elseif RT_INT == rt
-            return (global_var_vals[i] as int) != 0
+            return (globalVarVals[i] as int) != 0
         elseif RT_FLOAT == rt
-            return (global_var_vals[i] as float) != 0
+            return (globalVarVals[i] as float) != 0
         elseif RT_STRING == rt
-            return global_var_vals[i] != ""
-        elseIF RT_FORM == rt
-            return (global_var_vals[i] as int) != 0
-        endif
-        SLTErrMsg("GetGlobalVar: var found but not recognized type(" + RT_ToString(rt) + ")")
-	endif
-	return missing
-EndFunction
-
-int Function GetGlobalVarInt(string _key, int missing)
-	int i = global_var_keys.Find(_key, 0)
-	if i > -1
-        int rt = global_var_types[i]
-        if RT_BOOL == rt
-            return global_var_vals[i] as int
-        elseif RT_INT == rt
-            return global_var_vals[i] as int
-        elseif RT_FLOAT == rt
-            return (global_var_vals[i] as float) as int
-        elseif RT_STRING == rt
-            return global_var_vals[i] as int
+            return globalVarVals[i] != ""
         elseIf RT_FORM == rt
-            return global_var_vals[i] as int
+            return (globalVarVals[i] as int) != 0
+		elseIf RT_MAP == rt
+			If (varscope[VS_RESOLVED_MAP_KEY])
+				int subrt = StorageUtil.GetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY])
+				if RT_BOOL == subrt
+					return (StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]) != "")
+				elseif RT_INT == subrt
+					return (StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]) as int) != 0
+				elseif RT_FLOAT == subrt
+					return (StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]) as float) != 0.0
+				elseif RT_STRING == subrt
+					return StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]) != ""
+				elseif RT_FORM == subrt
+					return (StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]) as int) != 0
+				else
+					cmdPrimary.SFE("GetGlobalVar: mapped var found but not recognized type(" + RT_ToString(subrt) + ")")
+				endif
+			else
+        		cmdPrimary.SFW("GetGlobalVarBool: unable to coerce map to bool; did you forget a map key?")
+			EndIf
+		else
+        	cmdPrimary.SFE("GetGlobalVar: var found but not recognized type(" + RT_ToString(rt) + ")")
         endif
-        SLTErrMsg("GetGlobalVar: var found but not recognized type(" + RT_ToString(rt) + ")")
 	endif
 	return missing
 EndFunction
 
-float Function GetGlobalVarFloat(string _key, float missing)
-	int i = global_var_keys.Find(_key, 0)
+int Function GetGlobalVarInt(sl_triggersCmd cmdPrimary, string[] varscope, int missing)
+	int i = globalVarKeys.Find(varscope[VS_NAME], 0)
 	if i > -1
-        int rt = global_var_types[i]
+        int rt = globalVarTypes[i]
         if RT_BOOL == rt
-            return global_var_vals[i] as float
+            return globalVarVals[i] as int
         elseif RT_INT == rt
-            return global_var_vals[i] as float
+            return globalVarVals[i] as int
         elseif RT_FLOAT == rt
-            return global_var_vals[i] as float
+            return (globalVarVals[i] as float) as int
         elseif RT_STRING == rt
-            return global_var_vals[i] as float
+            return globalVarVals[i] as int
         elseIf RT_FORM == rt
-            return global_var_vals[i] as float
+            return globalVarVals[i] as int
+		elseIf RT_MAP == rt
+			If (varscope[VS_RESOLVED_MAP_KEY])
+				int subrt = StorageUtil.GetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY])
+				if RT_BOOL == subrt
+					return StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]) as int
+				elseif RT_INT == subrt
+					return StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]) as int
+				elseif RT_FLOAT == subrt
+					return (StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]) as float) as int
+				elseif RT_STRING == subrt
+					return StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]) as int
+				elseif RT_FORM == subrt
+					return StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]) as int
+				else
+					cmdPrimary.SFE("GetGlobalVar: mapped var found but not recognized type(" + RT_ToString(subrt) + ")")
+				endif
+			else
+        		cmdPrimary.SFW("GetGlobalVarInt: unable to coerce map to int; did you forget a map key?")
+			EndIf
+		else
+        	cmdPrimary.SFE("GetGlobalVar: var found but not recognized type(" + RT_ToString(rt) + ")")
         endif
-        SLTErrMsg("GetGlobalVar: var found but not recognized type(" + RT_ToString(rt) + ")")
 	endif
 	return missing
 EndFunction
 
-Form Function GetGlobalVarForm(string _key, Form missing)
-	int i = global_var_keys.Find(_key, 0)
+float Function GetGlobalVarFloat(sl_triggersCmd cmdPrimary, string[] varscope, float missing)
+	int i = globalVarKeys.Find(varscope[VS_NAME], 0)
 	if i > -1
-        int rt = global_var_types[i]
+        int rt = globalVarTypes[i]
+        if RT_BOOL == rt
+            return globalVarVals[i] as float
+        elseif RT_INT == rt
+            return globalVarVals[i] as float
+        elseif RT_FLOAT == rt
+            return globalVarVals[i] as float
+        elseif RT_STRING == rt
+            return globalVarVals[i] as float
+        elseIf RT_FORM == rt
+            return globalVarVals[i] as float
+		elseIf RT_MAP == rt
+			If (varscope[VS_RESOLVED_MAP_KEY])
+				int subrt = StorageUtil.GetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY])
+				if RT_BOOL == subrt
+					return StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]) as float
+				elseif RT_INT == subrt
+					return StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]) as float
+				elseif RT_FLOAT == subrt
+					return StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]) as float
+				elseif RT_STRING == subrt
+					return StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]) as float
+				elseif RT_FORM == subrt
+					return StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]) as float
+				else
+					cmdPrimary.SFE("GetGlobalVar: mapped var found but not recognized type(" + RT_ToString(subrt) + ")")
+				endif
+			else
+        		cmdPrimary.SFW("GetGlobalVarFloat: unable to coerce map to float; did you forget a map key?")
+			EndIf
+		else
+        	cmdPrimary.SFE("GetGlobalVar: var found but not recognized type(" + RT_ToString(rt) + ")")
+        endif
+	endif
+	return missing
+EndFunction
+
+Form Function GetGlobalVarForm(sl_triggersCmd cmdPrimary, string[] varscope, Form missing)
+	int i = globalVarKeys.Find(varscope[VS_NAME], 0)
+	if i > -1
+        int rt = globalVarTypes[i]
         if RT_BOOL == rt
             return none
         elseif RT_INT == rt
-            return sl_triggers.GetForm(global_var_vals[i])
+            return sl_triggers.GetForm(globalVarVals[i])
         elseif RT_FLOAT == rt
-            return sl_triggers.GetForm((global_var_vals[i] as float) as int)
+            return sl_triggers.GetForm((globalVarVals[i] as float) as int)
         elseif RT_STRING == rt
-            return sl_triggers.GetForm(global_var_vals[i])
+            return sl_triggers.GetForm(globalVarVals[i])
         elseIf RT_FORM == rt
-            return sl_triggers.GetForm(global_var_vals[i])
+            return sl_triggers.GetForm(globalVarVals[i])
+		elseIf RT_MAP == rt
+			If (varscope[VS_RESOLVED_MAP_KEY])
+				int subrt = StorageUtil.GetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY])
+				if RT_BOOL == subrt
+					return none
+				elseif RT_INT == subrt
+					return sl_triggers.GetForm(StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]))
+				elseif RT_FLOAT == subrt
+					return sl_triggers.GetForm((StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]) as float) as int)
+				elseif RT_STRING == subrt
+					return sl_triggers.GetForm(StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]))
+				elseif RT_FORM == subrt
+					return sl_triggers.GetForm(StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]))
+				else
+					cmdPrimary.SFE("GetGlobalVar: mapped var found but not recognized type(" + RT_ToString(subrt) + ")")
+				endif
+			else
+        		cmdPrimary.SFW("GetGlobalVarForm: unable to coerce map to Form; did you forget a map key?")
+			EndIf
+		else
+        	cmdPrimary.SFE("GetGlobalVar: var found but not recognized type(" + RT_ToString(rt) + ")")
         endif
-        SLTErrMsg("GetGlobalVar: var found but not recognized type(" + RT_ToString(rt) + ")")
 	endif
 	return missing
 EndFunction
 
-string Function SetGlobalVarString(string _key, string value)
-	int i = global_var_keys.Find(_key, 0)
+string Function SetGlobalVarString(string[] varscope, string value)
+	int i = globalVarKeys.Find(varscope[VS_NAME], 0)
 	if i < 0
-		global_var_keys = PapyrusUtil.PushString(global_var_keys, _key)
-		global_var_vals = PapyrusUtil.PushString(global_var_vals, value)
-		global_var_types = PapyrusUtil.PushInt(global_var_types, RT_STRING)
+		globalVarKeys = PapyrusUtil.PushString(globalVarKeys, varscope[VS_NAME])
+		If (varscope[VS_RESOLVED_MAP_KEY])
+			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_STRING)
+			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
+			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_MAP)
+		else
+			globalVarVals = PapyrusUtil.PushString(globalVarVals, value)
+			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_STRING)
+		EndIf
 	else
-		global_var_vals[i] = value
-		global_var_types[i] = RT_STRING
+		If (varscope[VS_RESOLVED_MAP_KEY])
+			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_STRING)
+			globalVarTypes[i] = RT_MAP
+		else
+			globalVarVals[i] = value
+			globalVarTypes[i] = RT_STRING
+		EndIf
 	endif
 	return value
 EndFunction
 
-string Function SetGlobalVarLabel(string _key, string value)
-	int i = global_var_keys.Find(_key, 0)
+string Function SetGlobalVarLabel(string[] varscope, string value)
+	int i = globalVarKeys.Find(varscope[VS_NAME], 0)
 	if i < 0
-		global_var_keys = PapyrusUtil.PushString(global_var_keys, _key)
-		global_var_vals = PapyrusUtil.PushString(global_var_vals, value)
-		global_var_types = PapyrusUtil.PushInt(global_var_types, RT_LABEL)
+		globalVarKeys = PapyrusUtil.PushString(globalVarKeys, varscope[VS_NAME])
+		If (varscope[VS_RESOLVED_MAP_KEY])
+			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_LABEL)
+			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
+			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_MAP)
+		else
+			globalVarVals = PapyrusUtil.PushString(globalVarVals, value)
+			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_LABEL)
+		EndIf
 	else
-		global_var_vals[i] = value
-		global_var_types[i] = RT_LABEL
+		If (varscope[VS_RESOLVED_MAP_KEY])
+			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_LABEL)
+			globalVarTypes[i] = RT_MAP
+		else
+			globalVarVals[i] = value
+			globalVarTypes[i] = RT_LABEL
+		EndIf
 	endif
 	return value
 EndFunction
 
-bool Function SetGlobalVarBool(string _key, bool value)
-	int i = global_var_keys.Find(_key, 0)
+bool Function SetGlobalVarBool(string[] varscope, bool boolvalue)
+	int i = globalVarKeys.Find(varscope[VS_NAME], 0)
+	string value
+	if boolvalue
+		value = "1"
+	endif
 	if i < 0
-		global_var_keys = PapyrusUtil.PushString(global_var_keys, _key)
-		if value
-        	global_var_vals = PapyrusUtil.PushString(global_var_vals, "1")
+		globalVarKeys = PapyrusUtil.PushString(globalVarKeys, varscope[VS_NAME])
+		If (varscope[VS_RESOLVED_MAP_KEY])
+			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_BOOL)
+			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
+			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_MAP)
 		else
-        	global_var_vals = PapyrusUtil.PushString(global_var_vals, "")
-		endif
-        global_var_types = PapyrusUtil.PushInt(global_var_types, RT_BOOL)
+			globalVarVals = PapyrusUtil.PushString(globalVarVals, value)
+			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_BOOL)
+		EndIf
     else
-		if value
-			global_var_vals[i] = "1"
+		If (varscope[VS_RESOLVED_MAP_KEY])
+			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_BOOL)
+			globalVarTypes[i] = RT_MAP
 		else
-			global_var_vals[i] = ""
-		endif
-		global_var_types[i] = RT_BOOL
+			globalVarVals[i] = value
+			globalVarTypes[i] = RT_BOOL
+		EndIf
+	endif
+	return boolvalue
+EndFunction
+
+int Function SetGlobalVarInt(string[] varscope, int value)
+	int i = globalVarKeys.Find(varscope[VS_NAME], 0)
+	if i < 0
+		globalVarKeys = PapyrusUtil.PushString(globalVarKeys, varscope[VS_NAME])
+		If (varscope[VS_RESOLVED_MAP_KEY])
+			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_INT)
+			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
+			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_MAP)
+		else
+			globalVarVals = PapyrusUtil.PushString(globalVarVals, value)
+			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_INT)
+		EndIf
+    else
+		If (varscope[VS_RESOLVED_MAP_KEY])
+			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_INT)
+			globalVarTypes[i] = RT_MAP
+		else
+			globalVarVals[i] = value
+			globalVarTypes[i] = RT_BOOL
+		EndIf
 	endif
 	return value
 EndFunction
 
-int Function SetGlobalVarInt(string _key, int value)
-	int i = global_var_keys.Find(_key, 0)
+float Function SetGlobalVarFloat(string[] varscope, float value)
+	int i = globalVarKeys.Find(varscope[VS_NAME], 0)
 	if i < 0
-		global_var_keys = PapyrusUtil.PushString(global_var_keys, _key)
-        global_var_vals = PapyrusUtil.PushString(global_var_vals, value)
-        global_var_types = PapyrusUtil.PushInt(global_var_types, RT_INT)
+		globalVarKeys = PapyrusUtil.PushString(globalVarKeys, varscope[VS_NAME])
+		If (varscope[VS_RESOLVED_MAP_KEY])
+			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_FLOAT)
+			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
+			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_MAP)
+		else
+			globalVarVals = PapyrusUtil.PushString(globalVarVals, value)
+			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_FLOAT)
+		EndIf
     else
-		global_var_vals[i] = value
-		global_var_types[i] = RT_INT
+		If (varscope[VS_RESOLVED_MAP_KEY])
+			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_FLOAT)
+			globalVarTypes[i] = RT_MAP
+		else
+			globalVarVals[i] = value
+			globalVarTypes[i] = RT_FLOAT
+		EndIf
 	endif
 	return value
 EndFunction
 
-float Function SetGlobalVarFloat(string _key, float value)
-	int i = global_var_keys.Find(_key, 0)
-	if i < 0
-		global_var_keys = PapyrusUtil.PushString(global_var_keys, _key)
-        global_var_vals = PapyrusUtil.PushString(global_var_vals, value)
-        global_var_types = PapyrusUtil.PushInt(global_var_types, RT_FLOAT)
-    else
-		global_var_vals[i] = value
-		global_var_types[i] = RT_FLOAT
+Form Function SetGlobalVarForm(string[] varscope, Form formvalue)
+	int i = globalVarKeys.Find(varscope[VS_NAME], 0)
+	string value
+	if formvalue
+		value = formvalue.GetFormID()
 	endif
-	return value
-EndFunction
-
-Form Function SetGlobalVarForm(string _key, Form value)
-	int i = global_var_keys.Find(_key, 0)
 	if i < 0
-		global_var_keys = PapyrusUtil.PushString(global_var_keys, _key)
-		if value
-        	global_var_vals = PapyrusUtil.PushString(global_var_vals, value.GetFormID())
+		globalVarKeys = PapyrusUtil.PushString(globalVarKeys, varscope[VS_NAME])
+		If (varscope[VS_RESOLVED_MAP_KEY])
+			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_FORM)
+			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
+			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_MAP)
 		else
-        	global_var_vals = PapyrusUtil.PushString(global_var_vals, "")
-		endif
-        global_var_types = PapyrusUtil.PushInt(global_var_types, RT_FORM)
+			globalVarVals = PapyrusUtil.PushString(globalVarVals, value)
+			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_FORM)
+		EndIf
     else
-		if value
-			global_var_vals[i] = value
+		If (varscope[VS_RESOLVED_MAP_KEY])
+			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_FORM)
+			globalVarTypes[i] = RT_MAP
 		else
-			global_var_vals[i] = ""
-		endif
-		global_var_types[i] = RT_FORM
+			globalVarVals[i] = value
+			globalVarTypes[i] = RT_FORM
+		EndIf
 	endif
-	return value
+	return formvalue
 EndFunction
 
 Function StartCommand(Form targetForm, string initialScriptName)

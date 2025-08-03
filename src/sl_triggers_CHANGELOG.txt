@@ -1,8 +1,31 @@
 132
     Savegame compatibility: Should be savegame compatible
 
-    update: documented target-scope-extended variables
+    enhancement: new type, MAP
+        MAP type is a peer to BOOL, STRING, LABEL, INT, FLOAT, FORM
+        a map variable cannot be directly coerced to another type
+            set $mapvar{key} = true
+            ; this is not valid, you must use a map key
+            if $mapvar [somelabel]
+            ; this is valid and should work
+            if $mapvar{key} [somelabel]
+        map keys will be resolved
+            set $mapvar{key} = 12
+            set $test1 $mapvar{key}
+            set $keyvar "key"
+            set $test2 $mapvar{$keyvar}
+            if $test1 &= $test2
+                ; this code will be run
+            endif
+        NOTE: Note that for variable use within a map key, you MUST use the $-prefix; without the $-prefix, the key will be treated like a string literal
+    change: string interpolation now accepts $-prefixed variables, including map syntax
+        DEPRECATED: non $-prefixed values inside a variable expansion bracket {} will still be treated like a variable
+            eventually you should update your scripts to add the $-prefix in your string interpolation
+    change: due to the change to string interpolation above, the escape sequence for closing brace '}' has been removed (i.e. you do not need to double brace to have string interpolation see your '}')
+        the escape sequence for open brace remains the same, i.e. '{{' (i.e. you still need to escape the open brace to actually include an open brace in your interpolated string, else it will consider it the beginning of a variable expansion section)
     change: $core.toh_elapsed has been moved to $system.toh_elapsed (technicall a script breaking change, but raise your hand if you are using this... didn't think so :)
+    update: documented target-scope-extended variables
+    bugfix: error with global form assignment
 
 131
     Savegame compatibility: Should be savegame compatible
