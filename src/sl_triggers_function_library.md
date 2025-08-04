@@ -417,15 +417,15 @@ Set $$ to the relationship rank between the two actors
 
     actor_getrelation $actor $system.player  
 
-4  - Lover  
-3  - Ally  
-2  - Confidant  
-1  - Friend  
-0  - Acquaintance  
--1 - Rival  
--2 - Foe  
--3 - Enemy  
--4 - Archnemesis  
+- 4  - Lover  
+- 3  - Ally  
+- 2  - Confidant  
+- 1  - Friend  
+- 0  - Acquaintance  
+- -1 - Rival  
+- -2 - Foe  
+- -3 - Enemy  
+- -4 - Archnemesis  
 
 
 ### actor_getscale
@@ -732,11 +732,11 @@ Sets $$ to the race name based on sub-function. Blank, empty sub-function return
 **Description**
 
 Returns the "race type". This is what the "Race" filter uses for filtering.
-0 - error occurred
-1 - Player
-2 - Humanoid - Actor.HasKeyword(ActorTypeNPC)
-3 - Undead - Actor.HasKeyword(ActorTypeUndead)
-4 - Creature - presumed, default if nothing else matches
+- 0 - error occurred
+- 1 - Player
+- 2 - Humanoid - Actor.HasKeyword(ActorTypeNPC)
+- 3 - Undead - Actor.HasKeyword(ActorTypeUndead)
+- 4 - Creature - presumed, default if nothing else matches
 
 **Parameters**
 
