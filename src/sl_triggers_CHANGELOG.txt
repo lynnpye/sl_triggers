@@ -18,6 +18,11 @@
                 ; this code will be run
             endif
         NOTE: Note that for variable use within a map key, you MUST use the $-prefix; without the $-prefix, the key will be treated like a string literal
+        new intrinsic functions available for map manipulation:
+            mapunset <mapvar> <map key> - unsets the map key for the mapvar
+            mapclear <mapvar> - unsets all map keys for the mapvar
+            mapcopy <target mapvar> <source mapvar> - copies all key/value pairs from source to target
+            maphaskey <mapvar> <map key> - returns true if the map key exists in mapvar, false otherwise
     change: string interpolation now accepts $-prefixed variables, including map syntax
         DEPRECATED: non $-prefixed values inside a variable expansion bracket {} will still be treated like a variable
             eventually you should update your scripts to add the $-prefix in your string interpolation

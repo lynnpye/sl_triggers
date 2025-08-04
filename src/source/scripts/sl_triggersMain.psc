@@ -640,6 +640,10 @@ bool Function HasGlobalVar(string[] varscope)
 	return (globalVarKeys.Find(varscope[VS_NAME], 0) > -1)
 EndFunction
 
+string Function GetGlobalMapKey(string[] varscope)
+	return kglobal_map_prefix + varscope[VS_NAME] + ":"
+EndFunction
+
 int Function GetGlobalVarType(sl_triggersCmd cmdPrimary, string[] varscope)
 	int i = globalVarKeys.Find(varscope[VS_NAME], 0)
 	if i > -1

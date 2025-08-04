@@ -249,7 +249,36 @@ Removes the key-value pair identified by the `map-key` argument.
 ```sltscript
 set $mapvar{key} = "value"
 mapunset $mapvar "key"
-; $mapvar{key} no longer has a value and will now return default values again
+; $mapvar{key} no longer has a value
+```
+
+#### `maphaskey` - Unset a map key for a map
+Returns true if a key-value pair identified by the `map-key` argument exists for this map.
+```sltscript
+set $mapvar{foo} = "value"
+maphaskey $mapvar "foo"
+; $$ is true
+maphaskey $mapvar "bar"
+; $$ is false
+```
+
+#### `mapcopy` - Unset a map key for a map
+Copies all key-value pairs associated with the source map to the target map.
+```sltscript
+set $mapvar{key} = "value"
+mapcopy $global.mapvar $mapvar
+mapunset $mapvar "key"
+; $mapvar{key} no longer has a value
+; $global.mapvar{key} still has value "value"
+```
+
+#### `mapclear` - Unset a map key for a map
+Removes all key-value pairs associated with the map variable.
+```sltscript
+set $mapvar{key1} = "value1"
+set $mapvar{key2} = "value2
+mapclear $mapvar
+; $mapvar{key1} and $mapvar{key2} no longer have a value
 ```
 
 #### `inc` - Increment

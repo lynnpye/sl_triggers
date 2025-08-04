@@ -174,34 +174,6 @@
           }
         },
         {
-          "name": "variable.other.core.sltscript",
-          "match": "\\$(?i:core)\\.[a-zA-Z0-9_][a-zA-Z0-9_.]*",
-          "captures": {
-            "0": {
-              "patterns": [
-                {
-                  "name": "support.type.scope.sltscript",
-                  "match": "\\$(?i:core)\\."
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "variable.other.sexlab.sltscript",
-          "match": "\\$(?i:sexlab)\\.[a-zA-Z0-9_][a-zA-Z0-9_.]*",
-          "captures": {
-            "0": {
-              "patterns": [
-                {
-                  "name": "support.type.scope.sltscript",
-                  "match": "\\$(?i:sexlab)\\."
-                }
-              ]
-            }
-          }
-        },
-        {
           "name": "variable.other.local.sltscript",
           "match": "\\$(?i:local)\\.[a-zA-Z0-9_][a-zA-Z0-9_.]*",
           "captures": {
@@ -227,7 +199,7 @@
     },
     "control-keywords": {
       "name": "keyword.control.sltscript",
-      "match": "\\b(?i:if|elseif|else|endif|while|endwhile|goto|gosub|call|set|inc|return|beginsub|endsub|callarg|cat|resultfrom|true|false|none)\\b"
+      "match": "\\b(?i:if|elseif|else|endif|while|endwhile|goto|gosub|call|set|inc|return|beginsub|endsub|callarg|cat|resultfrom|true|false|none|mapunset|mapcopy|mapclear|maphaskey)\\b"
     },
     "functions": {
       "patterns": [

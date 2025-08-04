@@ -171,8 +171,118 @@ mapunset $mapval "test"
 
 if $mapval{test} &= ""
     inc $thread.passCount
-    inc $thread.passCount
     deb_msg $"PASS: mapunset"
 else
     deb_msg $"FAIL: mapunset"
+endif
+
+
+set $mapval{test1} "testing-1"
+set $mapval{test2} "testing-2"
+
+mapcopy $global.mapval $mapval
+
+set $mapval{test1} "post-testing-x"
+set $global.mapval{test2} "post-testing-x"
+
+inc $thread.testCount
+
+if $global.mapval{test1} &= "testing-1"
+    inc $thread.passCount
+    deb_msg $"PASS: mapcopy, no forward propagation"
+else
+    deb_msg $"FAIL: mapcopy, no forward propagation"
+endif
+
+inc $thread.testCount
+if $mapval{test2} &= "testing-2"
+    inc $thread.passCount
+    deb_msg $"PASS: mapcopy, no backward propagation"
+else
+    deb_msg $"FAIL: mapcopy, no backward propagation"
+endif
+
+inc $thread.testCount
+if $mapval{test1} &= $global.mapval{test2}
+    inc $thread.passCount
+    deb_msg $"PASS: mapcopy, post-check"
+else
+    deb_msg $"FAIL: mapcopy, post-check"
+endif
+
+mapclear $mapval
+
+inc $thread.testCount
+inc $thread.testCount
+inc $thread.testCount
+inc $thread.testCount
+
+if $mapval{test1} &= ""
+    inc $thread.passCount
+    deb_msg $"PASS: mapclear, no remnant/1"
+else
+    deb_msg $"FAIL: mapclear, no remnant/1"
+endif
+
+if $mapval{test2} &= ""
+    inc $thread.passCount
+    deb_msg $"PASS: mapclear, no remnant/2"
+else
+    deb_msg $"FAIL: mapclear, no remnant/2"
+endif
+
+if $global.mapval{test1} &= "testing-1"
+    inc $thread.passCount
+    deb_msg $"PASS: mapclear, no forward propagation/1"
+else
+    deb_msg $"FAIL: mapclear, no forward propagation/1"
+endif
+
+if $global.mapval{test2} &= "post-testing-x"
+    inc $thread.passCount
+    deb_msg $"PASS: mapclear, no forward propagation/2"
+else
+    deb_msg $"FAIL: mapclear, no forward propagation/2"
+endif
+
+inc $thread.testCount
+maphaskey $mapval test1
+set $checkresult $$
+
+if $checkresult == false
+    inc $thread.passCount
+    deb_msg $"PASS: maphaskey, simple result, missing"
+else
+    deb_msg $"FAIL: maphaskey, simple result, missing"
+endif
+
+inc $thread.testCount
+set $checkresult resultfrom maphaskey $mapval test2
+
+if $checkresult == false
+    inc $thread.passCount
+    deb_msg $"PASS: maphaskey, resultfrom subcommand, missing"
+else
+    deb_msg $"FAIL: maphaskey, resultfrom subcommand, missing"
+endif
+
+inc $thread.testCount
+maphaskey $global.mapval test1
+set $checkresult $$
+
+if $checkresult
+    inc $thread.passCount
+    deb_msg $"PASS: maphaskey, simple result, present"
+else
+    deb_msg $"FAIL: maphaskey, simple result, present"
+endif
+
+inc $thread.testCount
+set $checkresult resultfrom maphaskey $global.mapval test2
+
+if $checkresult
+    inc $thread.passCount
+    deb_msg $"PASS: maphaskey, resultfrom subcommand, present"
+else
+    deb_msg $"FAIL: maphaskey, resultfrom subcommand, present"
 endif

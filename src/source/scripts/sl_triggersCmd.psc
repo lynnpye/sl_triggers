@@ -1785,13 +1785,120 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                         if mapkey
                             UnsetMapKey(varscope, mapkey)
                         else
-                            SFE("cannot unset with empty mapkey: resolved from(" + cmdLine[2] + ")")
+                            SFE("cannot mapunset with empty mapkey: resolved from(" + cmdLine[2] + ")")
                         endif
                     else
-                        SFE("invalid target for unset: varscope(" + SLT.VarScopeToString(varscope) + ")")
+                        SFE("invalid target for mapunset: varscope(" + SLT.VarScopeToString(varscope) + ")")
                     endif
                 else
-                    SFE("no resolve found for variable parameter (" + cmdLine[1] + ") varstr(" + cmdLine[1] + ") varscope(" + SLT.VarScopeToString(varscope) + ")")
+                    SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
+                endif
+            endif
+            ;currentLine += 1
+        elseIf command == "maphaskey"
+            if ParamLengthEQ(self, cmdLine.Length, 3)
+                string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
+                if varscope[SLT.VS_SCOPE]
+                    int vt = GetVarType(varscope)
+                    if SLT.RT_MAP == vt
+                        string mapkey = ResolveString(cmdLine[2])
+                        if mapkey
+                            string baseMapKey = GetMapKey(varscope)
+                            int foundIndex = StorageUtil.StringListFind(SLT, baseMapKey, mapkey)
+                            MostRecentBoolResult = (foundIndex > -1)
+                        else
+                            SFE("cannot mapunset with empty mapkey: resolved from(" + cmdLine[2] + ")")
+                        endif
+                    else
+                        SFE("invalid target for maphaskey: varscope(" + SLT.VarScopeToString(varscope) + ")")
+                    endif
+                else
+                    SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
+                endif
+            endif
+            ;currentLine += 1
+        elseIf command == "mapcopy"
+            if subCommand
+                SFE("'mapcopy' is not a valid subcommand")
+            elseif ParamLengthEQ(self, cmdLine.Length, 3)
+                string[] sourceVarscope = GetVarScopeWithResolution(cmdLine[2], false)
+                if sourceVarscope[SLT.VS_SCOPE]
+                    int sourceBaseType = GetVarType(sourceVarscope)
+                    if SLT.RT_MAP == sourceBaseType
+                        string[] targetVarscope = GetVarScopeWithResolution(cmdLine[1], false)
+                        if targetVarscope[SLT.VS_SCOPE]
+                            string sourceKey = GetMapKey(sourceVarscope)
+                            string targetKey = GetMapKey(targetVarscope)
+
+                            string[] sourceMapKeys = StorageUtil.StringListToArray(SLT, sourceKey)
+                            int smkindex = sourceMapKeys.Length
+                            string sourceVal
+                            string actualMapKey
+                            int sourceType
+                            while smkindex
+                                smkindex -= 1
+                                actualMapKey = sourceMapKeys[smkindex]
+
+                                sourceType = StorageUtil.GetIntValue(SLT, sourceKey + actualMapKey)
+
+                                sourceVarscope[SLT.VS_MAP_KEY] = actualMapKey
+                                sourceVarscope[SLT.VS_RESOLVED_MAP_KEY] = actualMapKey
+                                targetVarscope[SLT.VS_MAP_KEY] = actualMapKey
+                                targetVarscope[SLT.VS_RESOLVED_MAP_KEY] = actualMapKey
+
+                                if SLT.RT_BOOL == sourceType
+                                    bool val = GetVarBool(sourceVarscope, false)
+                                    SetVarBool(targetVarscope, val)
+                                elseif SLT.RT_INT == sourceType
+                                    int val = GetVarInt(sourceVarscope, 0)
+                                    SetVarInt(targetVarscope, val)
+                                elseif SLT.RT_FLOAT == sourceType
+                                    float val = GetVarFloat(sourceVarscope, 0.0)
+                                    SetVarFloat(targetVarscope, val)
+                                elseif SLT.RT_STRING == sourceType
+                                    string val = GetVarString(sourceVarscope, "")
+                                    SetVarString(targetVarscope, val)
+                                elseif SLT.RT_LABEL == sourceType
+                                    string val = GetVarLabel(sourceVarscope, "")
+                                    SetVarLabel(targetVarscope, val)
+                                elseif SLT.RT_FORM == sourceType
+                                    Form val = GetVarForm(sourceVarscope, none)
+                                    SetVarForm(targetVarscope, val)
+                                endif
+                            endwhile
+                        else
+                            SFE("no resolve found for target map (" + cmdLine[1] + ")")
+                        endif
+                    else
+                        SFW("Unable to mapcopy from non-map type: " + SLT.RT_ToString(sourceBaseType))
+                    endif
+                else
+                    SFE("no resolve found for source map (" + cmdLine[2] + ")")
+                endif
+            endif
+            ;currentLine += 1
+        elseIf command == "mapclear"
+            if subCommand
+                SFE("'mapclear' is not a valid subcommand")
+            elseif ParamLengthEQ(self, cmdLine.Length, 2)
+                string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
+                if varscope[SLT.VS_SCOPE]
+                    int vt = GetVarType(varscope)
+                    if SLT.RT_MAP == vt
+                        
+                        string sourceKey = GetMapKey(varscope)
+                        string[] sourceMapKeys = StorageUtil.StringListToArray(SLT, sourceKey)
+                        int smkindex = sourceMapKeys.Length
+                        while smkindex
+                            smkindex -= 1
+                            
+                            UnsetMapKey(varscope, sourceMapKeys[smkindex])
+                        endwhile
+                    else
+                        SFE("invalid target for mapclear: varscope(" + SLT.VarScopeToString(varscope) + ")")
+                    endif
+                else
+                    SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
                 endif
             endif
             ;currentLine += 1
@@ -3008,6 +3115,10 @@ bool Function HasFrameVar(string[] varscope)
 	return (frameVarKeys.Find(varscope[SLT.VS_NAME], 0) > -1)
 EndFunction
 
+string function GetFrameMapKey(string[] varscope)
+    return kframe_map_prefix + varscope[SLT.VS_NAME] + ":"
+endfunction
+
 int Function GetFrameVarType(string[] varscope)
 	int i = frameVarKeys.Find(varscope[SLT.VS_NAME], 0)
 	if i > -1
@@ -3231,6 +3342,16 @@ Form Function GetFrameVarForm(string[] varscope, Form missing)
 	return missing
 EndFunction
 
+function UnsetFrameMapKey(string[] varscope, string mapkey)
+    if !mapkey
+        SFW("Attempted to unset empty map key: varscope(" + SLT.VarScopeToString(varscope) + ") mapkey(" + mapkey + ")")
+    else
+        StorageUtil.UnsetStringValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + mapkey)
+        StorageUtil.UnsetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + mapkey)
+        StorageUtil.StringListRemove(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", mapkey)
+    endif
+endfunction
+
 string Function SetFrameVarString(string[] varscope, string value)
 	int i = frameVarKeys.Find(varscope[SLT.VS_NAME], 0)
     If (SLT.Debug_Cmd_RunScript_Set)
@@ -3413,6 +3534,10 @@ EndFunction
 bool Function HasThreadVar(string[] varscope)
     return (threadVarKeys.Find(varscope[SLT.VS_NAME], 0) > -1)
 EndFunction
+
+string function GetThreadMapKey(string[] varscope)
+    return kthread_map_prefix + varscope[SLT.VS_NAME] + ":"
+endfunction
 
 int Function GetThreadVarType(string[] varscope)
 	int i = threadVarKeys.Find(varscope[SLT.VS_NAME], 0)
@@ -3637,6 +3762,16 @@ Form Function GetThreadVarForm(string[] varscope, Form missing)
 	return missing
 EndFunction
 
+function UnsetThreadMapKey(string[] varscope, string mapkey)
+    if !mapkey
+        SFW("Attempted to unset empty map key: varscope(" + SLT.VarScopeToString(varscope) + ") mapkey(" + mapkey + ")")
+    else
+        StorageUtil.UnsetStringValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + mapkey)
+        StorageUtil.UnsetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + mapkey)
+        StorageUtil.StringListRemove(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", mapkey)
+    endif
+endfunction
+
 string Function SetThreadVarString(string[] varscope, string value)
 	int i = threadVarKeys.Find(varscope[SLT.VS_NAME], 0)
 	if i < 0
@@ -3816,6 +3951,10 @@ EndFunction
 bool Function HasTargetVar(string[] varscope)
     return HasIntValue(SLT, ktarget_type_v_prefix + varscope[SLT.VS_NAME])
 EndFunction
+
+string function GetTargetMapKey(string mapprefix, string[] varscope)
+    return mapprefix + varscope[SLT.VS_NAME] + ":"
+endfunction
 
 int Function GetTargetVarType(string typeprefix, string mapprefix, string[] varscope)
     int rt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
@@ -4025,6 +4164,16 @@ Form Function GetTargetVarForm(string typeprefix, string dataprefix, string mapp
     return missing
 EndFunction
 
+function UnsetTargetMapKey(string mapprefix, string[] varscope, string mapkey)
+    if !mapkey
+        SFW("Attempted to unset empty map key: varscope(" + SLT.VarScopeToString(varscope) + ") mapkey(" + mapkey + ")")
+    else
+        StorageUtil.UnsetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + mapkey)
+        StorageUtil.UnsetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + mapkey)
+        StorageUtil.StringListRemove(SLT, mapprefix + varscope[SLT.VS_NAME] + ":", mapkey)
+    endif
+endfunction
+
 string Function SetTargetVarString(string typeprefix, string dataprefix, string mapprefix, string[] varscope, string value)
     If (varscope[SLT.VS_RESOLVED_MAP_KEY])
         SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_MAP)
@@ -4196,6 +4345,39 @@ int function GetVarType(string[] varscope)
     endif
     SFE("GetVarType: Invalid scope(" + scope + ")")
     return SLT.RT_INVALID
+endfunction
+
+string function GetMapKey(string[] varscope)
+    string scope = varscope[SLT.VS_SCOPE]
+
+    if scope == "local"
+        return GetFrameMapKey(varscope)
+    elseif scope == "global"
+        return SLT.GetGlobalMapKey(varscope)
+    elseif scope == "thread"
+        return GetThreadMapKey(varscope)
+    elseif scope == "target"
+        string varname = varscope[SLT.VS_NAME]
+        string mapprefix
+        if varscope[SLT.VS_TARGET_EXT]
+            Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
+            if targetForm
+                int formid = targetForm.GetFormID()
+                mapprefix = Make_ktarget_map_prefix(formid)
+            else
+                SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
+            endif
+        endif
+        if !mapprefix
+            mapprefix = ktarget_map_prefix
+        endif
+        If (SLT.Debug_Cmd_RunScript_Set)
+            SFD("GetMapKey: mapprefix(" + mapprefix + ") varscope(" + debstrjoin(varscope, "/") + ")")
+        EndIf
+        return GetTargetMapKey(mapprefix, varscope)
+    endif
+    SFE("Invalid scope for GetMapKey (" + scope + ")")
+    return ""
 endfunction
 
 string function GetVarString(string[] varscope, string missing)
@@ -4418,36 +4600,6 @@ Form function GetVarForm(string[] varscope, Form missing)
     return missing
 endfunction
 
-function UnsetFrameMapKey(string[] varscope, string mapkey)
-    if !mapkey
-        SFW("Attempted to unset empty map key: varscope(" + SLT.VarScopeToString(varscope) + ") mapkey(" + mapkey + ")")
-    else
-        StorageUtil.UnsetStringValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + mapkey)
-        StorageUtil.UnsetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + mapkey)
-        StorageUtil.StringListRemove(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", mapkey)
-    endif
-endfunction
-
-function UnsetThreadMapKey(string[] varscope, string mapkey)
-    if !mapkey
-        SFW("Attempted to unset empty map key: varscope(" + SLT.VarScopeToString(varscope) + ") mapkey(" + mapkey + ")")
-    else
-        StorageUtil.UnsetStringValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + mapkey)
-        StorageUtil.UnsetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + mapkey)
-        StorageUtil.StringListRemove(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", mapkey)
-    endif
-endfunction
-
-function UnsetTargetMapKey(string mapprefix, string[] varscope, string mapkey)
-    if !mapkey
-        SFW("Attempted to unset empty map key: varscope(" + SLT.VarScopeToString(varscope) + ") mapkey(" + mapkey + ")")
-    else
-        StorageUtil.UnsetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + mapkey)
-        StorageUtil.UnsetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + mapkey)
-        StorageUtil.StringListRemove(SLT, mapprefix + varscope[SLT.VS_NAME] + ":", mapkey)
-    endif
-endfunction
-
 function UnsetMapKey(string[] varscope, string mapkey)
     string scope = varscope[SLT.VS_SCOPE]
     if scope == "local"
@@ -4471,7 +4623,7 @@ function UnsetMapKey(string[] varscope, string mapkey)
             mapprefix = ktarget_map_prefix
         endif
         UnsetTargetMapKey(mapprefix, varscope, mapkey)
-    elseif scope
+    else
         SFE("Attempted to unset invalid scope (" + scope + ")")
     endif
 endfunction
