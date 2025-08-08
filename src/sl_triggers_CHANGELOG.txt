@@ -1,3 +1,14 @@
+133
+    Savegame compatibility: Should be savegame compatible
+    
+    Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
+        (or whichever folder you have your SKSE logs directed to)
+
+    enhancement: loosened variable syntax requirements; within a map key block (i.e. inside the '{}'), you can have whitespace padding around the key value being used
+        ; previously, the whitespace around $key would have caused a parse failure:
+            $var{ $key }
+        NOTE: The parser will make a best effort but if you run into problems, report the error and, in the meantime, devolve to removing surrounding whitespace within map key blocks
+
 132
     Savegame compatibility: Should be savegame compatible
 

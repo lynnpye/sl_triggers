@@ -46,10 +46,6 @@ bool SLTNativeFunctions::DeleteTrigger(PAPYRUS_NATIVE_DECL, std::string_view ext
     }
 }
 
-void FuzPlay(PAPYRUS_NATIVE_DECL, std::string_view fuzFileName) {
-
-}
-
 RE::TESForm* SLTNativeFunctions::GetForm(PAPYRUS_NATIVE_DECL, std::string_view a_editorID) {
     return FormUtil::Parse::GetForm(a_editorID);
 }
@@ -357,9 +353,10 @@ bool IsValidScope(std::string_view scope) {
         return true;
     return false;
 }
-} 
+}
 
-/*
+#undef RUN_TEST_VARSCOPE
+#ifdef RUN_TEST_VARSCOPE
 OnAfterSKSEInit([]{
     using namespace std;
     auto variables = vector<string>({
@@ -375,9 +372,11 @@ OnAfterSKSEInit([]{
         , "$var.n.ame"
         , "$target.var.name"
         , "$target.<foo>.varname"
+        , "$target.< foo >.varname"
         , "$target.<foo>varname"
         , "$target<foo>.varname"
         , "$target.<foo.bar>.var.name"
+        , "$target.< $target<foo>.barActor[ 23 ]{ $target.<bar>.barVal[ $key ]{ keykey } } >.var.name[ $key1 ]{ $mapkey }"
         , "$varname[]"
         , "$varname[12]"
         , "$varname[]{}"
@@ -395,16 +394,16 @@ OnAfterSKSEInit([]{
     logger::debug("Testing GetVarScope with forAssignment == false");
     for (const auto& var : variables) {
         auto varscope = SLTNativeFunctions::GetVarScope(nullptr, 0, var, false);
-        logger::debug("\n {} \n\t / {} \n", var, Util::String::Join(varscope, ", "));
+        logger::debug("\n '{}' \n\t /SCOPE: '{}' \n\t /VNAME: '{}' \n\t /TGEXT: '{}' \n\t /LINDX: '{}' \n\t /MAPKY: '{}' \n\t /RMPKY: '{}' \n", var, varscope[0], varscope[1], varscope[2], varscope[3], varscope[4], varscope[5]);
     }
 
     logger::debug("Testing GetVarScope with forAssignment == true");
     for (const auto& var : variables) {
         auto varscope = SLTNativeFunctions::GetVarScope(nullptr, 0, var, true);
-        logger::debug("\n {} \n\t / {} \n", var, Util::String::Join(varscope, ", "));
+        logger::debug("\n '{}' \n\t /SCOPE: '{}' \n\t /VNAME: '{}' \n\t /TGEXT: '{}' \n\t /LINDX: '{}' \n\t /MAPKY: '{}' \n\t /RMPKY: '{}' \n", var, varscope[0], varscope[1], varscope[2], varscope[3], varscope[4], varscope[5]);
     }
 })
-*/
+#endif
 
 std::vector<std::string> SLTNativeFunctions::GetVarScope(PAPYRUS_NATIVE_DECL, std::string_view variable, bool forAssignment) {
 
@@ -477,7 +476,9 @@ result[5] - resolved_map_key ; allotted but used on the papyrus side
     vector<string> result;
     result.resize(6);
 
-    if (variable.size() < 2 || variable[0] != '$') {
+    size_t varlen = variable.size();
+
+    if (varlen < 2 || variable[0] != '$') {
         result[1] = variable;
         return result;
     }
@@ -489,29 +490,31 @@ result[5] - resolved_map_key ; allotted but used on the papyrus side
     string& map_key = result[4];
 
     size_t startPos = 1;
+    size_t endPos;
 
-    size_t endPos = variable.find(".", startPos);
-    if (endPos == string::npos) {
-        scope = "local";
-    } else {
-        if (startPos >= endPos) {
-            // $.varname => $local.varname, we're being kind
-            scope = "local";
-        } else {
-            // $global.varname
-            // 0123456789
-            scope = Util::String::ToLower(variable.substr(startPos, endPos - startPos));
-        }
-        startPos = endPos + 1;
+    if (
+        variable.starts_with("$local.")
+    ) {
+        startPos = 7;
+    }
+    else if (
+        variable.starts_with("$thread.")
+        || variable.starts_with("$target.")
+        || variable.starts_with("$global.")
+        || variable.starts_with("$system.")
+    ) {
+        startPos = 8;
+    }
+    else if (
+        variable.starts_with("$request.")
+    ) {
+        startPos = 9;
     }
 
-    // $global. => invalid
-    // $. => invalid
-    // $ => invalid
-    if (startPos >= variable.size()) {
-        scope = "";
-        varname = variable;
-        return result;
+    if (startPos == 1) {
+        scope = "local";
+    } else {
+        scope = Util::String::ToLower(variable.substr(1, startPos - 2));
     }
 
     // check for valid scope
@@ -538,21 +541,60 @@ result[5] - resolved_map_key ; allotted but used on the papyrus side
             return result;
         }
 
-        endPos = variable.find(">.", startPos + 1);
-        if (endPos == string::npos) {
-            logger::error("Malformed target extension scope for variable ({})", variable);
+        endPos = startPos + 1;
+
+        int counter = 1;
+        while (endPos < varlen && counter > 0) {
+            if (variable[endPos] == '<') {
+                ++counter;
+            }
+            else if (variable[endPos] == '>') {
+                --counter;
+            }
+            ++endPos;
+        }
+
+        if (counter > 0) {
+            logger::error("Malformed target extension scope for variable ({}); imbalanced brackets, '<'/'>'", variable);
+
+            scope = "";
+            varname = variable;
+            return result;
+        }
+        else if (endPos >= varlen || variable[endPos] != '.') {
+            logger::error("Malformed target extension scope for variable ({}); missing trailing sub-scope separator, '.'", variable);
 
             scope = "";
             varname = variable;
             return result;
         }
 
-        target_extension_scope = variable.substr(startPos + 1, endPos - startPos - 1);
+        target_extension_scope = Util::String::trim(variable.substr(startPos + 1, endPos - startPos - 2));
 
-        startPos = endPos + 2;
+        startPos = endPos + 1;
     }
 
-    if (startPos >= variable.size()) {
+    // no variable name at all
+    if (startPos >= varlen) {
+        // malformed
+        logger::error("Variable ({}) has no variable name", variable);
+
+        scope = "";
+        varname = variable;
+        return result;
+    }
+    else if (variable[startPos] == '[') {
+        // malformed
+        logger::error("Variable ({}) has list index with no variable name", variable);
+
+        scope = "";
+        varname = variable;
+        return result;
+    }
+    else if (variable[startPos] == '{') {
+        // malformed
+        logger::error("Variable ({}) has map key with no variable name", variable);
+
         scope = "";
         varname = variable;
         return result;
@@ -566,16 +608,23 @@ result[5] - resolved_map_key ; allotted but used on the papyrus side
      */
     size_t bracketStartPos = variable.find("[", startPos);
     if (bracketStartPos != string::npos) {
-        if (bracketStartPos == startPos) {
-            // malformed
-            logger::error("Variable ({}) has list index with no variable name", variable);
 
-            scope = "";
-            varname = variable;
-            return result;
+        endPos = bracketStartPos + 1;
+
+        int counter = 1;
+        while (endPos < varlen && counter > 0) {
+            if (variable[endPos] == '[') {
+                ++counter;
+            }
+            else if (variable[endPos] == ']') {
+                --counter;
+            }
+            if (counter <= 0) break;
+
+            ++endPos;
         }
-        endPos = variable.rfind("]");
-        if (endPos == string::npos) {
+
+        if (counter > 0) {
             // malformed
             logger::error("Variable ({}) has imbalanced list index", variable);
 
@@ -584,7 +633,7 @@ result[5] - resolved_map_key ; allotted but used on the papyrus side
             return result;
         }
 
-        list_index = variable.substr(bracketStartPos + 1, endPos - bracketStartPos - 1);
+        list_index = Util::String::trim(variable.substr(bracketStartPos + 1, endPos - bracketStartPos - 1));
         if (list_index.empty()) {
             // malformed
             logger::error("Variable ({}) used list syntax with an empty list index", variable);
@@ -592,22 +641,9 @@ result[5] - resolved_map_key ; allotted but used on the papyrus side
             scope = "";
             varname = variable;
             return result;
-        } else {
-            auto newval = Util::String::StringToIntWithImplicitHexConversion(list_index).value_or(-1);
-            if (newval < 0) {
-                // malformed
-                logger::error("Variable ({}) has invalid non-negative list index; list_index ({})", variable, list_index);
-
-                scope = "";
-                varname = variable;
-                return result;
-            } else {
-                list_index = to_string(newval);
-            }
         }
 
-        varname = variable.substr(startPos, bracketStartPos - startPos);
-
+        varname = Util::String::trim(variable.substr(startPos, bracketStartPos - startPos));
         if (varname.empty()) {
             // malformed
             logger::error("Variable ({}) has list index with no variable name", variable);
@@ -623,22 +659,7 @@ result[5] - resolved_map_key ; allotted but used on the papyrus side
     }
 
     if (bracketStartPos != string::npos) {
-        if (bracketStartPos == startPos) {
-            // malformed
-            logger::error("Variable ({}) has map key with no variable name", variable);
 
-            scope = "";
-            varname = variable;
-            return result;
-        }
-        if (list_index == "[]") {
-            // malformed
-            logger::error("Variable ({}) map key with empty list index; map keys are invalid without a non-empty list index", variable);
-
-            scope = "";
-            varname = variable;
-            return result;
-        }
         endPos = variable.rfind("}");
         if (endPos == string::npos) {
             // malformed
@@ -649,7 +670,7 @@ result[5] - resolved_map_key ; allotted but used on the papyrus side
             return result;
         }
 
-        map_key = variable.substr(bracketStartPos + 1, endPos - bracketStartPos - 1);
+        map_key = Util::String::trim(variable.substr(bracketStartPos + 1, endPos - bracketStartPos - 1));
         if (map_key.empty()) {
             // malformed
             logger::error("Variable ({}) used map syntax with an empty key", variable);
@@ -661,15 +682,14 @@ result[5] - resolved_map_key ; allotted but used on the papyrus side
 
         if (varname.empty()) {
             varname = variable.substr(startPos, bracketStartPos - startPos);
-        }
+            if (varname.empty()) {
+                // malformed
+                logger::error("Variable ({}) has map key with no variable name", variable);
 
-        if (varname.empty()) {
-            // malformed
-            logger::error("Variable ({}) has map key with no variable name", variable);
-
-            scope = "";
-            varname = variable;
-            return result;
+                scope = "";
+                varname = variable;
+                return result;
+            }
         }
     }
 
@@ -1108,69 +1128,6 @@ bool SLTNativeFunctions::SmartEquals(PAPYRUS_NATIVE_DECL, std::string_view a, st
     return outcome;
 }
 
-/*
-std::vector<std::string> SLTNativeFunctions::SplitFileContents(PAPYRUS_NATIVE_DECL, std::string_view content_view) {
-    std::vector<std::string> lines;
-    size_t start = 0;
-    size_t i = 0;
-    std::string content(content_view.data());
-    std::string tmpstr;
-    size_t len = content.length();
-
-    while (i < len) {
-        if (content[i] == '\r') {
-            if (i > start) {
-                tmpstr = Util::String::truncateAt(content.substr(start, i - start), ';');
-                lines.push_back(tmpstr);
-            }
-            if (i + 1 < len && content[i + 1] == '\n') {
-                i += 2;  // Windows CRLF
-            } else {
-                i += 1;  // Classic Mac CR
-            }
-            start = i;
-        } else if (content[i] == '\n') {
-            if (i > start) {
-                tmpstr = Util::String::truncateAt(content.substr(start, i - start), ';');
-                lines.push_back(tmpstr);
-            }
-            i += 1;
-            start = i;
-        } else {
-            i += 1;
-        }
-    }
-
-    // Add last line if there's any remaining
-    if (start < len) {
-        tmpstr = Util::String::truncateAt(content.substr(start), ';');
-        lines.push_back(tmpstr);
-    }
-
-    return lines;
-}
-*/
-
-/*
-std::vector<std::string> SLTNativeFunctions::SplitScriptContents(PAPYRUS_NATIVE_DECL, std::string_view scriptfilename) {
-    std::vector<std::string> lines;
-    fs::path filepath = GetScriptfilePath(scriptfilename);
-
-    if (fs::exists(filepath) && fs::is_regular_file(filepath)) {
-        std::ifstream file(filepath);
-        if (file.good()) {
-            std::string line;
-            while (std::getline(file, line)) {
-                line = Util::String::truncateAt(Util::String::trim(line), ';');
-                lines.push_back(line);
-            }
-        }
-    }
-
-    return lines;
-}
-*/
-
 /**
 ; returns string[]
 ; 0 : count of functional lines returned
@@ -1321,8 +1278,14 @@ std::vector<std::string> SLTNativeFunctions::Tokenizev2(PAPYRUS_NATIVE_DECL, std
             break; // Stop processing, ignore rest of line
         }
         
-        // Check for $" (dollar-double-quoted interpolation) - HIGHEST PRECEDENCE
-        if (pos + 1 < len && input[pos] == '$' && input[pos + 1] == '"') {
+        // Check for $$, ACTUAL HIGHEST PRECEDENCE
+        if (pos + 1 < len && input[pos] == '$' && input[pos + 1] == '$') {
+            size_t start = pos;
+            pos += 2; // Skip $"
+            tokens.push_back("$$");
+        }
+        // Check for $" (dollar-double-quoted interpolation)
+        else if (pos + 1 < len && input[pos] == '$' && input[pos + 1] == '"') {
             size_t start = pos;
             pos += 2; // Skip $"
             
@@ -1384,6 +1347,76 @@ std::vector<std::string> SLTNativeFunctions::Tokenizev2(PAPYRUS_NATIVE_DECL, std
             // Add token with leading and trailing brackets
             tokens.push_back(std::string(input.substr(start, pos - start)));
         }
+        // Check for $$
+        // Check for variables
+        else if (input[pos] == '$') {
+            size_t start = pos;
+            pos++;
+
+            while (pos < len){
+                auto& chi = input[pos];
+                if (isalnum(chi) || chi == '.' || chi == '_') {
+                    pos++;
+                }
+                else if (chi == '<') {
+                    pos++;
+                    // find closing '>'
+                    int counter = 1;
+                    while (pos < len) {
+                        auto& xi = input[pos];
+                        pos++;
+                        if (xi == '<') {
+                            ++counter;
+                        }
+                        else if (xi == '>') {
+                            --counter;
+                        }
+                        if (counter <= 0)
+                            break;
+                    }
+                }
+                else if (chi == '[') {
+                    pos++;
+                    // find closing ']'
+                    int counter = 1;
+                    while (pos < len) {
+                        auto& xi = input[pos];
+                        pos++;
+                        if (xi == '[') {
+                            ++counter;
+                        }
+                        else if (xi == ']') {
+                            --counter;
+                        }
+                        if (counter <= 0)
+                            break;
+                    }
+                }
+                else if (chi == '{') {
+                    pos++;
+                    // find closing '}'
+                    int counter = 1;
+                    while (pos < len) {
+                        auto& xi = input[pos];
+                        pos++;
+                        if (xi == '{') {
+                            ++counter;
+                        }
+                        else if (xi == '}') {
+                            --counter;
+                        }
+                        if (counter <= 0)
+                            break;
+                    }
+                }
+                else
+                    break;
+                
+                //pos++;
+            }
+            
+            tokens.push_back(std::string(input.substr(start, pos - start)));
+        }
         // Bare token - collect until whitespace - LOWEST PRECEDENCE
         else {
             size_t start = pos;
@@ -1402,12 +1435,10 @@ std::vector<std::string> SLTNativeFunctions::Tokenizev2(PAPYRUS_NATIVE_DECL, std
 namespace {
 bool IsValidVariableName(const std::string& name) {
     if (name.empty()) return false;
-
-    std::string testname = name.starts_with('$') ? name.substr(1) : name;
     
     // less sloppy would be to make sure the <> is appropriately placed and only on target scope
-    for (char c : testname) {
-        if (!std::isalnum(c) && c != '_' && c != '.' && c != '<' && c != '>' && c!= '{' && c != '}' && c != '[' && c != ']') {
+    for (char c : name) {
+        if (!std::isalnum(c) && c != '$' && c != '_' && c != '.' && c != '<' && c != '>' && c!= '{' && c != '}' && c != '[' && c != ']') {
             return false;
         }
     }
@@ -1502,11 +1533,11 @@ std::vector<std::string> SLTNativeFunctions::TokenizeForVariableSubstitution(PAP
         */
         
         // Extract variable name between braces
-        std::string varName = std::string(input.substr(openBrace + 1, closeBrace - openBrace - 1));
+        std::string varName = Util::String::trim(std::string(input.substr(openBrace + 1, closeBrace - openBrace - 1)));
         
         // Trim whitespace from variable name
-        varName.erase(0, varName.find_first_not_of(" \t"));
-        varName.erase(varName.find_last_not_of(" \t") + 1);
+        //varName.erase(0, varName.find_first_not_of(" \t"));
+        //varName.erase(varName.find_last_not_of(" \t") + 1);
         
         if (!varName.empty() && IsValidVariableName(varName)) {
             

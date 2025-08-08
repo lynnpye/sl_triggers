@@ -286,3 +286,27 @@ if $checkresult
 else
     deb_msg $"FAIL: maphaskey, resultfrom subcommand, present"
 endif
+
+inc $thread.testCount
+inc $thread.testCount
+
+set $cutlery "fork"
+set $mapval{fork} "knife"
+set $othermap{knife} "finality"
+
+set $test5 $othermap{ $mapval{ $cutlery } }
+set $test6 $othermap{ $mapval{ fork } }
+
+if $test5 &= "finality"
+    inc $thread.passCount
+    deb_msg $"PASS: map key with whitespace"
+else
+    deb_msg $"FAIL: map key with whitespace"
+endif
+
+if $test6 &= "finality"
+    inc $thread.passCount
+    deb_msg $"PASS: map key literal with whitespace"
+else
+    deb_msg $"FAIL: map key literal with whitespace"
+endif

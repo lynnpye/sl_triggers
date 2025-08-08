@@ -400,7 +400,7 @@ Function SetCustomResolveFromVar(string[] varscope)
     int vtype = GetVarType(varscope)
 
     if SLT.Debug_Cmd_InternalResolve || SLT.Debug_Cmd_RunScript_Set
-        SLTDebugMsg("\t\tSetCustomResolveFromVar: varscope(" + debstrjoin(varscope, "/") + ") vtype(" + vtype + ")")
+        SFD("SetCustomResolveFromVar: varscope(" + debstrjoin(varscope, "/") + ") vtype(" + vtype + ")")
     endif
 
     if SLT.RT_STRING == vtype
@@ -952,7 +952,7 @@ bool Function InternalResolve(string token)
         string vname = varscopestringlist[SLT.VS_NAME]
 
         if SLT.Debug_Cmd_InternalResolve
-            SLTDebugMsg("Cmd.InternalResolve: varscope<" + PapyrusUtil.StringJoin(varscopestringlist, ">,<") + ">")
+            SFD("Cmd.InternalResolve: varscope<" + PapyrusUtil.StringJoin(varscopestringlist, ">,<") + ">")
         endif
 
         if "local" == scope || "global" == scope || "thread" == scope || "target" == scope
@@ -1278,7 +1278,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             ; but let's have a little hygiene and validate we really are looking for something and correct things if things have gotten weird
 
             if SLT.Debug_Cmd_RunScript_Blocks
-                SLTInfoMsg("__blockendsneeded(" + __be_needed + ") __blockendstarter(" + __be_starter + ") __blockendtarget(" + __be_ender + "): these should have values")
+                SFI("__blockendsneeded(" + __be_needed + ") __blockendstarter(" + __be_starter + ") __blockendtarget(" + __be_ender + "): these should have values")
             endif
 
             if subCommand
@@ -1325,7 +1325,6 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             if subCommand
                 SFE("'set' is not a valid subcommand")
             elseif ParamLengthGT(self, cmdLine.Length, 2)
-                
                 string[] varscopestringlist = GetVarScopeWithResolution(cmdLine[1], true)
                 ;GetVarScope2(cmdLine[1], varscopestringlist, true)
 
@@ -1343,7 +1342,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                         InternalResolve(cmdLine[2])
                         if SLT.Debug_Cmd_RunScript_Set
                             __outresult = CRToString()
-                            SFD("set/3: resultfrom: CustomResolveType(" + SLT.RT_ToString(CustomResolveType) + ") and outresult is (" + __outresult + ")")
+                            SFD("set/3:  CustomResolveType(" + SLT.RT_ToString(CustomResolveType) + ") and outresult is (" + __outresult + ")")
                         endif
                         SetVarFromCustomResult(varscopestringlist)
                         ;SetVarString2(varscopestringlist[0], varscopestringlist[1], Resolve(cmdLine[2]))
@@ -1807,7 +1806,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                             int foundIndex = StorageUtil.StringListFind(SLT, baseMapKey, mapkey)
                             MostRecentBoolResult = (foundIndex > -1)
                         else
-                            SFE("cannot mapunset with empty mapkey: resolved from(" + cmdLine[2] + ")")
+                            SFE("cannot maphaskey with empty mapkey: resolved from(" + cmdLine[2] + ")")
                         endif
                     else
                         SFE("invalid target for maphaskey: varscope(" + SLT.VarScopeToString(varscope) + ")")
@@ -2350,7 +2349,6 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
 
         rawtokenresult = sl_triggers.SplitScriptContentsAndTokenize(_myCmdName)
         totalFunctionalCommands = rawtokenresult[0] as int
-        SLTDebugMsg("")
     elseif scrtype == 10
         ;scrtype = 1
         ;_myCmdName = CommandsFolder() + scriptfilename + ".json"
@@ -2704,7 +2702,7 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
         tokens = PapyrusUtil.SliceStringArray(rawtokenresult, 1 + 3 * totalFunctionalCommands)
         
         If (SLT.Debug_Cmd_RunScript)
-            SLTDebugMsg("scriptfilename(" + scriptfilename + ") rawtokens: (" + PapyrusUtil.StringJoin(rawtokenresult, "),(") + ")")
+            SFD("scriptfilename(" + scriptfilename + ") rawtokens: (" + PapyrusUtil.StringJoin(rawtokenresult, "),(") + ")")
         EndIf
 
         int sloff = 1
@@ -2736,7 +2734,7 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
                 int tlenm2 = tlenm1 - 1
                 if tlen > 2 && StringUtil.GetNthChar(cmdLine0, 0) == "[" && StringUtil.GetNthChar(cmdLine0, tlenm1) == "]"
                     if SLT.Debug_Cmd_RunScript_Labels
-                        SLTInfoMsg("Adding goto label during parsing /" + cmdLine0 + "/" + cmdIdx + "/")
+                        SFI("Adding goto label during parsing /" + cmdLine0 + "/" + cmdIdx + "/")
                     endif
                     slt_AddGoto(cmdLine0, cmdIdx)
                 endif
@@ -2765,7 +2763,7 @@ bool Function slt_Frame_Push(string scriptfilename, string[] parm_callargs)
     totalLines = scriptlines.Length
 
     if SLT.Debug_Cmd
-        SLTDebugMsg("Cmd.slt_Frame_Push: scriptname:" + currentScriptName + ": totalLines:" + totalLines + ":")
+        SFD("Cmd.slt_Frame_Push: scriptname:" + currentScriptName + ": totalLines:" + totalLines + ":")
     endif
 
     hasValidFrame = true
@@ -3026,7 +3024,7 @@ EndFunction
 Function slt_AddGoto(string label, int targetline)
     int i = gotoLabels.Find(label)
     if SLT.Debug_Cmd_RunScript_Labels
-        SLTDebugMsg("slt_AddGoto: label/" + label + "/targetline/" + targetline + "/index(-1 is not found yet)/" + i + "/")
+        SFD("slt_AddGoto: label/" + label + "/targetline/" + targetline + "/index(-1 is not found yet)/" + i + "/")
     endif
     if i > -1
         gotoLines[i] = targetline
@@ -3043,7 +3041,7 @@ int Function slt_FindGoto(string label)
         if i > -1
             result = gotoLines[i]
         endif
-        SLTDebugMsg("slt_FindGoto: label/" + label + "/index(-1 is not found yet)/" + i + "/result/" + result + "/")
+        SFD("slt_FindGoto: label/" + label + "/index(-1 is not found yet)/" + i + "/result/" + result + "/")
     endif
     if i > -1
         return gotoLines[i]
