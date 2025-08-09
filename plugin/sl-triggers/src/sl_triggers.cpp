@@ -355,12 +355,16 @@ bool IsValidScope(std::string_view scope) {
 }
 }
 
+#define RUN_TEST_VARSCOPE true
 #undef RUN_TEST_VARSCOPE
 #ifdef RUN_TEST_VARSCOPE
 OnAfterSKSEInit([]{
     using namespace std;
     auto variables = vector<string>({
         ""
+        , "$varname[12]"
+        , "$varname[$listindex]"
+        , "$varname[ $listindex ]"
         , "$varname"
         , "$local.varname"
         , "$thread.varname"
@@ -378,7 +382,6 @@ OnAfterSKSEInit([]{
         , "$target.<foo.bar>.var.name"
         , "$target.< $target<foo>.barActor[ 23 ]{ $target.<bar>.barVal[ $key ]{ keykey } } >.var.name[ $key1 ]{ $mapkey }"
         , "$varname[]"
-        , "$varname[12]"
         , "$varname[]{}"
         , "$varname[12]{}"
         , "$global.mapval{test}"
@@ -469,12 +472,13 @@ result[2] - target_extension_scope
 result[3] - list_index
 result[4] - map_key
 result[5] - resolved_map_key ; allotted but used on the papyrus side
+result[6] - resolved_list_index ; allotted but used on the papyrus side
 
 */
     using namespace std;
 
     vector<string> result;
-    result.resize(6);
+    result.resize(7);
 
     size_t varlen = variable.size();
 

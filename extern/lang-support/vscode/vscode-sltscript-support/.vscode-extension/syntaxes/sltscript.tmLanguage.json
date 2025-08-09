@@ -199,7 +199,7 @@
     },
     "control-keywords": {
       "name": "keyword.control.sltscript",
-      "match": "\\b(?i:if|elseif|else|endif|while|endwhile|goto|gosub|call|set|inc|return|beginsub|endsub|callarg|cat|resultfrom|true|false|none|mapunset|mapcopy|mapclear|maphaskey)\\b"
+      "match": "\\b(?i:if|elseif|else|endif|while|endwhile|goto|gosub|call|set|inc|return|beginsub|endsub|callarg|cat|resultfrom|true|false|none|mapunset|mapcopy|mapclear|maphaskey|mapkeys|listadd|listcount|listclear|string|bool|int|float|Form|label)\\b"
     },
     "functions": {
       "patterns": [

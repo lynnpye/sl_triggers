@@ -125,14 +125,20 @@ Function deb_msg(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthGT(CmdPrimary, param.Length, 1)
-        string[] darr = PapyrusUtil.StringArray(param.Length)
-        darr[0] = "DebMsg> "
-        int i = 1
-        while i < darr.Length
-            darr[i] = CmdPrimary.ResolveString(param[i])
-            i += 1
-        endwhile
-        string dmsg = PapyrusUtil.StringJoin(darr, "")
+        string[] resolvedStringList = CmdPrimary.ResolveListString(param[1])
+        string dmsg
+        if (resolvedStringList)
+            dmsg = "DebMsg> " + PapyrusUtil.StringJoin(resolvedStringList, "")
+        else
+            string[] darr = PapyrusUtil.StringArray(param.Length)
+            darr[0] = "DebMsg> "
+            int i = 1
+            while i < darr.Length
+                darr[i] = CmdPrimary.ResolveString(param[i])
+                i += 1
+            endwhile
+            dmsg = PapyrusUtil.StringJoin(darr, "")
+        endif
         SLTDebugMsg(dmsg)
     endif
 
@@ -150,13 +156,19 @@ function msg_notify(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthGT(CmdPrimary, param.Length, 1)
-        string[] darr = PapyrusUtil.StringArray(param.Length)
-        int i = 1
-        while i < darr.Length
-            darr[i] = CmdPrimary.ResolveString(param[i])
-            i += 1
-        endwhile
-        string msg = PapyrusUtil.StringJoin(darr, "")
+        string[] resolvedStringList = CmdPrimary.ResolveListString(param[1])
+        string msg
+        if (resolvedStringList)
+            msg = PapyrusUtil.StringJoin(resolvedStringList, "")
+        else
+            string[] darr = PapyrusUtil.StringArray(param.Length)
+            int i = 1
+            while i < darr.Length
+                darr[i] = CmdPrimary.ResolveString(param[i])
+                i += 1
+            endwhile
+            msg = PapyrusUtil.StringJoin(darr, "")
+        endif
         Debug.Notification(msg)
         CmdPrimary.SFI(msg)
     endif
@@ -903,13 +915,19 @@ function msg_console(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthGT(CmdPrimary, param.Length, 1)
-        string[] darr = PapyrusUtil.StringArray(param.Length)
-        int i = 1
-        while i < darr.Length
-            darr[i] = CmdPrimary.ResolveString(param[i])
-            i += 1
-        endwhile
-        string msg = PapyrusUtil.StringJoin(darr, "")
+        string[] resolvedStringList = CmdPrimary.ResolveListString(param[1])
+        string msg
+        if (resolvedStringList)
+            msg = PapyrusUtil.StringJoin(resolvedStringList, "")
+        else
+            string[] darr = PapyrusUtil.StringArray(param.Length)
+            int i = 1
+            while i < darr.Length
+                darr[i] = CmdPrimary.ResolveString(param[i])
+                i += 1
+            endwhile
+            msg = PapyrusUtil.StringJoin(darr, "")
+        endif
         MiscUtil.PrintConsole(msg)
     endif
 
@@ -5035,15 +5053,26 @@ function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
         int scancode
     
         CmdPrimary.UnregisterForAllKeys()
-    
-        idx = 1
-        while idx < cnt
-            scancode = CmdPrimary.ResolveInt(param[idx])
-            if scancode > 0
-                CmdPrimary.RegisterForKey(scanCode)
-            endIf
-            idx += 1
-        endWhile
+
+        int[] resolvedListInt = CmdPrimary.ResolveListInt(param[1])
+        if (resolvedListInt)
+            idx = resolvedListInt.Length
+            while idx
+                idx -= 1
+                if resolvedListInt[idx] > 0
+                    CmdPrimary.RegisterForKey(resolvedListInt[idx])
+                endIf
+            endWhile
+        else
+            idx = 1
+            while idx < cnt
+                scancode = CmdPrimary.ResolveInt(param[idx])
+                if scancode > 0
+                    CmdPrimary.RegisterForKey(scanCode)
+                endIf
+                idx += 1
+            endWhile
+        endif
         
         CmdPrimary.lastKey = 0
         

@@ -1,6 +1,8 @@
 deb_msg "============================="
 deb_msg "    SLTR Test Maps & Lists"
 
+;;; maps
+
 inc $thread.testCount
 inc $thread.testCount
 
@@ -292,6 +294,7 @@ inc $thread.testCount
 
 set $cutlery "fork"
 set $mapval{fork} "knife"
+set $mapval{spoon} "dull"
 set $othermap{knife} "finality"
 
 set $test5 $othermap{ $mapval{ $cutlery } }
@@ -309,4 +312,145 @@ if $test6 &= "finality"
     deb_msg $"PASS: map key literal with whitespace"
 else
     deb_msg $"FAIL: map key literal with whitespace"
+endif
+
+;;; lists
+
+set $list[0] "test-0-test"
+set $list[1] "test-1-test"
+
+inc $thread.testCount
+if $list[0] &= "test-0-test"
+    inc $thread.passCount
+    deb_msg $"PASS: list assignment to new list, index 0 raw"
+else
+    deb_msg $"FAIL: list assignment to new list, index 0 raw"
+endif
+
+inc $thread.testCount
+if $list[1] &= "test-1-test"
+    inc $thread.passCount
+    deb_msg $"PASS: list assignment to new list, index 1 raw"
+else
+    deb_msg $"FAIL: list assignment to new list, index 1 raw"
+endif
+
+set $index 0
+inc $thread.testCount
+set $list[ $index ] = "test-0-test-0-test"
+if $list[ $index ] &= "test-0-test-0-test"
+    inc $thread.passCount
+    deb_msg $"PASS: list assignment to new list, index 0 via var"
+else
+    deb_msg $"FAIL: list assignment to new list, index 0 via var"
+endif
+
+inc $thread.testCount
+inc $index
+set $list[ $index ] = "test-1-test-1-test"
+if $list[ $index ] &= "test-1-test-1-test"
+    inc $thread.passCount
+    deb_msg $"PASS: list assignment to new list, index 1 via var"
+else
+    deb_msg $"FAIL: list assignment to new list, index 1 via var"
+endif
+
+inc $thread.testCount
+set $list[4] = "test-4-test"
+if $list[4] &= "test-4-test"
+    inc $thread.passCount
+    deb_msg $"PASS: list assignment with index gap (size 2, index 4)"
+else
+    deb_msg $"FAIL: list assignment with index gap (size 2, index 4)"
+endif
+
+inc $thread.testCount
+set $listsz resultfrom listcount $list
+if $listsz == 5
+    inc $thread.passCount
+    deb_msg $"PASS: list size; should be 5 ({listsz})"
+else
+    deb_msg $"FAIL: list size; should be 5 ({listsz})"
+endif
+
+inc $thread.testCount
+listadd $list "test-5-test"
+if $list[5] &= "test-5-test"
+    inc $thread.passCount
+    deb_msg $"PASS: list add"
+else
+    deb_msg $"FAIL: list add"
+endif
+
+inc $thread.testCount
+listclear $list
+if $list[5] &= ""
+    inc $thread.passCount
+    deb_msg $"PASS: list clear/1"
+else
+    deb_msg $"FAIL: list clear/1"
+endif
+
+inc $thread.testCount
+set $listsz resultfrom listcount $list
+if $listsz == 0
+    inc $thread.passCount
+    deb_msg $"PASS: list clear/2; size should be 0 ({listsz})"
+else
+    deb_msg $"FAIL: list clear/2; size should be 0 ({listsz})"
+endif
+
+inc $thread.testCount
+set $mapvalkeylist resultfrom mapkeys $mapval
+set $listsz resultfrom listcount $mapvalkeylist
+if $listsz == 2
+    inc $thread.passCount
+    deb_msg $"PASS: mapkeys; size should be 2 ({listsz})"
+else
+    deb_msg $"FAIL: mapkeys; size should be 2 ({listsz})"
+endif
+
+inc $thread.testCount
+set $listsz 0
+listcount $mapvalkeylist
+set $listsz $$
+if $listsz == 2
+    inc $thread.passCount
+    deb_msg $"PASS: mapkeys; size from $$; size should be 2 ({listsz})"
+else
+    deb_msg $"FAIL: mapkeys; size from $$; size should be 2 ({listsz})"
+endif
+
+inc $thread.testCount
+if $mapvalkeylist[0] &= "fork"
+    inc $thread.passCount
+    deb_msg $"PASS: mapkeys; fork at 0th index"
+else
+    deb_msg $"FAIL: mapkeys; fork at 0th index"
+endif
+
+inc $thread.testCount
+if $mapvalkeylist[1] &= "spoon"
+    inc $thread.passCount
+    deb_msg $"PASS: mapkeys; spoon at 0th index"
+else
+    deb_msg $"FAIL: mapkeys; spoon at 0th index"
+endif
+
+inc $thread.testCount
+int[] $intlist
+set $intlist[0] = "one"
+if $intlist[0] &= "one"
+    deb_msg $"FAIL: int[] and string to int coercion failure/1"
+else
+    inc $thread.passCount
+    deb_msg $"PASS: int[] and string to int coercion failure/1"
+endif
+
+inc $thread.testCount
+if $intlist[0] == 0
+    inc $thread.passCount
+    deb_msg $"PASS: int[] and string to int coercion failure/2"
+else
+    deb_msg $"FAIL: int[] and string to int coercion failure/2"
 endif

@@ -128,15 +128,27 @@ function ostim_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
                 nextResult = -1
             else
                 CmdPrimary.UnregisterForAllKeys()
-            
-                idx = startidx
-                while idx < cnt
-                    scancode = CmdPrimary.ResolveInt(param[idx])
-                    if scancode > 0
-                        CmdPrimary.RegisterForKey(scanCode)
-                    endIf
-                    idx += 1
-                endWhile
+
+                int[] resolvedListInt = CmdPrimary.ResolveListInt(param[1])
+                if (resolvedListInt)
+                    idx = resolvedListInt.Length
+                    while idx
+                        idx -= 1
+                        scancode = resolvedListInt[idx]
+                        if scancode > 0
+                            CmdPrimary.RegisterForKey(scanCode)
+                        endIf
+                    endWhile
+                else
+                    idx = startidx
+                    while idx < cnt
+                        scancode = CmdPrimary.ResolveInt(param[idx])
+                        if scancode > 0
+                            CmdPrimary.RegisterForKey(scanCode)
+                        endIf
+                        idx += 1
+                    endWhile
+                endif
                 
                 CmdPrimary.LastKey = 0
                 

@@ -245,6 +245,13 @@ string Function debstrjoin(string[] strlist, string delim = "), (") global
 	return PapyrusUtil.StringJoin(strlist, delim)
 EndFunction
 
+string Function SU_StringListSet(Form anchor, string listKey, int index, string value) global
+	if index >= StorageUtil.StringListCount(anchor, listKey)
+		StorageUtil.StringListResize(anchor, listKey, index + 1)
+	endif
+	return StorageUtil.StringListSet(anchor, listKey, index, value)
+EndFunction
+
 bool Function GetFlag(bool bDbgOut, string filename, string flagname, bool defaultValue = false) global
 	if JsonUtil.HasIntValue(filename, flagname)
 		JsonUtil.UnsetIntValue(filename, flagname)

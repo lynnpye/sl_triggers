@@ -75,6 +75,7 @@ EndProperty
 int					Property SLTRVersion = 0 Auto Hidden
 
 string Property kglobal_map_prefix = "SLTR:global:maps:" Auto Hidden
+string Property kglobal_list_prefix = "SLTR:global:lists:" Auto Hidden
 
 ; duplicated from sl_triggersCmd
 int Property VS_SCOPE = 0 AutoReadOnly
@@ -83,10 +84,11 @@ int Property VS_TARGET_EXT = 2 AutoReadOnly
 int Property VS_LIST_INDEX = 3 AutoReadOnly
 int Property VS_MAP_KEY = 4 AutoReadOnly
 int Property VS_RESOLVED_MAP_KEY = 5 AutoReadOnly
+int Property VS_RESOLVED_LIST_INDEX = 6 AutoReadOnly
 
 string Function VarScopeToString(string[] varscope)
 	if varscope.Length >= VS_RESOLVED_MAP_KEY
-		return "(SCOPE[" + varscope[VS_SCOPE] + "] / NAME[" + varscope[VS_NAME] + "] / TARGET_EXT[" + varscope[VS_TARGET_EXT] + "] / LIST_INDEX[" + varscope[VS_LIST_INDEX] + "] / MAP_KEY[" + varscope[VS_MAP_KEY] + "] / RESOLVED_MAP_KEY[" + varscope[VS_RESOLVED_MAP_KEY] + "])"
+		return "(SCOPE[" + varscope[VS_SCOPE] + "] / NAME[" + varscope[VS_NAME] + "] / TARGET_EXT[" + varscope[VS_TARGET_EXT] + "] / LIST_INDEX[" + varscope[VS_LIST_INDEX] + "] / MAP_KEY[" + varscope[VS_MAP_KEY] + "] / RESOLVED_MAP_KEY[" + varscope[VS_RESOLVED_MAP_KEY] + "] / RESOLVED_LIST_INDEX[" + varscope[VS_RESOLVED_LIST_INDEX] + "])"
 	else
 		return "(varscope.Length is only " + varscope.Length + ")"
 	endif
@@ -101,6 +103,18 @@ int     Property RT_FLOAT =     	4 AutoReadOnly
 int     Property RT_FORM =      	5 AutoReadOnly
 int		Property RT_LABEL =			6 AutoReadOnly
 int		Property RT_MAP	=			7 AutoReadOnly
+
+int		Property RT_LIST_TYPE_OFFSET = 100 AutoReadOnly
+int		Property RT_LIST_MIN = 		101 AutoReadOnly
+
+int		Property RT_LIST_STRING =	101 AutoReadOnly
+int		Property RT_LIST_BOOL =		102 AutoReadOnly
+int		Property RT_LIST_INT =		103 AutoReadOnly
+int		Property RT_LIST_FLOAT =	104 AutoReadOnly
+int		Property RT_LIST_FORM =		105 AutoReadOnly
+int		Property RT_LIST_LABEL = 	106 AutoReadOnly
+
+int		Property RT_LIST_MAX = 		106 AutoReadOnly
 
 string Function RT_ToString(int rt_type)
     if RT_STRING == rt_type
@@ -117,8 +131,24 @@ string Function RT_ToString(int rt_type)
 		return "RT_LABEL"
 	elseif RT_MAP == rt_type
 		return "RT_MAP"
+	elseif RT_LIST_STRING == rt_type
+		return "RT_LIST_STRING"
+	elseif RT_LIST_BOOL == rt_type
+		return "RT_LIST_BOOL"
+	elseif RT_LIST_INT == rt_type
+		return "RT_LIST_INT"
+	elseif RT_LIST_FLOAT == rt_type
+		return "RT_LIST_FLOAT"
+	elseif RT_LIST_FORM == rt_type
+		return "RT_LIST_FORM"
+	elseif RT_LIST_LABEL == rt_type
+		return "RT_LIST_LABEL"
     endif
     return "<invalid RT type: " + rt_type + ">"
+EndFunction
+
+bool Function RT_IsList(int rt_type)
+	return RT_LIST_MIN <= rt_type && RT_LIST_MAX >= rt_type
 EndFunction
 
 bool Property Debug_Cmd Auto Hidden
@@ -644,7 +674,11 @@ string Function GetGlobalMapKey(string[] varscope)
 	return kglobal_map_prefix + varscope[VS_NAME] + ":"
 EndFunction
 
-int Function GetGlobalVarType(sl_triggersCmd cmdPrimary, string[] varscope)
+string Function GetGlobalListKey(string[] varscope)
+	return kglobal_list_prefix + varscope[VS_NAME] + ":"
+EndFunction
+
+int Function GetGlobalVarType(string[] varscope)
 	int i = globalVarKeys.Find(varscope[VS_NAME], 0)
 	if i > -1
 		int rt = globalVarTypes[i]
@@ -654,8 +688,13 @@ int Function GetGlobalVarType(sl_triggersCmd cmdPrimary, string[] varscope)
 			elseif (!varscope[VS_MAP_KEY])
 				return RT_MAP
 			endif
-		else
-			return rt
+		elseIf RT_IsList(rt)
+			if (varscope[VS_RESOLVED_LIST_INDEX])
+				return rt - RT_LIST_TYPE_OFFSET
+			endif
+		    return rt
+        else
+		    return rt
 		endif
 	endif
     return RT_INVALID
@@ -675,9 +714,20 @@ string Function GetGlobalVarString(sl_triggersCmd cmdPrimary, string[] varscope,
 				endif
 				return StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY])
 			else
-        		cmdPrimary.SFW("GetGlobalVarString: unable to coerce map to string; did you forget a map key?")
+        		cmdPrimary.SFW("GetGlobalVar: unable to coerce map to string; did you forget a map key?")
 				return missing
 			EndIf
+		elseIf RT_IsList(rt)
+			if (varscope[VS_RESOLVED_LIST_INDEX])
+				int rli = varscope[VS_RESOLVED_LIST_INDEX] as int
+				if RT_LIST_BOOL == rt
+					return (StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli) != "")
+				endif
+				return StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli)
+			else
+        		cmdPrimary.SFW("GetGlobalVar: unable to coerce list to string; did you forget a list index?")
+				return missing
+			endif
 		endif
 		return globalVarVals[i]
 	endif
@@ -698,9 +748,20 @@ string Function GetGlobalVarLabel(sl_triggersCmd cmdPrimary, string[] varscope, 
 				endif
 				return StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY])
 			else
-        		cmdPrimary.SFW("GetGlobalVarLabel: unable to coerce map to label; did you forget a map key?")
+        		cmdPrimary.SFW("GetGlobalVar: unable to coerce map to label; did you forget a map key?")
 				return missing
 			EndIf
+		elseIf RT_IsList(rt)
+			if (varscope[VS_RESOLVED_LIST_INDEX])
+				int rli = varscope[VS_RESOLVED_LIST_INDEX] as int
+				if RT_LIST_BOOL == rt
+					return (StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli) != "")
+				endif
+				return StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli)
+			else
+        		cmdPrimary.SFW("GetGlobalVar: unable to coerce list to label; did you forget a list index?")
+				return missing
+			endif
 		endif
 		return globalVarVals[i]
 	endif
@@ -738,8 +799,30 @@ bool Function GetGlobalVarBool(sl_triggersCmd cmdPrimary, string[] varscope, boo
 					cmdPrimary.SFE("GetGlobalVar: mapped var found but not recognized type(" + RT_ToString(subrt) + ")")
 				endif
 			else
-        		cmdPrimary.SFW("GetGlobalVarBool: unable to coerce map to bool; did you forget a map key?")
+        		cmdPrimary.SFW("GetGlobalVar: unable to coerce map to bool; did you forget a map key?")
 			EndIf
+		elseIf RT_IsList(rt)
+			if (varscope[VS_RESOLVED_LIST_INDEX])
+				int rli = varscope[VS_RESOLVED_LIST_INDEX] as int
+				if RT_LIST_BOOL == rt
+					return (StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli) != "")
+				elseif RT_LIST_INT == rt
+					return (StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli) as int) != 0
+				elseif RT_LIST_FLOAT == rt
+					return (StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli) as float) != 0.0
+				elseif RT_LIST_STRING == rt
+					return (StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli) != "")
+				elseif RT_LIST_FORM == rt
+					return (StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli) as int) != 0
+				elseif RT_LIST_LABEL == rt
+					return (StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli) != "")
+				else
+					cmdPrimary.SFE("GetGlobalVar: list var found but not recognized type(" + RT_ToString(rt - RT_LIST_TYPE_OFFSET) + ")")
+				endif
+			else
+        		cmdPrimary.SFW("GetGlobalVar: unable to coerce list to bool; did you forget a list index?")
+				return missing
+			endif
 		else
         	cmdPrimary.SFE("GetGlobalVar: var found but not recognized type(" + RT_ToString(rt) + ")")
         endif
@@ -778,8 +861,30 @@ int Function GetGlobalVarInt(sl_triggersCmd cmdPrimary, string[] varscope, int m
 					cmdPrimary.SFE("GetGlobalVar: mapped var found but not recognized type(" + RT_ToString(subrt) + ")")
 				endif
 			else
-        		cmdPrimary.SFW("GetGlobalVarInt: unable to coerce map to int; did you forget a map key?")
+        		cmdPrimary.SFW("GetGlobalVar: unable to coerce map to int; did you forget a map key?")
 			EndIf
+		elseIf RT_IsList(rt)
+			if (varscope[VS_RESOLVED_LIST_INDEX])
+				int rli = varscope[VS_RESOLVED_LIST_INDEX] as int
+				if RT_LIST_BOOL == rt
+					return (StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli) as int)
+				elseif RT_LIST_INT == rt
+					return (StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli) as int)
+				elseif RT_LIST_FLOAT == rt
+					return (StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli) as float) as int
+				elseif RT_LIST_STRING == rt
+					return (StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli) as int)
+				elseif RT_LIST_FORM == rt
+					return (StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli) as int)
+				elseif RT_LIST_LABEL == rt
+					return (StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli) as int)
+				else
+					cmdPrimary.SFE("GetGlobalVar: list var found but not recognized type(" + RT_ToString(rt - RT_LIST_TYPE_OFFSET) + ")")
+				endif
+			else
+        		cmdPrimary.SFW("GetGlobalVar: unable to coerce list to int; did you forget a list index?")
+				return missing
+			endif
 		else
         	cmdPrimary.SFE("GetGlobalVar: var found but not recognized type(" + RT_ToString(rt) + ")")
         endif
@@ -818,8 +923,30 @@ float Function GetGlobalVarFloat(sl_triggersCmd cmdPrimary, string[] varscope, f
 					cmdPrimary.SFE("GetGlobalVar: mapped var found but not recognized type(" + RT_ToString(subrt) + ")")
 				endif
 			else
-        		cmdPrimary.SFW("GetGlobalVarFloat: unable to coerce map to float; did you forget a map key?")
+        		cmdPrimary.SFW("GetGlobalVar: unable to coerce map to float; did you forget a map key?")
 			EndIf
+		elseIf RT_IsList(rt)
+			if (varscope[VS_RESOLVED_LIST_INDEX])
+				int rli = varscope[VS_RESOLVED_LIST_INDEX] as int
+				if RT_LIST_BOOL == rt
+					return (StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli) as float)
+				elseif RT_LIST_INT == rt
+					return (StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli) as float)
+				elseif RT_LIST_FLOAT == rt
+					return (StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli) as float)
+				elseif RT_LIST_STRING == rt
+					return (StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli) as float)
+				elseif RT_LIST_FORM == rt
+					return (StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli) as float)
+				elseif RT_LIST_LABEL == rt
+					return (StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli) as float)
+				else
+					cmdPrimary.SFE("GetGlobalVar: list var found but not recognized type(" + RT_ToString(rt - RT_LIST_TYPE_OFFSET) + ")")
+				endif
+			else
+        		cmdPrimary.SFW("GetGlobalVar: unable to coerce list to float; did you forget a list index?")
+				return missing
+			endif
 		else
         	cmdPrimary.SFE("GetGlobalVar: var found but not recognized type(" + RT_ToString(rt) + ")")
         endif
@@ -858,8 +985,30 @@ Form Function GetGlobalVarForm(sl_triggersCmd cmdPrimary, string[] varscope, For
 					cmdPrimary.SFE("GetGlobalVar: mapped var found but not recognized type(" + RT_ToString(subrt) + ")")
 				endif
 			else
-        		cmdPrimary.SFW("GetGlobalVarForm: unable to coerce map to Form; did you forget a map key?")
+        		cmdPrimary.SFW("GetGlobalVar: unable to coerce map to Form; did you forget a map key?")
 			EndIf
+		elseIf RT_IsList(rt)
+			if (varscope[VS_RESOLVED_LIST_INDEX])
+				int rli = varscope[VS_RESOLVED_LIST_INDEX] as int
+				if RT_LIST_BOOL == rt
+					return none
+				elseif RT_LIST_INT == rt
+					return sl_triggers.GetForm(StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli))
+				elseif RT_LIST_FLOAT == rt
+					return sl_triggers.GetForm((StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli) as float) as int)
+				elseif RT_LIST_STRING == rt
+					return sl_triggers.GetForm(StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli))
+				elseif RT_LIST_FORM == rt
+					return sl_triggers.GetForm(StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli))
+				elseif RT_LIST_LABEL == rt
+					return sl_triggers.GetForm(StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli))
+				else
+					cmdPrimary.SFE("GetGlobalVar: list var found but not recognized type(" + RT_ToString(rt - RT_LIST_TYPE_OFFSET) + ")")
+				endif
+			else
+        		cmdPrimary.SFW("GetGlobalVar: unable to coerce list to Form; did you forget a list index?")
+				return missing
+			endif
 		else
         	cmdPrimary.SFE("GetGlobalVar: var found but not recognized type(" + RT_ToString(rt) + ")")
         endif
@@ -877,6 +1026,18 @@ function UnsetGlobalMapKey(sl_triggersCmd cmdPrimary, string[] varscope, string 
     endif
 endfunction
 
+Function SetGlobalVarType(string[] varscope, int newType)
+	int i = globalVarKeys.Find(varscope[VS_NAME], 0)
+	if i < 0
+		globalVarKeys = PapyrusUtil.PushString(globalVarKeys, varscope[VS_NAME])
+        globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
+        globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, newType)
+    else
+        globalVarVals[i] = ""
+        globalVarTypes[i] = newType
+    endif
+EndFunction
+
 string Function SetGlobalVarString(string[] varscope, string value)
 	int i = globalVarKeys.Find(varscope[VS_NAME], 0)
 	if i < 0
@@ -887,6 +1048,11 @@ string Function SetGlobalVarString(string[] varscope, string value)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_STRING)
 			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
 			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_MAP)
+		elseif(varscope[VS_RESOLVED_LIST_INDEX])
+			int rli = varscope[VS_RESOLVED_LIST_INDEX] as int
+			SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
+			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_LIST_STRING)
 		else
 			globalVarVals = PapyrusUtil.PushString(globalVarVals, value)
 			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_STRING)
@@ -897,6 +1063,22 @@ string Function SetGlobalVarString(string[] varscope, string value)
 			StorageUtil.StringListAdd(self, kglobal_map_prefix + varscope[VS_NAME] + ":", varscope[VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_STRING)
 			globalVarTypes[i] = RT_MAP
+		elseif(varscope[VS_RESOLVED_LIST_INDEX])
+			int rt = GetGlobalVarType(varscope)
+			int rli = varscope[VS_RESOLVED_LIST_INDEX] as int
+			If (RT_STRING == rt)
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			elseif RT_BOOL == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value != "")
+			elseif RT_INT == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value as int)
+			elseif RT_FLOAT == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value as float)
+			elseif RT_FORM == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value as int)
+			elseif RT_LABEL == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			EndIf
 		else
 			globalVarVals[i] = value
 			globalVarTypes[i] = RT_STRING
@@ -915,6 +1097,11 @@ string Function SetGlobalVarLabel(string[] varscope, string value)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_LABEL)
 			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
 			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_MAP)
+		elseif(varscope[VS_RESOLVED_LIST_INDEX])
+			int rli = varscope[VS_RESOLVED_LIST_INDEX] as int
+			SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
+			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_LIST_LABEL)
 		else
 			globalVarVals = PapyrusUtil.PushString(globalVarVals, value)
 			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_LABEL)
@@ -925,6 +1112,22 @@ string Function SetGlobalVarLabel(string[] varscope, string value)
 			StorageUtil.StringListAdd(self, kglobal_map_prefix + varscope[VS_NAME] + ":", varscope[VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_LABEL)
 			globalVarTypes[i] = RT_MAP
+		elseif(varscope[VS_RESOLVED_LIST_INDEX])
+			int rt = GetGlobalVarType(varscope)
+			int rli = varscope[VS_RESOLVED_LIST_INDEX] as int
+			If (RT_STRING == rt)
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			elseif RT_BOOL == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value != "")
+			elseif RT_INT == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value as int)
+			elseif RT_FLOAT == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value as float)
+			elseif RT_FORM == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value as int)
+			elseif RT_LABEL == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			EndIf
 		else
 			globalVarVals[i] = value
 			globalVarTypes[i] = RT_LABEL
@@ -947,6 +1150,11 @@ bool Function SetGlobalVarBool(string[] varscope, bool boolvalue)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_BOOL)
 			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
 			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_MAP)
+		elseif(varscope[VS_RESOLVED_LIST_INDEX])
+			int rli = varscope[VS_RESOLVED_LIST_INDEX] as int
+			SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
+			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_LIST_BOOL)
 		else
 			globalVarVals = PapyrusUtil.PushString(globalVarVals, value)
 			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_BOOL)
@@ -957,6 +1165,23 @@ bool Function SetGlobalVarBool(string[] varscope, bool boolvalue)
 			StorageUtil.StringListAdd(self, kglobal_map_prefix + varscope[VS_NAME] + ":", varscope[VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_BOOL)
 			globalVarTypes[i] = RT_MAP
+		elseif(varscope[VS_RESOLVED_LIST_INDEX])
+			int rt = GetGlobalVarType(varscope)
+			int rli = varscope[VS_RESOLVED_LIST_INDEX] as int
+			If (RT_STRING == rt)
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, boolvalue)
+			elseif RT_BOOL == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			elseif RT_INT == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value as int)
+			elseif RT_FLOAT == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value as float)
+			elseif RT_FORM == rt
+				; bool->Form => none; always
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, "")
+			elseif RT_LABEL == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, boolvalue)
+			EndIf
 		else
 			globalVarVals[i] = value
 			globalVarTypes[i] = RT_BOOL
@@ -975,6 +1200,11 @@ int Function SetGlobalVarInt(string[] varscope, int value)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_INT)
 			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
 			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_MAP)
+		elseif(varscope[VS_RESOLVED_LIST_INDEX])
+			int rli = varscope[VS_RESOLVED_LIST_INDEX] as int
+			SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
+			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_LIST_INT)
 		else
 			globalVarVals = PapyrusUtil.PushString(globalVarVals, value)
 			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_INT)
@@ -985,6 +1215,26 @@ int Function SetGlobalVarInt(string[] varscope, int value)
 			StorageUtil.StringListAdd(self, kglobal_map_prefix + varscope[VS_NAME] + ":", varscope[VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_INT)
 			globalVarTypes[i] = RT_MAP
+		elseif(varscope[VS_RESOLVED_LIST_INDEX])
+			int rt = GetGlobalVarType(varscope)
+			int rli = varscope[VS_RESOLVED_LIST_INDEX] as int
+			If (RT_STRING == rt)
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			elseif RT_BOOL == rt
+				string boolstrval
+				if (value != 0)
+					boolstrval = "1"
+				endif
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, boolstrval)
+			elseif RT_INT == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			elseif RT_FLOAT == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			elseif RT_FORM == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			elseif RT_LABEL == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			EndIf
 		else
 			globalVarVals[i] = value
 			globalVarTypes[i] = RT_BOOL
@@ -1003,6 +1253,11 @@ float Function SetGlobalVarFloat(string[] varscope, float value)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_FLOAT)
 			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
 			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_MAP)
+		elseif(varscope[VS_RESOLVED_LIST_INDEX])
+			int rli = varscope[VS_RESOLVED_LIST_INDEX] as int
+			SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
+			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_LIST_FLOAT)
 		else
 			globalVarVals = PapyrusUtil.PushString(globalVarVals, value)
 			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_FLOAT)
@@ -1013,6 +1268,26 @@ float Function SetGlobalVarFloat(string[] varscope, float value)
 			StorageUtil.StringListAdd(self, kglobal_map_prefix + varscope[VS_NAME] + ":", varscope[VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_FLOAT)
 			globalVarTypes[i] = RT_MAP
+		elseif(varscope[VS_RESOLVED_LIST_INDEX])
+			int rt = GetGlobalVarType(varscope)
+			int rli = varscope[VS_RESOLVED_LIST_INDEX] as int
+			If (RT_STRING == rt)
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			elseif RT_BOOL == rt
+				string boolstrval
+				if (value != 0.0)
+					boolstrval = "1"
+				endif
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, boolstrval)
+			elseif RT_INT == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value as int)
+			elseif RT_FLOAT == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			elseif RT_FORM == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value as int)
+			elseif RT_LABEL == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			EndIf
 		else
 			globalVarVals[i] = value
 			globalVarTypes[i] = RT_FLOAT
@@ -1035,6 +1310,11 @@ Form Function SetGlobalVarForm(string[] varscope, Form formvalue)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_FORM)
 			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
 			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_MAP)
+		elseif(varscope[VS_RESOLVED_LIST_INDEX])
+			int rli = varscope[VS_RESOLVED_LIST_INDEX] as int
+			SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
+			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_LIST_FORM)
 		else
 			globalVarVals = PapyrusUtil.PushString(globalVarVals, value)
 			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_FORM)
@@ -1045,6 +1325,26 @@ Form Function SetGlobalVarForm(string[] varscope, Form formvalue)
 			StorageUtil.StringListAdd(self, kglobal_map_prefix + varscope[VS_NAME] + ":", varscope[VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_FORM)
 			globalVarTypes[i] = RT_MAP
+		elseif(varscope[VS_RESOLVED_LIST_INDEX])
+			int rt = GetGlobalVarType(varscope)
+			int rli = varscope[VS_RESOLVED_LIST_INDEX] as int
+			If (RT_STRING == rt)
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			elseif RT_BOOL == rt
+				string boolstrval
+				if (formvalue != none)
+					boolstrval = "1"
+				endif
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, boolstrval)
+			elseif RT_INT == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			elseif RT_FLOAT == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			elseif RT_FORM == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			elseif RT_LABEL == rt
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			EndIf
 		else
 			globalVarVals[i] = value
 			globalVarTypes[i] = RT_FORM

@@ -1,5 +1,8 @@
 Scriptname sl_TriggersCmd extends ActiveMagicEffect
 
+import sl_triggersStatics
+import StorageUtil
+
 string[] Function GetVarScope(string varname, bool forAssignment = false) global native
 
 string[] Function GetVarScopeWithResolution(string varname, bool forAssignment = false)
@@ -10,14 +13,14 @@ string[] Function GetVarScopeWithResolution(string varname, bool forAssignment =
     if (varscope[SLT.VS_MAP_KEY])
         varscope[SLT.VS_RESOLVED_MAP_KEY] = ResolveString(varscope[SLT.VS_MAP_KEY])
     endif
+    if (varscope[SLT.VS_LIST_INDEX])
+        varscope[SLT.VS_RESOLVED_LIST_INDEX] = ResolveInt(varscope[SLT.VS_LIST_INDEX])
+    endif
     If (SLT.Debug_Cmd_InternalResolve || SLT.Debug_Cmd_RunScript_Set)
         SFD("Cmd.GetVarScopeWithResolution: varscope returned, post resolution: " + SLT.VarScopeToString(varscope))
     EndIf
     return varscope
 EndFunction
-
-import sl_triggersStatics
-import StorageUtil
 
 ; SLT
 ; sl_triggersMain
@@ -31,26 +34,37 @@ Keyword			Property ActorTypeUndead Auto
 
 Actor _cmdTA = none
 string kframe_map_prefix
+string kframe_list_prefix
 string kthread_map_prefix
+string kthread_list_prefix
 string ktarget_map_prefix
+string ktarget_list_prefix
 string ktarget_v_prefix
 string ktarget_type_v_prefix
 string krequest_v_prefix
-
-string Function Make_krequest_v_prefix()
-    "SLTR:target:" + CmdTargetFormID + ":request:" + CmdRequestId + ":vars:"
-EndFunction
-
-string function Make_kthread_map_prefix()
-    return "SLTR:thread:" + threadid + ":maps:"
-endfunction
 
 string function Make_kframe_map_prefix()
     return "SLTR:frame:" + frameid + ":maps:"
 endfunction
 
+string function Make_kframe_list_prefix()
+    return "SLTR:frame:" + frameid + ":lists:"
+endfunction
+
+string function Make_kthread_map_prefix()
+    return "SLTR:thread:" + threadid + ":maps:"
+endfunction
+
+string function Make_kthread_list_prefix()
+    return "SLTR:thread:" + threadid + ":lists:"
+endfunction
+
 string function Make_ktarget_map_prefix(int formid)
     return "SLTR:target:" + formid + ":maps:"
+endfunction
+
+string function Make_ktarget_list_prefix(int formid)
+    return "SLTR:target:" + formid + ":lists:"
 endfunction
 
 string function Make_ktarget_v_prefix(int formid)
@@ -60,6 +74,10 @@ endfunction
 string function Make_ktarget_type_v_prefix(int formid)
     return "SLTR:target:" + formid + ":vartypes:"
 endfunction
+
+string Function Make_krequest_v_prefix()
+    "SLTR:target:" + CmdTargetFormID + ":request:" + CmdRequestId + ":vars:"
+EndFunction
 
 Actor			Property CmdTargetActor Hidden
     Actor Function Get()
@@ -72,6 +90,7 @@ Actor			Property CmdTargetActor Hidden
             CmdTargetFormID             = _cmdTA.GetFormID()
 
             ktarget_map_prefix = Make_ktarget_map_prefix(CmdTargetFormID)
+            ktarget_list_prefix = Make_ktarget_list_prefix(CmdTargetFormID)
             ktarget_v_prefix = Make_ktarget_v_prefix(CmdTargetFormID)
             ktarget_type_v_prefix = Make_ktarget_type_v_prefix(CmdTargetFormID)
             krequest_v_prefix = Make_krequest_v_prefix()
@@ -89,6 +108,7 @@ int         Property frameid Hidden
     Function Set(int value)
         _frameid = value
         kframe_map_prefix = Make_kframe_map_prefix()
+        kframe_list_prefix = Make_kframe_list_prefix()
     EndFunction
 EndProperty
 
@@ -100,6 +120,7 @@ int         Property threadid Hidden
     Function Set(int value)
         _threadid = value
         kthread_map_prefix = Make_kthread_map_prefix()
+        kthread_list_prefix = Make_kthread_list_prefix()
     EndFunction
 EndProperty
 
@@ -160,6 +181,12 @@ int     _resolvedInt
 float   _resolvedFloat
 Form    _resolvedForm
 string  _resolvedLabel
+string[] _resolvedListString
+string[] _resolvedListLabel
+bool[]  _resolvedListBool
+int[]   _resolvedListInt
+float[] _resolvedListFloat
+Form[]  _resolvedListForm
 
 int         Property CustomResolveType Auto Hidden
 
@@ -224,6 +251,60 @@ string      Property CustomResolveLabelResult Hidden
     Function Set(string value)
         _resolvedLabel = value
         CustomResolveType = SLT.RT_LABEL
+    EndFunction
+EndProperty
+string[]    Property CustomResolveListStringResult Hidden
+    string[] Function Get()
+        return _resolvedListString
+    EndFunction
+    Function Set(string[] value)
+        _resolvedListString = value
+        CustomResolveType = SLT.RT_LIST_STRING
+    EndFunction
+EndProperty
+string[]    Property CustomResolveListLabelResult Hidden
+    string[] Function Get()
+        return _resolvedListLabel
+    EndFunction
+    Function Set(string[] value)
+        _resolvedListLabel = value
+        CustomResolveType = SLT.RT_LIST_LABEL
+    EndFunction
+EndProperty
+bool[]    Property CustomResolveListBoolResult Hidden
+    bool[] Function Get()
+        return _resolvedListBool
+    EndFunction
+    Function Set(bool[] value)
+        _resolvedListBool = value
+        CustomResolveType = SLT.RT_LIST_BOOL
+    EndFunction
+EndProperty
+int[]    Property CustomResolveListIntResult Hidden
+    int[] Function Get()
+        return _resolvedListInt
+    EndFunction
+    Function Set(int[] value)
+        _resolvedListInt = value
+        CustomResolveType = SLT.RT_LIST_INT
+    EndFunction
+EndProperty
+float[]    Property CustomResolveListFloatResult Hidden
+    float[] Function Get()
+        return _resolvedListFloat
+    EndFunction
+    Function Set(float[] value)
+        _resolvedListFloat = value
+        CustomResolveType = SLT.RT_LIST_FLOAT
+    EndFunction
+EndProperty
+Form[]    Property CustomResolveListFormResult Hidden
+    Form[] Function Get()
+        return _resolvedListForm
+    EndFunction
+    Function Set(Form[] value)
+        _resolvedListForm = value
+        CustomResolveType = SLT.RT_LIST_FORM
     EndFunction
 EndProperty
 
@@ -388,6 +469,18 @@ Function SetVarFromCustomResult(string[] varscope)
             SFD("SetVarfromCustomResult: to (" + debstrjoin(varscope, "/") + ") LABEL from (" + CustomResolveLabelResult + ")")
         endif
         SetVarLabel(varscope, CustomResolveLabelResult)
+    elseif SLT.RT_LIST_STRING == CustomResolveType
+        SetVarListString(varscope, CustomResolveListStringResult)
+    elseif SLT.RT_LIST_BOOL == CustomResolveType
+        SetVarListBool(varscope, CustomResolveListBoolResult)
+    elseif SLT.RT_LIST_INT == CustomResolveType
+        SetVarListInt(varscope, CustomResolveListIntResult)
+    elseif SLT.RT_LIST_FLOAT == CustomResolveType
+        SetVarListFloat(varscope, CustomResolveListFloatResult)
+    elseif SLT.RT_LIST_FORM == CustomResolveType
+        SetVarListForm(varscope, CustomResolveListFormResult)
+    elseif SLT.RT_LIST_LABEL == CustomResolveType
+        SetVarListLabel(varscope, CustomResolveListLabelResult)
     else
         if SLT.Debug_Cmd_RunScript_Set
             SFD("SetVarfromCustomResult: unhandled type converted to empty STRING (" + SLT.RT_ToString(CustomResolveType) + ")")
@@ -418,7 +511,23 @@ Function SetCustomResolveFromVar(string[] varscope)
     elseif SLT.RT_MAP == vtype
         SFW("Map not currently valid for assignment")
         CustomResolveStringResult = ""
+    elseif SLT.RT_LIST_STRING == vtype
+        CustomResolveListStringResult = GetVarListString(varscope)
+    elseif SLT.RT_LIST_BOOL == vtype
+        CustomResolveListBoolResult = GetVarListBool(varscope)
+    elseif SLT.RT_LIST_INT == vtype
+        CustomResolveListIntResult = GetVarListInt(varscope)
+    elseif SLT.RT_LIST_FLOAT == vtype
+        CustomResolveListFloatResult = GetVarListFloat(varscope)
+    elseif SLT.RT_LIST_FORM == vtype
+        CustomResolveListFormResult = GetVarListForm(varscope)
+    elseif SLT.RT_LIST_LABEL == vtype
+        CustomResolveListLabelResult = GetVarListLabel(varscope)
+    elseif SLT.RT_IsList(vtype)
+        SFW("List subtype not currently valid for assignment; type(" + SLT.RT_ToString(vtype) + ")")
+        CustomResolveStringResult = ""
     else
+        ;SFW("Unexpected type for SetCustomResolveFromVar (" + SLT.RT_ToString(vtype) + ")")
         CustomResolveStringResult = ""
     endif
 EndFunction
@@ -461,6 +570,12 @@ int     _recentResultInt
 float   _recentResultFloat
 Form    _recentResultForm
 string  _recentResultLabel
+string[] _recentListString
+string[] _recentListLabel
+bool[]  _recentListBool
+int[]   _recentListInt
+float[] _recentListFloat
+Form[]  _recentListForm
 
 string	    Property MostRecentStringResult Hidden
     string Function Get()
@@ -514,6 +629,60 @@ string      Property MostRecentLabelResult Hidden
     Function Set(string value)
         _recentResultLabel = value
         MostRecentResultType = SLT.RT_LABEL
+    EndFunction
+EndProperty
+string[]    Property MostRecentListStringResult Hidden
+    string[] Function Get()
+        return _recentListString
+    EndFunction
+    Function Set(string[] value)
+        _recentListString = value
+        MostRecentResultType = SLT.RT_LIST_STRING
+    EndFunction
+EndProperty
+string[]    Property MostRecentListLabelResult Hidden
+    string[] Function Get()
+        return _recentListLabel
+    EndFunction
+    Function Set(string[] value)
+        _recentListLabel = value
+        MostRecentResultType = SLT.RT_LIST_LABEL
+    EndFunction
+EndProperty
+bool[]    Property MostRecentListBoolResult Hidden
+    bool[] Function Get()
+        return _recentListBool
+    EndFunction
+    Function Set(bool[] value)
+        _recentListBool = value
+        MostRecentResultType = SLT.RT_LIST_BOOL
+    EndFunction
+EndProperty
+int[]    Property MostRecentListIntResult Hidden
+    int[] Function Get()
+        return _recentListInt
+    EndFunction
+    Function Set(int[] value)
+        _recentListInt = value
+        MostRecentResultType = SLT.RT_LIST_INT
+    EndFunction
+EndProperty
+float[]    Property MostRecentListFloatResult Hidden
+    float[] Function Get()
+        return _recentListFloat
+    EndFunction
+    Function Set(float[] value)
+        _recentListFloat = value
+        MostRecentResultType = SLT.RT_LIST_FLOAT
+    EndFunction
+EndProperty
+Form[]    Property MostRecentListFormResult Hidden
+    Form[] Function Get()
+        return _recentListForm
+    EndFunction
+    Function Set(Form[] value)
+        _recentListForm = value
+        MostRecentResultType = SLT.RT_LIST_FORM
     EndFunction
 EndProperty
 
@@ -843,6 +1012,18 @@ bool Function InternalResolve(string token)
             CustomResolveFormResult = MostRecentFormResult
         elseif SLT.RT_LABEL == MostRecentResultType
             CustomResolveLabelResult = MostRecentLabelResult
+        elseif SLT.RT_LIST_STRING == MostRecentResultType
+            CustomResolveListStringResult = MostRecentListStringResult
+        elseif SLT.RT_LIST_BOOL == MostRecentResultType
+            CustomResolveListBoolResult = MostRecentListBoolResult
+        elseif SLT.RT_LIST_INT == MostRecentResultType
+            CustomResolveListIntResult = MostRecentListIntResult
+        elseif SLT.RT_LIST_FLOAT == MostRecentResultType
+            CustomResolveListFloatResult = MostRecentListFloatResult
+        elseif SLT.RT_LIST_FORM == MostRecentResultType
+            CustomResolveListFormResult = MostRecentListFormResult
+        elseif SLT.RT_LIST_LABEL == MostRecentResultType
+            CustomResolveListLabelResult = MostRecentListLabelResult
         else
             SFE("Invalid MostRecentResultType value(" + MostRecentResultType + ")[" + SLT.RT_ToString(MostRecentResultType) + "](note: if invalid status is not indicated, please report a bug); likely due to using $$ after calling a function that has no return value")
             InvalidateCR()
@@ -1206,6 +1387,84 @@ float Function ResolveFloat(string token)
     endif
     InternalResolve(token)
     return CRToFloat()
+EndFunction
+
+string[] Function ResolveListString(string token)
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return none
+    endif
+    InternalResolve(token)
+    if SLT.RT_LIST_STRING == CustomResolveType
+        return CustomResolveListStringResult
+    endif
+    return none
+EndFunction
+
+bool[] Function ResolveListBool(string token)
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return none
+    endif
+    InternalResolve(token)
+    if SLT.RT_LIST_BOOL == CustomResolveType
+        return CustomResolveListBoolResult
+    endif
+    return none
+EndFunction
+
+int[] Function ResolveListInt(string token)
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return none
+    endif
+    InternalResolve(token)
+    if SLT.RT_LIST_INT == CustomResolveType
+        return CustomResolveListIntResult
+    endif
+    return none
+EndFunction
+
+float[] Function ResolveListFloat(string token)
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return none
+    endif
+    InternalResolve(token)
+    if SLT.RT_LIST_FLOAT == CustomResolveType
+        return CustomResolveListFloatResult
+    endif
+    return none
+EndFunction
+
+Form[] Function ResolveListForm(string token)
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return none
+    endif
+    InternalResolve(token)
+    if SLT.RT_LIST_FORM == CustomResolveType
+        return CustomResolveListFormResult
+    endif
+    return none
+EndFunction
+
+string[] Function ResolveListLabel(string token)
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return none
+    endif
+    InternalResolve(token)
+    if SLT.RT_LIST_LABEL == CustomResolveType
+        return CustomResolveListLabelResult
+    endif
+    return none
 EndFunction
 
 Function ResetBlockContext()
@@ -1901,6 +2160,66 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                 endif
             endif
             ;currentLine += 1
+        elseIf command == "mapkeys"
+            if ParamLengthEQ(self, cmdLine.Length, 2)
+                string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
+                if varscope[SLT.VS_SCOPE]
+                    int vt = GetVarType(varscope)
+                    if SLT.RT_MAP == vt
+                        string mapkey = GetMapKey(varscope)
+                        MostRecentListStringResult = StorageUtil.StringListToArray(SLT, mapkey)
+                    else
+                        SFE("invalid target for mapkeys: varscope(" + SLT.VarScopeToString(varscope) + ")")
+                    endif
+                else
+                    SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
+                endif
+            endif
+            ;currentLine += 1
+        elseIf command == "listcount"
+            if ParamLengthEQ(self, cmdLine.Length, 2)
+                string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
+                if varscope[SLT.VS_SCOPE]
+                    int vt = GetVarType(varscope)
+                    if SLT.RT_IsList(vt)
+                        MostRecentIntResult = StorageUtil.StringListCount(SLT, GetVarListKey(varscope))
+                    else
+                        SFE("invalid target for listcount: varscope(" + SLT.VarScopeToString(varscope) + "); type(" + SLT.RT_ToString(vt) + ")")
+                    endif
+                else
+                    SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
+                endif
+            endif
+            ;currentLine += 1
+        elseIf command == "listclear"
+            if ParamLengthEQ(self, cmdLine.Length, 2)
+                string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
+                if varscope[SLT.VS_SCOPE]
+                    int vt = GetVarType(varscope)
+                    if SLT.RT_IsList(vt)
+                        StorageUtil.StringListResize(SLT, GetVarListKey(varscope), 0)
+                    else
+                        SFE("invalid target for listclear: varscope(" + SLT.VarScopeToString(varscope) + "); type(" + SLT.RT_ToString(vt) + ")")
+                    endif
+                else
+                    SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
+                endif
+            endif
+            ;currentLine += 1
+        elseIf command == "listadd"
+            if ParamLengthEQ(self, cmdLine.Length, 3)
+                string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
+                if varscope[SLT.VS_SCOPE]
+                    int vt = GetVarType(varscope)
+                    varscope[SLT.VS_LIST_INDEX] = StorageUtil.StringListCount(SLT, GetVarListKey(varscope))
+                    varscope[SLT.VS_RESOLVED_LIST_INDEX] = varscope[SLT.VS_LIST_INDEX]
+                    InternalResolve(cmdLine[2])
+                    SetVarFromCustomResult(varscope)
+                else
+                    SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
+                endif
+            endif
+            ;currentLine += 1
         elseIf command == "inc"
             if subCommand
                 SFE("'inc' is not a valid subcommand")
@@ -2073,6 +2392,66 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                 endif
             endif
             ;currentLine += 1
+        elseIf command == "string[]"
+            if ParamLengthEQ(self, cmdLine.Length, 2)
+                string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
+                if varscope[SLT.VS_SCOPE]
+                    SetVarType(varscope, SLT.RT_LIST_STRING)
+                else
+                    SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
+                endif
+            endif
+            ;currentLine += 1
+        elseIf command == "bool[]"
+            if ParamLengthEQ(self, cmdLine.Length, 2)
+                string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
+                if varscope[SLT.VS_SCOPE]
+                    SetVarType(varscope, SLT.RT_LIST_BOOL)
+                else
+                    SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
+                endif
+            endif
+            ;currentLine += 1
+        elseIf command == "int[]"
+            if ParamLengthEQ(self, cmdLine.Length, 2)
+                string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
+                if varscope[SLT.VS_SCOPE]
+                    SetVarType(varscope, SLT.RT_LIST_INT)
+                else
+                    SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
+                endif
+            endif
+            ;currentLine += 1
+        elseIf command == "float[]"
+            if ParamLengthEQ(self, cmdLine.Length, 2)
+                string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
+                if varscope[SLT.VS_SCOPE]
+                    SetVarType(varscope, SLT.RT_LIST_FLOAT)
+                else
+                    SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
+                endif
+            endif
+            ;currentLine += 1
+        elseIf command == "Form[]"
+            if ParamLengthEQ(self, cmdLine.Length, 2)
+                string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
+                if varscope[SLT.VS_SCOPE]
+                    SetVarType(varscope, SLT.RT_LIST_FORM)
+                else
+                    SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
+                endif
+            endif
+            ;currentLine += 1
+        elseIf command == "label[]"
+            if ParamLengthEQ(self, cmdLine.Length, 2)
+                string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
+                if varscope[SLT.VS_SCOPE]
+                    SetVarType(varscope, SLT.RT_LIST_LABEL)
+                else
+                    SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
+                endif
+            endif
+            ;currentLine += 1
         elseIf command == "return"
             if subCommand
                 SFE("'return' is not a valid subcommand")
@@ -2083,8 +2462,9 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             ;currentLine += 1
         else
             if SLT.Debug_Cmd_RunScript
-                SFD("Cmd.RunScript: RunOperationOnActor(" + PapyrusUtil.StringJoin(cmdLine, "),(") + ")")
+                SFD("Cmd.RunScript: RunOperationOnActor(" + debstrjoin(cmdLine) + ")")
             endif
+            
             RunOperationOnActor(cmdLine)
 
             ;currentLine += 1
@@ -3109,12 +3489,25 @@ int Function slt_PopWhileReturn()
     return r
 EndFunction
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;
+;;
+;; Frame
+;;
 bool Function HasFrameVar(string[] varscope)
 	return (frameVarKeys.Find(varscope[SLT.VS_NAME], 0) > -1)
 EndFunction
 
 string function GetFrameMapKey(string[] varscope)
     return kframe_map_prefix + varscope[SLT.VS_NAME] + ":"
+endfunction
+
+string function GetFrameListKey(string[] varscope)
+    return kframe_list_prefix + varscope[SLT.VS_NAME] + ":"
 endfunction
 
 int Function GetFrameVarType(string[] varscope)
@@ -3127,6 +3520,11 @@ int Function GetFrameVarType(string[] varscope)
 			elseif (!varscope[SLT.VS_MAP_KEY])
 				return SLT.RT_MAP
 			endif
+        elseif SLT.RT_IsList(rt)
+			if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+				return rt - SLT.RT_LIST_TYPE_OFFSET
+			endif
+		    return rt
         else
 		    return rt
         endif
@@ -3151,6 +3549,17 @@ string Function GetFrameVarString(string[] varscope, string missing)
         		SFW("GetFrameVar: unable to coerce map to string; did you forget a map key?")
 				return missing
 			EndIf
+		elseIf SLT.RT_IsList(rt)
+			if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+				int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+				if SLT.RT_LIST_BOOL == rt
+					return (StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli) != "")
+				endif
+				return StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli)
+			else
+        		SFW("GetFrameVar: unable to coerce list to string; did you forget a list index?")
+				return missing
+			endif
         endif
 		return frameVarVals[i]
 	endif
@@ -3174,6 +3583,17 @@ string Function GetFrameVarLabel(string[] varscope, string missing)
         		SFW("GetFrameVar: unable to coerce map to label; did you forget a map key?")
 				return missing
 			EndIf
+		elseIf SLT.RT_IsList(rt)
+			if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+				int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+				if SLT.RT_LIST_BOOL == rt
+					return (StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli) != "")
+				endif
+				return StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli)
+			else
+        		SFW("GetFrameVar: unable to coerce list to label; did you forget a list index?")
+				return missing
+			endif
         endif
 		return frameVarVals[i]
 	endif
@@ -3213,6 +3633,28 @@ bool Function GetFrameVarBool(string[] varscope, bool missing)
 			else
         		SFW("GetFrameVar: unable to coerce map to bool; did you forget a map key?")
 			EndIf
+		elseIf SLT.RT_IsList(rt)
+			if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+				int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+				if SLT.RT_LIST_BOOL == rt
+					return (StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli) != "")
+				elseif SLT.RT_LIST_INT == rt
+					return (StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli) as int) != 0
+				elseif SLT.RT_LIST_FLOAT == rt
+					return (StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli) as float) != 0.0
+				elseif SLT.RT_LIST_STRING == rt
+					return (StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli) != "")
+				elseif SLT.RT_LIST_FORM == rt
+					return (StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli) as int) != 0
+				elseif SLT.RT_LIST_LABEL == rt
+					return (StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli) != "")
+				else
+					SFE("GetFrameVar: list var found but not recognized type(" + SLT.RT_ToString(rt - SLT.RT_LIST_TYPE_OFFSET) + ")")
+				endif
+			else
+        		SFW("GetFrameVar: unable to coerce list to bool; did you forget a list index?")
+				return missing
+			endif
         else
             SFE("GetFrameVar: var found but not recognized type(" + SLT.RT_ToString(rt) + ")")
         endif
@@ -3253,6 +3695,28 @@ int Function GetFrameVarInt(string[] varscope, int missing)
 			else
         		SFW("GetFrameVar: unable to coerce map to int; did you forget a map key?")
 			EndIf
+		elseIf SLT.RT_IsList(rt)
+			if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+				int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+				if SLT.RT_LIST_BOOL == rt
+					return (StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli) as int)
+				elseif SLT.RT_LIST_INT == rt
+					return (StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli) as int)
+				elseif SLT.RT_LIST_FLOAT == rt
+					return (StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli) as float) as int
+				elseif SLT.RT_LIST_STRING == rt
+					return (StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli) as int)
+				elseif SLT.RT_LIST_FORM == rt
+					return (StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli) as int)
+				elseif SLT.RT_LIST_LABEL == rt
+					return (StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli) as int)
+				else
+					SFE("GetFrameVar: list var found but not recognized type(" + SLT.RT_ToString(rt - SLT.RT_LIST_TYPE_OFFSET) + ")")
+				endif
+			else
+        		SFW("GetFrameVar: unable to coerce list to int; did you forget a list index?")
+				return missing
+			endif
         else
             SFE("GetFrameVar: var found but not recognized type(" + SLT.RT_ToString(rt) + ")")
         endif
@@ -3293,6 +3757,28 @@ float Function GetFrameVarFloat(string[] varscope, float missing)
 			else
         		SFW("GetFrameVar: unable to coerce map to float; did you forget a map key?")
 			EndIf
+		elseIf SLT.RT_IsList(rt)
+			if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+				int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+				if SLT.RT_LIST_BOOL == rt
+					return (StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli) as float)
+				elseif SLT.RT_LIST_INT == rt
+					return (StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli) as float)
+				elseif SLT.RT_LIST_FLOAT == rt
+					return (StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli) as float)
+				elseif SLT.RT_LIST_STRING == rt
+					return (StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli) as float)
+				elseif SLT.RT_LIST_FORM == rt
+					return (StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli) as float)
+				elseif SLT.RT_LIST_LABEL == rt
+					return (StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli) as float)
+				else
+					SFE("GetFrameVar: list var found but not recognized type(" + SLT.RT_ToString(rt - SLT.RT_LIST_TYPE_OFFSET) + ")")
+				endif
+			else
+        		SFW("GetFrameVar: unable to coerce list to float; did you forget a list index?")
+				return missing
+			endif
         else
             SFE("GetFrameVar: var found but not recognized type(" + SLT.RT_ToString(rt) + ")")
         endif
@@ -3333,6 +3819,28 @@ Form Function GetFrameVarForm(string[] varscope, Form missing)
 			else
         		SFW("GetFrameVar: unable to coerce map to Form; did you forget a map key?")
 			EndIf
+		elseIf SLT.RT_IsList(rt)
+			if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+				int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+				if SLT.RT_LIST_BOOL == rt
+					return none
+				elseif SLT.RT_LIST_INT == rt
+					return sl_triggers.GetForm(StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli))
+				elseif SLT.RT_LIST_FLOAT == rt
+					return sl_triggers.GetForm((StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli) as float) as int)
+				elseif SLT.RT_LIST_STRING == rt
+					return sl_triggers.GetForm(StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli))
+				elseif SLT.RT_LIST_FORM == rt
+					return sl_triggers.GetForm(StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli))
+				elseif SLT.RT_LIST_LABEL == rt
+					return sl_triggers.GetForm(StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli))
+				else
+					SFE("GetFrameVar: list var found but not recognized type(" + SLT.RT_ToString(rt - SLT.RT_LIST_TYPE_OFFSET) + ")")
+				endif
+			else
+        		SFW("GetFrameVar: unable to coerce list to Form; did you forget a list index?")
+				return missing
+			endif
         else
             SFE("GetFrameVar: var found but not recognized type(" + SLT.RT_ToString(rt) + ")")
         endif
@@ -3350,6 +3858,18 @@ function UnsetFrameMapKey(string[] varscope, string mapkey)
     endif
 endfunction
 
+Function SetFrameVarType(string[] varscope, int newType)
+	int i = frameVarKeys.Find(varscope[SLT.VS_NAME], 0)
+	if i < 0
+		frameVarKeys = PapyrusUtil.PushString(frameVarKeys, varscope[SLT.VS_NAME])
+        frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
+        frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, newType)
+    else
+        frameVarVals[i] = ""
+        frameVarTypes[i] = newType
+    endif
+EndFunction
+
 string Function SetFrameVarString(string[] varscope, string value)
 	int i = frameVarKeys.Find(varscope[SLT.VS_NAME], 0)
     If (SLT.Debug_Cmd_RunScript_Set)
@@ -3363,6 +3883,12 @@ string Function SetFrameVarString(string[] varscope, string value)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_STRING)
 			frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
 			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_MAP)
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			string retval = SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+            string flkey = GetFrameListKey(varscope)
+			frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
+			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_LIST_STRING)
 		else
 			frameVarVals = PapyrusUtil.PushString(frameVarVals, value)
 			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_STRING)
@@ -3373,6 +3899,23 @@ string Function SetFrameVarString(string[] varscope, string value)
 			StorageUtil.StringListAdd(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_STRING)
             frameVarTypes[i] = SLT.RT_MAP
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rt = GetFrameVarType(varscope)
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			If (SLT.RT_STRING == rt)
+				string retval = SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+            string flkey = GetFrameListKey(varscope)
+			elseif SLT.RT_BOOL == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value != "")
+			elseif SLT.RT_INT == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value as int)
+			elseif SLT.RT_FLOAT == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value as float)
+			elseif SLT.RT_FORM == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value as int)
+			elseif SLT.RT_LABEL == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			EndIf
         else
             frameVarVals[i] = value
             frameVarTypes[i] = SLT.RT_STRING
@@ -3391,6 +3934,11 @@ string Function SetFrameVarLabel(string[] varscope, string value)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_LABEL)
 			frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
 			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_MAP)
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
+			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_LIST_LABEL)
 		else
 			frameVarVals = PapyrusUtil.PushString(frameVarVals, value)
 			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_LABEL)
@@ -3401,6 +3949,22 @@ string Function SetFrameVarLabel(string[] varscope, string value)
 			StorageUtil.StringListAdd(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_LABEL)
             frameVarTypes[i] = SLT.RT_MAP
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rt = GetFrameVarType(varscope)
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			If (SLT.RT_STRING == rt)
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			elseif SLT.RT_BOOL == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value != "")
+			elseif SLT.RT_INT == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value as int)
+			elseif SLT.RT_FLOAT == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value as float)
+			elseif SLT.RT_FORM == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value as int)
+			elseif SLT.RT_LABEL == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			EndIf
         else
             frameVarVals[i] = value
             frameVarTypes[i] = SLT.RT_LABEL
@@ -3423,6 +3987,11 @@ bool Function SetFrameVarBool(string[] varscope, bool boolvalue)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_BOOL)
 			frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
 			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_MAP)
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
+			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_LIST_BOOL)
 		else
 			frameVarVals = PapyrusUtil.PushString(frameVarVals, value)
 			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_BOOL)
@@ -3433,6 +4002,23 @@ bool Function SetFrameVarBool(string[] varscope, bool boolvalue)
 			StorageUtil.StringListAdd(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_BOOL)
             frameVarTypes[i] = SLT.RT_MAP
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rt = GetFrameVarType(varscope)
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			If (SLT.RT_STRING == rt)
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, boolvalue)
+			elseif SLT.RT_BOOL == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			elseif SLT.RT_INT == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value as int)
+			elseif SLT.RT_FLOAT == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value as float)
+			elseif SLT.RT_FORM == rt
+				; bool->Form => none; always
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, "")
+			elseif SLT.RT_LABEL == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, boolvalue)
+			EndIf
         else
             frameVarVals[i] = value
             frameVarTypes[i] = SLT.RT_BOOL
@@ -3451,6 +4037,11 @@ int Function SetFrameVarInt(string[] varscope, int value)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_INT)
 			frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
 			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_MAP)
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
+			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_LIST_INT)
 		else
 			frameVarVals = PapyrusUtil.PushString(frameVarVals, value)
 			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_INT)
@@ -3461,6 +4052,26 @@ int Function SetFrameVarInt(string[] varscope, int value)
 			StorageUtil.StringListAdd(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_INT)
             frameVarTypes[i] = SLT.RT_MAP
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rt = GetFrameVarType(varscope)
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			If (SLT.RT_STRING == rt)
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			elseif SLT.RT_BOOL == rt
+				string boolstrval
+				if (value != 0)
+					boolstrval = "1"
+				endif
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, boolstrval)
+			elseif SLT.RT_INT == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			elseif SLT.RT_FLOAT == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			elseif SLT.RT_FORM == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			elseif SLT.RT_LABEL == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			EndIf
         else
             frameVarVals[i] = value
             frameVarTypes[i] = SLT.RT_INT
@@ -3479,6 +4090,11 @@ float Function SetFrameVarFloat(string[] varscope, float value)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_FLOAT)
 			frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
 			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_MAP)
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
+			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_LIST_FLOAT)
 		else
 			frameVarVals = PapyrusUtil.PushString(frameVarVals, value)
 			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_FLOAT)
@@ -3489,6 +4105,26 @@ float Function SetFrameVarFloat(string[] varscope, float value)
 			StorageUtil.StringListAdd(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_FLOAT)
             frameVarTypes[i] = SLT.RT_MAP
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rt = GetFrameVarType(varscope)
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			If (SLT.RT_STRING == rt)
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			elseif SLT.RT_BOOL == rt
+				string boolstrval
+				if (value != 0.0)
+					boolstrval = "1"
+				endif
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, boolstrval)
+			elseif SLT.RT_INT == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value as int)
+			elseif SLT.RT_FLOAT == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			elseif SLT.RT_FORM == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value as int)
+			elseif SLT.RT_LABEL == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			EndIf
         else
             frameVarVals[i] = value
             frameVarTypes[i] = SLT.RT_FLOAT
@@ -3511,6 +4147,11 @@ Form Function SetFrameVarForm(string[] varscope, Form formvalue)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_FORM)
 			frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
 			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_MAP)
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
+			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_LIST_FORM)
 		else
 			frameVarVals = PapyrusUtil.PushString(frameVarVals, value)
 			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_FORM)
@@ -3521,6 +4162,26 @@ Form Function SetFrameVarForm(string[] varscope, Form formvalue)
 			StorageUtil.StringListAdd(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_FORM)
             frameVarTypes[i] = SLT.RT_MAP
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rt = GetFrameVarType(varscope)
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			If (SLT.RT_STRING == rt)
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			elseif SLT.RT_BOOL == rt
+				string boolstrval
+				if (formvalue != none)
+					boolstrval = "1"
+				endif
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, boolstrval)
+			elseif SLT.RT_INT == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			elseif SLT.RT_FLOAT == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			elseif SLT.RT_FORM == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			elseif SLT.RT_LABEL == rt
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			EndIf
         else
             frameVarVals[i] = value
             frameVarTypes[i] = SLT.RT_FORM
@@ -3529,12 +4190,25 @@ Form Function SetFrameVarForm(string[] varscope, Form formvalue)
 	return formvalue
 EndFunction
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;
+;;
+;; Thread
+;;
 bool Function HasThreadVar(string[] varscope)
     return (threadVarKeys.Find(varscope[SLT.VS_NAME], 0) > -1)
 EndFunction
 
 string function GetThreadMapKey(string[] varscope)
     return kthread_map_prefix + varscope[SLT.VS_NAME] + ":"
+endfunction
+
+string function GetThreadListKey(string[] varscope)
+    return kthread_list_prefix + varscope[SLT.VS_NAME] + ":"
 endfunction
 
 int Function GetThreadVarType(string[] varscope)
@@ -3547,6 +4221,11 @@ int Function GetThreadVarType(string[] varscope)
 			elseif (!varscope[SLT.VS_MAP_KEY])
 				return SLT.RT_MAP
 			endif
+        elseif SLT.RT_IsList(rt)
+			if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+				return rt - SLT.RT_LIST_TYPE_OFFSET
+			endif
+		    return rt
         else
 		    return rt
         endif
@@ -3571,6 +4250,17 @@ string Function GetThreadVarString(string[] varscope, string missing)
         		SFW("GetThreadVar: unable to coerce map to string; did you forget a map key?")
 				return missing
 			EndIf
+		elseIf SLT.RT_IsList(rt)
+			if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+				int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+				if SLT.RT_LIST_BOOL == rt
+					return (StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli) != "")
+				endif
+				return StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli)
+			else
+        		SFW("GetThreadVar: unable to coerce list to string; did you forget a list index?")
+				return missing
+			endif
         endif
 		return threadVarVals[i]
 	endif
@@ -3594,6 +4284,17 @@ string Function GetThreadVarLabel(string[] varscope, string missing)
         		SFW("GetThreadVar: unable to coerce map to label; did you forget a map key?")
 				return missing
 			EndIf
+		elseIf SLT.RT_IsList(rt)
+			if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+				int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+				if SLT.RT_LIST_BOOL == rt
+					return (StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli) != "")
+				endif
+				return StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli)
+			else
+        		SFW("GetThreadVar: unable to coerce list to label; did you forget a list index?")
+				return missing
+			endif
         endif
 		return threadVarVals[i]
 	endif
@@ -3633,6 +4334,28 @@ bool Function GetThreadVarBool(string[] varscope, bool missing)
 			else
         		SFW("GetThreadVar: unable to coerce map to bool; did you forget a map key?")
 			EndIf
+		elseIf SLT.RT_IsList(rt)
+			if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+				int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+				if SLT.RT_LIST_BOOL == rt
+					return (StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli) != "")
+				elseif SLT.RT_LIST_INT == rt
+					return (StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli) as int) != 0
+				elseif SLT.RT_LIST_FLOAT == rt
+					return (StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli) as float) != 0.0
+				elseif SLT.RT_LIST_STRING == rt
+					return (StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli) != "")
+				elseif SLT.RT_LIST_FORM == rt
+					return (StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli) as int) != 0
+				elseif SLT.RT_LIST_LABEL == rt
+					return (StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli) != "")
+				else
+					SFE("GetThreadVar: list var found but not recognized type(" + SLT.RT_ToString(rt - SLT.RT_LIST_TYPE_OFFSET) + ")")
+				endif
+			else
+        		SFW("GetThreadVar: unable to coerce list to bool; did you forget a list index?")
+				return missing
+			endif
         else
             SFE("GetThreadVar: var found but not recognized type(" + SLT.RT_ToString(rt) + ")")
         endif
@@ -3673,6 +4396,28 @@ int Function GetThreadVarInt(string[] varscope, int missing)
 			else
         		SFW("GetThreadVar: unable to coerce map to int; did you forget a map key?")
 			EndIf
+		elseIf SLT.RT_IsList(rt)
+			if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+				int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+				if SLT.RT_LIST_BOOL == rt
+					return (StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli) as int)
+				elseif SLT.RT_LIST_INT == rt
+					return (StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli) as int)
+				elseif SLT.RT_LIST_FLOAT == rt
+					return (StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli) as float) as int
+				elseif SLT.RT_LIST_STRING == rt
+					return (StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli) as int)
+				elseif SLT.RT_LIST_FORM == rt
+					return (StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli) as int)
+				elseif SLT.RT_LIST_LABEL == rt
+					return (StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli) as int)
+				else
+					SFE("GetThreadVar: list var found but not recognized type(" + SLT.RT_ToString(rt - SLT.RT_LIST_TYPE_OFFSET) + ")")
+				endif
+			else
+        		SFW("GetThreadVar: unable to coerce list to int; did you forget a list index?")
+				return missing
+			endif
         else
             SFE("GetThreadVar: var found but not recognized type(" + SLT.RT_ToString(rt) + ")")
         endif
@@ -3713,6 +4458,28 @@ float Function GetThreadVarFloat(string[] varscope, float missing)
 			else
         		SFW("GetThreadVar: unable to coerce map to float; did you forget a map key?")
 			EndIf
+		elseIf SLT.RT_IsList(rt)
+			if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+				int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+				if SLT.RT_LIST_BOOL == rt
+					return (StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli) as float)
+				elseif SLT.RT_LIST_INT == rt
+					return (StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli) as float)
+				elseif SLT.RT_LIST_FLOAT == rt
+					return (StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli) as float)
+				elseif SLT.RT_LIST_STRING == rt
+					return (StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli) as float)
+				elseif SLT.RT_LIST_FORM == rt
+					return (StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli) as float)
+				elseif SLT.RT_LIST_LABEL == rt
+					return (StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli) as float)
+				else
+					SFE("GetThreadVar: list var found but not recognized type(" + SLT.RT_ToString(rt - SLT.RT_LIST_TYPE_OFFSET) + ")")
+				endif
+			else
+        		SFW("GetThreadVar: unable to coerce list to float; did you forget a list index?")
+				return missing
+			endif
         else
             SFE("GetThreadVar: var found but not recognized type(" + SLT.RT_ToString(rt) + ")")
         endif
@@ -3753,6 +4520,28 @@ Form Function GetThreadVarForm(string[] varscope, Form missing)
 			else
         		SFW("GetThreadVar: unable to coerce map to label; did you forget a map key?")
 			EndIf
+		elseIf SLT.RT_IsList(rt)
+			if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+				int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+				if SLT.RT_LIST_BOOL == rt
+					return none
+				elseif SLT.RT_LIST_INT == rt
+					return sl_triggers.GetForm(StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli))
+				elseif SLT.RT_LIST_FLOAT == rt
+					return sl_triggers.GetForm((StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli) as float) as int)
+				elseif SLT.RT_LIST_STRING == rt
+					return sl_triggers.GetForm(StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli))
+				elseif SLT.RT_LIST_FORM == rt
+					return sl_triggers.GetForm(StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli))
+				elseif SLT.RT_LIST_LABEL == rt
+					return sl_triggers.GetForm(StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli))
+				else
+					SFE("GetThreadVar: list var found but not recognized type(" + SLT.RT_ToString(rt - SLT.RT_LIST_TYPE_OFFSET) + ")")
+				endif
+			else
+        		SFW("GetThreadVar: unable to coerce list to Form; did you forget a list index?")
+				return missing
+			endif
         else
             SFE("GetThreadVar: var found but not recognized type(" + SLT.RT_ToString(rt) + ")")
         endif
@@ -3770,6 +4559,18 @@ function UnsetThreadMapKey(string[] varscope, string mapkey)
     endif
 endfunction
 
+Function SetThreadVarType(string[] varscope, int newType)
+	int i = threadVarKeys.Find(varscope[SLT.VS_NAME], 0)
+	if i < 0
+		threadVarKeys = PapyrusUtil.PushString(threadVarKeys, varscope[SLT.VS_NAME])
+        threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
+        threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, newType)
+    else
+        threadVarVals[i] = ""
+        threadVarTypes[i] = newType
+    endif
+EndFunction
+
 string Function SetThreadVarString(string[] varscope, string value)
 	int i = threadVarKeys.Find(varscope[SLT.VS_NAME], 0)
 	if i < 0
@@ -3780,6 +4581,11 @@ string Function SetThreadVarString(string[] varscope, string value)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_STRING)
 			threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
 			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_MAP)
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
+			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_LIST_STRING)
 		else
 			threadVarVals = PapyrusUtil.PushString(threadVarVals, value)
 			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_STRING)
@@ -3790,6 +4596,22 @@ string Function SetThreadVarString(string[] varscope, string value)
 			StorageUtil.StringListAdd(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_STRING)
             threadVarTypes[i] = SLT.RT_MAP
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rt = GetThreadVarType(varscope)
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			If (SLT.RT_STRING == rt)
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			elseif SLT.RT_BOOL == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value != "")
+			elseif SLT.RT_INT == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value as int)
+			elseif SLT.RT_FLOAT == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value as float)
+			elseif SLT.RT_FORM == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value as int)
+			elseif SLT.RT_LABEL == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			EndIf
         else
             threadVarVals[i] = value
             threadVarTypes[i] = SLT.RT_STRING
@@ -3808,6 +4630,11 @@ string Function SetThreadVarLabel(string[] varscope, string value)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_LABEL)
 			threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
 			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_MAP)
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
+			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_LIST_LABEL)
 		else
 			threadVarVals = PapyrusUtil.PushString(threadVarVals, value)
 			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_LABEL)
@@ -3818,6 +4645,22 @@ string Function SetThreadVarLabel(string[] varscope, string value)
 			StorageUtil.StringListAdd(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_LABEL)
             threadVarTypes[i] = SLT.RT_MAP
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rt = GetThreadVarType(varscope)
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			If (SLT.RT_STRING == rt)
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			elseif SLT.RT_BOOL == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value != "")
+			elseif SLT.RT_INT == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value as int)
+			elseif SLT.RT_FLOAT == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value as float)
+			elseif SLT.RT_FORM == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value as int)
+			elseif SLT.RT_LABEL == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			EndIf
         else
             threadVarVals[i] = value
             threadVarTypes[i] = SLT.RT_LABEL
@@ -3840,6 +4683,11 @@ bool Function SetThreadVarBool(string[] varscope, bool boolvalue)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_BOOL)
 			threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
 			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_MAP)
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
+			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_LIST_BOOL)
 		else
 			threadVarVals = PapyrusUtil.PushString(threadVarVals, value)
 			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_BOOL)
@@ -3850,6 +4698,23 @@ bool Function SetThreadVarBool(string[] varscope, bool boolvalue)
 			StorageUtil.StringListAdd(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_BOOL)
             threadVarTypes[i] = SLT.RT_MAP
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rt = GetThreadVarType(varscope)
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			If (SLT.RT_STRING == rt)
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, boolvalue)
+			elseif SLT.RT_BOOL == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			elseif SLT.RT_INT == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value as int)
+			elseif SLT.RT_FLOAT == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value as float)
+			elseif SLT.RT_FORM == rt
+				; bool->Form => none; always
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, "")
+			elseif SLT.RT_LABEL == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, boolvalue)
+			EndIf
         else
             threadVarVals[i] = value
             threadVarTypes[i] = SLT.RT_BOOL
@@ -3868,6 +4733,11 @@ int Function SetThreadVarInt(string[] varscope, int value)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_INT)
 			threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
 			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_MAP)
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
+			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_LIST_INT)
 		else
 			threadVarVals = PapyrusUtil.PushString(threadVarVals, value)
 			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_INT)
@@ -3878,6 +4748,26 @@ int Function SetThreadVarInt(string[] varscope, int value)
 			StorageUtil.StringListAdd(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_INT)
             threadVarTypes[i] = SLT.RT_MAP
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rt = GetThreadVarType(varscope)
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			If (SLT.RT_STRING == rt)
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			elseif SLT.RT_BOOL == rt
+				string boolstrval
+				if (value != 0)
+					boolstrval = "1"
+				endif
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, boolstrval)
+			elseif SLT.RT_INT == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			elseif SLT.RT_FLOAT == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			elseif SLT.RT_FORM == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			elseif SLT.RT_LABEL == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			EndIf
         else
             threadVarVals[i] = value
             threadVarTypes[i] = SLT.RT_INT
@@ -3896,6 +4786,11 @@ float Function SetThreadVarFloat(string[] varscope, float value)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_FLOAT)
 			threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
 			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_MAP)
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
+			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_LIST_FLOAT)
 		else
 			threadVarVals = PapyrusUtil.PushString(threadVarVals, value)
 			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_FLOAT)
@@ -3906,6 +4801,26 @@ float Function SetThreadVarFloat(string[] varscope, float value)
 			StorageUtil.StringListAdd(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_FLOAT)
             threadVarTypes[i] = SLT.RT_MAP
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rt = GetThreadVarType(varscope)
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			If (SLT.RT_STRING == rt)
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			elseif SLT.RT_BOOL == rt
+				string boolstrval
+				if (value != 0.0)
+					boolstrval = "1"
+				endif
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, boolstrval)
+			elseif SLT.RT_INT == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value as int)
+			elseif SLT.RT_FLOAT == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			elseif SLT.RT_FORM == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value as int)
+			elseif SLT.RT_LABEL == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			EndIf
         else
             threadVarVals[i] = value
             threadVarTypes[i] = SLT.RT_FLOAT
@@ -3928,6 +4843,11 @@ Form Function SetThreadVarForm(string[] varscope, Form formvalue)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_FORM)
 			threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
 			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_MAP)
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
+			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_LIST_FORM)
 		else
 			threadVarVals = PapyrusUtil.PushString(threadVarVals, value)
 			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_FORM)
@@ -3938,6 +4858,26 @@ Form Function SetThreadVarForm(string[] varscope, Form formvalue)
 			StorageUtil.StringListAdd(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
 			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_FORM)
             threadVarTypes[i] = SLT.RT_MAP
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rt = GetThreadVarType(varscope)
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			If (SLT.RT_STRING == rt)
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			elseif SLT.RT_BOOL == rt
+				string boolstrval
+				if (formvalue != none)
+					boolstrval = "1"
+				endif
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, boolstrval)
+			elseif SLT.RT_INT == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			elseif SLT.RT_FLOAT == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			elseif SLT.RT_FORM == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			elseif SLT.RT_LABEL == rt
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			EndIf
         else
             threadVarVals[i] = value
             threadVarTypes[i] = SLT.RT_FORM
@@ -3946,11 +4886,24 @@ Form Function SetThreadVarForm(string[] varscope, Form formvalue)
 	return formvalue
 EndFunction
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;
+;;
+;; Target
+;;
 bool Function HasTargetVar(string[] varscope)
     return HasIntValue(SLT, ktarget_type_v_prefix + varscope[SLT.VS_NAME])
 EndFunction
 
 string function GetTargetMapKey(string mapprefix, string[] varscope)
+    return mapprefix + varscope[SLT.VS_NAME] + ":"
+endfunction
+
+string function GetTargetListKey(string mapprefix, string[] varscope)
     return mapprefix + varscope[SLT.VS_NAME] + ":"
 endfunction
 
@@ -3962,25 +4915,30 @@ int Function GetTargetVarType(string typeprefix, string mapprefix, string[] vars
         elseif (!varscope[SLT.VS_MAP_KEY])
             return SLT.RT_MAP
         endif
+    elseif SLT.RT_IsList(rt)
+        if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+            return rt - SLT.RT_LIST_TYPE_OFFSET
+        endif
+        return rt
     endif
     return rt
 EndFunction
 
 string Function GetTargetVarString(string typeprefix, string dataprefix, string mapprefix, string[] varscope, string missing)
-    int dt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
-    if SLT.RT_BOOL == dt
+    int rt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
+    if SLT.RT_BOOL == rt
         return GetIntValue(SLT, dataprefix + varscope[SLT.VS_NAME], missing as int) != 0
-    elseif SLT.RT_INT == dt
+    elseif SLT.RT_INT == rt
         return GetIntValue(SLT, dataprefix + varscope[SLT.VS_NAME], missing as int)
-    elseif SLT.RT_FLOAT == dt
+    elseif SLT.RT_FLOAT == rt
         return GetFloatValue(SLT, dataprefix + varscope[SLT.VS_NAME], missing as float)
-    elseif SLT.RT_STRING == dt
+    elseif SLT.RT_STRING == rt
         return GetStringValue(SLT, dataprefix + varscope[SLT.VS_NAME], missing)
-    elseif SLT.RT_FORM == dt
+    elseif SLT.RT_FORM == rt
         return GetFormValue(SLT, dataprefix + varscope[SLT.VS_NAME], none).GetFormID()
-    elseif SLT.RT_LABEL == dt
+    elseif SLT.RT_LABEL == rt
         return GetStringValue(SLT, dataprefix + varscope[SLT.VS_NAME], missing)
-    elseIf SLT.RT_MAP == dt
+    elseIf SLT.RT_MAP == rt
         If (varscope[SLT.VS_RESOLVED_MAP_KEY])
             int subrt = StorageUtil.GetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY])
             if SLT.RT_BOOL == subrt
@@ -3990,25 +4948,36 @@ string Function GetTargetVarString(string typeprefix, string dataprefix, string 
         else
             SFW("GetTargetVar: unable to coerce map to string; did you forget a map key?")
         EndIf
+    elseIf SLT.RT_IsList(rt)
+        if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+            int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+            if SLT.RT_LIST_BOOL == rt
+                return (StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli) != "")
+            endif
+            return StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli)
+        else
+            SFW("GetTargetVar: unable to coerce list to string; did you forget a list index?")
+            return missing
+        endif
     endif
     return missing
 EndFunction
 
 string Function GetTargetVarLabel(string typeprefix, string dataprefix, string mapprefix, string[] varscope, string missing)
-    int dt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
-    if SLT.RT_BOOL == dt
+    int rt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
+    if SLT.RT_BOOL == rt
         return GetIntValue(SLT, dataprefix + varscope[SLT.VS_NAME], missing as int) != 0
-    elseif SLT.RT_INT == dt
+    elseif SLT.RT_INT == rt
         return GetIntValue(SLT, dataprefix + varscope[SLT.VS_NAME], missing as int)
-    elseif SLT.RT_FLOAT == dt
+    elseif SLT.RT_FLOAT == rt
         return GetFloatValue(SLT, dataprefix + varscope[SLT.VS_NAME], missing as float)
-    elseif SLT.RT_STRING == dt
+    elseif SLT.RT_STRING == rt
         return GetStringValue(SLT, dataprefix + varscope[SLT.VS_NAME], missing)
-    elseif SLT.RT_FORM == dt
+    elseif SLT.RT_FORM == rt
         return GetFormValue(SLT, dataprefix + varscope[SLT.VS_NAME], none).GetFormID()
-    elseif SLT.RT_LABEL == dt
+    elseif SLT.RT_LABEL == rt
         return GetStringValue(SLT, dataprefix + varscope[SLT.VS_NAME], missing)
-    elseIf SLT.RT_MAP == dt
+    elseIf SLT.RT_MAP == rt
         If (varscope[SLT.VS_RESOLVED_MAP_KEY])
             int subrt = StorageUtil.GetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY])
             if SLT.RT_BOOL == subrt
@@ -4016,25 +4985,36 @@ string Function GetTargetVarLabel(string typeprefix, string dataprefix, string m
             endif
             return StorageUtil.GetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY])
         else
-            SFW("GetTargetVar: unable to coerce map to string; did you forget a map key?")
+            SFW("GetTargetVar: unable to coerce map to label; did you forget a map key?")
         EndIf
+    elseIf SLT.RT_IsList(rt)
+        if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+            int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+            if SLT.RT_LIST_BOOL == rt
+                return (StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli) != "")
+            endif
+            return StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli)
+        else
+            SFW("GetTargetVar: unable to coerce list to label; did you forget a list index?")
+            return missing
+        endif
     endif
     return missing
 EndFunction
 
 bool Function GetTargetVarBool(string typeprefix, string dataprefix, string mapprefix, string[] varscope, bool missing)
-    int dt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
-    if SLT.RT_BOOL == dt
+    int rt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
+    if SLT.RT_BOOL == rt
         return GetIntValue(SLT, dataprefix + varscope[SLT.VS_NAME], missing as int) != 0
-    elseif SLT.RT_INT == dt
+    elseif SLT.RT_INT == rt
         return GetIntValue(SLT, dataprefix + varscope[SLT.VS_NAME], missing as int) != 0
-    elseif SLT.RT_FLOAT == dt
+    elseif SLT.RT_FLOAT == rt
         return GetFloatValue(SLT, dataprefix + varscope[SLT.VS_NAME], missing as float) != 0.0
-    elseif SLT.RT_STRING == dt
+    elseif SLT.RT_STRING == rt
         return (GetStringValue(SLT, dataprefix + varscope[SLT.VS_NAME], "") as int) != 0
-    elseif SLT.RT_FORM == dt
+    elseif SLT.RT_FORM == rt
         return (GetFormValue(SLT, dataprefix + varscope[SLT.VS_NAME], none).GetFormID() != 0)
-    elseIf SLT.RT_MAP == dt
+    elseIf SLT.RT_MAP == rt
         If (varscope[SLT.VS_RESOLVED_MAP_KEY])
             int subrt = StorageUtil.GetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY])
             if SLT.RT_BOOL == subrt
@@ -4048,28 +5028,50 @@ bool Function GetTargetVarBool(string typeprefix, string dataprefix, string mapp
             elseif SLT.RT_FORM == subrt
                 return (StorageUtil.GetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY]) as int) != 0
             else
-                SFE("GetFrameVar: mapped var found but not recognized type(" + SLT.RT_ToString(subrt) + ")")
+                SFE("GetTargetVar: mapped var found but not recognized type(" + SLT.RT_ToString(subrt) + ")")
             endif
         else
             SFW("GetTargetVar: unable to coerce map to bool; did you forget a map key?")
         EndIf
+    elseIf SLT.RT_IsList(rt)
+        if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+            int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+            if SLT.RT_LIST_BOOL == rt
+                return (StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli) != "")
+            elseif SLT.RT_LIST_INT == rt
+                return (StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli) as int) != 0
+            elseif SLT.RT_LIST_FLOAT == rt
+                return (StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli) as float) != 0.0
+            elseif SLT.RT_LIST_STRING == rt
+                return (StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli) != "")
+            elseif SLT.RT_LIST_FORM == rt
+                return (StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli) as int) != 0
+            elseif SLT.RT_LIST_LABEL == rt
+                return (StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli) != "")
+            else
+                SFE("GetTargetVar: list var found but not recognized type(" + SLT.RT_ToString(rt - SLT.RT_LIST_TYPE_OFFSET) + ")")
+            endif
+        else
+            SFW("GetTargetVar: unable to coerce list to bool; did you forget a list index?")
+            return missing
+        endif
     endif
     return missing
 EndFunction
 
 int Function GetTargetVarInt(string typeprefix, string dataprefix, string mapprefix, string[] varscope, int missing)
-    int dt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
-    if SLT.RT_BOOL == dt
+    int rt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
+    if SLT.RT_BOOL == rt
         return GetIntValue(SLT, dataprefix + varscope[SLT.VS_NAME], missing)
-    elseif SLT.RT_INT == dt
+    elseif SLT.RT_INT == rt
         return GetIntValue(SLT, dataprefix + varscope[SLT.VS_NAME], missing)
-    elseif SLT.RT_FLOAT == dt
+    elseif SLT.RT_FLOAT == rt
         return GetFloatValue(SLT, dataprefix + varscope[SLT.VS_NAME], missing) as int
-    elseif SLT.RT_STRING == dt
+    elseif SLT.RT_STRING == rt
         return GetStringValue(SLT, dataprefix + varscope[SLT.VS_NAME], "") as int
-    elseif SLT.RT_FORM == dt
+    elseif SLT.RT_FORM == rt
         return GetFormValue(SLT, dataprefix + varscope[SLT.VS_NAME], none).GetFormID() as int
-    elseIf SLT.RT_MAP == dt
+    elseIf SLT.RT_MAP == rt
         If (varscope[SLT.VS_RESOLVED_MAP_KEY])
             int subrt = StorageUtil.GetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY])
             if SLT.RT_BOOL == subrt
@@ -4083,28 +5085,50 @@ int Function GetTargetVarInt(string typeprefix, string dataprefix, string mappre
             elseif SLT.RT_FORM == subrt
                 return (StorageUtil.GetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY]) as int)
             else
-                SFE("GetFrameVar: mapped var found but not recognized type(" + SLT.RT_ToString(subrt) + ")")
+                SFE("GetTargetVar: mapped var found but not recognized type(" + SLT.RT_ToString(subrt) + ")")
             endif
         else
             SFW("GetTargetVar: unable to coerce map to int; did you forget a map key?")
         EndIf
+    elseIf SLT.RT_IsList(rt)
+        if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+            int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+            if SLT.RT_LIST_BOOL == rt
+                return (StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli) as int)
+            elseif SLT.RT_LIST_INT == rt
+                return (StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli) as int)
+            elseif SLT.RT_LIST_FLOAT == rt
+                return (StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli) as float) as int
+            elseif SLT.RT_LIST_STRING == rt
+                return (StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli) as int)
+            elseif SLT.RT_LIST_FORM == rt
+                return (StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli) as int)
+            elseif SLT.RT_LIST_LABEL == rt
+                return (StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli) as int)
+            else
+                SFE("GetTargetVar: list var found but not recognized type(" + SLT.RT_ToString(rt - SLT.RT_LIST_TYPE_OFFSET) + ")")
+            endif
+        else
+            SFW("GetTargetVar: unable to coerce list to int; did you forget a list index?")
+            return missing
+        endif
     endif
     return missing
 EndFunction
 
 float Function GetTargetVarFloat(string typeprefix, string dataprefix, string mapprefix, string[] varscope, float missing)
-    int dt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
-    if SLT.RT_BOOL == dt
+    int rt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
+    if SLT.RT_BOOL == rt
         return GetIntValue(SLT, dataprefix + varscope[SLT.VS_NAME], 0) as float
-    elseif SLT.RT_INT == dt
+    elseif SLT.RT_INT == rt
         return GetIntValue(SLT, dataprefix + varscope[SLT.VS_NAME], 0) as float
-    elseif SLT.RT_FLOAT == dt
+    elseif SLT.RT_FLOAT == rt
         return GetFloatValue(SLT, dataprefix + varscope[SLT.VS_NAME], missing)
-    elseif SLT.RT_STRING == dt
+    elseif SLT.RT_STRING == rt
         return GetStringValue(SLT, dataprefix + varscope[SLT.VS_NAME], "") as float
-    elseif SLT.RT_FORM == dt
+    elseif SLT.RT_FORM == rt
         return GetFormValue(SLT, dataprefix + varscope[SLT.VS_NAME], none).GetFormID() as float
-    elseIf SLT.RT_MAP == dt
+    elseIf SLT.RT_MAP == rt
         If (varscope[SLT.VS_RESOLVED_MAP_KEY])
             int subrt = StorageUtil.GetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY])
             if SLT.RT_BOOL == subrt
@@ -4118,28 +5142,50 @@ float Function GetTargetVarFloat(string typeprefix, string dataprefix, string ma
             elseif SLT.RT_FORM == subrt
                 return (StorageUtil.GetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY]) as float)
             else
-                SFE("GetFrameVar: mapped var found but not recognized type(" + SLT.RT_ToString(subrt) + ")")
+                SFE("GetTargetVar: mapped var found but not recognized type(" + SLT.RT_ToString(subrt) + ")")
             endif
         else
             SFW("GetTargetVar: unable to coerce map to float; did you forget a map key?")
         EndIf
+    elseIf SLT.RT_IsList(rt)
+        if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+            int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+            if SLT.RT_LIST_BOOL == rt
+                return (StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli) as float)
+            elseif SLT.RT_LIST_INT == rt
+                return (StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli) as float)
+            elseif SLT.RT_LIST_FLOAT == rt
+                return (StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli) as float)
+            elseif SLT.RT_LIST_STRING == rt
+                return (StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli) as float)
+            elseif SLT.RT_LIST_FORM == rt
+                return (StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli) as float)
+            elseif SLT.RT_LIST_LABEL == rt
+                return (StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli) as float)
+            else
+                SFE("GetTargetVar: list var found but not recognized type(" + SLT.RT_ToString(rt - SLT.RT_LIST_TYPE_OFFSET) + ")")
+            endif
+        else
+            SFW("GetTargetVar: unable to coerce list to float; did you forget a list index?")
+            return missing
+        endif
     endif
     return missing
 EndFunction
 
 Form Function GetTargetVarForm(string typeprefix, string dataprefix, string mapprefix, string[] varscope, Form missing)
-    int dt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
-    if SLT.RT_BOOL == dt
+    int rt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
+    if SLT.RT_BOOL == rt
         return none
-    elseif SLT.RT_INT == dt
+    elseif SLT.RT_INT == rt
         return sl_triggers.GetForm(GetIntValue(SLT, dataprefix + varscope[SLT.VS_NAME], 0))
-    elseif SLT.RT_FLOAT == dt
+    elseif SLT.RT_FLOAT == rt
         return sl_triggers.GetForm(GetFloatValue(SLT, dataprefix + varscope[SLT.VS_NAME], 0.0) as int)
-    elseif SLT.RT_STRING == dt
+    elseif SLT.RT_STRING == rt
         return sl_triggers.GetForm(GetStringValue(SLT, dataprefix + varscope[SLT.VS_NAME], ""))
-    elseif SLT.RT_FORM == dt
+    elseif SLT.RT_FORM == rt
         return GetFormValue(SLT, dataprefix + varscope[SLT.VS_NAME], missing)
-    elseIf SLT.RT_MAP == dt
+    elseIf SLT.RT_MAP == rt
         If (varscope[SLT.VS_RESOLVED_MAP_KEY])
             int subrt = StorageUtil.GetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY])
             if SLT.RT_BOOL == subrt
@@ -4153,11 +5199,33 @@ Form Function GetTargetVarForm(string typeprefix, string dataprefix, string mapp
             elseif SLT.RT_FORM == subrt
                 return sl_triggers.GetForm(StorageUtil.GetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY]))
             else
-                SFE("GetFrameVar: mapped var found but not recognized type(" + SLT.RT_ToString(subrt) + ")")
+                SFE("GetTargetVar: mapped var found but not recognized type(" + SLT.RT_ToString(subrt) + ")")
             endif
         else
             SFW("GetTargetVar: unable to coerce map to Form; did you forget a map key?")
         EndIf
+    elseIf SLT.RT_IsList(rt)
+        if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+            int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+            if SLT.RT_LIST_BOOL == rt
+                return none
+            elseif SLT.RT_LIST_INT == rt
+                return sl_triggers.GetForm(StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli))
+            elseif SLT.RT_LIST_FLOAT == rt
+                return sl_triggers.GetForm((StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli) as float) as int)
+            elseif SLT.RT_LIST_STRING == rt
+                return sl_triggers.GetForm(StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli))
+            elseif SLT.RT_LIST_FORM == rt
+                return sl_triggers.GetForm(StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli))
+            elseif SLT.RT_LIST_LABEL == rt
+                return sl_triggers.GetForm(StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli))
+            else
+                SFE("GetTargetVar: list var found but not recognized type(" + SLT.RT_ToString(rt - SLT.RT_LIST_TYPE_OFFSET) + ")")
+            endif
+        else
+            SFW("GetTargetVar: unable to coerce list to Form; did you forget a list index?")
+            return missing
+        endif
     endif
     return missing
 EndFunction
@@ -4172,12 +5240,36 @@ function UnsetTargetMapKey(string mapprefix, string[] varscope, string mapkey)
     endif
 endfunction
 
+Function SetTargetVarType(string typeprefix, string[] varscope, int newType)
+    SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], newType)
+EndFunction
+
 string Function SetTargetVarString(string typeprefix, string dataprefix, string mapprefix, string[] varscope, string value)
     If (varscope[SLT.VS_RESOLVED_MAP_KEY])
         SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_MAP)
         StorageUtil.SetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_STRING)
         StorageUtil.StringListAdd(SLT, mapprefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
         SetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+    elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+        int rt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
+        if !SLT.RT_IsList(rt)
+            rt = SLT.RT_LIST_STRING
+            SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], rt)
+        endif
+        int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+        if SLT.RT_LIST_STRING == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value)
+        elseif SLT.RT_BOOL == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value != "")
+        elseif SLT.RT_INT == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value as int)
+        elseif SLT.RT_FLOAT == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value as float)
+        elseif SLT.RT_FORM == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value as int)
+        elseif SLT.RT_LABEL == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value)
+        endif
     else
         SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_STRING)
         SetStringValue(SLT, dataprefix + varscope[SLT.VS_NAME], value)
@@ -4191,6 +5283,26 @@ string Function SetTargetVarLabel(string typeprefix, string dataprefix, string m
         StorageUtil.SetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_LABEL)
         StorageUtil.StringListAdd(SLT, mapprefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
         SetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+    elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+        int rt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
+        if !SLT.RT_IsList(rt)
+            rt = SLT.RT_LIST_LABEL
+            SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], rt)
+        endif
+        int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+        if SLT.RT_LIST_STRING == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value)
+        elseif SLT.RT_BOOL == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value != "")
+        elseif SLT.RT_INT == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value as int)
+        elseif SLT.RT_FLOAT == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value as float)
+        elseif SLT.RT_FORM == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value as int)
+        elseif SLT.RT_LABEL == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value)
+        endif
     else
         SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_LABEL)
         SetStringValue(SLT, dataprefix + varscope[SLT.VS_NAME], value)
@@ -4208,6 +5320,31 @@ bool Function SetTargetVarBool(string typeprefix, string dataprefix, string mapp
         StorageUtil.SetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_BOOL)
         StorageUtil.StringListAdd(SLT, mapprefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
         SetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+    elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+        int rt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
+        if !SLT.RT_IsList(rt)
+            rt = SLT.RT_LIST_BOOL
+            SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], rt)
+        endif
+        int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+        string value
+        if boolvalue
+            value = "1"
+        endif
+        if SLT.RT_LIST_STRING == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, boolvalue)
+        elseif SLT.RT_BOOL == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value)
+        elseif SLT.RT_INT == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value as int)
+        elseif SLT.RT_FLOAT == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value as float)
+        elseif SLT.RT_FORM == rt
+            ; bool->Form => none; always
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, "")
+        elseif SLT.RT_LABEL == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, boolvalue)
+        endif
     else
         SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_BOOL)
         SetIntValue(SLT, dataprefix + varscope[SLT.VS_NAME], boolvalue as int)
@@ -4221,6 +5358,30 @@ int Function SetTargetVarInt(string typeprefix, string dataprefix, string mappre
         StorageUtil.SetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_INT)
         StorageUtil.StringListAdd(SLT, mapprefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
         SetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+    elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+        int rt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
+        if !SLT.RT_IsList(rt)
+            rt = SLT.RT_LIST_INT
+            SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], rt)
+        endif
+        int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+        if SLT.RT_LIST_STRING == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value)
+        elseif SLT.RT_BOOL == rt
+            string boolstrval
+            if (value != 0)
+                boolstrval = "1"
+            endif
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, boolstrval)
+        elseif SLT.RT_INT == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value)
+        elseif SLT.RT_FLOAT == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value)
+        elseif SLT.RT_FORM == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value)
+        elseif SLT.RT_LABEL == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value)
+        endif
     else
         SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INT)
         SetIntValue(SLT, dataprefix + varscope[SLT.VS_NAME], value)
@@ -4234,6 +5395,30 @@ float Function SetTargetVarFloat(string typeprefix, string dataprefix, string ma
         StorageUtil.SetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_FLOAT)
         StorageUtil.StringListAdd(SLT, mapprefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
         SetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+    elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+        int rt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
+        if !SLT.RT_IsList(rt)
+            rt = SLT.RT_LIST_FLOAT
+            SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], rt)
+        endif
+        int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+        if SLT.RT_LIST_STRING == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value)
+        elseif SLT.RT_BOOL == rt
+            string boolstrval
+            if (value != 0.0)
+                boolstrval = "1"
+            endif
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, boolstrval)
+        elseif SLT.RT_INT == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value as int)
+        elseif SLT.RT_FLOAT == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value)
+        elseif SLT.RT_FORM == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value as int)
+        elseif SLT.RT_LABEL == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value)
+        endif
     else
         SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_FLOAT)
         SetFloatValue(SLT, dataprefix + varscope[SLT.VS_NAME], value)
@@ -4251,6 +5436,34 @@ Form Function SetTargetVarForm(string typeprefix, string dataprefix, string mapp
         StorageUtil.SetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_FORM)
         StorageUtil.StringListAdd(SLT, mapprefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
         SetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+    elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+        string value
+        if formvalue
+            value = formvalue.GetFormID()
+        endif
+        int rt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
+        if !SLT.RT_IsList(rt)
+            rt = SLT.RT_LIST_FLOAT
+            SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], rt)
+        endif
+        int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+        if SLT.RT_LIST_STRING == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value)
+        elseif SLT.RT_BOOL == rt
+            string boolstrval
+            if (formvalue != none)
+                boolstrval = "1"
+            endif
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, boolstrval)
+        elseif SLT.RT_INT == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value)
+        elseif SLT.RT_FLOAT == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value)
+        elseif SLT.RT_FORM == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value)
+        elseif SLT.RT_LABEL == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value)
+        endif
     else
         SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_FORM)
         SetFormValue(SLT, dataprefix + varscope[SLT.VS_NAME], formvalue)
@@ -4315,7 +5528,7 @@ int function GetVarType(string[] varscope)
     if scope == "local"
         return GetFrameVarType(varscope)
     elseif scope == "global"
-        return SLT.GetGlobalVarType(self, varscope)
+        return SLT.GetGlobalVarType(varscope)
     elseif scope == "thread"
         return GetThreadVarType(varscope)
     elseif scope == "target"
@@ -4375,6 +5588,39 @@ string function GetMapKey(string[] varscope)
         return GetTargetMapKey(mapprefix, varscope)
     endif
     SFE("Invalid scope for GetMapKey (" + scope + ")")
+    return ""
+endfunction
+
+string function GetVarListKey(string[] varscope)
+    string scope = varscope[SLT.VS_SCOPE]
+
+    if scope == "local"
+        return GetFrameListKey(varscope)
+    elseif scope == "global"
+        return SLT.GetGlobalListKey(varscope)
+    elseif scope == "thread"
+        return GetThreadListKey(varscope)
+    elseif scope == "target"
+        string varname = varscope[SLT.VS_NAME]
+        string mapprefix
+        if varscope[SLT.VS_TARGET_EXT]
+            Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
+            if targetForm
+                int formid = targetForm.GetFormID()
+                mapprefix = Make_ktarget_list_prefix(formid)
+            else
+                SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
+            endif
+        endif
+        if !mapprefix
+            mapprefix = ktarget_list_prefix
+        endif
+        If (SLT.Debug_Cmd_RunScript_Set)
+            SFD("GetVarListKey: mapprefix(" + mapprefix + ") varscope(" + debstrjoin(varscope, "/") + ")")
+        EndIf
+        return GetTargetListKey(mapprefix, varscope)
+    endif
+    SFE("Invalid scope for GetVarListKey (" + scope + ")")
     return ""
 endfunction
 
@@ -4598,6 +5844,72 @@ Form function GetVarForm(string[] varscope, Form missing)
     return missing
 endfunction
 
+string[] function GetVarListString(string[] varscope)
+    string listKey = GetVarListKey(varscope)
+    string[] values = StorageUtil.StringListToArray(SLT, listKey)
+    return values
+endfunction
+
+bool[] function GetVarListBool(string[] varscope)
+    string listKey = GetVarListKey(varscope)
+    string[] values = StorageUtil.StringListToArray(SLT, listKey)
+    bool[] retval = PapyrusUtil.BoolArray(values.Length)
+    int i = values.Length
+    while i
+        i -= 1
+        retval[i] = values[i] != ""
+    endwhile
+    return retval
+endfunction
+
+int[] function GetVarListInt(string[] varscope)
+    string listKey = GetVarListKey(varscope)
+    string[] values = StorageUtil.StringListToArray(SLT, listKey)
+    int[] retval = PapyrusUtil.IntArray(values.Length)
+    int i = values.Length
+    while i
+        i -= 1
+        retval[i] = values[i] as int
+    endwhile
+    return retval
+endfunction
+
+float[] function GetVarListFloat(string[] varscope)
+    string listKey = GetVarListKey(varscope)
+    string[] values = StorageUtil.StringListToArray(SLT, listKey)
+    float[] retval = PapyrusUtil.FloatArray(values.Length)
+    int i = values.Length
+    while i
+        i -= 1
+        retval[i] = values[i] as float
+    endwhile
+    return retval
+endfunction
+
+Form[] function GetVarListForm(string[] varscope)
+    string listKey = GetVarListKey(varscope)
+    string[] values = StorageUtil.StringListToArray(SLT, listKey)
+    Form[] retval = PapyrusUtil.FormArray(values.Length)
+    int i = values.Length
+    while i
+        i -= 1
+        retval[i] = sl_triggers.GetForm(values[i])
+    endwhile
+    return retval
+endfunction
+
+string[] function GetVarListLabel(string[] varscope)
+    string listKey = GetVarListKey(varscope)
+    string[] values = StorageUtil.StringListToArray(SLT, listKey)
+    string[] retval = PapyrusUtil.StringArray(values.Length)
+    int i = values.Length
+    while i
+        i -= 1
+        retval[i] = values[i]
+    endwhile
+    return retval
+endfunction
+
 function UnsetMapKey(string[] varscope, string mapkey)
     string scope = varscope[SLT.VS_SCOPE]
     if scope == "local"
@@ -4624,6 +5936,44 @@ function UnsetMapKey(string[] varscope, string mapkey)
     else
         SFE("Attempted to unset invalid scope (" + scope + ")")
     endif
+endfunction
+
+function SetVarType(string[] varscope, int value)
+    string scope = varscope[SLT.VS_SCOPE]
+    if scope == "local"
+        SetFrameVarType(varscope, value)
+        return
+    elseif scope == "global"
+        SLT.SetGlobalVarType(varscope, value)
+        return
+    elseif scope == "thread"
+        SetThreadVarType(varscope, value)
+        return
+    elseif scope == "target"
+        string varname = varscope[SLT.VS_NAME]
+        string typeprefix
+        if varscope[SLT.VS_TARGET_EXT]
+            Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
+            if targetForm
+                int formid = targetForm.GetFormID()
+                typeprefix = Make_ktarget_type_v_prefix(formid)
+            else
+                SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
+            endif
+        endif
+        if !typeprefix
+            typeprefix = ktarget_type_v_prefix
+        endif
+        If (SLT.Debug_Cmd_RunScript_Set)
+            SFD("SetTargetVarString: typeprefix(" + typeprefix + ") varscope(" + debstrjoin(varscope, "/") + ") value(" + value + ")")
+        EndIf
+        SetTargetVarType(typeprefix, varscope, value)
+        return
+    elseif scope
+        SFE("Attempted to assign to read-only scope (" + scope + ")")
+        return
+    endif
+    SFE("Invalid scope for SetVarType")
 endfunction
 
 string function SetVarString(string[] varscope, string value)
@@ -4870,6 +6220,74 @@ Form function SetVarForm(string[] varscope, Form value)
     endif
     SFE("Invalid scope for set")
     return none
+endfunction
+
+string[] Function SetVarListString(string[] varscope, string[] values)
+    string listKey = GetVarListKey(varscope)
+    SetVarType(varscope, SLT.RT_LIST_STRING)
+    StorageUtil.StringListCopy(SLT, listKey, values)
+    return values
+endfunction
+
+bool[] Function SetVarListBool(string[] varscope, bool[] values)
+    string listKey = GetVarListKey(varscope)
+    SetVarType(varscope, SLT.RT_LIST_STRING)
+    int i = values.Length
+    string[] inputs = PapyrusUtil.StringArray(i)
+    while i
+        i -= 1
+        if (values[i])
+            inputs[i] = "1"
+        endif
+    endwhile
+    StorageUtil.StringListCopy(SLT, listKey, inputs)
+    return values
+endfunction
+
+int[] Function SetVarListInt(string[] varscope, int[] values)
+    string listKey = GetVarListKey(varscope)
+    SetVarType(varscope, SLT.RT_LIST_STRING)
+    int i = values.Length
+    string[] inputs = PapyrusUtil.StringArray(i)
+    while i
+        i -= 1
+        inputs[i] = values[i]
+    endwhile
+    StorageUtil.StringListCopy(SLT, listKey, inputs)
+    return values
+endfunction
+
+float[] Function SetVarListFloat(string[] varscope, float[] values)
+    string listKey = GetVarListKey(varscope)
+    SetVarType(varscope, SLT.RT_LIST_STRING)
+    int i = values.Length
+    string[] inputs = PapyrusUtil.StringArray(i)
+    while i
+        i -= 1
+        inputs[i] = values[i]
+    endwhile
+    StorageUtil.StringListCopy(SLT, listKey, inputs)
+    return values
+endfunction
+
+Form[] Function SetVarListForm(string[] varscope, Form[] values)
+    string listKey = GetVarListKey(varscope)
+    SetVarType(varscope, SLT.RT_LIST_STRING)
+    int i = values.Length
+    string[] inputs = PapyrusUtil.StringArray(i)
+    while i
+        i -= 1
+        inputs[i] = values[i].GetFormID()
+    endwhile
+    StorageUtil.StringListCopy(SLT, listKey, inputs)
+    return values
+endfunction
+
+string[] Function SetVarListLabel(string[] varscope, string[] values)
+    string listKey = GetVarListKey(varscope)
+    SetVarType(varscope, SLT.RT_LIST_LABEL)
+    StorageUtil.StringListCopy(SLT, listKey, values)
+    return values
 endfunction
 
 function PrecacheRequestString(sl_triggersMain slthost, int requestTargetFormId, int requestId, string varname, string value) global

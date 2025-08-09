@@ -81,6 +81,10 @@ map
 
 A set of key-value pairs associated with the variable name. See the Maps section below. Reference values by using map key notation e.g. $var{$mapkey} where $mapkey contains the value of the key; literals may be used e.g. $var{literalvalue} will look for a value with the key "literalvalue"
 
+list
+
+An ordered set of values, sharing a common type. Once a list's type is determined, future assignments will coerce to that type rather than changing the type of the target variable.
+
  Maps
 
 A variable becomes a map when you assign to it using a map key. Map keys are specified using map key notation.
@@ -104,6 +108,70 @@ The data type of the assigned value will be retained for coercion later as neede
         ; this will run so long as $mapvariable{test} is 'truthy'
     endif
     
+
+ Lists
+
+A variable becomes a list when you assign to it using a list index. List indices are ALWAYS resolved as an int. This means if you try to use a variable that is not an int, the variable will be coerced to an int, which in some cases could cause it to always resolve to 0 (i.e. when attempting to use a string as the list index when the string is not a stringified int).
+
+    ; an instance of a list with a list index
+    $listvar[0] = 12
+    
+
+Unlike maps, which can contain multiple data types, a list contains only a single type. So a list isn't just a list, it is a string list, or an int list, or a Form list, or a label list.
+
+If a variable has never been assigned to, or is not currently a list, the first indexed assignment establishes the list's type.
+
+    $listvar[0] = 12
+    ; listvar is now an "int list", containing integers; future assignments will try to coerce data to "int"
+    $listvar[1] = "23"
+    ; $listvar[1] is 23, because "23" (string) coerces to 23 (int)
+    $listvar[2] = "thirty-four"
+    ; $listvar[2] is 0, because "thirty-four" (string) coerces to 0 (int) because it isn't an actual number
+    
+
+ List Type Declaration
+
+You can declare a variable to be a specific list type (that is, force it to be treated like that type). This is most useful when initializing a list in order to force the stored data type. The syntax is in the form of <type> <varname>. For example:
+
+    int[] $listvar
+    ; $listvar will be treated like an list of integers
+    set $listvar[0] "one"
+    ; $listvar[0] is 0 (int) because "one" (string) coerces to 0 (int) because it is not actually numeric
+    
+
+This does not change data. If you have a list of strings containing the value "apple" and cast it to "int\[\]" (list of integers) and attempt to retrieve the "apple" element, it will return 0 because as an int, "apple" cannot be coerced and defaults to 0.
+
+Note also that if you are careful with the first assignment to a list, this pre-declaration is not required.
+
+Available list types and their declarations:
+
+Declaration
+
+List Type
+
+string[]
+
+list of strings e.g. "Nord", "Breton", "Argonian"
+
+bool[]
+
+list of bool values e.g. true, false
+
+int[]
+
+list of int values e.g. 23, 34, 45, 0x23, -14
+
+float[]
+
+list of float values e.g. 1.23, 4.0234, -32
+
+Form[]
+
+list of Form values e.g. $system.partner, $system.partner2, $system.player
+
+label[]
+
+list of labels e.g. \[here\], \[there\], \[somewhere\]
 
  FormID, Forms, and You
 
@@ -498,6 +566,52 @@ Removes all key-value pairs associated with the map variable.
     set $mapvar{key2} = "value2
     mapclear $mapvar
     ; $mapvar{key1} and $mapvar{key2} no longer have a value
+    
+
+ mapkeys - Returns a string\[\] list of the keys in the map
+
+Returns a list of strings corresponding to the available keys in the map.
+
+    set $mapvar{fork} = "pointy"
+    set $mapvar{knife} = "cutty"
+    set $mapvar{spoon} = "scoopy"
+    set $keylist resultfrom mapkeys $mapvar
+    ; $keylist now contains a list, ["fork", "knife", "spoon"]
+    
+
+ listcount - Returns the size of the indicated list
+
+Returns a count (the size) of the number of elements in the list.
+
+    set $listvar[0] = "first"
+    set $listvar[9] = "last"
+    set $count resultfrom listcount $listvar
+    ; $count is 10, because by assigning to index 9, it resizes the 0-based list to accommodate
+    
+
+ listadd - Adds the value to the list, increasing the size
+
+Adds the provided value to the list, coercing it to the list's type as needed.
+
+    set $listvar[0] = "first"
+    ; the list is a string list, because it's first indexed assignment is a string
+    listadd $listvar 27
+    ; $listvar[1] is now "27", a string
+    
+    set $intlist[0] = 100
+    ; the list is an int list, because it's first indexed assignment is an int
+    listadd $intlist "two hundred"
+    ; $intlist[1] is now 0, because "two hundred" as a string, cast to an int, returns 0
+    
+
+ listclear - Removes all values from the list and sets its count/size to 0
+
+Removes all values from the list and sets its count/size to 0.
+
+    set $listvar[0] = "first"
+    set $listvar[1] = "second"
+    listclear $listvar
+    ; $listvar[0] and $listvar[1] are no longer set and listcount will return 0
     
 
  inc - Increment
