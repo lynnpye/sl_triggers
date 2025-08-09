@@ -139,6 +139,8 @@ function actor_state(actor cmdtargetactor, activemagiceffect _cmdprimary, string
 endfunction
 function actor_body(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
+function actor_race_type(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
+endfunction
 function actor_race(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
 function actor_setalpha(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global

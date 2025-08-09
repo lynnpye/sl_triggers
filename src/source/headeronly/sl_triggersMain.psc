@@ -24,6 +24,8 @@ keyword property loctypeinn  auto
 keyword property loctypehold auto
 perk property sltrcontainerperk auto
 keyword[] property locationkeywords auto hidden
+keyword    property actortypenpc auto hidden ; will be populated on startup
+keyword    property actortypeundead auto hidden ; will be populated on startup
 string    property savetimestamp auto hidden
 bool    property isresetting = false auto hidden
 bool    property bdebugmsg  = false auto hidden
@@ -37,6 +39,17 @@ function set(int value)
 endfunction
 endproperty
 int     property sltrversion = 0 auto hidden
+string property kglobal_map_prefix = "sltr:global:maps:" auto hidden
+string property kglobal_list_prefix = "sltr:global:lists:" auto hidden
+int property vs_scope = 0 autoreadonly
+int property vs_name = 1 autoreadonly
+int property vs_target_ext = 2 autoreadonly
+int property vs_list_index = 3 autoreadonly
+int property vs_map_key = 4 autoreadonly
+int property vs_resolved_map_key = 5 autoreadonly
+int property vs_resolved_list_index = 6 autoreadonly
+string function varscopetostring(string[] varscope)
+endfunction
 int     property rt_invalid =    0 autoreadonly
 int     property rt_string =     1 autoreadonly
 int     property rt_bool =       2 autoreadonly
@@ -44,7 +57,19 @@ int     property rt_int =        3 autoreadonly
 int     property rt_float =      4 autoreadonly
 int     property rt_form =       5 autoreadonly
 int  property rt_label =   6 autoreadonly
+int  property rt_map =   7 autoreadonly
+int  property rt_list_type_offset = 100 autoreadonly
+int  property rt_list_min =   101 autoreadonly
+int  property rt_list_string = 101 autoreadonly
+int  property rt_list_bool =  102 autoreadonly
+int  property rt_list_int =  103 autoreadonly
+int  property rt_list_float = 104 autoreadonly
+int  property rt_list_form =  105 autoreadonly
+int  property rt_list_label =  106 autoreadonly
+int  property rt_list_max =   106 autoreadonly
 string function rt_tostring(int rt_type)
+endfunction
+bool function rt_islist(int rt_type)
 endfunction
 bool property debug_cmd auto hidden
 bool property debug_cmd_functions auto hidden
@@ -118,39 +143,47 @@ sl_triggersextension function getextensionbyscope(string _scope)
 endfunction
 event onsltdelaystartcommand(string eventname, string initialscriptname, float reattemptcount, form sender)
 endevent
-bool function hasglobalvar(string _key)
+bool function hasglobalvar(string[] varscope)
 endfunction
-int function getglobalvartype(string _key)
+string function getglobalmapkey(string[] varscope)
 endfunction
-string function getglobalvarstring(string _key, string missing)
+string function getgloballistkey(string[] varscope)
 endfunction
-string function getglobalvarlabel(string _key, string missing)
+int function getglobalvartype(string[] varscope)
 endfunction
-bool function getglobalvarbool(string _key, bool missing)
+string function getglobalvarstring(sl_triggerscmd cmdprimary, string[] varscope, string missing)
 endfunction
-int function getglobalvarint(string _key, int missing)
+string function getglobalvarlabel(sl_triggerscmd cmdprimary, string[] varscope, string missing)
 endfunction
-float function getglobalvarfloat(string _key, float missing)
+bool function getglobalvarbool(sl_triggerscmd cmdprimary, string[] varscope, bool missing)
 endfunction
-form function getglobalvarform(string _key, form missing)
+int function getglobalvarint(sl_triggerscmd cmdprimary, string[] varscope, int missing)
 endfunction
-string function setglobalvarstring(string _key, string value)
+float function getglobalvarfloat(sl_triggerscmd cmdprimary, string[] varscope, float missing)
 endfunction
-string function setglobalvarlabel(string _key, string value)
+form function getglobalvarform(sl_triggerscmd cmdprimary, string[] varscope, form missing)
 endfunction
-bool function setglobalvarbool(string _key, bool value)
+function unsetglobalmapkey(sl_triggerscmd cmdprimary, string[] varscope, string mapkey)
 endfunction
-int function setglobalvarint(string _key, int value)
+function setglobalvartype(string[] varscope, int newtype)
 endfunction
-float function setglobalvarfloat(string _key, float value)
+string function setglobalvarstring(string[] varscope, string value)
 endfunction
-form function setglobalvarform(string _key, form value)
+string function setglobalvarlabel(string[] varscope, string value)
+endfunction
+bool function setglobalvarbool(string[] varscope, bool boolvalue)
+endfunction
+int function setglobalvarint(string[] varscope, int value)
+endfunction
+float function setglobalvarfloat(string[] varscope, float value)
+endfunction
+form function setglobalvarform(string[] varscope, form formvalue)
 endfunction
 function startcommand(form targetform, string initialscriptname)
 endfunction
-function pushscriptfortarget(form targetform, int requestid, int threadid, string initialscriptname)
+function enqueuescriptfortarget(form targetform, int requestid, int threadid, string initialscriptname)
 endfunction
-function popscriptfortarget(form targetform, int[] requestid, int[] threadid, string[] initialscriptname)
+function dequeuescriptfortarget(form targetform, int[] requestid, int[] threadid, string[] initialscriptname)
 endfunction
 function startcommandwiththreadid(form targetform, string initialscriptname, int requestid, int threadid)
 endfunction
@@ -205,5 +238,7 @@ endfunction
 bool function actorisinsafelocation(actor theactor)
 endfunction
 function checkversionupdates()
+endfunction
+int function actorracetype(actor _actor)
 endfunction
 ;This file was cleaned with PapyrusSourceHeadliner 1

@@ -5,8 +5,6 @@ int     property sltpriority auto
 string    property sltscope auto
 actor               property playerref auto
 sl_triggersmain  property slt auto hidden ; will be populated on startup
-keyword    property actortypenpc auto hidden ; will be populated on startup
-keyword    property actortypeundead auto hidden ; will be populated on startup
 int property sltrversion = 0 auto hidden
 bool    property isenabled hidden
 bool function get()
@@ -33,7 +31,7 @@ endfunction
 function set(bool value)
 endfunction
 endproperty
-int function actorrace(actor _actor)
+int function actorracetype(actor _actor)
 endfunction
 int function actorpos(int idx, int count)
 endfunction

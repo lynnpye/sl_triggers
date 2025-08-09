@@ -1,6 +1,8 @@
 scriptname sl_triggerscmdlibsexlab
 sl_triggersextensionsexlab function getextension() global
 endfunction
+function actor_getgender(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
+endfunction
 function util_waitforend(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global
 endfunction
 function sl_getrndactor(actor cmdtargetactor, activemagiceffect _cmdprimary, string[] param) global

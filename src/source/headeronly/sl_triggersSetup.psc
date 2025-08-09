@@ -12,6 +12,8 @@ event onconfigopen()
 endevent
 event onconfigclose()
 endevent
+event onpagereset(string page)
+endevent
 int property ptype_string = 1 autoreadonly hidden
 int property ptype_int = 2 autoreadonly hidden
 int property ptype_float = 3 autoreadonly hidden
@@ -22,8 +24,8 @@ function showextensionsettings()
 endfunction
 function showextensionpage()
 endfunction
-event onpagereset(string page)
-endevent
+function showheaderpage()
+endfunction
 event onoptionhighlight(int option)
 endevent
 event onoptiondefault(int option)
@@ -46,11 +48,7 @@ event onoptioninputopen(int option)
 endevent
 event onoptioninputaccept(int option, string _input)
 endevent
-function showheaderpage()
-endfunction
 bool function isextensionpage()
-endfunction
-function setextensionpages(string[] _extensionfriendlynames, string[] _extensionkeys)
 endfunction
 string function trigger_create()
 endfunction
@@ -61,8 +59,6 @@ endfunction
 string function getoidtriggerkey(int _oid)
 endfunction
 string function getoidattributename(int _oid)
-endfunction
-string[] function getattributenames(bool _istk)
 endfunction
 int function getattrwidget(bool _istk, string _attr)
 endfunction
@@ -93,13 +89,5 @@ endfunction
 bool function hasattrhighlight(bool _istk, string _attr)
 endfunction
 string function getattrhighlight(bool _istk, string _attr)
-endfunction
-string[] function getlayout(bool _istk, string _datafile)
-endfunction
-string[] function uncommentstringarray(string[] _commentedstringarray)
-endfunction
-string[] function getextensionattributedata(bool _istk, string _attr, string _info)
-endfunction
-string[] function getextensionlayoutdata(bool _istk, string _layout, int _row)
 endfunction
 ;This file was cleaned with PapyrusSourceHeadliner 1

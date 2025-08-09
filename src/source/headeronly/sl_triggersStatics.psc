@@ -97,6 +97,10 @@ string function fn_x_attributes(string _x) global
 endfunction
 string function fn_trigger(string _x, string _t) global
 endfunction
+string function debstrjoin(string[] strlist, string delim = "), (") global
+endfunction
+string function su_stringlistset(form anchor, string listkey, int index, string value) global
+endfunction
 bool function getflag(bool bdbgout, string filename, string flagname, bool defaultvalue = false) global
 endfunction
 bool function updateflag(bool bdbgout, string filename, string flagname, bool newvalue) global
