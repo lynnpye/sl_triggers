@@ -2464,6 +2464,7 @@ This file is truncated on game start.
 **Parameters**
 
     message: <msg> [<msg> <msg> ...]  
+    arguments: ALTERNATIVE: <string list>  
 
 
 **Example**
@@ -2507,6 +2508,7 @@ Display the message in the console
 **Parameters**
 
     message: <msg> [<msg> <msg> ...]  
+    arguments: ALTERNATIVE: <string list>  
 
 
 **Example**
@@ -2526,6 +2528,7 @@ Display the message in the standard notification area (top left of your screen b
 **Parameters**
 
     message: <msg> [<msg> <msg> ...]  
+    arguments: ALTERNATIVE: <string list>  
 
 
 **Example**
@@ -2581,6 +2584,7 @@ Sets $$ to one of the arguments at random
 **Parameters**
 
     arguments: <argument> <argument> [<argument> <argument> ...]  
+    arguments: ALTERNATIVE: <string list>  
 
 
 **Example**
@@ -2760,6 +2764,7 @@ Sets $$ to the keycode pressed after waiting for user to press any of the specif
 **Parameters**
 
     dxscancode: <DXScanCode of key> [<DXScanCode of key> ...]  
+    arguments: ALTERNATIVE: <int list>  
 
 
 **Example**
@@ -3041,6 +3046,7 @@ Returns the keycode pressed after waiting for user to press any of the specified
 
     actor: target Actor  
     dxscancode: DXScanCode of key [<DXScanCode of key> ...]  
+    arguments: ALTERNATIVE: <int list>  
 
 
 **Example**
@@ -3338,6 +3344,7 @@ Returns the keycode pressed after waiting for user to press any of the specified
 
     actor: target Actor  
     dxscancode: DXScanCode of key [<DXScanCode of key> ...]  
+    arguments: ALTERNATIVE: <int list>  
 
 
 **Example**

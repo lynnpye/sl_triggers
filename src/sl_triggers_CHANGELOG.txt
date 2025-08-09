@@ -8,6 +8,33 @@
         ; previously, the whitespace around $key would have caused a parse failure:
             $var{ $key }
         NOTE: The parser will make a best effort but if you run into problems, report the error and, in the meantime, devolve to removing surrounding whitespace within map key blocks
+    enhancement: new data type, lists (see the wiki for full information)
+            ; allows for list indexed variable access
+            $listvar[0] = "foo"
+            ; along with list specific new functions
+            listcount $listvar ; returns count of elements
+            listclear $listvar ; removes all elements
+            listadd $listvar "foo" ; adds the value, coercing to the list data type
+        unlike other variable types, assigning to a list uses the list data type, not the source data type
+        you may also declare a list in advance, to force the data type before use
+            int[] $listvar
+            ; forces listvar to be an int[]
+    enhancement: new function, mapkeys
+        returns the list of keys for a map
+            set $mapvar{apple} "fruit"
+            set $mapvar{cherry} "fruit"
+            set $mapkeylist resultfrom mapkeys $mapvar
+            ; $mapkeylist contains "apple", and "cherry"
+    enhancement: util_waitforkbd, sl_waitforkbd, ostim_waitforkbd, deb_msg, msg_notify, msg_console, rnd_list modified to OPTIONALLY accept EITHER the original parameter set OR to accept a single list containing the necessary values
+        ; so you could either do the usual method
+        util_waitforkbd 70 71 72
+        ; or, if you needed to, use a list
+        int[] $keylist
+        listadd $keylist 70
+        listadd $keylist 71
+        listadd $keylist 72
+        util_waitforkbd $keylist
+        ; obviously in this example, the first method would be preferable, but if you need to build a list and then pass it in, this gives you that freedom
 
 132
     Savegame compatibility: Should be savegame compatible

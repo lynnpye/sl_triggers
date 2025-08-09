@@ -118,6 +118,7 @@ endFunction
 ; sltdesc Joins all <msg> arguments together and logs to "<Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log"
 ; sltdesc This file is truncated on game start.
 ; sltargs message: <msg> [<msg> <msg> ...]
+; sltargs arguments: ALTERNATIVE: <string list>
 ; sltsamp deb_msg "Hello" "world!"
 ; sltsamp deb_msg "Hello world!"
 ; sltrslt Both do the same thing
@@ -149,6 +150,7 @@ endFunction
 ; sltgrup Utility
 ; sltdesc Display the message in the standard notification area (top left of your screen by default)
 ; sltargs message: <msg> [<msg> <msg> ...]
+; sltargs arguments: ALTERNATIVE: <string list>
 ; sltsamp msg_notify "Hello" "world!"
 ; sltsamp msg_notify "Hello world!"
 ; sltrslt Both are the same
@@ -908,6 +910,7 @@ endFunction
 ; sltgrup Utility
 ; sltdesc Display the message in the console
 ; sltargs message: <msg> [<msg> <msg> ...]
+; sltargs arguments: ALTERNATIVE: <string list>
 ; sltsamp msg_console "Hello" "world!"
 ; sltsamp msg_console "Hello world!"
 ; sltrslt Both are the same
@@ -938,6 +941,7 @@ endFunction
 ; sltgrup Utility
 ; sltdesc Sets $$ to one of the arguments at random
 ; sltargs arguments: <argument> <argument> [<argument> <argument> ...]
+; sltargs arguments: ALTERNATIVE: <string list>
 ; sltsamp rnd_list "Hello" $2 "Yo"
 ; sltrslt $$ will be one of the values. $2 will be resolved to it's value before populating $$
 function rnd_list(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
@@ -946,8 +950,14 @@ function rnd_list(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
     string nextResult
 
     if ParamLengthGT(CmdPrimary, param.Length, 1)
-        int idx = Utility.RandomInt(1, param.Length - 1)
-        nextResult = CmdPrimary.ResolveString(param[idx])
+        string[] resolvedStringList = CmdPrimary.ResolveListString(param[1])
+        if (resolvedStringList)
+            int idx = Utility.RandomInt(0, resolvedStringList.Length - 1)
+            nextResult = resolvedStringList[idx]
+        else
+            int idx = Utility.RandomInt(1, param.Length - 1)
+            nextResult = CmdPrimary.ResolveString(param[idx])
+        endif
     endif
 
     CmdPrimary.MostRecentStringResult = nextResult
@@ -5041,6 +5051,7 @@ endFunction
 ; sltdesc Sets $$ to the keycode pressed after waiting for user to press any of the specified keys.
 ; sltdesc (See https://ck.uesp.net/wiki/Input_Script for the DXScanCodes)
 ; sltargs dxscancode: <DXScanCode of key> [<DXScanCode of key> ...]
+; sltargs arguments: ALTERNATIVE: <int list>
 ; sltsamp util_waitforkbd 74 78 181 55
 function util_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd

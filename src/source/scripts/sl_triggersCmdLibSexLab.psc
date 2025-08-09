@@ -225,6 +225,7 @@ endFunction
 ; sltdesc (See https://ck.uesp.net/wiki/Input_Script for the DXScanCodes)
 ; sltargs actor: target Actor
 ; sltargs dxscancode: DXScanCode of key [<DXScanCode of key> ...]
+; sltargs arguments: ALTERNATIVE: <int list>
 ; sltsamp sl_waitforkbd 74 78 181 55
 ; sltsamp if $$ = 74 MINUS
 ; sltsamp ...

@@ -1670,6 +1670,8 @@ Recommend ConsoleUtil-Extended https://www.nexusmods.com/skyrimspecialedition/mo
 
 deb_msg: Joins all <msg> arguments together and logs to "<Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log"
 This file is truncated on game start.
+	- parameter 1: message: <msg> [<msg> <msg> ...]
+	- parameter 2: arguments: ALTERNATIVE: <string list>
 
 	Example
 		deb_msg "Hello" "world!"
@@ -1695,6 +1697,8 @@ if parameter 2 1s "toint": return parameter 3 as integer. Parameter 3 can be in 
 -=-
 
 msg_console: Display the message in the console
+	- parameter 1: message: <msg> [<msg> <msg> ...]
+	- parameter 2: arguments: ALTERNATIVE: <string list>
 
 	Example
 		msg_console "Hello" "world!"
@@ -1705,6 +1709,8 @@ msg_console: Display the message in the console
 -=-
 
 msg_notify: Display the message in the standard notification area (top left of your screen by default)
+	- parameter 1: message: <msg> [<msg> <msg> ...]
+	- parameter 2: arguments: ALTERNATIVE: <string list>
 
 	Example
 		msg_notify "Hello" "world!"
@@ -1733,6 +1739,8 @@ rnd_int: Sets $$ to a random integer between min and max inclusive
 -=-
 
 rnd_list: Sets $$ to one of the arguments at random
+	- parameter 1: arguments: <argument> <argument> [<argument> <argument> ...]
+	- parameter 2: arguments: ALTERNATIVE: <string list>
 
 	Example
 		rnd_list "Hello" $2 "Yo"
@@ -1831,6 +1839,8 @@ util_wait: Wait specified number of seconds i.e. Utility.Wait()
 
 util_waitforkbd: Sets $$ to the keycode pressed after waiting for user to press any of the specified keys.
 (See https://ck.uesp.net/wiki/Input_Script for the DXScanCodes)
+	- parameter 1: dxscancode: <DXScanCode of key> [<DXScanCode of key> ...]
+	- parameter 2: arguments: ALTERNATIVE: <int list>
 
 	Example
 		util_waitforkbd 74 78 181 55
@@ -1993,6 +2003,7 @@ sl_waitforkbd: Returns the keycode pressed after waiting for user to press any o
 (See https://ck.uesp.net/wiki/Input_Script for the DXScanCodes)
 	- parameter 1: actor: target Actor
 	- parameter 2: dxscancode: DXScanCode of key [<DXScanCode of key> ...]
+	- parameter 3: arguments: ALTERNATIVE: <int list>
 
 	Example
 		sl_waitforkbd 74 78 181 55
@@ -2154,6 +2165,7 @@ ostim_waitforkbd: Returns the keycode pressed after waiting for user to press an
 (See https://ck.uesp.net/wiki/Input_Script for the DXScanCodes)
 	- parameter 1: actor: target Actor
 	- parameter 2: dxscancode: DXScanCode of key [<DXScanCode of key> ...]
+	- parameter 3: arguments: ALTERNATIVE: <int list>
 
 	Example
 		ostim_waitforkbd 74 78 181 55
