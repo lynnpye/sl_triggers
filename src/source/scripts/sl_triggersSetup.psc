@@ -342,7 +342,10 @@ int Function ShowAttribute(string attrName, int widgetOptions, string triggerKey
 		_oid = AddMenuOption(label, menuValue, widgetOptions)
 		AddOid(_oid, triggerKey, attrName)
 	elseif widg == WIDG_LABEL
-		string labeltext = GetAttrHighlight(_isTriggerAttributes, attrName)
+		string labeltext
+		If (HasAttrHighlight(_isTriggerAttributes, attrName))
+			labeltext = GetAttrHighlight(_isTriggerAttributes, attrName)
+		EndIf
 		; purposefully not returning the _oid as this is just supposed to behave like a simple label
 		; headers expand across both rows and this avoids that
 		AddTextOption(labeltext, "")
@@ -456,7 +459,10 @@ Function ShowExtensionPage()
 	bool cardinate = false
 	bool hasNextCardinate = false
 	
-	if triggerCount > CARDS_PER_PAGE
+	string _dataFile = FN_X_Settings(CurrentExtensionKey)
+	int extension_cards_per_page = JsonUtil.GetIntValue(_dataFile, "cards_per_page", 4) + 1
+
+	if triggerCount > extension_cards_per_page
 		cardinate = true
 	endif
 	
@@ -468,24 +474,24 @@ Function ShowExtensionPage()
 	oidExtensionSettings = AddTextOption("$SLT_BTN_EXTENSION_SETTINGS", "")
 	
 	int startIndex = 0
-	int displayCount = CARDS_PER_PAGE
+	int displayCount = extension_cards_per_page
 	if !cardinate
 		displayCount = triggerCount
 	else
 		displayCount = triggerCount - currentCardination * displayCount
-		if displayCount > CARDS_PER_PAGE
-			displayCount = CARDS_PER_PAGE
+		if displayCount > extension_cards_per_page
+			displayCount = extension_cards_per_page
 			hasNextCardinate = true
 		endif
 	endif
 	
 	if cardinate
 		; blank row to avoid accidentally creating new items
-		AddEmptyOption()
-		AddEmptyOption()
+		;AddEmptyOption()
+		;AddEmptyOption()
 
 		; set startIndex appropriately
-		startIndex = currentCardination * CARDS_PER_PAGE
+		startIndex = currentCardination * extension_cards_per_page
 		
 		;row
 		; display cardination buttons
@@ -512,6 +518,7 @@ Function ShowExtensionPage()
 		string _triggerFile = FN_Trigger(extensionKey, triggerKey)
 		triggerIsSoftDeleted = JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
 		
+		; row
 		AddHeaderOption("==] " + triggerKey + " [==")
 		AddEmptyOption()
 
@@ -519,11 +526,11 @@ Function ShowExtensionPage()
 		if triggerIsSoftDeleted
 			widgetOptions = OPTION_FLAG_DISABLED
 			; row
-			AddHeaderOption("$SLT_MSG_SOFT_DELETE_0")
-			AddHeaderOption("$SLT_MSG_SOFT_DELETE_1")
+			;AddHeaderOption("$SLT_MSG_SOFT_DELETE_0")
+			;AddHeaderOption("$SLT_MSG_SOFT_DELETE_1")
 			; row
-			AddHeaderOption("$SLT_MSG_SOFT_DELETE_2")
-			AddHeaderOption("$SLT_MSG_SOFT_DELETE_3")
+			;AddHeaderOption("$SLT_MSG_SOFT_DELETE_2")
+			;AddHeaderOption("$SLT_MSG_SOFT_DELETE_3")
 		endif
 
 		;string _dataFile = FN_Trigger(CurrentExtensionKey, triggerKey)
@@ -534,6 +541,7 @@ Function ShowExtensionPage()
 
 		tlattributes = sl_triggers_internal.MCMGetLayoutData(true, CurrentExtensionKey, _triggerLayout, tlidx) ;GetExtensionLayoutData(false, _layout, tlidx)
 		tlidx = 0
+		; row per loop
 		while tlidx < tlattributes.Length
 			string elem = tlattributes[tlidx]
 			if elem != "/"
@@ -566,9 +574,10 @@ Function ShowExtensionPage()
 		endwhile
 		
 		; blank row
-		AddEmptyOption()
-		AddEmptyOption()
+		;AddEmptyOption()
+		;AddEmptyOption()
 
+		; row
 		if !triggerIsSoftDeleted
 			AddEmptyOption()
 
@@ -589,9 +598,10 @@ Function ShowExtensionPage()
 	
 	if displayCount > 2
 		; blank row
-		AddEmptyOption()
-		AddEmptyOption()
+		;AddEmptyOption()
+		;AddEmptyOption()
 		
+		; row
 		oidAddBottom = AddTextOption("$SLT_BTN_ADD_NEW_ITEM", "")
 		AddEmptyOption()
 	endif
@@ -1631,6 +1641,9 @@ int Function GetAttrMenuSelectionIndex(bool _istk, string _attr, string _selecti
 EndFunction
 
 bool Function HasAttrHighlight(bool _istk, string _attr)
+	if !_attr
+		return false
+	endif
 	;string[] data = GetExtensionAttributeData(_istk, _attr, "info")
 	string[] data = sl_triggers_internal.MCMGetAttributeData(_istk, CurrentExtensionKey, _attr, "info")
 	string info
@@ -1641,6 +1654,9 @@ bool Function HasAttrHighlight(bool _istk, string _attr)
 EndFunction
 
 string Function GetAttrHighlight(bool _istk, string _attr)
+	if !_attr
+		return ""
+	endif
 	;string[] data = GetExtensionAttributeData(_istk, _attr, "info")
 	string[] data = sl_triggers_internal.MCMGetAttributeData(_istk, CurrentExtensionKey, _attr, "info")
 	string info

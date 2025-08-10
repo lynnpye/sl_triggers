@@ -137,12 +137,28 @@
         ["race", "role"],
         ["player", "gender"],
         ["partner_race", "partner_role"],
-        ["partner_gender"],
+        ["partner_gender", "position"],
         ["tag", "daytime"],
-        ["deeplocation", "position"],
+        ["deeplocation", "is_weapon_drawn"],
         ["is_armed", "is_clothed"],
-        ["is_weapon_drawn"],
         ["do_1", "do_2"],
         ["do_3"]
     ]
+
+
+    ,
+
+
+
+    "settings_attributes" : [
+        ["cards_per_page",      "settingsattribute_cards_per_page"]
+    ],
+    "settingsattribute_cards_per_page" : [
+        ["type", "int"],
+        ["widget", "menu", "Cards per Page :", "4", "1", "2", "3", "4", "5"],
+        ["info", "The number of triggers to display per page."]
+    ],
+	"settingslayout" : [
+		["cards_per_page"]
+	]
 }

@@ -324,14 +324,14 @@
 
 
     "settings_attributes" : [
-        ["testtoggle"]
+        ["cards_per_page",      "settingsattribute_cards_per_page"]
     ],
-    "settingsattribute_testtoggle" : [
+    "settingsattribute_cards_per_page" : [
         ["type", "int"],
-        ["widget", "toggle", "Test Toggle? ", 1],
-        ["info", "This is testtoggle. Isn't he cute?"]
+        ["widget", "menu", "Cards per Page :", "4", "1", "2", "3", "4", "5"],
+        ["info", "The number of triggers to display per page."]
     ],
 	"settingslayout" : [
-		["testtoggle"]
+		["cards_per_page"]
 	]
 }

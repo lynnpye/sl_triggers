@@ -822,7 +822,7 @@ std::vector<std::string> SLTNativeFunctions::MCMGetLayout(PAPYRUS_NATIVE_DECL, b
     std::vector<std::string> result;
     result.resize(2);
 
-    if (extensionKey.empty() || dataFileName.empty()) {
+    if (extensionKey.empty() || (isTriggerAttribute && dataFileName.empty())) {
         logger::error("MCMGetLayout: extensionKey({}), dataFileName({}) are both required to be non-empty; returning empty list", extensionKey, dataFileName);
         return result;
     }

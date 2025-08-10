@@ -1,3 +1,13 @@
+134
+    Savegame compatibility: Should be savegame compatible
+    
+    Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
+        (or whichever folder you have your SKSE logs directed to)
+    
+    bugfix: extension settings erroneously erroring
+    bugfix: addressed problem with exceeding the 128 option limit per page for SkyUI MCM
+    enhancement: added "cards per page" setting for extensions; default is 5
+
 133
     Savegame compatibility: Should be savegame compatible
     
