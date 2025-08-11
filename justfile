@@ -10,6 +10,9 @@ dir_project_extern :=           dir_project / "extern"
 dir_project_addons :=           dir_project_extern / "add-ons"
 dir_pet_collar_game :=          dir_project_addons / "sltr_pet_collar_game"
 dir_test_scripts :=             dir_project_addons / "sltr_test_scripts"
+dir_lang_support :=             dir_project_extern / "lang-support"
+dir_lang_notepad_plusplus :=    dir_lang_support / "notepad++"
+dir_lang_vscode :=              dir_lang_support / "vscode"
 dir_project_caprica :=          dir_project_extern / "caprica"
 dir_project_inc :=              dir_project / "inc"
 dir_project_inc_beth :=         dir_project_inc / "beth"
@@ -47,15 +50,23 @@ test_script_filename :=         "sltr_test_scripts" + version_mod + ".zip"
 file_dep_test_scripts :=        dir_dep / test_script_filename
 pet_collar_game_filename :=     "sltr_pet_collar_game" + version_pet_collar_game + ".zip"
 file_dep_pet_collar_game :=     dir_dep / pet_collar_game_filename
+lang_npp_filename :=            "notepad++-sltscript-support.zip"
+file_dep_lang_npp :=            dir_dep / lang_npp_filename
+lang_vscode_filename :=         "vscode-sltscript-support.zip"
+file_dep_lang_vscode :=         dir_dep / lang_vscode_filename
 
 # non-wrapped stringified versions for use in commands
 raw_dir_project_src :=          replace(dir_project_src,                '/', '\')
 raw_dir_pet_collar_game :=      replace(dir_pet_collar_game,            '/', '\')
 raw_dir_test_scripts :=         replace(dir_test_scripts,               '/', '\')
+raw_dir_lang_npp :=             replace(dir_lang_notepad_plusplus,      '/', '\')
+raw_dir_lang_vscode :=          replace(dir_lang_vscode,                '/', '\')
 
 raw_file_dep_mod :=             replace(file_dep_mod,                   '/', '\')
 raw_file_pet_collar_game :=     replace(file_dep_pet_collar_game,       '/', '\')
 raw_file_test_scripts :=        replace(file_dep_test_scripts,          '/', '\')
+raw_file_lang_npp :=            replace(file_dep_lang_npp,              '/', '\')
+raw_file_lang_vscode :=         replace(file_dep_lang_vscode,           '/', '\')
 
 # stringified versions for use in commands
 str_dir_test_sme :=             replace("\"" + dir_test_sme + "\\\"",                   '/', '\')
@@ -132,6 +143,10 @@ packagemodonly:
     powershell.exe -Command "if (Test-Path '{{raw_file_dep_mod}}') { Remove-Item -Path '{{raw_file_dep_mod}}' }"
     powershell.exe -Command "Compress-Archive -Path '{{raw_dir_project_src}}\\*' -DestinationPath '{{raw_file_dep_mod}}'"
 
-packageall: _package_preclean packagemodonly
+packagelang:
+    powershell.exe -Command "Compress-Archive -Path '{{raw_dir_lang_npp}}\\*' -DestinationPath '{{raw_file_lang_npp}}'"
+    powershell.exe -Command "Compress-Archive -Path '{{raw_dir_lang_vscode}}\\*' -DestinationPath '{{raw_file_lang_vscode}}'"
+
+packageall: _package_preclean packagemodonly packagelang
     powershell.exe -Command "Compress-Archive -Path '{{raw_dir_pet_collar_game}}\\*' -DestinationPath '{{raw_file_pet_collar_game}}'"
     powershell.exe -Command "Compress-Archive -Path '{{raw_dir_test_scripts}}\\*' -DestinationPath '{{raw_file_test_scripts}}'"

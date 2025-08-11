@@ -77,6 +77,12 @@
         "command": "just packagemodonly"
       },
       {
+        "label": "Package Lang",
+        "group": "build",
+        "type": "shell",
+        "command": "just packagelang"
+      },
+      {
         "label": "Generate Docs",
         "group": "build",
         "type": "shell",
