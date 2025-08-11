@@ -708,6 +708,90 @@ av_set: Set actor value
 -=-
 
 
+ActorBase:
+==============
+
+actorbase_doconsumer: For the specified ActorBase, perform the requested consumer, provided the appropriate additional parameters
+'Consumer' in this case specifically refers to functions that take parameters but return no result
+https://ck.uesp.net/wiki/ActorBase_Script
+	- parameter 1: actor: target ActorBase (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)
+	- parameter 2: consumer: consumer name
+
+SetEssential
+SetInvulnerable
+SetProtected
+SetOutfit
+SetCombatStyle
+SetClass
+SetHeight
+SetWeight
+SetNthHeadPart
+SetFaceMorph
+SetFacePreset
+SetHairColor
+SetFaceTextureSet
+SetVoiceType
+SetSkin
+SetSkinFar
+
+	Example
+		actorbase_doconsumer $actorBase SetInvulnerable true
+
+-=-
+
+actorbase_dofunction: For the targeted ActorBase, set $$ to the result of the specified Function
+'Function' in this case specifically refers to functions that take one or more parameters and return a value
+https://ck.uesp.net/wiki/ActorBase_Script
+	- parameter 1: actor: target ActorBase  (both relative "Skyrim.esm:0f" and absolute "0f" values)
+	- parameter 2: function: function name
+
+GetOutfit
+GetNthHeadPart
+GetIndexOfHeadPartByType
+GetNthOverlayHeadPart
+GetIndexOfOverlayHeadPartByType
+GetFaceMorph
+GetFacePreset
+GetNthSpell
+
+	Example
+		set $spell resultfrom actorbase_dofunction $anActorBase GetNthSpell 0
+
+-=-
+
+actorbase_dogetter: For the targeted ActorBase, return the value from the specified getter
+'Getter' in this case specifically refers to functions that take no parameters but return a value
+https://ck.uesp.net/wiki/ActorBase_Script
+	- parameter 1: actor: target ActorBase  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0f" and absolute "0f" values)
+	- parameter 2: getter: getter name
+
+;;;; These are from ActorBase
+GetClass
+GetDeadCount
+GetGiftFilter
+GetRace
+GetSex
+IsEssential
+IsInvulnerable
+IsProtected
+IsUnique
+;;;; These are from SKSE
+GetCombatStyle
+GetHeight
+GetWeight
+GetNumHeadParts
+GetNumOverlayHeadParts
+GetHairColor
+GetSpellCount
+GetFaceTextureSet
+GetVoiceType
+GetSkin
+GetSkinFar
+GetTemplate
+
+-=-
+
+
 Form:
 ==============
 
@@ -1302,22 +1386,25 @@ isgood            : <filename>
 geterrors         : <filename>
 exists            : <filename>
 unload            : <filename> [saveChanges: 0 - false | 1 - true] [minify: 0 - false | 1 - true]
-set               : <filename> <key> <type: int | float | string> <value>
-get               : <filename> <key> <type: int | float | string> [<default value>]
-unset             : <filename> <key> <type: int | float | string>
-has               : <filename> <key> <type: int | float | string>
+set               : <filename> <key> <type: int | float | string | form> <value>
+get               : <filename> <key> <type: int | float | string | form> [<default value>]
+unset             : <filename> <key> <type: int | float | string | form>
+has               : <filename> <key> <type: int | float | string | form>
 adjust            : <filename> <key> <type: int | float>          <amount>
-listadd           : <filename> <key> <type: int | float | string> <value>
-listget           : <filename> <key> <type: int | float | string> <index>
-listset           : <filename> <key> <type: int | float | string> <index> <value>
-listremoveat      : <filename> <key> <type: int | float | string> <index>
-listinsertat      : <filename> <key> <type: int | float | string> <index> <value>
-listclear         : <filename> <key> <type: int | float | string>
-listcount         : <filename> <key> <type: int | float | string>
-listcountvalue    : <filename> <key> <type: int | float | string> <value> [<exclude: 0 - false | 1 - true>]
-listfind          : <filename> <key> <type: int | float | string> <value>
-listhas           : <filename> <key> <type: int | float | string> <value>
-listresize        : <filename> <key> <type: int | float | string> <toLength> [<filler value>]
+listadd           : <filename> <key> <type: int | float | string | form> <value>
+listget           : <filename> <key> <type: int | float | string | form> <index>
+listset           : <filename> <key> <type: int | float | string | form> <index> <value>
+listremoveat      : <filename> <key> <type: int | float | string | form> <index>
+listinsertat      : <filename> <key> <type: int | float | string | form> <index> <value>
+listclear         : <filename> <key> <type: int | float | string | form>
+listcount         : <filename> <key> <type: int | float | string | form>
+listcountvalue    : <filename> <key> <type: int | float | string | form> <value> [<exclude: 0 - false | 1 - true>]
+listfind          : <filename> <key> <type: int | float | string | form> <value>
+listhas           : <filename> <key> <type: int | float | string | form> <value>
+listresize        : <filename> <key> <type: int | float | string | form> <toLength> [<filler value>]
+listslice         : <filename> <key> <type: int | float | string | form> <slice length> [<startIndex = 0>] ; returns a typed list e.g. int[]
+listcopy          : <filename> <key> <type: int | float | string | form> <list variable | value [value ... ] >
+listtoarray       : <filename> <key> <type: int | float | string | form> ; returns a typed list e.g. int[]
 
 	Example
 		Example from the regression test script:
@@ -1419,28 +1506,31 @@ $system.self, $system.player, $actor   ; these all resolve to Actor
 "sl_triggers.esp:3426"   ; the FormID for the main Quest object for sl_triggers
 Read more about StorageUtil for more details
 Valid sub-functions are:
-set               : <form identifier> <key> <type: int | float | string> <value>
-get               : <form identifier> <key> <type: int | float | string> [<default value>]
-pluck             : <form identifier> <key> <type: int | float | string> [<default value>]
-unset             : <form identifier> <key> <type: int | float | string>
-has               : <form identifier> <key> <type: int | float | string>
+set               : <form identifier> <key> <type: int | float | string | form> <value>
+get               : <form identifier> <key> <type: int | float | string | form> [<default value>]
+pluck             : <form identifier> <key> <type: int | float | string | form> [<default value>]
+unset             : <form identifier> <key> <type: int | float | string | form>
+has               : <form identifier> <key> <type: int | float | string | form>
 adjust            : <form identifier> <key> <type: int | float>          <amount>
-listadd           : <form identifier> <key> <type: int | float | string> <value>
-listget           : <form identifier> <key> <type: int | float | string> <index>
-listpluck         : <form identifier> <key> <type: int | float | string> <index> <default value>
-listset           : <form identifier> <key> <type: int | float | string> <index> <value>
-listremoveat      : <form identifier> <key> <type: int | float | string> <index>
-listinsertat      : <form identifier> <key> <type: int | float | string> <index> <value>
-listadjust        : <form identifier> <key> <type: int | float | string> <index> <amount>
-listclear         : <form identifier> <key> <type: int | float | string>
-listpop           : <form identifier> <key> <type: int | float | string>
-listshift         : <form identifier> <key> <type: int | float | string>
-listsort          : <form identifier> <key> <type: int | float | string>
-listcount         : <form identifier> <key> <type: int | float | string>
-listcountvalue    : <form identifier> <key> <type: int | float | string> <value> [<exclude: 0 - false | 1 - true>]
-listfind          : <form identifier> <key> <type: int | float | string> <value>
-listhas           : <form identifier> <key> <type: int | float | string> <value>
-listresize        : <form identifier> <key> <type: int | float | string> <toLength> [<filler value>]
+listadd           : <form identifier> <key> <type: int | float | string | form> <value>
+listget           : <form identifier> <key> <type: int | float | string | form> <index>
+listpluck         : <form identifier> <key> <type: int | float | string | form> <index> <default value>
+listset           : <form identifier> <key> <type: int | float | string | form> <index> <value>
+listremoveat      : <form identifier> <key> <type: int | float | string | form> <index>
+listinsertat      : <form identifier> <key> <type: int | float | string | form> <index> <value>
+listadjust        : <form identifier> <key> <type: int | float | string | form> <index> <amount>
+listclear         : <form identifier> <key> <type: int | float | string | form>
+listpop           : <form identifier> <key> <type: int | float | string | form>
+listshift         : <form identifier> <key> <type: int | float | string | form>
+listsort          : <form identifier> <key> <type: int | float | string | form>
+listcount         : <form identifier> <key> <type: int | float | string | form>
+listcountvalue    : <form identifier> <key> <type: int | float | string | form> <value> [<exclude: 0 - false | 1 - true>]
+listfind          : <form identifier> <key> <type: int | float | string | form> <value>
+listhas           : <form identifier> <key> <type: int | float | string | form> <value>
+listresize        : <form identifier> <key> <type: int | float | string | form> <toLength> [<filler value>]
+listslice         : <form identifier> <key> <type: int | float | string | form> <slice length> [<startIndex = 0>] ; returns a typed list e.g. int[]
+listcopy          : <form identifier> <key> <type: int | float | string | form> <list variable | value [value ... ] >
+listtoarray       : <form identifier> <key> <type: int | float | string | form> ; returns a typed list e.g. int[]
 
 	Example
 		Example usage from the regression tests
