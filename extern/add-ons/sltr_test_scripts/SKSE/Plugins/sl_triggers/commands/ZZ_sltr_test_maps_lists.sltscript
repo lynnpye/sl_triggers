@@ -454,3 +454,14 @@ if $intlist[0] == 0
 else
     deb_msg $"FAIL: int[] and string to int coercion failure/2"
 endif
+
+listclear $intlist
+listadd $intlist 0 10 20 30
+inc $thread.testCount
+if $intlist[3] == 30
+    inc $thread.passCount
+    deb_msg $"PASS: listadd with multiple arguments"
+else
+    deb_msg $"FAIL: listadd with multiple arguments"
+endif
+
