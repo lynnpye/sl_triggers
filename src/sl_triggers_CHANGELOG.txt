@@ -17,11 +17,13 @@
         ; listslice $listvar 3 ; starts at index 0
         ; set $sublist resultfrom listslice $listvar 3 2 ; $sublist starts at index 2
     enhancement: added "form" variant support for the jsonutil function
+        Note: This should bring the coverage of JsonUtil functions very close to complete
         this includes support in the following subfunctions:
             set, get, unset, has, listadd, listget, listset, listremoveat, listinsertat, listclear, listcount, listcountvalue, listfind, listhas, listresize
     enhancement: added jsonutil subfunctions for list support:
         listslice, listcopy, listtoarray
     enhancement: added "form" variant support for the storageutil function
+        Note: This should bring the coverage of StorageUtil functions very close to complete
         this includes support in the following subfunctions:
             set, get, pluck, unset, has, listadd, listget, listpluck, listset, listremoveat, listinsertat, listadjust, listclear, listpop, listshift,
                 listsort, listcount, listcountvalue, listfind, listhas, listresize
