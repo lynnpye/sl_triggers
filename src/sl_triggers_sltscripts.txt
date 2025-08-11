@@ -589,9 +589,9 @@ Returns a count (the size) of the number of elements in the list.
     ; $count is 10, because by assigning to index 9, it resizes the 0-based list to accommodate
     
 
- listadd - Adds the value to the list, increasing the size
+ listadd - Adds the value(s) to the list, increasing the size
 
-Adds the provided value to the list, coercing it to the list's type as needed.
+Adds the provided value(s) to the list, coercing it to the list's type as needed. listadd accepts more than 1 argument.
 
     set $listvar[0] = "first"
     ; the list is a string list, because it's first indexed assignment is a string
@@ -602,6 +602,9 @@ Adds the provided value to the list, coercing it to the list's type as needed.
     ; the list is an int list, because it's first indexed assignment is an int
     listadd $intlist "two hundred"
     ; $intlist[1] is now 0, because "two hundred" as a string, cast to an int, returns 0
+    listclear
+    listadd $intlist 0 100 200 300 400
+    ; $intlist[0-4] contain, respectively,the values indicated, i.e. the equivalent of $intlist[$i] = $i  100
     
 
  listclear - Removes all values from the list and sets its count/size to 0

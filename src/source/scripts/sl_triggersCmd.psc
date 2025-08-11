@@ -2207,14 +2207,21 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             endif
             ;currentLine += 1
         elseIf command == "listadd"
-            if ParamLengthEQ(self, cmdLine.Length, 3)
+            if ParamLengthGT(self, cmdLine.Length, 2)
                 string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
                 if varscope[SLT.VS_SCOPE]
-                    int vt = GetVarType(varscope)
-                    varscope[SLT.VS_LIST_INDEX] = StorageUtil.StringListCount(SLT, GetVarListKey(varscope))
-                    varscope[SLT.VS_RESOLVED_LIST_INDEX] = varscope[SLT.VS_LIST_INDEX]
-                    InternalResolve(cmdLine[2])
-                    SetVarFromCustomResult(varscope)
+                    int rli = StorageUtil.StringListCount(SLT, GetVarListKey(varscope))
+                    int cli = 2
+                    while cli < cmdLine.Length
+                        varscope[SLT.VS_LIST_INDEX] = rli
+                        varscope[SLT.VS_RESOLVED_LIST_INDEX] = rli
+
+                        InternalResolve(cmdLine[cli])
+                        SetVarFromCustomResult(varscope)
+
+                        cli += 1
+                        rli += 1
+                    endwhile
                 else
                     SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
                 endif
