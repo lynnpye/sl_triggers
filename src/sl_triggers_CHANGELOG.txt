@@ -4,6 +4,7 @@
     Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
         (or whichever folder you have your SKSE logs directed to)
     
+    bugfix: objectreference_doconsumer erroneously resolving as Actor instead of Form before casting to ObjectReference
     bugfix: extension settings erroneously erroring
     bugfix: addressed problem with exceeding the 128 option limit per page for SkyUI MCM
     enhancement: added "cards per page" setting for extensions; default is 5
@@ -26,6 +27,9 @@
                 listsort, listcount, listcountvalue, listfind, listhas, listresize
     enhancement: added storageutil subfunctions for list support:
         listslice, listcopy, listtoarray
+    enhancement: added actorbase_dogetter, actorbase_doconsumer, actorbase_dofunction
+        these, like the others for actor, objectreference, and form, are wrappers around CreationKit functions of the same names as the sub-functions
+        see the function documentation for more details
 
 133
     Savegame compatibility: Should be savegame compatible

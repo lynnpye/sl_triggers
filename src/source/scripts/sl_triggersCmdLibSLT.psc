@@ -2552,6 +2552,58 @@ bool function _slt_objectreference_dogetter(sl_triggersCmd CmdPrimary, ObjectRef
     return false
 endFunction
 
+bool function _slt_actorbase_dogetter(sl_triggersCmd CmdPrimary, ActorBase _target, string _theAction) global
+    if _target && _theAction
+        if _theAction == "GetClass"
+            CmdPrimary.MostRecentFormResult = _target.GetClass()
+        elseif _theAction == "GetDeadCount"
+            CmdPrimary.MostRecentIntResult = _target.GetDeadCount()
+        elseif _theAction == "GetGiftFilter"
+            CmdPrimary.MostRecentFormResult = _target.GetGiftFilter()
+        elseif _theAction == "GetRace"
+            CmdPrimary.MostRecentFormResult = _target.GetRace()
+        elseif _theAction == "GetSex"
+            CmdPrimary.MostRecentIntResult = _target.GetSex()
+        elseif _theAction == "IsEssential"
+            CmdPrimary.MostRecentBoolResult = _target.IsEssential()
+        elseif _theAction == "IsInvulnerable"
+            CmdPrimary.MostRecentBoolResult = _target.IsInvulnerable()
+        elseif _theAction == "IsProtected"
+            CmdPrimary.MostRecentBoolResult = _target.IsProtected()
+        elseif _theAction == "IsUnique"
+            CmdPrimary.MostRecentBoolResult = _target.IsUnique()
+        elseif _theAction == "GetCombatStyle"
+            CmdPrimary.MostRecentFormResult = _target.GetCombatStyle()
+        elseif _theAction == "GetHeight"
+            CmdPrimary.MostRecentFloatResult = _target.GetHeight()
+        elseif _theAction == "GetWeight"
+            CmdPrimary.MostRecentFloatResult = _target.GetWeight()
+        elseif _theAction == "GetNumHeadParts"
+            CmdPrimary.MostRecentIntResult = _target.GetNumHeadParts()
+        elseif _theAction == "GetNumOverlayHeadParts"
+            CmdPrimary.MostRecentIntResult = _target.GetNumOverlayHeadParts()
+        elseif _theAction == "GetHairColor"
+            CmdPrimary.MostRecentFormResult = _target.GetHairColor()
+        elseif _theAction == "GetSpellCount"
+            CmdPrimary.MostRecentIntResult = _target.GetSpellCount()
+        elseif _theAction == "GetFaceTextureSet"
+            CmdPrimary.MostRecentFormResult = _target.GetFaceTextureSet()
+        elseif _theAction == "GetVoiceType"
+            CmdPrimary.MostRecentFormResult = _target.GetVoiceType()
+        elseif _theAction == "GetSkin"
+            CmdPrimary.MostRecentFormResult = _target.GetSkin()
+        elseif _theAction == "GetSkinFar"
+            CmdPrimary.MostRecentFormResult = _target.GetSkinFar()
+        elseif _theAction == "GetTemplate"
+            CmdPrimary.MostRecentFormResult = _target.GetTemplate()
+        else
+            return _slt_form_dogetter(CmdPrimary, _target, _theAction)
+        endif
+        return true
+    endif
+    return false
+endFunction
+
 bool function _slt_actor_dogetter(sl_triggersCmd CmdPrimary, Actor _target, string _theAction) global
     if _target && _theAction
         if _theAction == "CanFlyHere"
@@ -2799,6 +2851,56 @@ function objectreference_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPr
             if _theAction
                 if !_slt_objectreference_dogetter(CmdPrimary, _target, _theAction)
                     SquawkFunctionError(CmdPrimary, "objectreference_dogetter: action returned empty string result, possibly a problem(" + _theAction + ")")
+                endif
+            endif
+        endIf
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname actorbase_dogetter
+; sltgrup ActorBase
+; sltdesc For the targeted ActorBase, return the value from the specified getter
+; sltdesc 'Getter' in this case specifically refers to functions that take no parameters but return a value
+; sltdesc https://ck.uesp.net/wiki/ActorBase_Script
+; sltargs actor: target ActorBase  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0f" and absolute "0f" values)
+; sltargs getter: getter name
+; sltargsmore ;;;; These are from ActorBase
+; sltargsmore GetClass
+; sltargsmore GetDeadCount
+; sltargsmore GetGiftFilter
+; sltargsmore GetRace
+; sltargsmore GetSex
+; sltargsmore IsEssential
+; sltargsmore IsInvulnerable
+; sltargsmore IsProtected
+; sltargsmore IsUnique
+; sltargsmore ;;;; These are from SKSE
+; sltargsmore GetCombatStyle
+; sltargsmore GetHeight
+; sltargsmore GetWeight
+; sltargsmore GetNumHeadParts
+; sltargsmore GetNumOverlayHeadParts
+; sltargsmore GetHairColor
+; sltargsmore GetSpellCount
+; sltargsmore GetFaceTextureSet
+; sltargsmore GetVoiceType
+; sltargsmore GetSkin
+; sltargsmore GetSkinFar
+; sltargsmore GetTemplate
+function actorbase_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        ActorBase _target = CmdPrimary.ResolveForm(param[1]) as ActorBase
+        
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_actorbase_dogetter(CmdPrimary, _target, _theAction)
+                    CmdPrimary.SFE("actorbase_dogetter: action returned empty string result, possibly a problem(" + _theAction + ")")
                 endif
             endif
         endIf
@@ -3265,6 +3367,125 @@ bool function _slt_objectreference_doconsumer(sl_triggersCmd CmdPrimary, ObjectR
                     i += 4
                 endwhile
                 _target.CreateEnchantment(_maxCharge, _mgefs, _mags, _areas, _durations)
+            endif
+        else
+            return _slt_form_doconsumer(CmdPrimary, _target, _theAction, param)
+        endif
+        return true
+    endif    
+    return false
+endFunction
+
+bool function _slt_actorbase_doconsumer(sl_triggersCmd CmdPrimary, ActorBase _target, string _theAction, string[] param) global
+    if _target && _theAction
+        if _theAction == "SetEssential"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetEssential(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "SetInvulnerable"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetInvulnerable(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "SetProtected"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetProtected(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "SetOutfit"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                Outfit p1 = CmdPrimary.ResolveForm(param[3]) as Outfit
+                If (p1)
+                    _target.SetOutfit(p1, CmdPrimary.ResolveBool(param[4]))
+                else
+                    CmdPrimary.SFE("Unable to resolve Outfit from (" + param[3] + ")")
+                EndIf
+            endif
+        elseif _theAction == "SetCombatStyle"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CombatStyle p1 = CmdPrimary.ResolveForm(param[3]) as CombatStyle
+                If (p1)
+                    _target.SetCombatStyle(p1)
+                else
+                    CmdPrimary.SFE("Unable to resolve CombatStyle from (" + param[3] + ")")
+                EndIf
+            endif
+        elseif _theAction == "SetClass"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Class p1 = CmdPrimary.ResolveForm(param[3]) as Class
+                If (p1)
+                    _target.SetClass(p1)
+                else
+                    CmdPrimary.SFE("Unable to resolve Class from (" + param[3] + ")")
+                EndIf
+            endif
+        elseif _theAction == "SetHeight"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetHeight(CmdPrimary.ResolveFloat(param[3]))
+            endif
+        elseif _theAction == "SetWeight"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetWeight(CmdPrimary.ResolveFloat(param[3]))
+            endif
+        elseif _theAction == "SetNthHeadPart"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                HeadPart p1 = CmdPrimary.ResolveForm(param[3]) as HeadPart
+                If (p1)
+                    _target.SetNthHeadPart(p1, CmdPrimary.ResolveInt(param[4]))
+                else
+                    CmdPrimary.SFE("Unable to resolve HeadPart from (" + param[3] + ")")
+                EndIf
+            endif
+        elseif _theAction == "SetFaceMorph"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.SetFaceMorph(CmdPrimary.ResolveFloat(param[3]), CmdPrimary.ResolveInt(param[4]))
+            endif
+        elseif _theAction == "SetFacePreset"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.SetFacePreset(CmdPrimary.ResolveInt(param[3]), CmdPrimary.ResolveInt(param[4]))
+            endif
+        elseif _theAction == "SetHairColor"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                ColorForm p1 = CmdPrimary.ResolveForm(param[3]) as ColorForm
+                If (p1)
+                    _target.SetHairColor(p1)
+                else
+                    CmdPrimary.SFE("Unable to resolve ColorForm from (" + param[3] + ")")
+                EndIf
+            endif
+        elseif _theAction == "SetFaceTextureSet"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                TextureSet p1 = CmdPrimary.ResolveForm(param[3]) as TextureSet
+                If (p1)
+                    _target.SetFaceTextureSet(p1)
+                else
+                    CmdPrimary.SFE("Unable to resolve TextureSet from (" + param[3] + ")")
+                EndIf
+            endif
+        elseif _theAction == "SetVoiceType"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                VoiceType p1 = CmdPrimary.ResolveForm(param[3]) as VoiceType
+                If (p1)
+                    _target.SetVoiceType(p1)
+                else
+                    CmdPrimary.SFE("Unable to resolve VoiceType from (" + param[3] + ")")
+                EndIf
+            endif
+        elseif _theAction == "SetSkin"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Armor p1 = CmdPrimary.ResolveForm(param[3]) as Armor
+                If (p1)
+                    _target.SetSkin(p1)
+                else
+                    CmdPrimary.SFE("Unable to resolve Armor from (" + param[3] + ")")
+                EndIf
+            endif
+        elseif _theAction == "SetSkinFar"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Armor p1 = CmdPrimary.ResolveForm(param[3]) as Armor
+                If (p1)
+                    _target.SetSkinFar(p1)
+                else
+                    CmdPrimary.SFE("Unable to resolve Armor from (" + param[3] + ")")
+                EndIf
             endif
         else
             return _slt_form_doconsumer(CmdPrimary, _target, _theAction, param)
@@ -3863,7 +4084,7 @@ function objectreference_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _Cmd
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     if ParamLengthGT(CmdPrimary, param.Length, 3)
-        ObjectReference _target = CmdPrimary.ResolveActor(param[1]) as ObjectReference
+        ObjectReference _target = CmdPrimary.ResolveForm(param[1]) as ObjectReference
         
         if _target
             string _theAction = CmdPrimary.ResolveString(param[2])
@@ -3871,6 +4092,50 @@ function objectreference_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _Cmd
             if _theAction
                 if !_slt_objectreference_doconsumer(CmdPrimary, _target, _theAction, param)
                     SquawkFunctionError(CmdPrimary, "objectreference_doconsumer: unrecognized action(" + _theAction + ")")
+                endif
+            endif
+        endIf
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname actorbase_doconsumer
+; sltgrup ActorBase
+; sltdesc For the specified ActorBase, perform the requested consumer, provided the appropriate additional parameters
+; sltdesc 'Consumer' in this case specifically refers to functions that take parameters but return no result
+; sltdesc https://ck.uesp.net/wiki/ActorBase_Script
+; sltargs actor: target ActorBase (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)
+; sltargs consumer: consumer name
+; sltargsmore SetEssential
+; sltargsmore SetInvulnerable
+; sltargsmore SetProtected
+; sltargsmore SetOutfit
+; sltargsmore SetCombatStyle
+; sltargsmore SetClass
+; sltargsmore SetHeight
+; sltargsmore SetWeight
+; sltargsmore SetNthHeadPart
+; sltargsmore SetFaceMorph
+; sltargsmore SetFacePreset
+; sltargsmore SetHairColor
+; sltargsmore SetFaceTextureSet
+; sltargsmore SetVoiceType
+; sltargsmore SetSkin
+; sltargsmore SetSkinFar
+; sltsamp actorbase_doconsumer $actorBase SetInvulnerable true
+function actorbase_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthGT(CmdPrimary, param.Length, 3)
+        ActorBase _target = CmdPrimary.ResolveForm(param[1]) as ActorBase
+        
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_actorbase_doconsumer(CmdPrimary, _target, _theAction, param)
+                    CmdPrimary.SFE("actorbase_doconsumer: unrecognized action(" + _theAction + ")")
                 endif
             endif
         endIf
@@ -4225,6 +4490,49 @@ bool Function _slt_objectreference_dofunction(sl_triggersCmd CmdPrimary, ObjectR
                 if linkref
                     CmdPrimary.MostRecentFormResult = linkref
                 endif
+            endif
+        else
+            return _slt_form_dofunction(CmdPrimary, _target, _theAction, param)
+        endif
+        return true
+    endif
+
+    return false
+endFunction
+
+bool Function _slt_actorbase_dofunction(sl_triggersCmd CmdPrimary, ActorBase _target, string _theAction, string[] param) global
+    if _target && _theAction
+        if _theAction == "GetOutfit"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentFormResult = _target.GetOutfit(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "GetNthHeadPart"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentFormResult = _target.GetNthHeadPart(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "GetIndexOfHeadPartByType"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentIntResult = _target.GetIndexOfHeadPartByType(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "GetNthOverlayHeadPart"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentFormResult = _target.GetNthOverlayHeadPart(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "GetIndexOfOverlayHeadPartByType"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentIntResult = _target.GetIndexOfOverlayHeadPartByType(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "GetFaceMorph"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentFloatResult = _target.GetFaceMorph(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "GetFacePreset"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentIntResult = _target.GetFacePreset(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "GetNthSpell"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentFormResult = _target.GetNthSpell(CmdPrimary.ResolveInt(param[3]))
             endif
         else
             return _slt_form_dofunction(CmdPrimary, _target, _theAction, param)
@@ -4592,6 +4900,41 @@ function objectreference_dofunction(Actor CmdTargetActor, ActiveMagicEffect _Cmd
             if _theAction
                 if !_slt_objectreference_dofunction(CmdPrimary, _target, _theAction, param)
                     SquawkFunctionError(CmdPrimary, "objectreference_dofunction: unrecognized action(" + _theAction + ")")
+                endif
+            endif
+        endif
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname actorbase_dofunction
+; sltgrup ActorBase
+; sltdesc For the targeted ActorBase, set $$ to the result of the specified Function
+; sltdesc 'Function' in this case specifically refers to functions that take one or more parameters and return a value
+; sltdesc https://ck.uesp.net/wiki/ActorBase_Script
+; sltargs actor: target ActorBase  (both relative "Skyrim.esm:0f" and absolute "0f" values)
+; sltargs function: function name
+; sltargsmore GetOutfit
+; sltargsmore GetNthHeadPart
+; sltargsmore GetIndexOfHeadPartByType
+; sltargsmore GetNthOverlayHeadPart
+; sltargsmore GetIndexOfOverlayHeadPartByType
+; sltargsmore GetFaceMorph
+; sltargsmore GetFacePreset
+; sltargsmore GetNthSpell
+; sltsamp set $spell resultfrom actorbase_dofunction $anActorBase GetNthSpell 0
+function actorbase_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthGT(CmdPrimary, param.Length, 3)
+        ActorBase _target = CmdPrimary.ResolveForm(param[1]) as ActorBase
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_actorbase_dofunction(CmdPrimary, _target, _theAction, param)
+                    CmdPrimary.SFE("actorbase_dofunction: unrecognized action(" + _theAction + ")")
                 endif
             endif
         endif
