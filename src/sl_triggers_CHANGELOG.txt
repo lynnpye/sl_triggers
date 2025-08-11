@@ -9,6 +9,17 @@
     enhancement: added "cards per page" setting for extensions; default is 5
     enhancement: listadd now accepts 1 or more values, not just 1
         e.g. listadd $listval 1 2 3 4 5 ; this will add 5 values to the end of $listval; if $listval is empty, they will be in positions 0, 1, 2, 3, 4 respectively
+    enhancement: added "form" variant support for the jsonutil function
+        this includes support in the following subfunctions:
+            set, get, unset, has, listadd, listget, listset, listremoveat, listinsertat, listclear, listcount, listcountvalue, listfind, listhas, listresize
+    enhancement: added jsonutil subfunctions for list support:
+        listslice, listcopy, listtoarray
+    enhancement: added "form" variant support for the storageutil function
+        this includes support in the following subfunctions:
+            set, get, pluck, unset, has, listadd, listget, listpluck, listset, listremoveat, listinsertat, listadjust, listclear, listpop, listshift,
+                listsort, listcount, listcountvalue, listfind, listhas, listresize
+    enhancement: added storageutil subfunctions for list support:
+        listslice, listcopy, listtoarray
 
 133
     Savegame compatibility: Should be savegame compatible

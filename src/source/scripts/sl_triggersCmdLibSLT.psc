@@ -5210,7 +5210,7 @@ function json_save(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
 endFunction
 
 string function getValidJSONType(sl_triggersCmd CmdPrimary, string jtype) global
-    if "int" == jtype || "float" == jtype || "string" == jtype
+    if "int" == jtype || "float" == jtype || "string" == jtype || "form" == jtype
         return jtype
     endif
     SquawkFunctionError(CmdPrimary, "jsonutil: unimplemented JSON type (" + jtype + ")")
@@ -5230,22 +5230,25 @@ endfunction
 ; sltargsmore geterrors         : <filename>
 ; sltargsmore exists            : <filename>
 ; sltargsmore unload            : <filename> [saveChanges: 0 - false | 1 - true] [minify: 0 - false | 1 - true]
-; sltargsmore set               : <filename> <key> <type: int | float | string> <value>
-; sltargsmore get               : <filename> <key> <type: int | float | string> [<default value>]
-; sltargsmore unset             : <filename> <key> <type: int | float | string>
-; sltargsmore has               : <filename> <key> <type: int | float | string>
+; sltargsmore set               : <filename> <key> <type: int | float | string | form> <value>
+; sltargsmore get               : <filename> <key> <type: int | float | string | form> [<default value>]
+; sltargsmore unset             : <filename> <key> <type: int | float | string | form>
+; sltargsmore has               : <filename> <key> <type: int | float | string | form>
 ; sltargsmore adjust            : <filename> <key> <type: int | float>          <amount>
-; sltargsmore listadd           : <filename> <key> <type: int | float | string> <value>
-; sltargsmore listget           : <filename> <key> <type: int | float | string> <index>
-; sltargsmore listset           : <filename> <key> <type: int | float | string> <index> <value>
-; sltargsmore listremoveat      : <filename> <key> <type: int | float | string> <index>
-; sltargsmore listinsertat      : <filename> <key> <type: int | float | string> <index> <value>
-; sltargsmore listclear         : <filename> <key> <type: int | float | string>
-; sltargsmore listcount         : <filename> <key> <type: int | float | string>
-; sltargsmore listcountvalue    : <filename> <key> <type: int | float | string> <value> [<exclude: 0 - false | 1 - true>]
-; sltargsmore listfind          : <filename> <key> <type: int | float | string> <value>
-; sltargsmore listhas           : <filename> <key> <type: int | float | string> <value>
-; sltargsmore listresize        : <filename> <key> <type: int | float | string> <toLength> [<filler value>]
+; sltargsmore listadd           : <filename> <key> <type: int | float | string | form> <value>
+; sltargsmore listget           : <filename> <key> <type: int | float | string | form> <index>
+; sltargsmore listset           : <filename> <key> <type: int | float | string | form> <index> <value>
+; sltargsmore listremoveat      : <filename> <key> <type: int | float | string | form> <index>
+; sltargsmore listinsertat      : <filename> <key> <type: int | float | string | form> <index> <value>
+; sltargsmore listclear         : <filename> <key> <type: int | float | string | form>
+; sltargsmore listcount         : <filename> <key> <type: int | float | string | form>
+; sltargsmore listcountvalue    : <filename> <key> <type: int | float | string | form> <value> [<exclude: 0 - false | 1 - true>]
+; sltargsmore listfind          : <filename> <key> <type: int | float | string | form> <value>
+; sltargsmore listhas           : <filename> <key> <type: int | float | string | form> <value>
+; sltargsmore listresize        : <filename> <key> <type: int | float | string | form> <toLength> [<filler value>]
+; sltargsmore listslice         : <filename> <key> <type: int | float | string | form> <slice length> [<startIndex = 0>] ; returns a typed list e.g. int[]
+; sltargsmore listcopy          : <filename> <key> <type: int | float | string | form> <list variable | value [value ... ] >
+; sltargsmore listtoarray       : <filename> <key> <type: int | float | string | form> ; returns a typed list e.g. int[]
 ; sltsamp Example from the regression test script:
 ; sltsamp set $testfile "../sl_triggers/commandstore/jsonutil_function_test"
 ; sltsamp 
@@ -5418,112 +5421,199 @@ function jsonutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] 
                         endif
 
                     elseif ParamLengthGT(CmdPrimary, param.Length, 5)
-                        string parm5 = CmdPrimary.ResolveString(param[5])
-                        string parm6
-                        if param.Length > 6
-                            parm6 = CmdPrimary.ResolveString(param[6])
-                        endif
-
                         if "set" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentIntResult = JsonUtil.SetIntValue(jfile, jkey, parm5 as int)
+                                CmdPrimary.MostRecentIntResult = JsonUtil.SetIntValue(jfile, jkey, CmdPrimary.ResolveInt(param[5]))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentFloatResult = JsonUtil.SetFloatValue(jfile, jkey, parm5 as float)
+                                CmdPrimary.MostRecentFloatResult = JsonUtil.SetFloatValue(jfile, jkey, CmdPrimary.ResolveFloat(param[5]))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentStringResult = JsonUtil.SetStringValue(jfile, jkey, parm5)
+                                CmdPrimary.MostRecentStringResult = JsonUtil.SetStringValue(jfile, jkey, CmdPrimary.ResolveString(param[5]))
+                            elseif "form" == jtype
+                                CmdPrimary.MostRecentFormResult = JsonUtil.SetFormValue(jfile, jkey, CmdPrimary.ResolveForm(param[5]))
                             endif
                         elseif "adjust" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentIntResult = JsonUtil.AdjustIntValue(jfile, jkey, parm5 as int)
+                                CmdPrimary.MostRecentIntResult = JsonUtil.AdjustIntValue(jfile, jkey, CmdPrimary.ResolveInt(param[5]))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentFloatResult = JsonUtil.AdjustFloatValue(jfile, jkey, parm5 as float)
+                                CmdPrimary.MostRecentFloatResult = JsonUtil.AdjustFloatValue(jfile, jkey, CmdPrimary.ResolveFloat(param[5]))
                             elseif "string" == jtype
                                 CmdPrimary.MostRecentStringResult = ""
                                 SquawkFunctionError(CmdPrimary, "jsonutil: 'string' is not a valid type for JsonUtil Adjust")
                             endif
                         elseif "listadd" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentIntResult = JsonUtil.IntListAdd(jfile, jkey, parm5 as int)
+                                CmdPrimary.MostRecentIntResult = JsonUtil.IntListAdd(jfile, jkey, CmdPrimary.ResolveInt(param[5]))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentIntResult = JsonUtil.FloatListAdd(jfile, jkey, parm5 as float)
+                                CmdPrimary.MostRecentIntResult = JsonUtil.FloatListAdd(jfile, jkey, CmdPrimary.ResolveFloat(param[5]))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentIntResult = JsonUtil.StringListAdd(jfile, jkey, parm5)
+                                CmdPrimary.MostRecentIntResult = JsonUtil.StringListAdd(jfile, jkey, CmdPrimary.ResolveString(param[5]))
+                            elseif "form" == jtype
+                                CmdPrimary.MostRecentIntResult = JsonUtil.FormListAdd(jfile, jkey, CmdPrimary.ResolveForm(param[5]))
                             endif
                         elseif "listget" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentIntResult = JsonUtil.IntListGet(jfile, jkey, parm5 as int)
+                                CmdPrimary.MostRecentIntResult = JsonUtil.IntListGet(jfile, jkey, CmdPrimary.ResolveInt(param[5]))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentFloatResult = JsonUtil.FloatListGet(jfile, jkey, parm5 as int)
+                                CmdPrimary.MostRecentFloatResult = JsonUtil.FloatListGet(jfile, jkey, CmdPrimary.ResolveInt(param[5]))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentStringResult = JsonUtil.StringListGet(jfile, jkey, parm5 as int)
+                                CmdPrimary.MostRecentStringResult = JsonUtil.StringListGet(jfile, jkey, CmdPrimary.ResolveInt(param[5]))
+                            elseif "form" == jtype
+                                CmdPrimary.MostRecentFormResult = JsonUtil.FormListGet(jfile, jkey, CmdPrimary.ResolveInt(param[5]))
                             endif
                         elseif "listset" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentIntResult = JsonUtil.IntListSet(jfile, jkey, parm5 as int, parm6 as int)
+                                CmdPrimary.MostRecentIntResult = JsonUtil.IntListSet(jfile, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveInt(param[6]))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentFloatResult = JsonUtil.FloatListSet(jfile, jkey, parm5 as int, parm6 as float)
+                                CmdPrimary.MostRecentFloatResult = JsonUtil.FloatListSet(jfile, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveFloat(param[6]))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentStringResult = JsonUtil.StringListSet(jfile, jkey, parm5 as int, parm6 as string)
+                                CmdPrimary.MostRecentStringResult = JsonUtil.StringListSet(jfile, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveString(param[6]))
+                            elseif "form" == jtype
+                                CmdPrimary.MostRecentFormResult = JsonUtil.FormListSet(jfile, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveForm(param[6]))
                             endif
                         elseif "listremoveat" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentIntResult = JsonUtil.IntListRemove(jfile, jkey, parm5 as int, parm6 as int)
+                                CmdPrimary.MostRecentIntResult = JsonUtil.IntListRemove(jfile, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveBool(param[6]))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentIntResult = JsonUtil.FloatListRemove(jfile, jkey, parm5 as float, parm6 as int)
+                                CmdPrimary.MostRecentIntResult = JsonUtil.FloatListRemove(jfile, jkey, CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveBool(param[6]))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentIntResult = JsonUtil.StringListRemove(jfile, jkey, parm5, parm6 as int)
+                                CmdPrimary.MostRecentIntResult = JsonUtil.StringListRemove(jfile, jkey, CmdPrimary.ResolveString(param[5]), CmdPrimary.ResolveBool(param[6]))
+                            elseif "form" == jtype
+                                CmdPrimary.MostRecentIntResult = JsonUtil.FormListRemove(jfile, jkey, CmdPrimary.ResolveForm(param[5]), CmdPrimary.ResolveBool(param[6]))
                             endif
                         elseif "listinsertat" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentBoolResult = JsonUtil.IntListInsertAt(jfile, jkey, parm5 as int, parm6 as int)
+                                CmdPrimary.MostRecentBoolResult = JsonUtil.IntListInsertAt(jfile, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveInt(param[6]))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentBoolResult = JsonUtil.FloatListInsertAt(jfile, jkey, parm5 as int, parm6 as float)
+                                CmdPrimary.MostRecentBoolResult = JsonUtil.FloatListInsertAt(jfile, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveFloat(param[6]))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentBoolResult = JsonUtil.StringListInsertAt(jfile, jkey, parm5 as int, parm6)
+                                CmdPrimary.MostRecentBoolResult = JsonUtil.StringListInsertAt(jfile, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveString(param[6]))
+                            elseif "form" == jtype
+                                CmdPrimary.MostRecentBoolResult = JsonUtil.FormListInsertAt(jfile, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveForm(param[6]))
                             endif
                         elseif "listremoveat" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentBoolResult = JsonUtil.IntListRemoveAt(jfile, jkey, parm5 as int)
+                                CmdPrimary.MostRecentBoolResult = JsonUtil.IntListRemoveAt(jfile, jkey, CmdPrimary.ResolveInt(param[5]))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentBoolResult = JsonUtil.FloatListRemoveAt(jfile, jkey, parm5 as int)
+                                CmdPrimary.MostRecentBoolResult = JsonUtil.FloatListRemoveAt(jfile, jkey, CmdPrimary.ResolveInt(param[5]))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentBoolResult = JsonUtil.StringListRemoveAt(jfile, jkey, parm5 as int)
+                                CmdPrimary.MostRecentBoolResult = JsonUtil.StringListRemoveAt(jfile, jkey, CmdPrimary.ResolveInt(param[5]))
+                            elseif "form" == jtype
+                                CmdPrimary.MostRecentBoolResult = JsonUtil.FormListRemoveAt(jfile, jkey, CmdPrimary.ResolveInt(param[5]))
                             endif
                         elseif "listcountvalue" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentIntResult = JsonUtil.IntListCountValue(jfile, jkey, parm5 as int, parm6 as int)
+                                CmdPrimary.MostRecentIntResult = JsonUtil.IntListCountValue(jfile, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveBool(param[6]))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentIntResult = JsonUtil.FloatListCountValue(jfile, jkey, parm5 as float, parm6 as int)
+                                CmdPrimary.MostRecentIntResult = JsonUtil.FloatListCountValue(jfile, jkey, CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveBool(param[6]))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentIntResult = JsonUtil.StringListCountValue(jfile, jkey, parm5, parm6 as int)
+                                CmdPrimary.MostRecentIntResult = JsonUtil.StringListCountValue(jfile, jkey, CmdPrimary.ResolveString(param[5]), CmdPrimary.ResolveBool(param[6]))
+                            elseif "form" == jtype
+                                CmdPrimary.MostRecentIntResult = JsonUtil.FormListCountValue(jfile, jkey, CmdPrimary.ResolveForm(param[5]), CmdPrimary.ResolveBool(param[6]))
                             endif
                         elseif "listfind" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentIntResult = JsonUtil.IntListFind(jfile, jkey, parm5 as int)
+                                CmdPrimary.MostRecentIntResult = JsonUtil.IntListFind(jfile, jkey, CmdPrimary.ResolveInt(param[5]))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentIntResult = JsonUtil.FloatListFind(jfile, jkey, parm5 as float)
+                                CmdPrimary.MostRecentIntResult = JsonUtil.FloatListFind(jfile, jkey, CmdPrimary.ResolveFloat(param[5]))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentIntResult = JsonUtil.StringListFind(jfile, jkey, parm5)
+                                CmdPrimary.MostRecentIntResult = JsonUtil.StringListFind(jfile, jkey, CmdPrimary.ResolveString(param[5]))
+                            elseif "form" == jtype
+                                CmdPrimary.MostRecentIntResult = JsonUtil.FormListFind(jfile, jkey, CmdPrimary.ResolveForm(param[5]))
                             endif
                         elseif "listhas" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentBoolResult = JsonUtil.IntListHas(jfile, jkey, parm5 as int) as int
+                                CmdPrimary.MostRecentBoolResult = JsonUtil.IntListHas(jfile, jkey, CmdPrimary.ResolveInt(param[5]))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentBoolResult = JsonUtil.FloatListHas(jfile, jkey, parm5 as float) as int
+                                CmdPrimary.MostRecentBoolResult = JsonUtil.FloatListHas(jfile, jkey, CmdPrimary.ResolveFloat(param[5]))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentBoolResult = JsonUtil.StringListHas(jfile, jkey, parm5) as int
+                                CmdPrimary.MostRecentBoolResult = JsonUtil.StringListHas(jfile, jkey, CmdPrimary.ResolveString(param[5]))
+                            elseif "form" == jtype
+                                CmdPrimary.MostRecentBoolResult = JsonUtil.FormListHas(jfile, jkey, CmdPrimary.ResolveForm(param[5]))
                             endif
                         elseif "listresize" == func
                             if "int" == jtype
-                                CmdPrimary.MostRecentIntResult = JsonUtil.IntListResize(jfile, jkey, parm5 as int, parm6 as int)
+                                CmdPrimary.MostRecentIntResult = JsonUtil.IntListResize(jfile, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveInt(param[6]))
                             elseif "float" == jtype
-                                CmdPrimary.MostRecentIntResult = JsonUtil.FloatListResize(jfile, jkey, parm5 as int, parm6 as float)
+                                CmdPrimary.MostRecentIntResult = JsonUtil.FloatListResize(jfile, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveFloat(param[6]))
                             elseif "string" == jtype
-                                CmdPrimary.MostRecentIntResult = JsonUtil.StringListResize(jfile, jkey, parm5 as int, parm6)
+                                CmdPrimary.MostRecentIntResult = JsonUtil.StringListResize(jfile, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveString(param[6]))
+                            elseif "form" == jtype
+                                CmdPrimary.MostRecentIntResult = JsonUtil.FormListResize(jfile, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveForm(param[6]))
                             endif
-
-
-
+                        elseif "listslice" == func ; typed[]
+                            if "int" == jtype
+                                int[] slice = PapyrusUtil.IntArray(CmdPrimary.ResolveInt(param[5]))
+                                JsonUtil.IntListSlice(jfile, jkey, slice, CmdPrimary.ResolveInt(param[6]))
+                                CmdPrimary.MostRecentListIntResult = slice
+                            elseif "float" == jtype
+                                float[] slice = PapyrusUtil.FloatArray(CmdPrimary.ResolveInt(param[5]))
+                                JsonUtil.FloatListSlice(jfile, jkey, slice, CmdPrimary.ResolveInt(param[6]))
+                                CmdPrimary.MostRecentListFloatResult = slice
+                            elseif "string" == jtype
+                                string[] slice = PapyrusUtil.StringArray(CmdPrimary.ResolveInt(param[5]))
+                                JsonUtil.StringListSlice(jfile, jkey, slice, CmdPrimary.ResolveInt(param[6]))
+                                CmdPrimary.MostRecentListStringResult = slice
+                            elseif "form" == jtype
+                                Form[] slice = PapyrusUtil.FormArray(CmdPrimary.ResolveInt(param[5]))
+                                JsonUtil.FormListSlice(jfile, jkey, slice, CmdPrimary.ResolveInt(param[6]))
+                                CmdPrimary.MostRecentListFormResult = slice
+                            endif
+                        elseif "listcopy" == func ; bool
+                            if "int" == jtype
+                                int[] data = CmdPrimary.ResolveListInt(param[5])
+                                if !data
+                                    data = PapyrusUtil.IntArray(param.Length - 5)
+                                    int ip = 5
+                                    while ip < param.length
+                                        data[ip - 5] = CmdPrimary.ResolveInt(param[ip])
+                                        ip += 1
+                                    endwhile
+                                endif
+                                CmdPrimary.MostRecentBoolResult = JsonUtil.IntListCopy(jfile, jkey, data)
+                            elseif "float" == jtype
+                                float[] data = CmdPrimary.ResolveListFloat(param[5])
+                                if !data
+                                    data = PapyrusUtil.FloatArray(param.Length - 5)
+                                    int ip = 5
+                                    while ip < param.length
+                                        data[ip - 5] = CmdPrimary.ResolveFloat(param[ip])
+                                        ip += 1
+                                    endwhile
+                                endif
+                                CmdPrimary.MostRecentBoolResult = JsonUtil.FloatListCopy(jfile, jkey, data)
+                            elseif "string" == jtype
+                                string[] data = CmdPrimary.ResolveListString(param[5])
+                                if !data
+                                    data = PapyrusUtil.StringArray(param.Length - 5)
+                                    int ip = 5
+                                    while ip < param.length
+                                        data[ip - 5] = CmdPrimary.ResolveString(param[ip])
+                                        ip += 1
+                                    endwhile
+                                endif
+                                CmdPrimary.MostRecentBoolResult = JsonUtil.StringListCopy(jfile, jkey, data)
+                            elseif "form" == jtype
+                                Form[] data = CmdPrimary.ResolveListForm(param[5])
+                                if !data
+                                    data = PapyrusUtil.FormArray(param.Length - 5)
+                                    int ip = 5
+                                    while ip < param.length
+                                        data[ip - 5] = CmdPrimary.ResolveForm(param[ip])
+                                        ip += 1
+                                    endwhile
+                                endif
+                                CmdPrimary.MostRecentBoolResult = JsonUtil.FormListCopy(jfile, jkey, data)
+                            endif
+                        elseif "listtoarray" == func ; typed[]
+                            if "int" == jtype
+                                CmdPrimary.MostRecentListIntResult = JsonUtil.IntListToArray(jfile, jkey)
+                            elseif "float" == jtype
+                                CmdPrimary.MostRecentListFloatResult = JsonUtil.FloatListToArray(jfile, jkey)
+                            elseif "string" == jtype
+                                CmdPrimary.MostRecentListStringResult = JsonUtil.StringListToArray(jfile, jkey)
+                            elseif "form" == jtype
+                                CmdPrimary.MostRecentListFormResult = JsonUtil.FormListToArray(jfile, jkey)
+                            endif
                         else
                             SquawkFunctionError(CmdPrimary, "jsonutil: unknown sub-function (" + func + ")")
                         endif
@@ -5557,28 +5647,31 @@ endFunction
 ; sltargsmore      "sl_triggers.esp:3426"   ; the FormID for the main Quest object for sl_triggers
 ; sltargsmore    Read more about StorageUtil for more details
 ; sltargsmore Valid sub-functions are:
-; sltargsmore set               : <form identifier> <key> <type: int | float | string> <value>
-; sltargsmore get               : <form identifier> <key> <type: int | float | string> [<default value>]
-; sltargsmore pluck             : <form identifier> <key> <type: int | float | string> [<default value>]
-; sltargsmore unset             : <form identifier> <key> <type: int | float | string>
-; sltargsmore has               : <form identifier> <key> <type: int | float | string>
+; sltargsmore set               : <form identifier> <key> <type: int | float | string | form> <value>
+; sltargsmore get               : <form identifier> <key> <type: int | float | string | form> [<default value>]
+; sltargsmore pluck             : <form identifier> <key> <type: int | float | string | form> [<default value>]
+; sltargsmore unset             : <form identifier> <key> <type: int | float | string | form>
+; sltargsmore has               : <form identifier> <key> <type: int | float | string | form>
 ; sltargsmore adjust            : <form identifier> <key> <type: int | float>          <amount>
-; sltargsmore listadd           : <form identifier> <key> <type: int | float | string> <value>
-; sltargsmore listget           : <form identifier> <key> <type: int | float | string> <index>
-; sltargsmore listpluck         : <form identifier> <key> <type: int | float | string> <index> <default value>
-; sltargsmore listset           : <form identifier> <key> <type: int | float | string> <index> <value>
-; sltargsmore listremoveat      : <form identifier> <key> <type: int | float | string> <index>
-; sltargsmore listinsertat      : <form identifier> <key> <type: int | float | string> <index> <value>
-; sltargsmore listadjust        : <form identifier> <key> <type: int | float | string> <index> <amount>
-; sltargsmore listclear         : <form identifier> <key> <type: int | float | string>
-; sltargsmore listpop           : <form identifier> <key> <type: int | float | string>
-; sltargsmore listshift         : <form identifier> <key> <type: int | float | string>
-; sltargsmore listsort          : <form identifier> <key> <type: int | float | string>
-; sltargsmore listcount         : <form identifier> <key> <type: int | float | string>
-; sltargsmore listcountvalue    : <form identifier> <key> <type: int | float | string> <value> [<exclude: 0 - false | 1 - true>]
-; sltargsmore listfind          : <form identifier> <key> <type: int | float | string> <value>
-; sltargsmore listhas           : <form identifier> <key> <type: int | float | string> <value>
-; sltargsmore listresize        : <form identifier> <key> <type: int | float | string> <toLength> [<filler value>]
+; sltargsmore listadd           : <form identifier> <key> <type: int | float | string | form> <value>
+; sltargsmore listget           : <form identifier> <key> <type: int | float | string | form> <index>
+; sltargsmore listpluck         : <form identifier> <key> <type: int | float | string | form> <index> <default value>
+; sltargsmore listset           : <form identifier> <key> <type: int | float | string | form> <index> <value>
+; sltargsmore listremoveat      : <form identifier> <key> <type: int | float | string | form> <index>
+; sltargsmore listinsertat      : <form identifier> <key> <type: int | float | string | form> <index> <value>
+; sltargsmore listadjust        : <form identifier> <key> <type: int | float | string | form> <index> <amount>
+; sltargsmore listclear         : <form identifier> <key> <type: int | float | string | form>
+; sltargsmore listpop           : <form identifier> <key> <type: int | float | string | form>
+; sltargsmore listshift         : <form identifier> <key> <type: int | float | string | form>
+; sltargsmore listsort          : <form identifier> <key> <type: int | float | string | form>
+; sltargsmore listcount         : <form identifier> <key> <type: int | float | string | form>
+; sltargsmore listcountvalue    : <form identifier> <key> <type: int | float | string | form> <value> [<exclude: 0 - false | 1 - true>]
+; sltargsmore listfind          : <form identifier> <key> <type: int | float | string | form> <value>
+; sltargsmore listhas           : <form identifier> <key> <type: int | float | string | form> <value>
+; sltargsmore listresize        : <form identifier> <key> <type: int | float | string | form> <toLength> [<filler value>]
+; sltargsmore listslice         : <form identifier> <key> <type: int | float | string | form> <slice length> [<startIndex = 0>] ; returns a typed list e.g. int[]
+; sltargsmore listcopy          : <form identifier> <key> <type: int | float | string | form> <list variable | value [value ... ] >
+; sltargsmore listtoarray       : <form identifier> <key> <type: int | float | string | form> ; returns a typed list e.g. int[]
 ; sltsamp Example usage from the regression tests
 ; sltsamp set $suhost $system.player
 ; sltsamp 
@@ -5674,6 +5767,8 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
                         CmdPrimary.MostRecentBoolResult = StorageUtil.UnsetFloatValue(suform, jkey)
                     elseif "string" == jtype
                         CmdPrimary.MostRecentBoolResult = StorageUtil.UnsetStringValue(suform, jkey)
+                    elseif "form" == jtype
+                        CmdPrimary.MostRecentBoolResult = StorageUtil.UnsetFormValue(suform, jkey)
                     endif
                 elseif "has" == func
                     if "int" == jtype
@@ -5682,6 +5777,8 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
                         CmdPrimary.MostRecentBoolResult = StorageUtil.HasFloatValue(suform, jkey)
                     elseif "string" == jtype
                         CmdPrimary.MostRecentBoolResult = StorageUtil.HasStringValue(suform, jkey)
+                    elseif "form" == jtype
+                        CmdPrimary.MostRecentBoolResult = StorageUtil.HasFormValue(suform, jkey)
                     endif
                 elseif "listclear" == func
                     if "int" == jtype
@@ -5690,6 +5787,8 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
                         CmdPrimary.MostRecentIntResult = StorageUtil.FloatListClear(suform, jkey)
                     elseif "string" == jtype
                         CmdPrimary.MostRecentIntResult = StorageUtil.StringListClear(suform, jkey)
+                    elseif "form" == jtype
+                        CmdPrimary.MostRecentIntResult = StorageUtil.FormListClear(suform, jkey)
                     endif
                 elseif "listpop" == func
                     if "int" == jtype
@@ -5698,6 +5797,8 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
                         CmdPrimary.MostRecentFloatResult = StorageUtil.FloatListPop(suform, jkey)
                     elseif "string" == jtype
                         CmdPrimary.MostRecentStringResult = StorageUtil.StringListPop(suform, jkey)
+                    elseif "form" == jtype
+                        CmdPrimary.MostRecentFormResult = StorageUtil.FormListPop(suform, jkey)
                     endif
                 elseif "listshift" == func
                     if "int" == jtype
@@ -5706,6 +5807,8 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
                         CmdPrimary.MostRecentFloatResult = StorageUtil.FloatListShift(suform, jkey)
                     elseif "string" == jtype
                         CmdPrimary.MostRecentStringResult = StorageUtil.StringListShift(suform, jkey)
+                    elseif "form" == jtype
+                        CmdPrimary.MostRecentFormResult = StorageUtil.FormListShift(suform, jkey)
                     endif
                 elseif "listsort" == func
                     if "int" == jtype
@@ -5714,6 +5817,8 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
                         StorageUtil.FloatListSort(suform, jkey)
                     elseif "string" == jtype
                         StorageUtil.StringListSort(suform, jkey)
+                    elseif "form" == jtype
+                        StorageUtil.FormListSort(suform, jkey)
                     endif
                 elseif "listcount" == func
                     if "int" == jtype
@@ -5722,158 +5827,251 @@ function storageutil(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
                         CmdPrimary.MostRecentIntResult = StorageUtil.FloatListCount(suform, jkey)
                     elseif "string" == jtype
                         CmdPrimary.MostRecentIntResult = StorageUtil.StringListCount(suform, jkey)
+                    elseif "form" == jtype
+                        CmdPrimary.MostRecentIntResult = StorageUtil.FormListCount(suform, jkey)
                     endif
                 elseif "get" == func
-                    string dval
-                    if param.Length > 5
-                        dval = CmdPrimary.ResolveString(param[5])
-                    endif
                     if "int" == jtype
-                        CmdPrimary.MostRecentIntResult = StorageUtil.GetIntValue(suform, jkey, dval as int)
+                        CmdPrimary.MostRecentIntResult = StorageUtil.GetIntValue(suform, jkey, CmdPrimary.ResolveInt(param[5]))
                     elseif "float" == jtype
-                        CmdPrimary.MostRecentFloatResult = StorageUtil.GetFloatValue(suform, jkey, dval as float)
+                        CmdPrimary.MostRecentFloatResult = StorageUtil.GetFloatValue(suform, jkey, CmdPrimary.ResolveFloat(param[5]))
                     elseif "string" == jtype
-                        CmdPrimary.MostRecentStringResult = StorageUtil.GetStringValue(suform, jkey, dval)
+                        CmdPrimary.MostRecentStringResult = StorageUtil.GetStringValue(suform, jkey, CmdPrimary.ResolveString(param[5]))
+                    elseif "form" == jtype
+                        CmdPrimary.MostRecentFormResult = StorageUtil.GetFormValue(suform, jkey, CmdPrimary.ResolveForm(param[5]))
                     endif
                 elseif "pluck" == func
-                    string dval
-                    if param.Length > 5
-                        dval = CmdPrimary.ResolveString(param[5])
-                    endif
                     if "int" == jtype
-                        CmdPrimary.MostRecentIntResult = StorageUtil.PluckIntValue(suform, jkey, dval as int)
+                        CmdPrimary.MostRecentIntResult = StorageUtil.PluckIntValue(suform, jkey, CmdPrimary.ResolveInt(param[5]))
                     elseif "float" == jtype
-                        CmdPrimary.MostRecentFloatResult = StorageUtil.PluckFloatValue(suform, jkey, dval as float)
+                        CmdPrimary.MostRecentFloatResult = StorageUtil.PluckFloatValue(suform, jkey, CmdPrimary.ResolveFloat(param[5]))
                     elseif "string" == jtype
-                        CmdPrimary.MostRecentStringResult = StorageUtil.PluckStringValue(suform, jkey, dval)
+                        CmdPrimary.MostRecentStringResult = StorageUtil.PluckStringValue(suform, jkey, CmdPrimary.ResolveString(param[5]))
+                    elseif "form" == jtype
+                        CmdPrimary.MostRecentFormResult = StorageUtil.PluckFormValue(suform, jkey, CmdPrimary.ResolveForm(param[5]))
                     endif
 
                 elseif ParamLengthGT(CmdPrimary, param.Length, 5)
-                    string parm5 = CmdPrimary.ResolveString(param[5])
-                    string parm6
-                    if param.Length > 6
-                        parm6 = CmdPrimary.ResolveString(param[6])
-                    endif
-
                     if "set" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentIntResult = StorageUtil.SetIntValue(suform, jkey, parm5 as int)
+                            CmdPrimary.MostRecentIntResult = StorageUtil.SetIntValue(suform, jkey, CmdPrimary.ResolveInt(param[5]))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentFloatResult = StorageUtil.SetFloatValue(suform, jkey, parm5 as float)
+                            CmdPrimary.MostRecentFloatResult = StorageUtil.SetFloatValue(suform, jkey, CmdPrimary.ResolveFloat(param[5]))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentStringResult = StorageUtil.SetStringValue(suform, jkey, parm5)
+                            CmdPrimary.MostRecentStringResult = StorageUtil.SetStringValue(suform, jkey, CmdPrimary.ResolveString(param[5]))
+                        elseif "form" == jtype
+                            CmdPrimary.MostRecentFormResult = StorageUtil.SetFormValue(suform, jkey, CmdPrimary.ResolveForm(param[5]))
                         endif
                     elseif "adjust" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentIntResult = StorageUtil.AdjustIntValue(suform, jkey, parm5 as int)
+                            CmdPrimary.MostRecentIntResult = StorageUtil.AdjustIntValue(suform, jkey, CmdPrimary.ResolveInt(param[5]))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentFloatResult = StorageUtil.AdjustFloatValue(suform, jkey, parm5 as float)
+                            CmdPrimary.MostRecentFloatResult = StorageUtil.AdjustFloatValue(suform, jkey, CmdPrimary.ResolveFloat(param[5]))
                         elseif "string" == jtype
                             CmdPrimary.MostRecentStringResult = ""
-                            SquawkFunctionError(CmdPrimary, "jsonutil: 'string' is not a valid type for StorageUtil Adjust")
+                            CmdPrimary.SFE("storageutil: 'string' is not a valid type for StorageUtil Adjust")
+                        elseif "form" == jtype
+                            CmdPrimary.MostRecentFormResult = none
+                            CmdPrimary.SFE("storageutil: 'form' is not a valid type for StorageUtil Adjust")
                         endif
                     elseif "listadd" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentIntResult = StorageUtil.IntListAdd(suform, jkey, parm5 as int)
+                            CmdPrimary.MostRecentIntResult = StorageUtil.IntListAdd(suform, jkey, CmdPrimary.ResolveInt(param[5]))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentIntResult = StorageUtil.FloatListAdd(suform, jkey, parm5 as float)
+                            CmdPrimary.MostRecentIntResult = StorageUtil.FloatListAdd(suform, jkey, CmdPrimary.ResolveFloat(param[5]))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentIntResult = StorageUtil.StringListAdd(suform, jkey, parm5)
+                            CmdPrimary.MostRecentIntResult = StorageUtil.StringListAdd(suform, jkey, CmdPrimary.ResolveString(param[5]))
+                        elseif "form" == jtype
+                            CmdPrimary.MostRecentIntResult = StorageUtil.FormListAdd(suform, jkey, CmdPrimary.ResolveForm(param[5]))
                         endif
                     elseif "listget" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentIntResult = StorageUtil.IntListGet(suform, jkey, parm5 as int)
+                            CmdPrimary.MostRecentIntResult = StorageUtil.IntListGet(suform, jkey, CmdPrimary.ResolveInt(param[5]))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentFloatResult = StorageUtil.FloatListGet(suform, jkey, parm5 as int)
+                            CmdPrimary.MostRecentFloatResult = StorageUtil.FloatListGet(suform, jkey, CmdPrimary.ResolveInt(param[5]))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentStringResult = StorageUtil.StringListGet(suform, jkey, parm5 as int)
+                            CmdPrimary.MostRecentStringResult = StorageUtil.StringListGet(suform, jkey, CmdPrimary.ResolveInt(param[5]))
+                        elseif "form" == jtype
+                            CmdPrimary.MostRecentFormResult = StorageUtil.FormListGet(suform, jkey, CmdPrimary.ResolveInt(param[5]))
                         endif
                     elseif "listpluck" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentIntResult = StorageUtil.IntListPluck(suform, jkey, parm5 as int, parm6 as int)
+                            CmdPrimary.MostRecentIntResult = StorageUtil.IntListPluck(suform, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveInt(param[6]))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentFloatResult = StorageUtil.FloatListPluck(suform, jkey, parm5 as int, parm6 as float)
+                            CmdPrimary.MostRecentFloatResult = StorageUtil.FloatListPluck(suform, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveFloat(param[6]))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentStringResult = StorageUtil.StringListPluck(suform, jkey, parm5 as int, parm6 as string)
+                            CmdPrimary.MostRecentStringResult = StorageUtil.StringListPluck(suform, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveString(param[6]))
+                        elseif "form" == jtype
+                            CmdPrimary.MostRecentFormResult = StorageUtil.FormListPluck(suform, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveForm(param[6]))
                         endif
                     elseif "listset" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentIntResult = StorageUtil.IntListSet(suform, jkey, parm5 as int, parm6 as int)
+                            CmdPrimary.MostRecentIntResult = StorageUtil.IntListSet(suform, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveInt(param[6]))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentFloatResult = StorageUtil.FloatListSet(suform, jkey, parm5 as int, parm6 as float)
+                            CmdPrimary.MostRecentFloatResult = StorageUtil.FloatListSet(suform, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveFloat(param[6]))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentStringResult = StorageUtil.StringListSet(suform, jkey, parm5 as int, parm6 as string)
+                            CmdPrimary.MostRecentStringResult = StorageUtil.StringListSet(suform, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveString(param[6]))
+                        elseif "form" == jtype
+                            CmdPrimary.MostRecentFormResult = StorageUtil.FormListSet(suform, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveForm(param[6]))
                         endif
                     elseif "listremoveat" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentIntResult = StorageUtil.IntListRemove(suform, jkey, parm5 as int, parm6 as int)
+                            CmdPrimary.MostRecentIntResult = StorageUtil.IntListRemove(suform, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveBool(param[6]))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentIntResult = StorageUtil.FloatListRemove(suform, jkey, parm5 as float, parm6 as int)
+                            CmdPrimary.MostRecentIntResult = StorageUtil.FloatListRemove(suform, jkey, CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveBool(param[6]))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentIntResult = StorageUtil.StringListRemove(suform, jkey, parm5, parm6 as int)
+                            CmdPrimary.MostRecentIntResult = StorageUtil.StringListRemove(suform, jkey, CmdPrimary.ResolveString(param[5]), CmdPrimary.ResolveBool(param[6]))
+                        elseif "form" == jtype
+                            CmdPrimary.MostRecentIntResult = StorageUtil.FormListRemove(suform, jkey, CmdPrimary.ResolveForm(param[5]), CmdPrimary.ResolveBool(param[6]))
                         endif
                     elseif "listinsertat" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentBoolResult = StorageUtil.IntListInsert(suform, jkey, parm5 as int, parm6 as int) as int
+                            CmdPrimary.MostRecentBoolResult = StorageUtil.IntListInsert(suform, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveInt(param[6]))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentBoolResult = StorageUtil.FloatListInsert(suform, jkey, parm5 as int, parm6 as float) as int
+                            CmdPrimary.MostRecentBoolResult = StorageUtil.FloatListInsert(suform, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveFloat(param[6]))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentBoolResult = StorageUtil.StringListInsert(suform, jkey, parm5 as int, parm6) as int
+                            CmdPrimary.MostRecentBoolResult = StorageUtil.StringListInsert(suform, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveString(param[6]))
+                        elseif "form" == jtype
+                            CmdPrimary.MostRecentBoolResult = StorageUtil.FormListInsert(suform, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveForm(param[6]))
                         endif
                     elseif "listadjust" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentIntResult = StorageUtil.IntListAdjust(suform, jkey, parm5 as int, parm6 as int) as int
+                            CmdPrimary.MostRecentIntResult = StorageUtil.IntListAdjust(suform, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveInt(param[6]))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentFloatResult = StorageUtil.FloatListAdjust(suform, jkey, parm5 as int, parm6 as float) as int
+                            CmdPrimary.MostRecentFloatResult = StorageUtil.FloatListAdjust(suform, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveFloat(param[6]))
                         elseif "string" == jtype
                             CmdPrimary.MostRecentStringResult = ""
-                            SquawkFunctionError(CmdPrimary, "jsonutil: 'string' is not a valid type for StorageUtil List Adjust")
+                            CmdPrimary.SFE("storageutil: 'string' is not a valid type for StorageUtil List Adjust")
+                        elseif "form" == jtype
+                            CmdPrimary.MostRecentFormResult = none
+                            CmdPrimary.SFE("storageutil: 'form' is not a valid type for StorageUtil List Adjust")
                         endif
                     elseif "listremoveat" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentBoolResult = StorageUtil.IntListRemoveAt(suform, jkey, parm5 as int) as int
+                            CmdPrimary.MostRecentBoolResult = StorageUtil.IntListRemoveAt(suform, jkey, CmdPrimary.ResolveInt(param[5]))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentBoolResult = StorageUtil.FloatListRemoveAt(suform, jkey, parm5 as int) as int
+                            CmdPrimary.MostRecentBoolResult = StorageUtil.FloatListRemoveAt(suform, jkey, CmdPrimary.ResolveInt(param[5]))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentBoolResult = StorageUtil.StringListRemoveAt(suform, jkey, parm5 as int) as int
+                            CmdPrimary.MostRecentBoolResult = StorageUtil.StringListRemoveAt(suform, jkey, CmdPrimary.ResolveInt(param[5]))
+                        elseif "form" == jtype
+                            CmdPrimary.MostRecentBoolResult = StorageUtil.FormListRemoveAt(suform, jkey, CmdPrimary.ResolveInt(param[5]))
                         endif
                     elseif "listcountvalue" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentIntResult = StorageUtil.IntListCountValue(suform, jkey, parm5 as int, parm6 as int)
+                            CmdPrimary.MostRecentIntResult = StorageUtil.IntListCountValue(suform, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveBool(param[6]))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentIntResult = StorageUtil.FloatListCountValue(suform, jkey, parm5 as float, parm6 as int)
+                            CmdPrimary.MostRecentIntResult = StorageUtil.FloatListCountValue(suform, jkey, CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveBool(param[6]))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentIntResult = StorageUtil.StringListCountValue(suform, jkey, parm5, parm6 as int)
+                            CmdPrimary.MostRecentIntResult = StorageUtil.StringListCountValue(suform, jkey, CmdPrimary.ResolveString(param[5]), CmdPrimary.ResolveBool(param[6]))
+                        elseif "form" == jtype
+                            CmdPrimary.MostRecentIntResult = StorageUtil.FormListCountValue(suform, jkey, CmdPrimary.ResolveForm(param[5]), CmdPrimary.ResolveBool(param[6]))
                         endif
                     elseif "listfind" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentIntResult = StorageUtil.IntListFind(suform, jkey, parm5 as int)
+                            CmdPrimary.MostRecentIntResult = StorageUtil.IntListFind(suform, jkey, CmdPrimary.ResolveInt(param[5]))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentIntResult = StorageUtil.FloatListFind(suform, jkey, parm5 as float)
+                            CmdPrimary.MostRecentIntResult = StorageUtil.FloatListFind(suform, jkey, CmdPrimary.ResolveFloat(param[5]))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentIntResult = StorageUtil.StringListFind(suform, jkey, parm5)
+                            CmdPrimary.MostRecentIntResult = StorageUtil.StringListFind(suform, jkey, CmdPrimary.ResolveString(param[5]))
+                        elseif "form" == jtype
+                            CmdPrimary.MostRecentIntResult = StorageUtil.FormListFind(suform, jkey, CmdPrimary.ResolveForm(param[5]))
                         endif
                     elseif "listhas" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentBoolResult = StorageUtil.IntListHas(suform, jkey, parm5 as int) as int
+                            CmdPrimary.MostRecentBoolResult = StorageUtil.IntListHas(suform, jkey, CmdPrimary.ResolveInt(param[5]))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentBoolResult = StorageUtil.FloatListHas(suform, jkey, parm5 as float) as int
+                            CmdPrimary.MostRecentBoolResult = StorageUtil.FloatListHas(suform, jkey, CmdPrimary.ResolveFloat(param[5]))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentBoolResult = StorageUtil.StringListHas(suform, jkey, parm5) as int
+                            CmdPrimary.MostRecentBoolResult = StorageUtil.StringListHas(suform, jkey, CmdPrimary.ResolveString(param[5]))
+                        elseif "form" == jtype
+                            CmdPrimary.MostRecentBoolResult = StorageUtil.FormListHas(suform, jkey, CmdPrimary.ResolveForm(param[5]))
                         endif
                     elseif "listresize" == func
                         if "int" == jtype
-                            CmdPrimary.MostRecentIntResult = StorageUtil.IntListResize(suform, jkey, parm5 as int, parm6 as int)
+                            CmdPrimary.MostRecentIntResult = StorageUtil.IntListResize(suform, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveInt(param[6]))
                         elseif "float" == jtype
-                            CmdPrimary.MostRecentIntResult = StorageUtil.FloatListResize(suform, jkey, parm5 as int, parm6 as float)
+                            CmdPrimary.MostRecentIntResult = StorageUtil.FloatListResize(suform, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveFloat(param[6]))
                         elseif "string" == jtype
-                            CmdPrimary.MostRecentIntResult = StorageUtil.StringListResize(suform, jkey, parm5 as int, parm6)
+                            CmdPrimary.MostRecentIntResult = StorageUtil.StringListResize(suform, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveString(param[6]))
+                        elseif "form" == jtype
+                            CmdPrimary.MostRecentIntResult = StorageUtil.FormListResize(suform, jkey, CmdPrimary.ResolveInt(param[5]), CmdPrimary.ResolveForm(param[6]))
                         endif
-
-
-
+                    elseif "listslice" == func ; typed[]
+                        if "int" == jtype
+                            int[] slice = PapyrusUtil.IntArray(CmdPrimary.ResolveInt(param[5]))
+                            StorageUtil.IntListSlice(suform, jkey, slice, CmdPrimary.ResolveInt(param[6]))
+                            CmdPrimary.MostRecentListIntResult = slice
+                        elseif "float" == jtype
+                            float[] slice = PapyrusUtil.FloatArray(CmdPrimary.ResolveInt(param[5]))
+                            StorageUtil.FloatListSlice(suform, jkey, slice, CmdPrimary.ResolveInt(param[6]))
+                            CmdPrimary.MostRecentListFloatResult = slice
+                        elseif "string" == jtype
+                            string[] slice = PapyrusUtil.StringArray(CmdPrimary.ResolveInt(param[5]))
+                            StorageUtil.StringListSlice(suform, jkey, slice, CmdPrimary.ResolveInt(param[6]))
+                            CmdPrimary.MostRecentListStringResult = slice
+                        elseif "form" == jtype
+                            Form[] slice = PapyrusUtil.FormArray(CmdPrimary.ResolveInt(param[5]))
+                            StorageUtil.FormListSlice(suform, jkey, slice, CmdPrimary.ResolveInt(param[6]))
+                            CmdPrimary.MostRecentListFormResult = slice
+                        endif
+                    elseif "listcopy" == func ; bool
+                        if "int" == jtype
+                            int[] data = CmdPrimary.ResolveListInt(param[5])
+                            if !data
+                                data = PapyrusUtil.IntArray(param.Length - 5)
+                                int ip = 5
+                                while ip < param.length
+                                    data[ip - 5] = CmdPrimary.ResolveInt(param[ip])
+                                    ip += 1
+                                endwhile
+                            endif
+                            CmdPrimary.MostRecentBoolResult = StorageUtil.IntListCopy(suform, jkey, data)
+                        elseif "float" == jtype
+                            float[] data = CmdPrimary.ResolveListFloat(param[5])
+                            if !data
+                                data = PapyrusUtil.FloatArray(param.Length - 5)
+                                int ip = 5
+                                while ip < param.length
+                                    data[ip - 5] = CmdPrimary.ResolveFloat(param[ip])
+                                    ip += 1
+                                endwhile
+                            endif
+                            CmdPrimary.MostRecentBoolResult = StorageUtil.FloatListCopy(suform, jkey, data)
+                        elseif "string" == jtype
+                            string[] data = CmdPrimary.ResolveListString(param[5])
+                            if !data
+                                data = PapyrusUtil.StringArray(param.Length - 5)
+                                int ip = 5
+                                while ip < param.length
+                                    data[ip - 5] = CmdPrimary.ResolveString(param[ip])
+                                    ip += 1
+                                endwhile
+                            endif
+                            CmdPrimary.MostRecentBoolResult = StorageUtil.StringListCopy(suform, jkey, data)
+                        elseif "form" == jtype
+                            Form[] data = CmdPrimary.ResolveListForm(param[5])
+                            if !data
+                                data = PapyrusUtil.FormArray(param.Length - 5)
+                                int ip = 5
+                                while ip < param.length
+                                    data[ip - 5] = CmdPrimary.ResolveForm(param[ip])
+                                    ip += 1
+                                endwhile
+                            endif
+                            CmdPrimary.MostRecentBoolResult = StorageUtil.FormListCopy(suform, jkey, data)
+                        endif
+                    elseif "listtoarray" == func ; typed[]
+                        if "int" == jtype
+                            CmdPrimary.MostRecentListIntResult = StorageUtil.IntListToArray(suform, jkey)
+                        elseif "float" == jtype
+                            CmdPrimary.MostRecentListFloatResult = StorageUtil.FloatListToArray(suform, jkey)
+                        elseif "string" == jtype
+                            CmdPrimary.MostRecentListStringResult = StorageUtil.StringListToArray(suform, jkey)
+                        elseif "form" == jtype
+                            CmdPrimary.MostRecentListFormResult = StorageUtil.FormListToArray(suform, jkey)
+                        endif
                     else
-                        SquawkFunctionError(CmdPrimary, "jsonutil: unknown sub-function (" + func + ")")
+                        SquawkFunctionError(CmdPrimary, "storageutil: unknown sub-function (" + func + ")")
                     endif
                 endif
             endif

@@ -82,4 +82,44 @@ else
     deb_msg $"FAIL: listclear/listadd/listcount; one has failed ({setfloatworks})"
 endif
 
+
+set $testkey "testxintlist"
+int[] $intlist
+listadd $intlist 10 20 30
+inc $thread.testCount
+set $flag resultfrom jsonutil listcopy $testfile $testkey "int" $intlist
+if $flag
+    inc $thread.passCount
+    deb_msg $"PASS: jsonutil listcopy/1 ; list value ; ({flag})"
+else
+    deb_msg $"FAIL: jsonutil listcopy/1 ; list value ; ({flag})"
+endif
+
+inc $thread.testCount
+set $checkval resultfrom jsonutil listget $testfile $testkey "int" 2
+if $checkval == 30
+    inc $thread.passCount
+    deb_msg $"PASS: jsonutil listcopy/2 ; list value ; checkval({checkval}); should be 30"
+else
+    deb_msg $"FAIL: jsonutil listcopy/2 ; list value ; checkval({checkval}); should be 30"
+endif
+
+inc $thread.testCount
+set $flag resultfrom jsonutil listcopy $testfile $testkey "int" 40 50 60
+if $flag
+    inc $thread.passCount
+    deb_msg $"PASS: jsonutil listcopy/3 ; multi value; ({flag})"
+else
+    deb_msg $"FAIL: jsonutil listcopy/3 ; multi value; ({flag})"
+endif
+
+inc $thread.testCount
+set $checkval resultfrom jsonutil listget $testfile $testkey "int" 2
+if $checkval == 60
+    inc $thread.passCount
+    deb_msg $"PASS: jsonutil listcopy/4 ; multi value; checkval({checkval}); should be 60"
+else
+    deb_msg $"FAIL: jsonutil listcopy/4 ; multi value; checkval({checkval}); should be 60"
+endif
+
 jsonutil save $testfile
