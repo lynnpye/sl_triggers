@@ -372,6 +372,28 @@ listclear $listvar
 ; $listvar[0] and $listvar[1] are no longer set and listcount will return 0
 ```
 
+#### `listresize` - Sets the list's size to the new value
+Sets the new size of the targeted list.
+```sltscript
+set $listvar[0] = "first"
+set $listvar[1] = "second
+listresize $listvar 1
+; $listvar[1] is no longer set because the list was resized to hold only 1 element
+; $listvar[0] remains unchanged
+```
+
+#### `listslice` - Returns the requested slice of the list, if available, retaining the type
+Copies a slice of data from a list, specified by a required slice length and an optional start index, which defaults to 0.
+```sltscript
+set $listvar[0] = "first"
+set $listvar[1] = "second"
+set $listvar[2] = "third"
+set $listvar[3] = "fourth"
+
+set $stringslice resultfrom listslice $listvar 2 1
+; $stringslice is a list comprised of [ "second", "third" ]
+```
+
 #### `inc` - Increment
 Increments the numeric value of a variable by the specified amount (default: 1; float values like 2.3 are allowed).
 ```sltscript

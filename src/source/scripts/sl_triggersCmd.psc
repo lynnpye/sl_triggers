@@ -2192,7 +2192,9 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             endif
             ;currentLine += 1
         elseIf command == "listclear"
-            if ParamLengthEQ(self, cmdLine.Length, 2)
+            if subCommand
+                SFE("'listclear' is not a valid subcommand")
+            elseif ParamLengthEQ(self, cmdLine.Length, 2)
                 string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
                 if varscope[SLT.VS_SCOPE]
                     int vt = GetVarType(varscope)
@@ -2207,7 +2209,9 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             endif
             ;currentLine += 1
         elseIf command == "listadd"
-            if ParamLengthGT(self, cmdLine.Length, 2)
+            if subCommand
+                SFE("'listadd' is not a valid subcommand")
+            elseif ParamLengthGT(self, cmdLine.Length, 2)
                 string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
                 if varscope[SLT.VS_SCOPE]
                     int rli = StorageUtil.StringListCount(SLT, GetVarListKey(varscope))
@@ -2222,6 +2226,89 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                         cli += 1
                         rli += 1
                     endwhile
+                else
+                    SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
+                endif
+            endif
+            ;currentLine += 1
+        elseIf command == "listresize"
+            if subCommand
+                SFE("'listresize' is not a valid subcommand")
+            elseif ParamLengthEQ(self, cmdLine.Length, 3)
+                string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
+                if varscope[SLT.VS_SCOPE]
+                    int vt = GetVarType(varscope)
+                    if SLT.RT_IsList(vt)
+                        StorageUtil.StringListResize(SLT, GetVarListKey(varscope), ResolveInt(cmdLine[2]))
+                    else
+                        SFE("invalid target for listclear: varscope(" + SLT.VarScopeToString(varscope) + "); type(" + SLT.RT_ToString(vt) + ")")
+                    endif
+                else
+                    SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
+                endif
+            endif
+            ;currentLine += 1
+        elseIf command == "listslice" ; listslice $listvar $length [$startIndex]
+            if ParamLengthGT(self, cmdLine.Length, 2)
+                string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
+                if varscope[SLT.VS_SCOPE]
+                    int vt = GetVarType(varscope)
+                    if SLT.RT_IsList(vt)
+                        int subrt = SLT.RT_ListSubtype(vt)
+                        string[] slice = PapyrusUtil.StringArray(ResolveInt(cmdLine[2]))
+                        StorageUtil.StringListSlice(SLT, GetVarListKey(varscope), slice, ResolveInt(cmdLine[3]))
+                        if SLT.RT_BOOL == subrt
+                            bool[] data = PapyrusUtil.BoolArray(slice.Length)
+                            int i = data.Length
+                            while i
+                                i -= 1
+                                data[i] = slice[i] as bool
+                            endwhile
+                            MostRecentListBoolResult = data
+                        elseif SLT.RT_STRING == subrt
+                            string[] data = PapyrusUtil.StringArray(slice.Length)
+                            int i = data.Length
+                            while i
+                                i -= 1
+                                data[i] = slice[i]
+                            endwhile
+                            MostRecentListStringResult = data
+                        elseif SLT.RT_INT == subrt
+                            int[] data = PapyrusUtil.IntArray(slice.Length)
+                            int i = data.Length
+                            while i
+                                i -= 1
+                                data[i] = slice[i] as int
+                            endwhile
+                            MostRecentListIntResult = data
+                        elseif SLT.RT_FLOAT == subrt
+                            float[] data = PapyrusUtil.FloatArray(slice.Length)
+                            int i = data.Length
+                            while i
+                                i -= 1
+                                data[i] = slice[i] as float
+                            endwhile
+                            MostRecentListFloatResult = data
+                        elseif SLT.RT_FORM == subrt
+                            Form[] data = PapyrusUtil.FormArray(slice.Length)
+                            int i = data.Length
+                            while i
+                                i -= 1
+                                data[i] = sl_triggers.GetForm(slice[i])
+                            endwhile
+                            MostRecentListFormResult = data
+                        elseif SLT.RT_LABEL == subrt
+                            string[] data = PapyrusUtil.StringArray(slice.Length)
+                            int i = data.Length
+                            while i
+                                i -= 1
+                                data[i] = slice[i]
+                            endwhile
+                            MostRecentListLabelResult = data
+                        endif
+                    else
+                        SFE("invalid target for listclear: varscope(" + SLT.VarScopeToString(varscope) + "); type(" + SLT.RT_ToString(vt) + ")")
+                    endif
                 else
                     SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
                 endif

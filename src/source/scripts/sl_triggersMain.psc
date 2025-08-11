@@ -151,6 +151,13 @@ bool Function RT_IsList(int rt_type)
 	return RT_LIST_MIN <= rt_type && RT_LIST_MAX >= rt_type
 EndFunction
 
+int Function RT_ListSubType(int rt_type)
+	if !RT_IsList(rt_type)
+		return RT_INVALID
+	endif
+	return rt_type - RT_LIST_TYPE_OFFSET
+EndFunction
+
 bool Property Debug_Cmd Auto Hidden
 bool Property Debug_Cmd_Functions Auto Hidden
 bool Property Debug_Cmd_InternalResolve Auto Hidden

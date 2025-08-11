@@ -465,3 +465,11 @@ else
     deb_msg $"FAIL: listadd with multiple arguments"
 endif
 
+set $intslice resultfrom listslice $intlist 2 1
+inc $thread.testCount
+if $intslice[0] == 10
+    inc $thread.passCount
+    deb_msg $"PASS: listslice"
+else
+    deb_msg $"FAIL: listslice"
+endif
