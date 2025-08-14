@@ -136,14 +136,16 @@ namespace SLT {
     class SLTREventSink :
         public RE::BSTEventSink<RE::TESCombatEvent>,
         public RE::BSTEventSink<RE::TESEquipEvent>,
-        public RE::BSTEventSink<RE::TESHitEvent>
+        public RE::BSTEventSink<RE::TESHitEvent>,
+        public RE::BSTEventSink<RE::TESActivateEvent>
     {
     private:
         bool isEnabled_CombatEvent;
         bool isEnabled_EquipEvent;
         bool isEnabled_HitEvent;
+        bool isEnabled_ActivateEvent;
 
-        SLTREventSink() : isEnabled_CombatEvent(false), isEnabled_EquipEvent(false), isEnabled_HitEvent(false)
+        SLTREventSink() : isEnabled_CombatEvent(false), isEnabled_EquipEvent(false), isEnabled_HitEvent(false), isEnabled_ActivateEvent(false)
         {}
 
     public:
@@ -156,10 +158,12 @@ namespace SLT {
         bool IsEnabledEquipEvent() { return isEnabled_EquipEvent; }
         bool IsEnabledHitEvent() { return isEnabled_HitEvent; }
         bool IsEnabledCombatEvent() { return isEnabled_CombatEvent; }
+        bool IsEnabledActivateEvent() { return isEnabled_ActivateEvent; }
 
         void SetEnabledEquipEvent(bool b) { isEnabled_EquipEvent = b; }
         void SetEnabledHitEvent(bool b) { isEnabled_HitEvent = b; }
         void SetEnabledCombatEvent(bool b) { isEnabled_CombatEvent = b; }
+        void SetEnabledActivateEvent(bool b) { isEnabled_ActivateEvent = b; }
 
         RE::BSEventNotifyControl ProcessEvent(const RE::TESEquipEvent* event, RE::BSTEventSource<RE::TESEquipEvent>* source) override;
 
@@ -168,6 +172,9 @@ namespace SLT {
 
         RE::BSEventNotifyControl ProcessEvent(const RE::TESCombatEvent* event, 
                                         RE::BSTEventSource<RE::TESCombatEvent>* source) override;
+
+        RE::BSEventNotifyControl ProcessEvent(const RE::TESActivateEvent* event,
+                                        RE::BSTEventSource<RE::TESActivateEvent>* source) override;
     };
 }
 

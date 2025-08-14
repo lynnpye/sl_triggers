@@ -123,6 +123,97 @@ RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESCombatEvent* e
     return RE::BSEventNotifyControl::kContinue;
 }
 
+namespace {
+using namespace std;
+using namespace RE;
+vector<TESObjectACTI*> harvestableActis;
+vector<string> actiIDs = {
+    "CritterMothBlue", "CritterMothLuna", "CritterBee", "CritterSalmon01", "CritterSalmon02", "CritterMothMonarch",
+    "CritterFirefly", "CritterDragonfly01", "CritterDragonFly02", "CritterPondFish01", "CritterPondFish02",
+    "CritterPondFish03", "CritterPondFish04", "CritterPondFish05", "TreeFloraNirnroot01", "TreeFloraNirnrootRed01"
+};
+OnDataLoaded([]{
+    harvestableActis.clear();
+    for(string aid : actiIDs) {
+        TESForm* asForm = FormUtil::Parse::GetForm(aid);
+        if (!asForm) {
+            logger::debug("Unable to get Form from ID({})", aid);
+        } else {
+            auto* asACTI = asForm->As<TESObjectACTI>();
+            if (!asACTI) {
+                logger::debug("Unable to coerce Form to Activator for ID({}) FormID({}) FormType({})", aid, asForm->GetFormID(), FormTypeToString(asForm->GetSavedFormType()));
+            }
+            else {
+                harvestableActis.push_back(asACTI);
+            }
+        }
+    }
+})
+}
+
+RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESActivateEvent* event,
+                                    RE::BSTEventSource<RE::TESActivateEvent>* source) {
+    enum { kFlag_Harvested = 0x2000 };
+    RE::BSFixedString onHarvesting("OnSLTRHarvesting");
+
+    if (IsEnabledActivateEvent()) {
+        if (event && event->objectActivated && event->actionRef) {
+            // player activating
+            if (event->actionRef->IsPlayerRef()) {
+                auto* baseObject = event->objectActivated->GetBaseObject();
+                if (baseObject) {
+                    // flora activated
+                    auto* flora = baseObject->As<RE::TESFlora>();
+                    if (flora) {
+                        if (!(event->objectActivated->formFlags & kFlag_Harvested)) {
+                            auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+                            if (vm) {
+                                auto* args = RE::MakeFunctionArguments(
+                                    static_cast<RE::TESObjectREFR*>(event->objectActivated.get())
+                                );
+                                vm->SendEventAll(onHarvesting, args);
+                            }
+                        }
+                    }
+                    else {
+                        auto* tree = baseObject->As<RE::TESObjectTREE>();
+                        if (tree) {
+                            if (!(event->objectActivated->formFlags & kFlag_Harvested)) {
+                                auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+                                if (vm) {
+                                    auto* args = RE::MakeFunctionArguments(
+                                        static_cast<RE::TESObjectREFR*>(event->objectActivated.get())
+                                    );
+                                    vm->SendEventAll(onHarvesting, args);
+                                }
+                            }
+                        }
+                        else if (RE::FormType::Activator == baseObject->GetSavedFormType()) {
+                            auto* asACTI = baseObject->As<RE::TESObjectACTI>();
+                            auto it = find(harvestableActis.begin(), harvestableActis.end(), asACTI);
+
+                            if (it != harvestableActis.end()) {
+                                auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+                                if (vm) {
+                                    auto* args = RE::MakeFunctionArguments(
+                                        static_cast<RE::TESObjectREFR*>(event->objectActivated.get())
+                                    );
+                                    vm->SendEventAll(onHarvesting, args);
+                                }
+                            }
+                            else {
+                                logger::debug("base ACTI not found in harvestableActis, here's the info you requested: formID:{} name:'{}' editorID:'{}' formType:{}", baseObject->GetFormID(), baseObject->GetName(), baseObject->GetFormEditorID(), FormTypeToString(baseObject->GetSavedFormType()));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    return RE::BSEventNotifyControl::kContinue;
+}
+
 // Registration helper macro
 #define REGISTER_PAPYRUS_PROVIDER(ProviderClass, ClassName) \
 { \
@@ -144,9 +235,11 @@ RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESCombatEvent* e
             eventSourceHolder->AddEventSink<TESEquipEvent>(SLTREventSink::GetSingleton());
             eventSourceHolder->AddEventSink<TESHitEvent>(SLTREventSink::GetSingleton());
             eventSourceHolder->AddEventSink<TESCombatEvent>(SLTREventSink::GetSingleton());
+            eventSourceHolder->AddEventSink<TESActivateEvent>(SLTREventSink::GetSingleton());
             logger::info("CombatEvent sink initialized, enabled({})", SLTREventSink::GetSingleton()->IsEnabledCombatEvent());
             logger::info("EquipEvent sink initialized, enabled({})", SLTREventSink::GetSingleton()->IsEnabledEquipEvent());
             logger::info("HitEvent sink initialized, enabled({})", SLTREventSink::GetSingleton()->IsEnabledHitEvent());
+            logger::info("ActivateEvent sink initialized, enabled({})", SLTREventSink::GetSingleton()->IsEnabledActivateEvent());
         } else {
             logger::error("Unable to register with ScriptEventSourceHolder");
         }

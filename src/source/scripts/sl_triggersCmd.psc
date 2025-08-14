@@ -42,6 +42,7 @@ string ktarget_list_prefix
 string ktarget_v_prefix
 string ktarget_type_v_prefix
 string krequest_v_prefix
+string krequest_type_prefix
 
 string function Make_kframe_map_prefix()
     return "SLTR:frame:" + frameid + ":maps:"
@@ -75,8 +76,20 @@ string function Make_ktarget_type_v_prefix(int formid)
     return "SLTR:target:" + formid + ":vartypes:"
 endfunction
 
+string Function Global_Make_krequest_v_prefix(int requestTargetFormId, int requestId) global
+    return "SLTR:target:" + requestTargetFormId + ":system.request:" + requestId + ":vars:"
+endFunction
+
 string Function Make_krequest_v_prefix()
-    "SLTR:target:" + CmdTargetFormID + ":request:" + CmdRequestId + ":vars:"
+    return Global_Make_krequest_v_prefix(CmdTargetFormID, CmdRequestId)
+EndFunction
+
+string Function Global_Make_krequest_type_prefix(int requestTargetFormId, int requestId) global
+    return "SLTR:target:" + requestTargetFormId + ":system.request:" + requestId + ":vartypes:"
+endFunction
+
+string Function Make_krequest_type_prefix()
+    return Global_Make_krequest_type_prefix(CmdTargetFormID, CmdRequestId)
 EndFunction
 
 Actor			Property CmdTargetActor Hidden
@@ -94,6 +107,7 @@ Actor			Property CmdTargetActor Hidden
             ktarget_v_prefix = Make_ktarget_v_prefix(CmdTargetFormID)
             ktarget_type_v_prefix = Make_ktarget_type_v_prefix(CmdTargetFormID)
             krequest_v_prefix = Make_krequest_v_prefix()
+            krequest_type_prefix = Make_krequest_type_prefix()
         endif
     EndFunction
 EndProperty
@@ -133,6 +147,7 @@ int         Property CmdRequestId Hidden
         _cmdRequestId = value
 
         krequest_v_prefix = Make_krequest_v_prefix()
+        krequest_type_prefix = Make_krequest_type_prefix()
     EndFunction
 EndProperty
 
@@ -1207,6 +1222,24 @@ bool Function InternalResolve(string token)
                 return true
             elseif "forms.gold" == vname || "forms.septim" == vname
                 CustomResolveFormResult = sl_triggers.GetForm("0xf|Skyrim.esm")
+                return true
+            endif
+        elseif "request" == scope
+            int requestDataType = GetRequestDataType(vname)
+            if SLT.RT_STRING == requestDataType
+                CustomResolveStringResult = GetRequestString(vname)
+                return true
+            elseif SLT.RT_BOOL == requestDataType
+                CustomResolveBoolResult = GetRequestBool(vname)
+                return true
+            elseif SLT.RT_INT == requestDataType
+                CustomResolveIntResult = GetRequestInt(vname)
+                return true
+            elseif SLT.RT_FLOAT == requestDataType
+                CustomResolveFloatResult = GetRequestFloat(vname)
+                return true
+            elseif SLT.RT_FORM == requestDataType
+                CustomResolveFormResult = GetRequestForm(vname)
                 return true
             endif
         endif
@@ -5565,26 +5598,6 @@ Form Function SetTargetVarForm(string typeprefix, string dataprefix, string mapp
     return formvalue
 EndFunction
 
-string Function GetRequestString(string _key)
-    return GetStringValue(SLT, krequest_v_prefix + _key)
-EndFunction
-
-bool Function GetRequestBool(string _key)
-    return GetIntValue(SLT, krequest_v_prefix + _key) != 0
-EndFunction
-
-int Function GetRequestInt(string _key)
-    return GetIntValue(SLT, krequest_v_prefix + _key)
-EndFunction
-
-float Function GetRequestFloat(string _key)
-    return GetFloatValue(SLT, krequest_v_prefix + _key)
-EndFunction
-
-Form Function GetRequestForm(string _key)
-    return GetFormValue(SLT, krequest_v_prefix + _key)
-EndFunction
-
 ;;;;
 ;; Support
 bool Function IsAssignableScope(string varscope)
@@ -6384,27 +6397,54 @@ string[] Function SetVarListLabel(string[] varscope, string[] values)
     return values
 endfunction
 
+int Function GetRequestDataType(string _key)
+    string typeprefix = krequest_type_prefix
+    int output =  GetIntValue(SLT, krequest_type_prefix + _key)
+    return GetIntValue(SLT, krequest_type_prefix + _key)
+EndFunction
+
+string Function GetRequestString(string _key)
+    return GetStringValue(SLT, krequest_v_prefix + _key)
+EndFunction
+
+bool Function GetRequestBool(string _key)
+    return GetIntValue(SLT, krequest_v_prefix + _key) != 0
+EndFunction
+
+int Function GetRequestInt(string _key)
+    return GetIntValue(SLT, krequest_v_prefix + _key)
+EndFunction
+
+float Function GetRequestFloat(string _key)
+    return GetFloatValue(SLT, krequest_v_prefix + _key)
+EndFunction
+
+Form Function GetRequestForm(string _key)
+    return GetFormValue(SLT, krequest_v_prefix + _key)
+EndFunction
+
 function PrecacheRequestString(sl_triggersMain slthost, int requestTargetFormId, int requestId, string varname, string value) global
-    string ckey = "SLTR:target:" + requestTargetFormId + ":system.request:" + requestId + ":vars:" + varname
-    SetStringValue(slthost, ckey, value)
+    SetIntValue(slthost, Global_Make_krequest_type_prefix(requestTargetFormId, requestId) + varname, slthost.RT_STRING)
+    SetStringValue(slthost, Global_Make_krequest_v_prefix(requestTargetFormId, requestId) + varname, value)
 endfunction
 
 function PrecacheRequestBool(sl_triggersMain slthost, int requestTargetFormId, int requestId, string varname, bool value) global
-    string ckey = "SLTR:target:" + requestTargetFormId + ":system.request:" + requestId + ":vars:" + varname
-    SetIntValue(slthost, ckey, value as int)
+    SetIntValue(slthost, Global_Make_krequest_type_prefix(requestTargetFormId, requestId) + varname, slthost.RT_BOOL)
+    SetIntValue(slthost, Global_Make_krequest_v_prefix(requestTargetFormId, requestId) + varname, value as int)
 endfunction
 
 function PrecacheRequestInt(sl_triggersMain slthost, int requestTargetFormId, int requestId, string varname, int value) global
-    string ckey = "SLTR:target:" + requestTargetFormId + ":system.request:" + requestId + ":vars:" + varname
-    SetIntValue(slthost, ckey, value)
+    SetIntValue(slthost, Global_Make_krequest_type_prefix(requestTargetFormId, requestId) + varname, slthost.RT_INT)
+    SetIntValue(slthost, Global_Make_krequest_v_prefix(requestTargetFormId, requestId) + varname, value)
 endfunction
 
 function PrecacheRequestFloat(sl_triggersMain slthost, int requestTargetFormId, int requestId, string varname, float value) global
-    string ckey = "SLTR:target:" + requestTargetFormId + ":system.request:" + requestId + ":vars:" + varname
-    SetFloatValue(slthost, ckey, value)
+    SetIntValue(slthost, Global_Make_krequest_type_prefix(requestTargetFormId, requestId) + varname, slthost.RT_FLOAT)
+    SetFloatValue(slthost, Global_Make_krequest_v_prefix(requestTargetFormId, requestId) + varname, value)
 endfunction
 
 function PrecacheRequestForm(sl_triggersMain slthost, int requestTargetFormId, int requestId, string varname, Form value) global
-    string ckey = "SLTR:target:" + requestTargetFormId + ":system.request:" + requestId + ":vars:" + varname
-    SetFormValue(slthost, ckey, value)
+    string typeprefix = Global_Make_krequest_type_prefix(requestTargetFormId, requestId)
+    SetIntValue(slthost, Global_Make_krequest_type_prefix(requestTargetFormId, requestId) + varname, slthost.RT_FORM)
+    SetFormValue(slthost, Global_Make_krequest_v_prefix(requestTargetFormId, requestId) + varname, value)
 endfunction

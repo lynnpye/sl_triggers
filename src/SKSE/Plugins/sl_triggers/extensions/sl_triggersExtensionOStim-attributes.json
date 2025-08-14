@@ -27,6 +27,7 @@
         ["do_1",            "triggerattribute_do_1"],
         ["do_2",            "triggerattribute_do_2"],
         ["do_3",            "triggerattribute_do_3"],
+        ["do_4",            "triggerattribute_do_4"],
         ["partner_role",    "triggerattribute_partner_role"],
         ["partner_gender",  "triggerattribute_partner_gender"],
         ["partner_race",    "triggerattribute_partner_race"]
@@ -84,18 +85,23 @@
     ],
     "triggerattribute_do_1" : [
         ["type", "string"],
-        ["widget", "command", "Command 1: "],
-        ["info", "You can run up to 3 commands associated with this keymapping. This is the first."]
+        ["widget", "command", "Script 1: "],
+        ["info", "You can run 1 or more commands associated with this keymapping. This is the first."]
     ],
     "triggerattribute_do_2" : [
         ["type", "string"],
-        ["widget", "command", "Command 2: "],
-        ["info", "You can run up to 3 commands associated with this keymapping. This is the second."]
+        ["widget", "command", "Script 2: "],
+        ["info", "You can run 1 or more commands associated with this keymapping. This is the second."]
     ],
     "triggerattribute_do_3" : [
         ["type", "string"],
-        ["widget", "command", "Command 3: "],
-        ["info", "You can run up to 3 commands associated with this keymapping. This is the third."]
+        ["widget", "command", "Script 3: "],
+        ["info", "You can run 1 or more commands associated with this keymapping. This is the third."]
+    ],
+    "triggerattribute_do_4" : [
+        ["type", "string"],
+        ["widget", "command", "Script 4: "],
+        ["info", "You can run 1 or more commands associated with this keymapping. This is the fourth."]
     ],
     "triggerattribute_is_armed" : [
         ["type", "int"],
@@ -142,7 +148,7 @@
         ["deeplocation", "is_weapon_drawn"],
         ["is_armed", "is_clothed"],
         ["do_1", "do_2"],
-        ["do_3"]
+        ["do_3", "do_4"]
     ]
 
 
@@ -155,7 +161,7 @@
     ],
     "settingsattribute_cards_per_page" : [
         ["type", "int"],
-        ["widget", "menu", "Cards per Page :", "4", "1", "2", "3", "4", "5"],
+        ["widget", "menu", "Triggers per Page :", "4", "1", "2", "3", "4", "5"],
         ["info", "The number of triggers to display per page."]
     ],
 	"settingslayout" : [

@@ -1,3 +1,15 @@
+135
+    Savegame compatibility: Should be savegame compatible
+    
+    Note: Reminder that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
+        (or whichever folder you have your SKSE logs directed to)
+    
+    bugfix: request variables were not actually wired up and lacked any typing info; should be working now
+    bugfix: when triggers are created and the event type selected, the filters are not shown until reentering the MCM
+    change: added fourth script option on all events (because seeing an intentionally imbalanced set of MCM components was bothering me; yes that is the only reason)
+    enhancement: new Core event: Harvesting (Custom event: OnSLTRHarvesting(ObjectReference harvestSource) )
+    enhancement: new Core event: Fast Travel Arrival (OnPlayerFastTravelEnd)
+
 134
     Savegame compatibility: Should be savegame compatible
     

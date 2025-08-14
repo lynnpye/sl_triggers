@@ -60,11 +60,15 @@ static void SetEquipSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled);
 
 static void SetHitSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled);
 
+static void SetActivateSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled);
+
 static bool IsCombatSinkEnabled(PAPYRUS_NATIVE_DECL);
 
 static bool IsEquipSinkEnabled(PAPYRUS_NATIVE_DECL);
 
 static bool IsHitSinkEnabled(PAPYRUS_NATIVE_DECL);
+
+static bool IsActivateSinkEnabled(PAPYRUS_NATIVE_DECL);
 
 static bool SmartEquals(PAPYRUS_NATIVE_DECL, std::string_view a, std::string_view b);
 //static std::vector<std::string> SplitFileContents(PAPYRUS_NATIVE_DECL, std::string_view filecontents);
@@ -244,6 +248,10 @@ public:
         SLT::SLTNativeFunctions::SetHitSinkEnabled(PAPYRUS_FN_PARMS, isEnabled);
     }
 
+    static void SetActivateSinkEnabled(PAPYRUS_STATIC_ARGS, bool isEnabled) {
+        SLT::SLTNativeFunctions::SetActivateSinkEnabled(PAPYRUS_FN_PARMS, isEnabled);
+    }
+
     static bool IsCombatSinkEnabled(PAPYRUS_STATIC_ARGS) {
         return SLT::SLTNativeFunctions::IsCombatSinkEnabled(PAPYRUS_FN_PARMS);
     }
@@ -254,6 +262,10 @@ public:
 
     static bool IsHitSinkEnabled(PAPYRUS_STATIC_ARGS) {
         return SLT::SLTNativeFunctions::IsHitSinkEnabled(PAPYRUS_FN_PARMS);
+    }
+
+    static bool IsActivateSinkEnabled(PAPYRUS_STATIC_ARGS) {
+        return SLT::SLTNativeFunctions::IsActivateSinkEnabled(PAPYRUS_FN_PARMS);
     }
 
     static bool StartScript(PAPYRUS_STATIC_ARGS, RE::Actor* cmdTarget, std::string_view initialScriptName) {
@@ -277,9 +289,11 @@ public:
         reg.RegisterStatic("SetCombatSinkEnabled", &SLTInternalPapyrusFunctionProvider::SetCombatSinkEnabled);
         reg.RegisterStatic("SetEquipSinkEnabled", &SLTInternalPapyrusFunctionProvider::SetEquipSinkEnabled);
         reg.RegisterStatic("SetHitSinkEnabled", &SLTInternalPapyrusFunctionProvider::SetHitSinkEnabled);
+        reg.RegisterStatic("SetActivateSinkEnabled", &SLTInternalPapyrusFunctionProvider::SetActivateSinkEnabled);
         reg.RegisterStatic("IsCombatSinkEnabled", &SLTInternalPapyrusFunctionProvider::IsCombatSinkEnabled);
         reg.RegisterStatic("IsEquipSinkEnabled", &SLTInternalPapyrusFunctionProvider::IsEquipSinkEnabled);
         reg.RegisterStatic("IsHitSinkEnabled", &SLTInternalPapyrusFunctionProvider::IsHitSinkEnabled);
+        reg.RegisterStatic("IsActivateSinkEnabled", &SLTInternalPapyrusFunctionProvider::IsActivateSinkEnabled);
         reg.RegisterStatic("StartScript", &SLTInternalPapyrusFunctionProvider::StartScript);
     }
 };

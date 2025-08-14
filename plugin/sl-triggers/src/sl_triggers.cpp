@@ -858,6 +858,7 @@ std::vector<std::string> SLTNativeFunctions::MCMGetLayout(PAPYRUS_NATIVE_DECL, b
                         // the first uncommented list in trigger_layoutconditions provides us the key for comparisons
                         if (visibilityKey.empty()) {
                             visibilityKey = layoutConditionValue;
+                            result[1] = visibilityKey;
                         // afterward, any pair (or higher) gets processed
                         } else if (attributeEntry.size() > 1) {
                             int ptype = MCMGetAttrType(PAPYRUS_FN_PARMS, isTriggerAttribute, extensionKey, visibilityKey);
@@ -1079,6 +1080,11 @@ void SLTNativeFunctions::SetHitSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled) 
     logger::info("HitEvent sink enabled({})", SLTREventSink::GetSingleton()->IsEnabledHitEvent());
 }
 
+void SLTNativeFunctions::SetActivateSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled) {
+    SLTREventSink::GetSingleton()->SetEnabledActivateEvent(isEnabled);
+    logger::info("ActivateEvent sink enabled({})", SLTREventSink::GetSingleton()->IsEnabledActivateEvent());
+}
+
 bool SLTNativeFunctions::IsCombatSinkEnabled(PAPYRUS_NATIVE_DECL) {
     return SLTREventSink::GetSingleton()->IsEnabledCombatEvent();
 }
@@ -1089,6 +1095,10 @@ bool SLTNativeFunctions::IsEquipSinkEnabled(PAPYRUS_NATIVE_DECL) {
 
 bool SLTNativeFunctions::IsHitSinkEnabled(PAPYRUS_NATIVE_DECL) {
     return SLTREventSink::GetSingleton()->IsEnabledHitEvent();
+}
+
+bool SLTNativeFunctions::IsActivateSinkEnabled(PAPYRUS_NATIVE_DECL) {
+    return SLTREventSink::GetSingleton()->IsEnabledActivateEvent();
 }
 
 bool SLTNativeFunctions::SmartEquals(PAPYRUS_NATIVE_DECL, std::string_view a, std::string_view b) {

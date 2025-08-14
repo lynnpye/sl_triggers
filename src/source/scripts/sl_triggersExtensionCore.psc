@@ -24,6 +24,8 @@ int		EVENT_ID_EQUIPMENT_CHANGE				= 7
 int		EVENT_ID_PLAYER_COMBAT_STATUS			= 8
 int		EVENT_ID_PLAYER_ON_HIT					= 9
 int		EVENT_ID_TIMER							= 10
+int		EVENT_ID_HARVESTED_PLANT				= 11
+int		EVENT_ID_FAST_TRAVEL					= 12
 
 
 ; legacy, used for updates
@@ -63,6 +65,7 @@ string ATTR_TIMER_DELAY						= "timer_delay"
 string ATTR_DO_1							= "do_1"
 string ATTR_DO_2							= "do_2"
 string ATTR_DO_3							= "do_3"
+string ATTR_DO_4							= "do_4"
 
 GlobalVariable		Property DAKStatus				Auto Hidden
 Bool				Property DAKAvailable			Auto Hidden
@@ -104,6 +107,8 @@ string[]	triggerKeys_equipment_change
 string[]	triggerKeys_player_combat_status
 string[]	triggerKeys_player_on_hit
 string[]	triggerKeys_timer
+string[]	triggerKeys_harvesting
+string[]	triggerKeys_fast_travel
 
 bool		playerCellChangeHandlingReady
 float 		last_time_PlayerCellChangeEvent
@@ -451,6 +456,29 @@ Event OnSLTRPlayerHit(Form kattacker, Form ktarget, int ksourceFormID, int kproj
 	HandlePlayerOnHit(kattacker, ktarget, ksourceFormID, kprojectileFormID, was_player_attacker, kPowerAttack, kSneakAttack, kBashAttack, kHitBlocked)
 EndEvent
 
+Event OnSLTRHarvesting(ObjectReference harvestSource)
+	Flora targetFlora = harvestSource.GetBaseObject() as Flora
+	if targetFlora
+		Form ingr = targetFlora.GetIngredient()
+		if ingr
+			HandleHarvesting(harvestSource)
+		endif
+	else
+		TreeObject targetTree = harvestSource.GetBaseObject() as TreeObject
+		if targetTree
+			Form ingr = targetTree.GetIngredient()
+			if ingr
+				HandleHarvesting(harvestSource)
+			endif
+		else
+			Activator acti = harvestSource.GetBaseObject() as Activator
+			if acti
+				HandleHarvesting(harvestSource)
+			endif
+		endif
+	endif
+EndEvent
+
 int cellPreviousSessionId
 Function Send_SLTR_OnPlayerCellChange()
 	if triggerKeys_playercellchange.Length > 0
@@ -545,9 +573,7 @@ Function SLTR_Internal_PlayerNewSpaceEvent()
 		Send_SLTR_OnPlayerLoadingScreen()
 	endif
 EndFunction
-/;
 
-;/
 Event OnSLTRPlayerContainerActivate(Form fcontainerRef, bool isConCorpse, bool isConEmpty, Form fkwPlayerLocation, bool playerWasInInterior)
 	if SLT.Debug_Extension_Core
 		ObjectReference containerRef = fcontainerRef as ObjectReference
@@ -643,6 +669,8 @@ Function RefreshTriggerCache()
 	triggerKeys_equipment_change		= PapyrusUtil.StringArray(0)
 	triggerKeys_player_combat_status	= PapyrusUtil.StringArray(0)
 	triggerKeys_player_on_hit			= PapyrusUtil.StringArray(0)
+	triggerKeys_harvesting			= PapyrusUtil.StringArray(0)
+	triggerKeys_fast_travel				= PapyrusUtil.StringArray(0)
 
 	; paired - and handled differently /
 	;/
@@ -713,6 +741,10 @@ Function RefreshTriggerCache()
 				triggerKeys_player_combat_status = PapyrusUtil.PushString(triggerKeys_player_combat_status, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_PLAYER_ON_HIT
 				triggerKeys_player_on_hit = PapyrusUtil.PushString(triggerKeys_player_on_hit, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_HARVESTED_PLANT
+				triggerKeys_harvesting = PapyrusUtil.PushString(triggerKeys_harvesting, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_FAST_TRAVEL
+				triggerKeys_fast_travel = PapyrusUtil.PushString(triggerKeys_fast_travel, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_TIMER
 				string triggerKey = TriggerKeys[i]
 				float timerDelay = JsonUtil.GetFloatValue(_triggerFile, ATTR_TIMER_DELAY)
@@ -959,6 +991,14 @@ Function RegisterEvents()
 		sl_triggers_internal.SetHitSinkEnabled(false)
 	endif
 
+	bool enableActivateSink = false
+	UnregisterForModEvent(EVENT_SLTR_ON_HARVESTING())
+	if triggerKeys_harvesting.Length > 0
+		SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_HARVESTING(), EVENT_SLTR_ON_HARVESTING())
+		enableActivateSink = true
+	endif
+
+	sl_triggers_internal.SetActivateSinkEnabled(enableActivateSink)
 EndFunction
 
 Function RegisterForKeyEvents()
@@ -1150,6 +1190,13 @@ Function HandleTimers()
 					EndIf
 					RequestCommand(PlayerRef, command)
 				endIf
+				command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_4)
+				if command
+					If (SLT.Debug_Extension_Core_Timer)
+						SLTDebugMsg("Core.HandleTimers: doRun(" + doRun + ") running SLTScript/4(" + command + ")")
+					EndIf
+					RequestCommand(PlayerRef, command)
+				endIf
 			endIf
 		endif
 
@@ -1236,6 +1283,10 @@ Function HandleNewSession(int _newSessionId)
 			if command
 				RequestCommand(PlayerRef, command)
 			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_4)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
 		endif
 
 		i += 1
@@ -1317,6 +1368,10 @@ Function HandleTopOfTheHour()
 				RequestCommand(PlayerRef, command)
 			endIf
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_4)
 			if command
 				RequestCommand(PlayerRef, command)
 			endIf
@@ -1502,6 +1557,13 @@ Function HandleOnKeyDown()
 				endif
 				RequestCommand(PlayerRef, command)
 			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_4)
+			if command
+				if SLT.Debug_Extension_Core_Keymapping
+					SLTDebugMsg("Core.HandleOnKeyDown: do_4(" + command + ")")
+				endif
+				RequestCommand(PlayerRef, command)
+			endIf
 		endif
 		
 		i += 1
@@ -1643,6 +1705,12 @@ Function HandleOnPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Keywo
 				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
 			endIf
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				cmdRequestId = GetNextPlayerCellChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_4)
 			if command
 				cmdRequestId = GetNextPlayerCellChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword)
 				cmdThreadId = SLT.GetNextInstanceId()
@@ -1834,6 +1902,12 @@ Function HandlePlayerContainerActivation(ObjectReference containerRef, bool cont
 				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
 			endIf
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				cmdRequestId = GetNextPlayerContainerActivationRequestId(requestTargetFormId, cmdRequestId, containerRef, container_is_corpse, container_is_empty, container_is_common, playerWasInInterior, playerLocationKeyword)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_4)
 			if command
 				cmdRequestId = GetNextPlayerContainerActivationRequestId(requestTargetFormId, cmdRequestId, containerRef, container_is_corpse, container_is_empty, container_is_common, playerWasInInterior, playerLocationKeyword)
 				cmdThreadId = SLT.GetNextInstanceId()
@@ -2069,6 +2143,12 @@ Function HandleLocationChanged(Location akOldLoc, Location akNewLoc)
 				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
 			endIf
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				cmdRequestId = GetNextLocationChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword, akOldLoc, akNewLoc)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_4)
 			if command
 				cmdRequestId = GetNextLocationChangeRequestId(requestTargetFormId, cmdRequestId, playerWasInInterior, playerLocationKeyword, akOldLoc, akNewLoc)
 				cmdThreadId = SLT.GetNextInstanceId()
@@ -2331,6 +2411,12 @@ Function HandleEquipmentChange(Form akBaseObject, ObjectReference akRef, bool is
 				cmdThreadId = SLT.GetNextInstanceId()
 				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
 			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_4)
+			if command
+				cmdRequestId = GetNextEquipmentChangeRequestId(requestTargetFormId, cmdRequestId, akBaseObject, akRef, is_equipping, is_unique, has_enchantments, item_type_str)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
 		endif
 
 		i += 1
@@ -2440,7 +2526,6 @@ Function HandlePlayerCombatStateChanged(Actor target, bool player_in_combat)
 		endif
 		
 		if doRun
-			int cmdThreadId
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
 			if command
 				RequestCommand(PlayerRef, command)
@@ -2450,6 +2535,10 @@ Function HandlePlayerCombatStateChanged(Actor target, bool player_in_combat)
 				RequestCommand(PlayerRef, command)
 			endIf
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_4)
 			if command
 				RequestCommand(PlayerRef, command)
 			endIf
@@ -2611,6 +2700,12 @@ Function HandlePlayerOnHit(Form kattacker, Form ktarget, int ksourceFormID, int 
 				cmdThreadId = SLT.GetNextInstanceId()
 				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
 			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_4)
+			if command
+				cmdRequestId = GetNextPlayerOnHitRequestId(requestTargetFormId, cmdRequestId, kattacker, ktarget, ksourceFormID, kprojectileFormID)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
 		endif
 
 		i += 1
@@ -2627,4 +2722,193 @@ int Function GetNextPlayerOnHitRequestId(int requestTargetFormId, int cmdRequest
 		sl_triggersCmd.PrecacheRequestInt(SLT, requestTargetFormId, cmdRequestId, "core.player_on_hit.projectile", kprojectileFormID)
 	endif
 	return cmdRequestId
+EndFunction
+
+Function HandleHarvesting(ObjectReference harvestSource)
+	If (SLT.Debug_Extension_Core)
+		Form baseObject = harvestSource.GetBaseObject()
+		SLTDebugMsg("Core.HandleHarvesting harvestSource(" + harvestSource + ") baseObject(" + baseObject + ")")
+	EndIf
+
+	if triggerKeys_harvesting.Length < 1
+		return
+	endif
+	
+	int cmdRequestId
+	int		requestTargetFormId = PlayerRef.GetFormID() ; conveniently so, in this case
+	int i = 0
+	int j
+
+	bool   	doRun
+	string 	triggerKey
+	string 	_triggerFile
+	string 	command
+	bool  playerWasInInterior = PlayerRef.IsInInterior()
+	Keyword playerLocationKeyword = SLT.GetPlayerLocationKeyword()
+
+	int    	ival
+	bool 	bval
+	
+	float chance
+
+	while i < triggerKeys_harvesting.Length
+		triggerKey = triggerKeys_harvesting[i]
+		_triggerFile = FN_T(triggerKey)
+
+		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+
+		if doRun
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
+
+			doRun = chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
+			if ival != 0 ; 0 is Any
+				if ival == 1
+					doRun = DayTime()
+				elseIf ival == 2
+					doRun = !DayTime()
+				endIf
+			endIf
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION)
+			if ival != 0
+;/
+0 - Any
+
+1 - Inside
+2 - Outside
+3 - Safe (Home/Jail/Inn)
+4 - City (City/Town/Habitation/Dwelling)
+5 - Wilderness (!pLoc(DEFAULT)/Hold/Fort/Bandit Camp)
+6 - Dungeon (Cave/et. al.)
+
+; LocationKeywords[i - 7]
+5 - Player Home
+6 - Jail
+...
+/;
+
+				if ival == 1
+					doRun = playerWasInInterior
+				elseif ival == 2
+					doRun = !playerWasInInterior
+				elseif ival == 3
+					doRun = SLT.IsLocationKeywordSafe(playerLocationKeyword)
+				elseif ival == 4
+					doRun = SLT.IsLocationKeywordCity(playerLocationKeyword)
+				elseif ival == 5
+					doRun = SLT.IsLocationKeywordWilderness(playerLocationKeyword)
+				elseif ival == 6
+					doRun = SLT.IsLocationKeywordDungeon(playerLocationKeyword)
+				else
+					j = ival - 7
+					doRun = playerLocationKeyword == SLT.LocationKeywords[j]
+				endif
+			endif
+		endIf
+		
+		if doRun
+			int cmdThreadId
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+			if command
+				cmdRequestId = GetNextHarvestingRequestId(requestTargetFormId, cmdRequestId, harvestSource)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+			if command
+				cmdRequestId = GetNextHarvestingRequestId(requestTargetFormId, cmdRequestId, harvestSource)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				cmdRequestId = GetNextHarvestingRequestId(requestTargetFormId, cmdRequestId, harvestSource)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_4)
+			if command
+				cmdRequestId = GetNextHarvestingRequestId(requestTargetFormId, cmdRequestId, harvestSource)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+		endif
+
+		i += 1
+	endwhile
+EndFunction
+
+int Function GetNextHarvestingRequestId(int requestTargetFormId, int cmdRequestId, ObjectReference harvestSource)
+	if !cmdRequestId
+		cmdRequestId = SLT.GetNextInstanceId()
+
+		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.harvesting.harvest_objref", harvestSource)
+		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.harvesting.harvest_base_object", harvestSource.GetBaseObject())
+	endif
+	return cmdRequestId
+EndFunction
+
+Function HandleFastTravel()
+	If (SLT.Debug_Extension_Core)
+		SLTDebugMsg("Core.HandleFastTravel")
+	EndIf
+
+	if triggerKeys_fast_travel.Length < 1
+		return
+	endif
+	
+	int cmdRequestId
+	int		requestTargetFormId = PlayerRef.GetFormID() ; conveniently so, in this case
+	int i = 0
+	int j
+
+	bool   	doRun
+	string 	triggerKey
+	string 	_triggerFile
+	string 	command
+
+	int    	ival
+	bool 	bval
+	
+	float chance
+
+	while i < triggerKeys_fast_travel.Length
+		triggerKey = triggerKeys_fast_travel[i]
+		_triggerFile = FN_T(triggerKey)
+
+		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+
+		if doRun
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
+
+			doRun = chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+		endif
+		
+		if doRun
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_4)
+			if command
+				RequestCommand(PlayerRef, command)
+			endIf
+		endif
+
+		i += 1
+	endwhile
 EndFunction

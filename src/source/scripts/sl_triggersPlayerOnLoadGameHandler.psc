@@ -5,20 +5,68 @@ import sl_triggersStatics
 sl_triggersMain			Property SLT Auto
 sl_triggersExtensionCore Property SLTCore Auto Hidden
 
+Keyword kwdVampire
+Race raceVampireLord
+Race raceWerewolf
+Race PriorRace
+bool wasVampire
+bool wasVampireLord
+bool wasWerewolf
+
 Event OnPlayerLoadGame()
 	SLT.SLTPLYREF = self
+
 	SLT.DoPlayerLoadGame()
 	InitiateConsoleHook()
 EndEvent
 
 Event OnInit()
 	SLT.SLTPLYREF = self
+
+	kwdVampire = Keyword.GetKeyword("Vampire")
+	raceVampireLord = sl_triggers.GetForm("DLC1VampireBeastRace") as Race
+	raceWerewolf = sl_triggers.GetForm("WerewolfBeastRace") as Race
+	UpdatePriorRace(GetActorReference().GetRace())
+	
 	InitiateConsoleHook()
 EndEvent
 
 Event OnLocationChange(Location akOldLoc, Location akNewLoc)
 	SLTCore.HandleLocationChanged(akOldLoc, akNewLoc)
 EndEvent
+
+Event OnPlayerFastTravelEnd(float afTravelGameTimeHours)
+	SLTCore.HandleFastTravel()
+EndEvent
+
+Event OnLycanthropyStateChanged(bool abIsWerewolf)
+	SLTDebugMsg("OnLycanthropyStateChanged (" + abIsWerewolf + ")")
+EndEvent
+
+Event OnVampirismStateChanged(bool abIsVampire)
+	SLTDebugMsg("OnVampirismStateChanged (" + abIsVampire + ")")
+EndEvent
+
+Event OnRaceSwitchComplete()
+	Race newRace = GetActorReference().GetRace()
+	bool isVampire = newRace.HasKeyword(kwdVampire)
+	bool isVampireLord = newRace == raceVampireLord
+	bool isWerewolf = newRace == raceWerewolf
+
+	SLTDebugMsg("OnRaceSwitchComplete priorRace(" + PriorRace + ") wasVampire(" + wasVampire + ") wasVampireLord(" + wasVampireLord + ") wasWerewolf(" + wasWerewolf + ") newRace(" + newRace + ") isVampire(" + isVampire + ") isVampireLord(" + isVampireLord + ") isWerewolf(" + isWerewolf + ")")
+
+	UpdatePriorRace(newRace)
+EndEvent
+
+Event OnVampireFeed(Actor akTarget)
+EndEvent
+
+Function UpdatePriorRace(Race newRace)
+	PriorRace = newRace
+	wasVampire = PriorRace.HasKeyword(kwdVampire)
+	wasVampireLord = PriorRace == raceVampireLord
+	wasWerewolf = PriorRace == raceWerewolf
+EndFunction
 
 Function InitiateConsoleHook()
     if SKSE.GetPluginVersion("ConsoleUtilSSE") != -1

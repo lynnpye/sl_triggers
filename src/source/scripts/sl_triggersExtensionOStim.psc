@@ -22,6 +22,7 @@ string ATTR_POSITION						= "position"
 string ATTR_DO_1							= "do_1"
 string ATTR_DO_2							= "do_2"
 string ATTR_DO_3							= "do_3"
+string ATTR_DO_4							= "do_4"
 string ATTR_DEEPLOCATION					= "deeplocation"
 string ATTR_IS_ARMED						= "is_armed"
 string ATTR_IS_CLOTHED						= "is_clothed"
@@ -748,6 +749,10 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 						RequestCommand(theSelf, command)
 					endIf
 					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+					if command
+						RequestCommand(theSelf, command)
+					endIf
+					command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_4)
 					if command
 						RequestCommand(theSelf, command)
 					endIf
