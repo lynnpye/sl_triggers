@@ -16,6 +16,13 @@ bool wasWerewolf
 Event OnPlayerLoadGame()
 	SLT.SLTPLYREF = self
 
+	if !kwdVampire
+		kwdVampire = Keyword.GetKeyword("Vampire")
+		raceVampireLord = sl_triggers.GetForm("DLC1VampireBeastRace") as Race
+		raceWerewolf = sl_triggers.GetForm("WerewolfBeastRace") as Race
+		UpdatePriorRace(GetActorReference().GetRace())
+	endif
+
 	SLT.DoPlayerLoadGame()
 	InitiateConsoleHook()
 EndEvent
@@ -40,12 +47,18 @@ Event OnPlayerFastTravelEnd(float afTravelGameTimeHours)
 EndEvent
 
 Event OnLycanthropyStateChanged(bool abIsWerewolf)
-	SLTDebugMsg("OnLycanthropyStateChanged (" + abIsWerewolf + ")")
+	if abIsWerewolf
+		SLTCore.HandleLycanthropy(true, false, false, false)
+	else
+		SLTCore.HandleLycanthropy(false, true, false, false)
+	endif
 EndEvent
 
+;/
 Event OnVampirismStateChanged(bool abIsVampire)
 	SLTDebugMsg("OnVampirismStateChanged (" + abIsVampire + ")")
 EndEvent
+/;
 
 Event OnRaceSwitchComplete()
 	Race newRace = GetActorReference().GetRace()
@@ -53,12 +66,35 @@ Event OnRaceSwitchComplete()
 	bool isVampireLord = newRace == raceVampireLord
 	bool isWerewolf = newRace == raceWerewolf
 
-	SLTDebugMsg("OnRaceSwitchComplete priorRace(" + PriorRace + ") wasVampire(" + wasVampire + ") wasVampireLord(" + wasVampireLord + ") wasWerewolf(" + wasWerewolf + ") newRace(" + newRace + ") isVampire(" + isVampire + ") isVampireLord(" + isVampireLord + ") isWerewolf(" + isWerewolf + ")")
+	If (wasVampire != isVampire)
+		if isVampire
+			SLTCore.HandleVampirism(true, false, false, false)
+		else
+			SLTCore.HandleVampirism(false, true, false, false)
+		endif
+	EndIf
+
+	If (wasVampireLord != isVampireLord)
+		if isVampireLord
+			SLTCore.HandleVampirism(false, false, true, false)
+		else
+			SLTCore.HandleVampirism(false, false, false, true)
+		endif
+	EndIf
+
+	If (wasWerewolf != isWerewolf)
+		if isWerewolf
+			SLTCore.HandleLycanthropy(false, false, true, false)
+		else
+			SLTCore.HandleLycanthropy(false, false, false, true)
+		endif
+	EndIf
 
 	UpdatePriorRace(newRace)
 EndEvent
 
 Event OnVampireFeed(Actor akTarget)
+	SLTCore.HandleVampireFeeding(akTarget)
 EndEvent
 
 Function UpdatePriorRace(Race newRace)

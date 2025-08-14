@@ -483,6 +483,50 @@ $request.core.playeronhit.projectile
 
 int - (Added by SLTR Core) (for Player On Hit) the projectile FormID used for the attack if one was involved
 
+$request.core.harvesting.harvestobjref
+
+ObjectReference - (Added by SLTR Core) (for Harvesting) the ObjectReference of the item activated
+
+$request.core.harvesting.harvestbaseobject
+
+Form - (Added by SLTR Core) (for Harvesting) the Form result of harvestobjref.GetBaseObject(); will be a FLOR(Flora), TREE(Tree) or ACTI(Activator) object
+
+$request.core.vampirism.wascontracted
+
+bool - (Added by SLTR Core) (for Vampirism Transitions) did you just contract it (i.e. disease progressed to Vampirism)
+
+$request.core.vampirism.wascured
+
+bool - (Added by SLTR Core) (for Vampirism Transitions) were you cured?
+
+$request.core.vampirism.startedvampirelord
+
+bool - (Added by SLTR Core) (for Vampirism Transitions) did you transform to Vampire Lord?
+
+$request.core.vampirism.endedvampirelord
+
+bool - (Added by SLTR Core) (for Vampirism Transitions) did you end the Vampire Lord transformation?
+
+$request.core.lycanthropy.wascontracted
+
+bool - (Added by SLTR Core) (for Lycanthropy Transitions) did you just contract it (e.g. Companions ceremony)
+
+$request.core.lycanthropy.wascured
+
+bool - (Added by SLTR Core) (for Lycanthropy Transitions) were you cured?
+
+$request.core.lycanthropy.startedwerewolf
+
+bool - (Added by SLTR Core) (for Lycanthropy Transitions) did you transform to Werewolf?
+
+$request.core.lycanthropy.endedwerewolf
+
+bool - (Added by SLTR Core) (for Lycanthropy Transitions) did you end the Werewolf transformation?
+
+$request.core.vampirefeeding.target
+
+Form - (Added by SLTR Core) (for Vampire Feeding) the target of the feeding
+
 Basic Operations
 ----------------
 

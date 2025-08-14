@@ -251,6 +251,17 @@ $target< otherActor >.varname
 |`$request.core.player_on_hit.target`|Form - (Added by SLTR Core) (for Player On Hit) the Player if the Player was being attacked, their opponent if the Player was attacking|
 |`$request.core.player_on_hit.source`|int - (Added by SLTR Core) (for Player On Hit) the source FormID (weapon/spell) used for the attack|
 |`$request.core.player_on_hit.projectile`|int - (Added by SLTR Core) (for Player On Hit) the projectile FormID used for the attack if one was involved|
+|`$request.core.harvesting.harvest_objref`|ObjectReference - (Added by SLTR Core) (for Harvesting) the ObjectReference of the item activated|
+|`$request.core.harvesting.harvest_base_object`|Form - (Added by SLTR Core) (for Harvesting) the Form result of `harvest_objref.GetBaseObject()`; will be a FLOR(Flora), TREE(Tree) or ACTI(Activator) object|
+|`$request.core.vampirism.was_contracted`|bool - (Added by SLTR Core) (for Vampirism Transitions) did you just contract it (i.e. disease progressed to Vampirism)|
+|`$request.core.vampirism.was_cured`|bool - (Added by SLTR Core) (for Vampirism Transitions) were you cured?|
+|`$request.core.vampirism.started_vampire_lord`|bool - (Added by SLTR Core) (for Vampirism Transitions) did you transform to Vampire Lord?|
+|`$request.core.vampirism.ended_vampire_lord`|bool - (Added by SLTR Core) (for Vampirism Transitions) did you end the Vampire Lord transformation?|
+|`$request.core.lycanthropy.was_contracted`|bool - (Added by SLTR Core) (for Lycanthropy Transitions) did you just contract it (e.g. Companions ceremony)|
+|`$request.core.lycanthropy.was_cured`|bool - (Added by SLTR Core) (for Lycanthropy Transitions) were you cured?|
+|`$request.core.lycanthropy.started_werewolf`|bool - (Added by SLTR Core) (for Lycanthropy Transitions) did you transform to Werewolf?|
+|`$request.core.lycanthropy.ended_werewolf`|bool - (Added by SLTR Core) (for Lycanthropy Transitions) did you end the Werewolf transformation?|
+|`$request.core.vampire_feeding.target`|Form - (Added by SLTR Core) (for Vampire Feeding) the target of the feeding|
 
 ## Basic Operations
 

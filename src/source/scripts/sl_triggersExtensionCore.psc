@@ -26,6 +26,9 @@ int		EVENT_ID_PLAYER_ON_HIT					= 9
 int		EVENT_ID_TIMER							= 10
 int		EVENT_ID_HARVESTED_PLANT				= 11
 int		EVENT_ID_FAST_TRAVEL					= 12
+int		EVENT_ID_VAMPIRISM						= 13
+int		EVENT_ID_LYCANTHROPY					= 14
+int 	EVENT_ID_VAMPIRE_FEEDING				= 15
 
 
 ; legacy, used for updates
@@ -62,6 +65,8 @@ string ATTR_WAS_SNEAK_ATTACK				= "was_sneak_attack"
 string ATTR_WAS_BASH_ATTACK					= "was_bash_attack"
 string ATTR_WAS_BLOCKED						= "was_blocked"
 string ATTR_TIMER_DELAY						= "timer_delay"
+string ATTR_VAMPIRISM						= "vampirism"
+string ATTR_LYCANTHROPY						= "lycanthropy"
 string ATTR_DO_1							= "do_1"
 string ATTR_DO_2							= "do_2"
 string ATTR_DO_3							= "do_3"
@@ -109,6 +114,9 @@ string[]	triggerKeys_player_on_hit
 string[]	triggerKeys_timer
 string[]	triggerKeys_harvesting
 string[]	triggerKeys_fast_travel
+string[] 	triggerKeys_vampirism
+string[]	triggerKeys_lycanthropy
+string[]	triggerKeys_vampire_feeding
 
 bool		playerCellChangeHandlingReady
 float 		last_time_PlayerCellChangeEvent
@@ -669,8 +677,11 @@ Function RefreshTriggerCache()
 	triggerKeys_equipment_change		= PapyrusUtil.StringArray(0)
 	triggerKeys_player_combat_status	= PapyrusUtil.StringArray(0)
 	triggerKeys_player_on_hit			= PapyrusUtil.StringArray(0)
-	triggerKeys_harvesting			= PapyrusUtil.StringArray(0)
+	triggerKeys_harvesting				= PapyrusUtil.StringArray(0)
 	triggerKeys_fast_travel				= PapyrusUtil.StringArray(0)
+	triggerKeys_vampirism				= PapyrusUtil.StringArray(0)
+	triggerKeys_lycanthropy				= PapyrusUtil.StringArray(0)
+	triggerKeys_vampire_feeding			= PapyrusUtil.StringArray(0)
 
 	; paired - and handled differently /
 	;/
@@ -724,27 +735,33 @@ Function RefreshTriggerCache()
 			int eventCode = JsonUtil.GetIntValue(_triggerFile, ATTR_EVENT)
 	
 			if eventCode == EVENT_ID_TOP_OF_THE_HOUR ; topofthehour
-				triggerKeys_topOfTheHour = PapyrusUtil.PushString(triggerKeys_topOfTheHour, TriggerKeys[i])
+				triggerKeys_topOfTheHour = 			PapyrusUtil.PushString(triggerKeys_topOfTheHour, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_KEYMAPPING
-				triggerKeys_keyDown = PapyrusUtil.PushString(triggerKeys_keyDown, TriggerKeys[i])
+				triggerKeys_keyDown = 				PapyrusUtil.PushString(triggerKeys_keyDown, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_NEW_SESSION
-				triggerKeys_newSession = PapyrusUtil.PushString(triggerKeys_newSession, TriggerKeys[i])
+				triggerKeys_newSession = 			PapyrusUtil.PushString(triggerKeys_newSession, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_PLAYER_CELL_CHANGE
-				triggerKeys_playercellchange = PapyrusUtil.PushString(triggerKeys_playercellchange, TriggerKeys[i])
+				triggerKeys_playercellchange = 		PapyrusUtil.PushString(triggerKeys_playercellchange, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_CONTAINER
-				triggerKeys_container = PapyrusUtil.PushString(triggerKeys_container, TriggerKeys[i])
+				triggerKeys_container = 			PapyrusUtil.PushString(triggerKeys_container, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_LOCATION_CHANGE
-				triggerKeys_location_change = PapyrusUtil.PushString(triggerKeys_location_change, TriggerKeys[i])
+				triggerKeys_location_change = 		PapyrusUtil.PushString(triggerKeys_location_change, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_EQUIPMENT_CHANGE
-				triggerKeys_equipment_change = PapyrusUtil.PushString(triggerKeys_equipment_change, TriggerKeys[i])
+				triggerKeys_equipment_change = 		PapyrusUtil.PushString(triggerKeys_equipment_change, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_PLAYER_COMBAT_STATUS
-				triggerKeys_player_combat_status = PapyrusUtil.PushString(triggerKeys_player_combat_status, TriggerKeys[i])
+				triggerKeys_player_combat_status = 	PapyrusUtil.PushString(triggerKeys_player_combat_status, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_PLAYER_ON_HIT
-				triggerKeys_player_on_hit = PapyrusUtil.PushString(triggerKeys_player_on_hit, TriggerKeys[i])
+				triggerKeys_player_on_hit = 		PapyrusUtil.PushString(triggerKeys_player_on_hit, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_HARVESTED_PLANT
-				triggerKeys_harvesting = PapyrusUtil.PushString(triggerKeys_harvesting, TriggerKeys[i])
+				triggerKeys_harvesting = 			PapyrusUtil.PushString(triggerKeys_harvesting, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_FAST_TRAVEL
-				triggerKeys_fast_travel = PapyrusUtil.PushString(triggerKeys_fast_travel, TriggerKeys[i])
+				triggerKeys_fast_travel = 			PapyrusUtil.PushString(triggerKeys_fast_travel, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_VAMPIRISM
+				triggerKeys_vampirism = 			PapyrusUtil.PushString(triggerKeys_vampirism, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_LYCANTHROPY
+				triggerKeys_lycanthropy =			PapyrusUtil.PushString(triggerKeys_lycanthropy, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_VAMPIRE_FEEDING
+				triggerKeys_vampire_feeding =		PapyrusUtil.PushString(triggerKeys_vampire_feeding, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_TIMER
 				string triggerKey = TriggerKeys[i]
 				float timerDelay = JsonUtil.GetFloatValue(_triggerFile, ATTR_TIMER_DELAY)
@@ -2911,4 +2928,424 @@ Function HandleFastTravel()
 
 		i += 1
 	endwhile
+EndFunction
+
+Function HandleVampirism(bool isContracted, bool isCured, bool startVampireLord, bool endVampireLord)
+	If (SLT.Debug_Extension_Core)
+		SLTDebugMsg("Core.HandleVampirism isContracted(" + isContracted + ") isCured(" + isCured + ") startVampireLord(" + startVampireLord + ") endVampireLord(" + endVampireLord + ")")
+	EndIf
+
+	if triggerKeys_vampirism.Length < 1
+		return
+	endif
+	
+	int cmdRequestId
+	int		requestTargetFormId = PlayerRef.GetFormID() ; conveniently so, in this case
+	int i = 0
+	int j
+
+	bool   	doRun
+	string 	triggerKey
+	string 	_triggerFile
+	string 	command
+	bool  playerWasInInterior = PlayerRef.IsInInterior()
+	Keyword playerLocationKeyword = SLT.GetPlayerLocationKeyword()
+
+	int    	ival
+	bool 	bval
+	
+	float chance
+
+	while i < triggerKeys_vampirism.Length
+		triggerKey = triggerKeys_vampirism[i]
+		_triggerFile = FN_T(triggerKey)
+
+		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+
+		if doRun
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
+
+			doRun = chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_VAMPIRISM)
+			if ival != 0
+				if ival == 1
+					doRun = isCured
+				elseif ival == 2
+					doRun = isContracted
+				elseif ival == 3
+					doRun = startVampireLord
+				elseif ival == 4
+					doRun = endVampireLord
+				endif
+			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
+			if ival != 0 ; 0 is Any
+				if ival == 1
+					doRun = DayTime()
+				elseIf ival == 2
+					doRun = !DayTime()
+				endIf
+			endIf
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION)
+			if ival != 0
+;/
+0 - Any
+
+1 - Inside
+2 - Outside
+3 - Safe (Home/Jail/Inn)
+4 - City (City/Town/Habitation/Dwelling)
+5 - Wilderness (!pLoc(DEFAULT)/Hold/Fort/Bandit Camp)
+6 - Dungeon (Cave/et. al.)
+
+; LocationKeywords[i - 7]
+5 - Player Home
+6 - Jail
+...
+/;
+
+				if ival == 1
+					doRun = playerWasInInterior
+				elseif ival == 2
+					doRun = !playerWasInInterior
+				elseif ival == 3
+					doRun = SLT.IsLocationKeywordSafe(playerLocationKeyword)
+				elseif ival == 4
+					doRun = SLT.IsLocationKeywordCity(playerLocationKeyword)
+				elseif ival == 5
+					doRun = SLT.IsLocationKeywordWilderness(playerLocationKeyword)
+				elseif ival == 6
+					doRun = SLT.IsLocationKeywordDungeon(playerLocationKeyword)
+				else
+					j = ival - 7
+					doRun = playerLocationKeyword == SLT.LocationKeywords[j]
+				endif
+			endif
+		endIf
+		
+		if doRun
+			int cmdThreadId
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+			if command
+				cmdRequestId = GetNextVampirismRequestId(requestTargetFormId, cmdRequestId, isContracted, isCured, startVampireLord, endVampireLord)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+			if command
+				cmdRequestId = GetNextVampirismRequestId(requestTargetFormId, cmdRequestId, isContracted, isCured, startVampireLord, endVampireLord)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				cmdRequestId = GetNextVampirismRequestId(requestTargetFormId, cmdRequestId, isContracted, isCured, startVampireLord, endVampireLord)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_4)
+			if command
+				cmdRequestId = GetNextVampirismRequestId(requestTargetFormId, cmdRequestId, isContracted, isCured, startVampireLord, endVampireLord)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+		endif
+
+		i += 1
+	endwhile
+EndFunction
+
+int Function GetNextVampirismRequestId(int requestTargetFormId, int cmdRequestId, bool isContracted, bool isCured, bool startVampireLord, bool endVampireLord)
+	if !cmdRequestId
+		cmdRequestId = SLT.GetNextInstanceId()
+
+		sl_triggersCmd.PrecacheRequestBool(SLT, requestTargetFormId, cmdRequestId, "core.vampirism.was_contracted", isContracted)
+		sl_triggersCmd.PrecacheRequestBool(SLT, requestTargetFormId, cmdRequestId, "core.vampirism.was_cured", isCured)
+		sl_triggersCmd.PrecacheRequestBool(SLT, requestTargetFormId, cmdRequestId, "core.vampirism.started_vampire_lord", startVampireLord)
+		sl_triggersCmd.PrecacheRequestBool(SLT, requestTargetFormId, cmdRequestId, "core.vampirism.ended_vampire_lord", endVampireLord)
+	endif
+	return cmdRequestId
+EndFunction
+
+Function HandleLycanthropy(bool isContracted, bool isCured, bool startWerewolf, bool endWerewolf)
+	If (SLT.Debug_Extension_Core)
+		SLTDebugMsg("Core.HandleLycanthropy isContracted(" + isContracted + ") isCured(" + isCured + ") startWerewolf(" + startWerewolf + ") endWerewolf(" + endWerewolf + ")")
+	EndIf
+
+	if triggerKeys_lycanthropy.Length < 1
+		return
+	endif
+	
+	int cmdRequestId
+	int		requestTargetFormId = PlayerRef.GetFormID() ; conveniently so, in this case
+	int i = 0
+	int j
+
+	bool   	doRun
+	string 	triggerKey
+	string 	_triggerFile
+	string 	command
+	bool  playerWasInInterior = PlayerRef.IsInInterior()
+	Keyword playerLocationKeyword = SLT.GetPlayerLocationKeyword()
+
+	int    	ival
+	bool 	bval
+	
+	float chance
+
+	while i < triggerKeys_lycanthropy.Length
+		triggerKey = triggerKeys_lycanthropy[i]
+		_triggerFile = FN_T(triggerKey)
+
+		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+
+		if doRun
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
+
+			doRun = chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_LYCANTHROPY)
+			if ival != 0
+				if ival == 1
+					doRun = isCured
+				elseif ival == 2
+					doRun = isContracted
+				elseif ival == 3
+					doRun = startWerewolf
+				elseif ival == 4
+					doRun = endWerewolf
+				endif
+			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
+			if ival != 0 ; 0 is Any
+				if ival == 1
+					doRun = DayTime()
+				elseIf ival == 2
+					doRun = !DayTime()
+				endIf
+			endIf
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION)
+			if ival != 0
+;/
+0 - Any
+
+1 - Inside
+2 - Outside
+3 - Safe (Home/Jail/Inn)
+4 - City (City/Town/Habitation/Dwelling)
+5 - Wilderness (!pLoc(DEFAULT)/Hold/Fort/Bandit Camp)
+6 - Dungeon (Cave/et. al.)
+
+; LocationKeywords[i - 7]
+5 - Player Home
+6 - Jail
+...
+/;
+
+				if ival == 1
+					doRun = playerWasInInterior
+				elseif ival == 2
+					doRun = !playerWasInInterior
+				elseif ival == 3
+					doRun = SLT.IsLocationKeywordSafe(playerLocationKeyword)
+				elseif ival == 4
+					doRun = SLT.IsLocationKeywordCity(playerLocationKeyword)
+				elseif ival == 5
+					doRun = SLT.IsLocationKeywordWilderness(playerLocationKeyword)
+				elseif ival == 6
+					doRun = SLT.IsLocationKeywordDungeon(playerLocationKeyword)
+				else
+					j = ival - 7
+					doRun = playerLocationKeyword == SLT.LocationKeywords[j]
+				endif
+			endif
+		endIf
+		
+		if doRun
+			int cmdThreadId
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+			if command
+				cmdRequestId = GetNextLycanthropyRequestId(requestTargetFormId, cmdRequestId, isContracted, isCured, startWerewolf, endWerewolf)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+			if command
+				cmdRequestId = GetNextLycanthropyRequestId(requestTargetFormId, cmdRequestId, isContracted, isCured, startWerewolf, endWerewolf)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				cmdRequestId = GetNextLycanthropyRequestId(requestTargetFormId, cmdRequestId, isContracted, isCured, startWerewolf, endWerewolf)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_4)
+			if command
+				cmdRequestId = GetNextLycanthropyRequestId(requestTargetFormId, cmdRequestId, isContracted, isCured, startWerewolf, endWerewolf)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+		endif
+
+		i += 1
+	endwhile
+EndFunction
+
+int Function GetNextLycanthropyRequestId(int requestTargetFormId, int cmdRequestId, bool isContracted, bool isCured, bool startWerewolf, bool endWerewolf)
+	if !cmdRequestId
+		cmdRequestId = SLT.GetNextInstanceId()
+
+		sl_triggersCmd.PrecacheRequestBool(SLT, requestTargetFormId, cmdRequestId, "core.lycanthropy.was_contracted", isContracted)
+		sl_triggersCmd.PrecacheRequestBool(SLT, requestTargetFormId, cmdRequestId, "core.lycanthropy.was_cured", isCured)
+		sl_triggersCmd.PrecacheRequestBool(SLT, requestTargetFormId, cmdRequestId, "core.lycanthropy.started_werewolf", startWerewolf)
+		sl_triggersCmd.PrecacheRequestBool(SLT, requestTargetFormId, cmdRequestId, "core.lycanthropy.ended_werewolf", endWerewolf)
+	endif
+	return cmdRequestId
+EndFunction
+
+Function HandleVampireFeeding(Actor akTarget)
+	If (SLT.Debug_Extension_Core)
+		SLTDebugMsg("Core.HandleVampireFeeding")
+	EndIf
+
+	if triggerKeys_vampire_feeding.Length < 1
+		return
+	endif
+	
+	int cmdRequestId
+	int		requestTargetFormId = PlayerRef.GetFormID() ; conveniently so, in this case
+	int i = 0
+	int j
+
+	bool   	doRun
+	string 	triggerKey
+	string 	_triggerFile
+	string 	command
+	bool  playerWasInInterior = PlayerRef.IsInInterior()
+	Keyword playerLocationKeyword = SLT.GetPlayerLocationKeyword()
+
+	int    	ival
+	bool 	bval
+	
+	float chance
+
+	while i < triggerKeys_vampire_feeding.Length
+		triggerKey = triggerKeys_vampire_feeding[i]
+		_triggerFile = FN_T(triggerKey)
+
+		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+
+		if doRun
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
+
+			doRun = chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
+			if ival != 0 ; 0 is Any
+				if ival == 1
+					doRun = DayTime()
+				elseIf ival == 2
+					doRun = !DayTime()
+				endIf
+			endIf
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION)
+			if ival != 0
+;/
+0 - Any
+
+1 - Inside
+2 - Outside
+3 - Safe (Home/Jail/Inn)
+4 - City (City/Town/Habitation/Dwelling)
+5 - Wilderness (!pLoc(DEFAULT)/Hold/Fort/Bandit Camp)
+6 - Dungeon (Cave/et. al.)
+
+; LocationKeywords[i - 7]
+5 - Player Home
+6 - Jail
+...
+/;
+
+				if ival == 1
+					doRun = playerWasInInterior
+				elseif ival == 2
+					doRun = !playerWasInInterior
+				elseif ival == 3
+					doRun = SLT.IsLocationKeywordSafe(playerLocationKeyword)
+				elseif ival == 4
+					doRun = SLT.IsLocationKeywordCity(playerLocationKeyword)
+				elseif ival == 5
+					doRun = SLT.IsLocationKeywordWilderness(playerLocationKeyword)
+				elseif ival == 6
+					doRun = SLT.IsLocationKeywordDungeon(playerLocationKeyword)
+				else
+					j = ival - 7
+					doRun = playerLocationKeyword == SLT.LocationKeywords[j]
+				endif
+			endif
+		endIf
+		
+		if doRun
+			int cmdThreadId
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+			if command
+				cmdRequestId = GetNextVampireFeedingRequestId(requestTargetFormId, cmdRequestId, akTarget)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+			if command
+				cmdRequestId = GetNextVampireFeedingRequestId(requestTargetFormId, cmdRequestId, akTarget)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				cmdRequestId = GetNextVampireFeedingRequestId(requestTargetFormId, cmdRequestId, akTarget)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_4)
+			if command
+				cmdRequestId = GetNextVampireFeedingRequestId(requestTargetFormId, cmdRequestId, akTarget)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+		endif
+
+		i += 1
+	endwhile
+EndFunction
+
+int Function GetNextVampireFeedingRequestId(int requestTargetFormId, int cmdRequestId, Actor akTarget)
+	if !cmdRequestId
+		cmdRequestId = SLT.GetNextInstanceId()
+
+		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.vampire_feeding.target", akTarget)
+	endif
+	return cmdRequestId
 EndFunction

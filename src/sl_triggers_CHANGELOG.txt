@@ -9,6 +9,9 @@
     change: added fourth script option on all events (because seeing an intentionally imbalanced set of MCM components was bothering me; yes that is the only reason)
     enhancement: new Core event: Harvesting (Custom event: OnSLTRHarvesting(ObjectReference harvestSource) )
     enhancement: new Core event: Fast Travel Arrival (OnPlayerFastTravelEnd)
+    enhancement: new Core event: Werewolf Change (OnLycanthropyStateChanged) (Any/Cured/Contracted/Werebeast Form)
+    enhancement: new Core event: Vampire Change (OnVampirismStateChanged) (Any/Cured/Contracted/Vampire Lord Form)
+    enhancement: new Core event: Vampire Feeding (OnVampireFeed)
 
 134
     Savegame compatibility: Should be savegame compatible

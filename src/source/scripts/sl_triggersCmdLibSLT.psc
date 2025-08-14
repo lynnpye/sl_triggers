@@ -820,10 +820,10 @@ endFunction
 ; sltdesc Equip item ("vanilla" version)
 ; sltargs actor: target Actor
 ; sltargs item: ITEM FormId
-; sltargs removalallowed: 0 - removal allowed | 1 - removal not allowed
-; sltargs sound: 0 - no sound | 1 - with sound
-; sltargs <actor variable> <ITEM FormId> <0 - removal allowed | 1 - removal not allowed> <0 - no sound | 1 - with sound>
-; sltsamp item_equip $system.self "ZaZAnimationPack.esm:159072" 1 0
+; sltargs preventRemoval: false - removal allowed | true - removal not allowed
+; sltargs sound: false - no sound | true - with sound
+; sltargs <actor variable> <ITEM FormId> <false - removal allowed | true - removal not allowed> <false - no sound | true - with sound>
+; sltsamp item_equip $system.self "ZaZAnimationPack.esm:159072" true false
 ; sltrslt Equip the ZaZ armor on $system.self, silently, with no removal allowed (uses whatever slot the armor uses)
 function item_equip(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -833,9 +833,9 @@ function item_equip(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         if thing
             Actor _targetActor = CmdPrimary.ResolveActor(param[1])
             if _targetActor
-                int slotId = CmdPrimary.ResolveInt(param[3])
+                bool preventRemoval = CmdPrimary.ResolveBool(param[3])
                 bool isSilent = CmdPrimary.ResolveBool(param[4])
-                _targetActor.EquipItem(thing, slotId, isSilent)
+                _targetActor.EquipItem(thing, preventRemoval, isSilent)
             else
                 CmdPrimary.SFE("unable to resolve actor variable (" + param[1] + ")")
             endif

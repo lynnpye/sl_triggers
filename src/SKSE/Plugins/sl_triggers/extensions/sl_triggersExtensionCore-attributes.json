@@ -42,6 +42,8 @@
         ["was_bash_attack",         "triggerattribute_was_bash_attack"],
         ["was_blocked",             "triggerattribute_was_blocked"],
         ["timer_delay",             "triggerattribute_timer_delay"],
+        ["vampirism",               "triggerattribute_vampirism"],
+        ["lycanthropy",             "triggerattribute_lycanthropy"],
         ["do_1",                    "triggerattribute_do_1"],
         ["do_2",                    "triggerattribute_do_2"],
         ["do_3",                    "triggerattribute_do_3"],
@@ -50,7 +52,7 @@
     "triggerattribute_event" : [
         ["# here is where you define aspects of the attribute"],
         ["type", "int"],
-        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Key Mapping", "Top of the Hour", "New Session", "Player Cell Change (Frequent)", "Player Opened Container", "Player Location Change (Less Frequent)", "Player Equipment Change", "Player Combat State Changed", "Player Hit or Is Hit", "Timer Based", "Harvesting", "Fast Travel Arrival"],
+        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Key Mapping", "Top of the Hour", "New Session", "Player Cell Change (Frequent)", "Player Opened Container", "Player Location Change (Less Frequent)", "Player Equipment Change", "Player Combat State Changed", "Player Hit or Is Hit", "Timer Based", "Harvesting", "Fast Travel Arrival", "Vampirism Transitions", "Werewolf Transitions", "Vampire Feeding"],
         ["info", "Choose which type of event this trigger will use."]
     ],
     "triggerattribute_keymapping" : 
@@ -199,6 +201,16 @@
         ["widget", "menu", "Attack Blocked :", "0", "Any", "Was Attack Blocked", "Was Attack Left Unblocked"],
         ["info", "Whether the attack was blocked."]
     ],
+    "triggerattribute_vampirism" : [
+        ["type", "int"],
+        ["widget", "menu", "Vampirism Transition: ", "0", "Any", "Cured", "Contracted", "Enter Vampire Lord Form", "Leave Vampire Lord Form"],
+        ["info", "Which phase of vampirism you wish to react to."]
+    ],
+    "triggerattribute_lycanthropy" : [
+        ["type", "int"],
+        ["widget", "menu", "Lycanthropy Transition: ", "0", "Any", "Cured", "Contracted", "Enter Werewolf Form", "Leave Werewolf Form"],
+        ["info", "Which phase of lycanthropy you wish to react to."]
+    ],
     "triggerattribute_do_1" : [
         ["type", "string"],
         ["widget", "command", "Script 1: "],
@@ -234,7 +246,10 @@
         ["9", "triggerlayout_player_on_hit"],
         ["10", "triggerlayout_timer"],
         ["11", "triggerlayout_harvested_plant"],
-        ["12", "triggerlayout_fast_travel"]
+        ["12", "triggerlayout_fast_travel"],
+        ["13", "triggerlayout_vampirism"],
+        ["14", "triggerlayout_lycanthropy"],
+        ["15", "triggerlayout_vampire_feeding"]
     ],
     "triggerlayout_keymapping" : [
         ["event", "chance"],
@@ -330,6 +345,26 @@
     ],
     "triggerlayout_fast_travel" : [
         ["event", "chance"],
+        ["do_1", "do_2"],
+        ["do_3", "do_4"]
+    ],
+    "triggerlayout_vampirism" : [
+        ["event", "chance"],
+        ["vampirism"],
+        ["deeplocation", "daytime"],
+        ["do_1", "do_2"],
+        ["do_3", "do_4"]
+    ],
+    "triggerlayout_lycanthropy" : [
+        ["event", "chance"],
+        ["lycanthropy"],
+        ["deeplocation", "daytime"],
+        ["do_1", "do_2"],
+        ["do_3", "do_4"]
+    ],
+    "triggerlayout_vampire_feeding" : [
+        ["event", "chance"],
+        ["deeplocation", "daytime"],
         ["do_1", "do_2"],
         ["do_3", "do_4"]
     ],
