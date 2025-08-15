@@ -1,3 +1,12 @@
+136
+    Savegame compatibility: Should be savegame compatible
+    
+    Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
+        (or whichever folder you have your SKSE logs directed to)
+
+    bugfix: removed sla_get_actor_hours_since_last_sex; GetActorHoursSinceLastSex only exists for OSLAroused, not for SexLabAroused
+    enhancement: Many more SexLab API functions added to the function library
+
 135
     Savegame compatibility: Should be savegame compatible
     

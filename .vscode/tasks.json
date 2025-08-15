@@ -2,13 +2,85 @@
     "version": "2.0.0",
     "tasks": [
       {
-        "label": "Build Papyrus",
+        "label": "Build Core",
         "group":{
           "kind": "build",
           "isDefault": true
         },
         "type": "pyro",
-        "projectFile": "skyrimse.ppj",
+        "projectFile": "ppj-core.ppj",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": [
+          "$PapyrusCompiler"
+        ]
+      },
+      {
+        "label": "Build Adult General",
+        "group":{
+          "kind": "build",
+          "isDefault": true
+        },
+        "type": "pyro",
+        "projectFile": "ppj-adult-general.ppj",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": [
+          "$PapyrusCompiler"
+        ]
+      },
+      {
+        "label": "Build OStim",
+        "group":{
+          "kind": "build",
+          "isDefault": true
+        },
+        "type": "pyro",
+        "projectFile": "ppj-ostim.ppj",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": [
+          "$PapyrusCompiler"
+        ]
+      },
+      {
+        "label": "Build SexLab",
+        "group":{
+          "kind": "build",
+          "isDefault": true
+        },
+        "type": "pyro",
+        "projectFile": "ppj-sexlab.ppj",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": [
+          "$PapyrusCompiler"
+        ]
+      },
+      {
+        "label": "Build SexLab P+",
+        "group":{
+          "kind": "build",
+          "isDefault": true
+        },
+        "type": "pyro",
+        "projectFile": "ppj-sexlabplusplus.ppj",
         "presentation": {
           "echo": true,
           "reveal": "always",
@@ -29,7 +101,7 @@
         "label": "Build Mod",
         "group": "build",
         "dependsOn": [
-          "Build Papyrus",
+          "Build Core",
           "Build Plugin"
         ],
         "dependsOrder": "sequence"

@@ -1,0 +1,170 @@
+{
+    "comment_section" : [
+        ["# this is an attributes file for an SLT extension"],
+        ["# it will also contain this structure, letting SLT know what attributes to track"],
+        ["# this is a comment because it starts with an octothorpe(#)"],
+        ["# otherwise this file has to be proper json"],
+        ["# it is divided into a 'triggers' block and a 'settings' block"],
+        ["# the blocks are otherwise the same, following the same naming convention"]
+    ],
+    "trigger_attributes" : [
+        ["# this section is just a simple list of attributes"],
+        ["# one per row, yes"],
+        ["event",           "triggerattribute_event"],
+        ["chance",          "triggerattribute_chance"],
+        ["race",            "triggerattribute_race"],
+        ["role",            "triggerattribute_role"],
+        ["player",          "triggerattribute_player"],
+        ["gender",          "triggerattribute_gender"],
+        ["tag",             "triggerattribute_tag"],
+        ["daytime",         "triggerattribute_daytime"],
+        ["location",        "triggerattribute_location"],
+        ["position",        "triggerattribute_position"],
+        ["deeplocation",    "triggerattribute_deeplocation"],
+        ["is_armed",        "triggerattribute_is_armed"],
+        ["is_clothed",      "triggerattribute_is_clothed"],
+        ["is_weapon_drawn", "triggerattribute_is_weapon_drawn"],
+        ["do_1",            "triggerattribute_do_1"],
+        ["do_2",            "triggerattribute_do_2"],
+        ["do_3",            "triggerattribute_do_3"],
+        ["do_4",            "triggerattribute_do_4"],
+        ["partner_role",    "triggerattribute_partner_role"],
+        ["partner_gender",  "triggerattribute_partner_gender"],
+        ["partner_race",    "triggerattribute_partner_race"]
+    ],
+    "triggerattribute_event" : [
+        ["# here is where you define aspects of the attribute"],
+        ["type", "int"],
+        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Begin", "Orgasm", "End", "Orgasm(SLSO)"],
+        ["info", "Choose which type of event this trigger will use."]
+    ],
+    "triggerattribute_chance" : [
+        ["type", "float", "100.0"],
+        ["widget", "slider", "Chance: ", "0.0", "100.0", "1.0", "{0}"],
+        ["info", "The chance the trigger will run when all prerequisites are met."]
+    ],
+    "triggerattribute_race" : [
+        ["type", "int"],
+        ["widget", "menu", "Race: ", "0", "Any", "Humanoid", "Creature", "Undead", "Partner Humanoid", "Partner Creature", "Partner Undead"],
+        ["info", "The 'race' of a scene participant for the script to run on them."]
+    ],
+    "triggerattribute_role" : [
+        ["type", "int"],
+        ["widget", "menu", "Role: ", "0", "Any", "Aggressor", "Victim", "Not part of rape"],
+        ["info", "The role of a scene participant with regard to aggression."]
+    ],
+    "triggerattribute_player" : [
+        ["type", "int"],
+        ["widget", "menu", "Player Relationship: ", "0", "Any", "Player", "Not Player", "Partner Player", "Partner Not Player"],
+        ["info", "The relationship to the Player of a scene participant."]
+    ],
+    "triggerattribute_gender" : [
+        ["type", "int"],
+        ["widget", "menu", "Gender: ", "0", "Any", "Male", "Female"],
+        ["info", "The SexLab gender of a scene participant."]
+    ],
+    "triggerattribute_tag" : [
+        ["type", "int"],
+        ["widget", "menu", "SL Tag :", "0", "Any", "Vaginal", "Anal", "Oral"],
+        ["info", "The SexLab 'tag' for the animation the scene participant is in."]
+    ],
+    "triggerattribute_daytime" : [
+        ["type", "int"],
+        ["widget", "menu", "Daytime :", "0", "Any", "Day", "Night"],
+        ["info", "The time of day the scene is taking place in."]
+    ],
+    "triggerattribute_location" : [
+        ["type", "int"],
+        ["widget", "menu", "Location :", "0", "Any", "Inside", "Outside"],
+        ["info", "The location, indoors or outdoors, the scene is taking place in."]
+    ],
+    "triggerattribute_position" : [
+        ["type", "int"],
+        ["widget", "menu", "Position :", "0", "Any", "1", "2", "3", "4", "5"],
+        ["info", "The SexLab 'position' the scene participant is in (1-5)."]
+    ],
+    "triggerattribute_do_1" : [
+        ["type", "string"],
+        ["widget", "command", "Script 1: "],
+        ["info", "You can run 1 or more commands associated with this keymapping. This is the first."]
+    ],
+    "triggerattribute_do_2" : [
+        ["type", "string"],
+        ["widget", "command", "Script 2: "],
+        ["info", "You can run 1 or more commands associated with this keymapping. This is the second."]
+    ],
+    "triggerattribute_do_3" : [
+        ["type", "string"],
+        ["widget", "command", "Script 3: "],
+        ["info", "You can run 1 or more commands associated with this keymapping. This is the third."]
+    ],
+    "triggerattribute_do_4" : [
+        ["type", "string"],
+        ["widget", "command", "Script 4: "],
+        ["info", "You can run 1 or more commands associated with this keymapping. This is the fourth."]
+    ],
+    "triggerattribute_is_armed" : [
+        ["type", "int"],
+        ["widget", "menu", "Is Weapon/Spell Equipped? ", "0", "Any", "Equipped In Either Hand", "Not Equipped In Either Hand", "Not Equipped In Main/Right Hand"],
+        ["info", "Whether the player has a weapon or spell equipped."]
+    ],
+    "triggerattribute_is_clothed" : [
+        ["type", "int"],
+        ["widget", "menu", "Is Armor/Clothing Equipped? ", "0", "Any", "Equipped In Body Slot (32)", "Not Equipped In Body Slot (32)", "Not Equipped Or Devious Item Equipped In Body Slot (32)"],
+        ["info", "Whether the player has armor or clothing equipped in the Body slot (32)."]
+    ],
+    "triggerattribute_is_weapon_drawn": [
+        ["type", "int"],
+        ["widget", "menu", "Is Weapon/Spell Drawn? ", "0", "Any", "Weapon/Spell Is Drawn", "Weapon/Spell Is Not Drawn"],
+        ["info", "Whether the player has a weapon or spell drawn and ready for combat."]
+    ],
+    "triggerattribute_deeplocation": [
+        ["type", "int"],
+        ["widget", "menu", "Location :", "0", "Any", "Inside", "Outside", "Safe (Home/Jail/Inn)", "City / Town", "Wilderness", "Dungeon", "Player Home", "Jail", "Dungeon", "Cave", "Dwelling", "City", "Town", "Habitation", "Draugr Crypt", "Dragon Priest Lair", "Bandit Camp", "Falmer Hive", "Vampire Lair", "Dwarven Automatons", "Military Fort", "Mine", "Inn", "Hold"],
+        ["info", "The location, indoors or outdoors, as well as Safe/City/Wilderness/Dungeon and others, the cell qualifies as."]
+    ],
+    "triggerattribute_partner_race" : [
+        ["type", "int"],
+        ["widget", "menu", "Partner Race: ", "0", "Any", "Humanoid", "Creature", "Undead"],
+        ["info", "Requires the script target's partner to be of the selected 'race', if any."]
+    ],
+    "triggerattribute_partner_role" : [
+        ["type", "int"],
+        ["widget", "menu", "Partner Role: ", "0", "Any", "Aggressor", "Victim", "Not part of rape"],
+        ["info", "Requires the script target's partner to be in the selected role, if any."]
+    ],
+    "triggerattribute_partner_gender" : [
+        ["type", "int"],
+        ["widget", "menu", "Partner Gender: ", "0", "Any", "Male", "Female"],
+        ["info", "Requires the script target's partner to be of the selected gender."]
+    ],
+    "triggerlayout" : [
+        ["event", "chance"],
+        ["race", "role"],
+        ["player", "gender"],
+        ["partner_race", "partner_role"],
+        ["partner_gender", "position"],
+        ["tag", "daytime"],
+        ["deeplocation", "is_weapon_drawn"],
+        ["is_armed", "is_clothed"],
+        ["do_1", "do_2"],
+        ["do_3", "do_4"]
+    ]
+
+
+    ,
+
+
+
+    "settings_attributes" : [
+        ["cards_per_page",      "settingsattribute_cards_per_page"]
+    ],
+    "settingsattribute_cards_per_page" : [
+        ["type", "int"],
+        ["widget", "menu", "Triggers per Page :", "4", "1", "2", "3", "4", "5"],
+        ["info", "The number of triggers to display per page."]
+    ],
+	"settingslayout" : [
+		["cards_per_page"]
+	]
+}

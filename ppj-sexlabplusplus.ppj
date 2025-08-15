@@ -1,0 +1,31 @@
+<?xml version='1.0'?><!-- Game is either sse, tesv, or fo4 -->
+<PapyrusProject xmlns="PapyrusProject.xsd" 
+    Flags="TESV_Papyrus_Flags.flg" 
+    Game="sse" 
+    Output=".\extern\libraries\sexlabplusplus\scripts"
+    Optimize="false" 
+    Release="false" 
+    Final="false">
+    <Imports>
+        <Import>.\src\Source\Scripts</Import>
+        <Import>.\inc\skse</Import>
+        <Import>.\inc\beth</Import>
+        <Import>.\inc\paputil</Import>
+        <Import>.\inc\po3</Import>
+        <Import>.\inc\pyramid</Import>
+        <Import>.\inc\conutil</Import>
+        <Import>.\inc\skyui</Import>
+        <Import>.\inc\mfg</Import>
+        <Import>.\inc\racemenu</Import>
+        <Import>.\inc\sexlabplusplus</Import>
+        <Import>.\inc\dd52</Import>
+        <Import>.\inc\slang</Import>
+        <Import>.\inc\advfwk</Import>
+        <!-- Import>.\inc\slso</Import -->
+        <Import>.\inc\dfr</Import>
+    </Imports>
+    <Folders>
+        <Folder>.\extern\libraries\sexlabplusplus\source\scripts</Folder>
+        <Folder>.\extern\libraries\sexlab-dependent\source\scripts</Folder>
+    </Folders>
+</PapyrusProject>

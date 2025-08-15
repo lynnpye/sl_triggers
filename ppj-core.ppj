@@ -1,0 +1,23 @@
+<?xml version='1.0'?><!-- Game is either sse, tesv, or fo4 -->
+<PapyrusProject xmlns="PapyrusProject.xsd" 
+    Flags="TESV_Papyrus_Flags.flg" 
+    Game="sse" 
+    Output=".\src\scripts" 
+    Optimize="false" 
+    Release="false" 
+    Final="false">
+    <Imports>
+        <Import>.\inc\skse</Import>
+        <Import>.\inc\beth</Import>
+        <Import>.\inc\paputil</Import>
+        <Import>.\inc\po3</Import>
+        <Import>.\inc\pyramid</Import>
+        <Import>.\inc\conutil</Import>
+        <Import>.\inc\skyui</Import>
+        <Import>.\inc\mfg</Import>
+        <Import>.\inc\racemenu</Import>
+    </Imports>
+    <Folders>
+        <Folder>.\src\Source\Scripts</Folder>
+    </Folders>
+</PapyrusProject>
