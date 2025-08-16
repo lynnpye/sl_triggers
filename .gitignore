@@ -1,8 +1,13 @@
 src/scripts/
 
+fomod/*
+!fomod/fomod/
+!fomod/fomod/*
+
 vcnuker.cmd
 sgrep.cmd
 *.zip
+*.7z
 sl-triggers-internal.dll
 sl-triggers.dll
 todo.txt

@@ -1,7 +1,8 @@
 #set shell := ["cmd.exe", "/c"]
 set shell := ["powershell.exe", "-c"]
 
-version_mod :=                  read('VERSION')
+version_fomod :=                read('VERSION')
+version_mod :=                  trim_start_matches(replace(version_fomod, '.', '0'), '0')
 version_pet_collar_game :=      read('extern/add-ons/sltr_pet_collar_game/VERSION')
 
 dir_project :=                  source_directory()
@@ -13,7 +14,21 @@ dir_test_scripts :=             dir_project_addons / "sltr_test_scripts"
 dir_lang_support :=             dir_project_extern / "lang-support"
 dir_lang_notepad_plusplus :=    dir_lang_support / "notepad++"
 dir_lang_vscode :=              dir_lang_support / "vscode"
+dir_project_libraries :=        dir_project_extern / "libraries"
+dir_lib_adult_general :=        dir_project_libraries / "adult-general"
+dir_lib_ostim :=                dir_project_libraries / "ostim"
+dir_lib_sexlab :=               dir_project_libraries / "sexlab"
+dir_lib_sexlabplusplus :=       dir_project_libraries / "sexlabplusplus"
+dir_lib_sexlab_dependent :=     dir_project_libraries / "sexlab-dependent"
 dir_project_caprica :=          dir_project_extern / "caprica"
+dir_project_fomod :=            dir_project / "fomod"
+dir_fomod_fomod :=              dir_project_fomod / "fomod"
+dir_fomod_core :=               dir_project_fomod / "core"
+dir_fomod_ostim :=              dir_project_fomod / "ostim"
+dir_fomod_sexlab :=             dir_project_fomod / "sexlab"
+dir_fomod_sexlabplusplus :=     dir_project_fomod / "sexlabplusplus"
+dir_fomod_test_scripts :=       dir_project_fomod / "test-scripts"
+dir_fomod_pet_collar_game :=    dir_project_fomod / "pet-collar-game"
 dir_project_inc :=              dir_project / "inc"
 dir_project_inc_beth :=         dir_project_inc / "beth"
 dir_project_inc_skse :=         dir_project_inc / "skse"
@@ -37,6 +52,8 @@ dir_test_nef :=                 dir_modlistinstalls / "NEFARAM.15.4.2" / "mods" 
 dir_nef_plugins :=              dir_test_nef / "SKSE" / "Plugins"
 dir_sltr_test_scripts :=        dir_project_addons / "sltr_test_scripts"
 
+file_fomod_info_xml :=          dir_fomod_fomod / "info.xml"
+
 file_catchup_exclusion :=       dir_project / "catchup_exclusion.txt"
 file_plugin_release :=          dir_project_plugin_release / "sl-triggers.dll"
 file_tesv_flags :=              dir_project_inc_beth / "TESV_Papyrus_Flags.flg"
@@ -44,9 +61,11 @@ file_caprica_exe :=             dir_project_caprica / "Caprica.exe"
 
 file_sl_triggersStatics :=      dir_project_scripts / "sl_triggersStatics.psc"
 
-mod_filename :=                 "sl_triggers" + version_mod + ".zip"
+fomod_filename :=               "SLTriggersRedux-" + version_fomod + ".zip"
+file_dep_fomod :=               dir_dep / fomod_filename
+mod_filename :=                 "sl_triggers" + version_fomod + ".zip"
 file_dep_mod :=                 dir_dep / mod_filename
-test_script_filename :=         "sltr_test_scripts" + version_mod + ".zip"
+test_script_filename :=         "sltr_test_scripts" + version_fomod + ".zip"
 file_dep_test_scripts :=        dir_dep / test_script_filename
 pet_collar_game_filename :=     "sltr_pet_collar_game" + version_pet_collar_game + ".zip"
 file_dep_pet_collar_game :=     dir_dep / pet_collar_game_filename
@@ -61,12 +80,14 @@ raw_dir_pet_collar_game :=      replace(dir_pet_collar_game,            '/', '\'
 raw_dir_test_scripts :=         replace(dir_test_scripts,               '/', '\')
 raw_dir_lang_npp :=             replace(dir_lang_notepad_plusplus,      '/', '\')
 raw_dir_lang_vscode :=          replace(dir_lang_vscode,                '/', '\')
+raw_dir_project_fomod :=        replace(dir_project_fomod,              '/', '\')
 
 raw_file_dep_mod :=             replace(file_dep_mod,                   '/', '\')
 raw_file_pet_collar_game :=     replace(file_dep_pet_collar_game,       '/', '\')
 raw_file_test_scripts :=        replace(file_dep_test_scripts,          '/', '\')
 raw_file_lang_npp :=            replace(file_dep_lang_npp,              '/', '\')
 raw_file_lang_vscode :=         replace(file_dep_lang_vscode,           '/', '\')
+raw_file_dep_fomod :=           replace(file_dep_fomod,                 '/', '\')
 
 # stringified versions for use in commands
 str_dir_test_sme :=             replace("\"" + dir_test_sme + "\\\"",                   '/', '\')
@@ -98,6 +119,22 @@ str_file_dep_test_scripts :=    replace("\"" + file_dep_test_scripts + "\"",    
 str_file_dep_pet_collar_game := replace("\"" + file_dep_pet_collar_game + "\"",         '/', '\')
 
 fileglob_sltr_test_scripts :=   replace("\"" + dir_sltr_test_scripts / "*.*" + "\"",    '/', '\')
+
+str_dir_addon_pet_collar_game := replace("\"" + dir_pet_collar_game + "\\\"",           '/', '\')
+str_dir_addon_test_scripts :=   replace("\"" + dir_test_scripts + "\\\"",               '/', '\')
+
+str_dir_lib_adult_general :=    replace("\"" + dir_lib_adult_general + "\\\"",          '/', '\')
+str_dir_lib_ostim :=            replace("\"" + dir_lib_ostim + "\\\"",                  '/', '\')
+str_dir_lib_sexlab :=           replace("\"" + dir_lib_sexlab + "\\\"",                 '/', '\')
+str_dir_lib_sexlabplusplus :=   replace("\"" + dir_lib_sexlabplusplus + "\\\"",         '/', '\')
+str_dir_lib_sexlab_dependent := replace("\"" + dir_lib_sexlab_dependent + "\\\"",       '/', '\')
+
+str_dir_fomod_core :=           replace("\"" + dir_fomod_core + "\\\"",                 '/', '\')
+str_dir_fomod_ostim :=          replace("\"" + dir_fomod_core + "\\\"",                 '/', '\')
+str_dir_fomod_sexlab :=         replace("\"" + dir_fomod_core + "\\\"",                 '/', '\')
+str_dir_fomod_sexlabplusplus := replace("\"" + dir_fomod_core + "\\\"",                 '/', '\')
+str_dir_fomod_test_scripts :=   replace("\"" + dir_fomod_core + "\\\"",                 '/', '\')
+str_dir_fomod_pet_collar_game := replace("\"" + dir_fomod_core + "\\\"",                '/', '\')
 
 
 default:
@@ -131,10 +168,37 @@ populateNEF: _prepsrc
 generatedocs:
     jcx SltParser
 
+packagefomod:
+    rd /q /s {{str_dir_fomod_core}}
+    rd /q /s {{str_dir_fomod_ostim}}
+    rd /q /s {{str_dir_fomod_sexlab}}
+    rd /q /s {{str_dir_fomod_sexlabplusplus}}
+    rd /q /s {{str_dir_fomod_test_scripts}}
+    rd /q /s {{str_dir_fomod_pet_collar_game}}
+    #Core
+    xcopy /e /i /y {{str_dir_project_src}} {{str_dir_fomod_core}}
+    #OStim
+    xcopy /e /i /y {{str_dir_lib_adult_general}} {{str_dir_fomod_ostim}}
+    xcopy /e /i /y {{str_dir_lib_ostim}} {{str_dir_fomod_ostim}}
+    #SexLab
+    xcopy /e /i /y {{str_dir_lib_adult_general}} {{str_dir_fomod_sexlab}}
+    xcopy /e /i /y {{str_dir_lib_sexlab_dependent}} {{str_dir_fomod_sexlab}}
+    xcopy /e /i /y {{str_dir_lib_sexlab}} {{str_dir_fomod_sexlab}}
+    #SexLab P+
+    xcopy /e /i /y {{str_dir_lib_adult_general}} {{str_dir_fomod_sexlabplusplus}}
+    xcopy /e /i /y {{str_dir_lib_sexlab_dependent}} {{str_dir_fomod_sexlabplusplus}}
+    xcopy /e /i /y {{str_dir_lib_sexlabplusplus}} {{str_dir_fomod_sexlabplusplus}}
+    #Test Scripts
+    xcopy /e /i /y {{str_dir_addon_test_scripts}} {{str_dir_fomod_test_scripts}}
+    #PetCollar Game
+    xcopy /e /i /y {{str_dir_addon_pet_collar_game}} {{str_dir_fomod_pet_collar_game}}
+    powershell.exe -Command "if (Test-Path '{{raw_file_dep_fomod}}') { Remove-Item -Path '{{raw_file_dep_fomod}}' }"
+    powershell.exe -Command "Compress-Archive -Path '{{raw_dir_project_fomod}}\\*' -DestinationPath '{{raw_file_dep_fomod}}'"
+
 # More targeted replacement (safer - targets specifically the GetModVersion function)
 update-version-safe:
     @echo "Updating version to {{version_mod}} in sl_triggersStatics.psc"
-    powershell.exe -File update-version.ps1 -ScriptPath "{{file_sl_triggersStatics}}" -NewVersion "{{version_mod}}"
+    powershell.exe -File update-version.ps1 -ScriptPath "{{file_sl_triggersStatics}}" -InfoXmlPath "{{file_fomod_info_xml}}" -NewVersion "{{version_mod}}" -NewFomodVersion "{{version_fomod}}"
 
 _package_preclean:
     powershell.exe -File clean-deps.ps1 -dir_dep "{{dir_dep}}"
