@@ -1,0 +1,145 @@
+SLTriggers Redux OStim Function Library
+
+
+OStim:
+==============
+
+ostim_actorcount: Returns the actorcount of the OStim scene the targetActor is in; 0 if not in a scene
+
+	Example
+		ostim_actorcount $system.self
+
+-=-
+
+ostim_animname: Sets $$ to the current OStim animation name
+
+	Example
+		ostim_animname $system.self
+		msg_notify "Playing: " $$
+
+-=-
+
+ostim_climax: Immediately forces the specified actor to have a OStim orgasm.
+May only work during OStim scenes
+	- parameter 1: actor: target Actor
+	- parameter 2: bool: ignoreStall: (optional; default:false) should the ClimaxStalled setting be ignored
+
+	Example
+		ostim_climax $system.self
+		ostim_climax $system.partner
+
+	Simultaneous orgasms
+
+-=-
+
+ostim_findaction: int: Returns the action index if the OStim scene metadata has the specified action, -1 otherwise
+	- parameter 1: string: action: action name e.g. "vaginalsex", "analsex", "blowjob"
+	- parameter 2: actor: (optional; default:Player) target Actor
+
+	Example
+		ostim_findaction "blowjob" $system.self
+		if $$ = true [doORALthing]
+
+-=-
+
+ostim_getrndactor: Return a random actor within specified range of self
+	- parameter 1: range: (0 - all | >0 - range in Skyrim units)
+	- parameter 2: option: (0 - all | 1 - not in OStim scene | 2 - must be in OStim scene) (optional: default 0 - all)
+
+	Example
+		ostim_getrndactor 500 2
+		actor_isvalid $actor
+		if $$ = 0 end
+		msg_notify "Someone is watching you!"
+		[end]
+
+-=-
+
+ostim_getsceneid: string: returns the SceneID the targetActor is in; "" if not in a scene
+
+	Example
+		ostim_getsceneid $system.self
+		msg_notify "SceneID: " $$
+
+-=-
+
+ostim_getthreadid: int: returns the ThreadID for the OStim thread the target actor is in; -1 if not in a thread
+
+	Example
+		ostim_getthreadid $system.self
+
+-=-
+
+ostim_hasaction: bool: Returns true if the OStim scene metadata has the specified action, false otherwise
+	- parameter 1: string: action: action name e.g. "vaginalsex", "analsex", "blowjob"
+	- parameter 2: actor: (optional; default:Player) target Actor
+
+	Example
+		ostim_hasaction "blowjob" $system.self
+		if $$ = true [doORALthing]
+
+-=-
+
+ostim_isclimaxstalled: returns whether the actor is prevented from climaxing
+
+	Example
+		ostim_isclimaxstalled $system.player
+
+-=-
+
+ostim_isin: Sets $$ to true if the specified actor is in a OStim scene, false otherwise
+
+	Example
+		ostim_isin $system.self
+
+-=-
+
+ostim_isinslot: Sets $$ to true if the specified actor is in the specified OStim scene slot, false otherwise
+	- parameter 1: actor: target Actor
+	- parameter 2: slotnumber: 1-based OStim actor position number
+
+	Example
+		ostim_isinslot $system.player 1
+
+-=-
+
+ostim_permitclimax: permits this actor to climax again (as in it undoes ostim_stallclimax)
+
+	Example
+		ostim_permitclimax $system.player
+
+-=-
+
+ostim_stallclimax: prevents this actor from climaxing, including the prevention of auto climax animations
+does not prevent the climaxes of auto climax animations that already started
+
+	Example
+		ostim_stallclimax $system.player
+
+-=-
+
+ostim_waitforkbd: Returns the keycode pressed after waiting for user to press any of the specified keys or for the end of the OStim scene
+(See https://ck.uesp.net/wiki/Input_Script for the DXScanCodes)
+	- parameter 1: actor: target Actor
+	- parameter 2: dxscancode: DXScanCode of key [<DXScanCode of key> ...]
+	- parameter 3: arguments: ALTERNATIVE: <int list>
+
+	Example
+		ostim_waitforkbd 74 78 181 55
+		if $$ = 74 MINUS
+		...
+		if $$ < 0 END
+
+	Wait for Num-, Num+, Num/, or Num*, or animation expired, and then do something based on the result.
+
+-=-
+
+util_waitforend: Wait until specified actor is not in OStim scene
+
+	Example
+		util_waitforend $self
+
+	Wait until the scene ends
+
+-=-
+

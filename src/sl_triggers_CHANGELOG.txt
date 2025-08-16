@@ -5,6 +5,7 @@
         (or whichever folder you have your SKSE logs directed to)
 
     change: updated to use FOMOD installer
+    change: renamed OStim, util_waitforkbd to ostim_waitforkbd to prevent collision with SexLab util_waitforkbd
     bugfix: removed sla_get_actor_hours_since_last_sex; GetActorHoursSinceLastSex only exists for OSLAroused, not for SexLabAroused
     enhancement: Many more SexLab API functions added to the function library
 

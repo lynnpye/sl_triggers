@@ -6,13 +6,13 @@ sl_triggersExtensionOstim Function GetExtension() global
     return GetForm_SLT_ExtensionOstim() as sl_triggersExtensionOstim
 EndFunction
 
-; sltname util_waitforend
+; sltname ostim_waitforend
 ; sltgrup OStim
 ; sltdesc Wait until specified actor is not in OStim scene
 ; sltargs actor: target Actor
-; sltsamp util_waitforend $self
+; sltsamp ostim_waitforend $self
 ; sltrslt Wait until the scene ends
-function util_waitforend(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+function ostim_waitforend(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     sl_triggersExtensionOstim sltrex = GetExtension()

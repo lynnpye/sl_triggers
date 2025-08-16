@@ -1,15 +1,6 @@
-# Function Libraries
-SL Triggers ships with three "function libraries". Function libraries allow functions to be overridden to change or enhance functionality contextually. For example, util_waitforkbd will return at the end of a SexLab scene when SexLab is present, in addition to when one of the selected keys is present, as SexLab overrides the behavior.
+# SLTriggers Redux Base Function Library 
 
-As a result, some functions will appear twice. If it is in the SexLab section it is an override to the baseline functionality in the SLT library.
-
-***
-
-# SLT Function Library (base functionality)
-
-***
-
-# Actor
+## Actor
 
 ### actor_advskill
 
@@ -947,7 +938,7 @@ Sets $$ to 1 if actor is wearing armor in the indicated slotId, 0 otherwise.
 
 
 
-# Actor Value
+## Actor Value
 
 ### av_damage
 
@@ -1109,7 +1100,7 @@ Set actor value
 Sets the value of the actor value.  
 
 
-# ActorBase
+## ActorBase
 
 ### actorbase_doconsumer
 
@@ -1217,7 +1208,24 @@ https://ck.uesp.net/wiki/ActorBase_Script
 
 
 
-# Form
+## Core
+
+### toh_elapsed_time
+
+**Description**
+
+Returns the actual game time passed at the time of the last "Top of the Hour"
+For example, if you slept from 1:30 to 4:00, you would get a Top of the Hour event at 4 with a value of 2.5
+
+
+**Example**
+
+    toh_elapsed_time  
+
+$$ would contain the actual elapsed game time from the previous "Top of the Hour" event  
+
+
+## Form
 
 ### form_doaction
 
@@ -1372,7 +1380,7 @@ Note that if multiple mods introduce an object with the same editorId, the looku
 
 
 
-# GlobalVariable
+## GlobalVariable
 
 ### global_getvalue
 
@@ -1411,7 +1419,7 @@ Finds the indicated GlobalVariable and sets its current value.
 
 
 
-# Imagespace Modifier
+## Imagespace Modifier
 
 ### ism_applyfade
 
@@ -1449,7 +1457,7 @@ Remove imagespace modifier - per original author, check CreationKit, SpecialEffe
 
 
 
-# Items
+## Items
 
 ### item_add
 
@@ -1523,14 +1531,14 @@ Equip item ("vanilla" version)
 
     actor: target Actor  
     item: ITEM FormId  
-    removalallowed: 0 - removal allowed | 1 - removal not allowed  
-    sound: 0 - no sound | 1 - with sound  
-    <actor variable> <ITEM FormId> <0 - removal allowed | 1 - removal not allowed> <0 - no sound | 1 - with sound>  
+    preventRemoval: false - removal allowed | true - removal not allowed  
+    sound: false - no sound | true - with sound  
+    <actor variable> <ITEM FormId> <false - removal allowed | true - removal not allowed> <false - no sound | true - with sound>  
 
 
 **Example**
 
-    item_equip $system.self "ZaZAnimationPack.esm:159072" 1 0  
+    item_equip $system.self "ZaZAnimationPack.esm:159072" true false  
 
 Equip the ZaZ armor on $system.self, silently, with no removal allowed (uses whatever slot the armor uses)  
 
@@ -1617,7 +1625,7 @@ Unequip item
 Unequips the ZaZ armor from slot 32 on $system.self  
 
 
-# JSON
+## JSON
 
 ### json_getvalue
 
@@ -1678,7 +1686,7 @@ Sets a value in a JSON file (uses PapyrusUtil/JsonUtil)
 JsonUtil automatically appends .json when not given a file extension  
 
 
-# MfgFix
+## MfgFix
 
 ### mfg_getphonememodifier
 
@@ -1737,7 +1745,7 @@ Set facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecialed
 
 
 
-# NiOverride
+## NiOverride
 
 ### apply_overlay
 
@@ -1816,7 +1824,7 @@ use NiOverride to remove overlay
 
 
 
-# ObjectReference
+## ObjectReference
 
 ### objectreference_doaction
 
@@ -2060,7 +2068,7 @@ https://ck.uesp.net/wiki/ObjectReference_Script
 
 
 
-# PapyrusUtil
+## PapyrusUtil
 
 ### jsonutil
 
@@ -2314,7 +2322,7 @@ Wrapper around most StorageUtil functions
 
 
 
-# Perks
+## Perks
 
 ### perk_add
 
@@ -2369,7 +2377,7 @@ Remove specified perk from the targeted actor
 
 
 
-# Sound
+## Sound
 
 ### snd_play
 
@@ -2426,7 +2434,7 @@ Stops the audio specified by the sound instance handle (from snd_play)
 
 
 
-# Spells
+## Spells
 
 ### spell_add
 
@@ -2523,7 +2531,7 @@ Removes the specified SPEL by FormId from the targeted Actor, usually to remove 
 The light spell should no longer be in the actor's spellbook  
 
 
-# TopicInfo
+## TopicInfo
 
 ### topicinfo_getresponsetext
 
@@ -2545,7 +2553,7 @@ Note: This is more beta than normal; it isn't obvious whether in some cases mult
 
 
 
-# Utility
+## Utility
 
 ### console
 
@@ -2901,964 +2909,6 @@ Weather related functions based on sub-function
 **Example**
 
     weather_state GetClassification  
-
-
-
-
-
-***
-
-# Core Function Library (supports the Core extension)
-
-***
-
-# Core
-
-### toh_elapsed_time
-
-**Description**
-
-Returns the actual game time passed at the time of the last "Top of the Hour"
-For example, if you slept from 1:30 to 4:00, you would get a Top of the Hour event at 4 with a value of 2.5
-
-
-**Example**
-
-    toh_elapsed_time  
-
-$$ would contain the actual elapsed game time from the previous "Top of the Hour" event  
-
-
-
-
-***
-
-# SexLab Function Library (only functional if SexLab is present)
-
-***
-
-# Actor
-
-### actor_race
-
-**Description**
-
-Returns the race name based on sub-function. Blank, empty sub-function returns Vanilla racenames. e.g. "SL" can return SexLab race keynames.
-
-**Parameters**
-
-    actor: target Actor  
-    sub-function: sub-function  
-
-    if parameter 2 is "": return actors race name. Skyrims, original name. Like: "Nord", "Breton"  
-    if parameter 2 is "SL": return actors Sexlab frameworks race key name. Like: "dogs", "bears", etc. Note: will return "" if actor is humanoid  
-
-
-**Example**
-
-    actor_race $system.self "SL"  
-    msg_notify "  Race SL: " $$  
-
-
-
-# SexLab
-
-### actor_getgender
-
-**Description**
-
-Returns the actor's SexLab gender, 0 - male, 1 - female, 2 - creature
-
-**Parameters**
-
-    actor: target Actor  
-
-
-**Example**
-
-    actor_getgender $actor  
-
-
-
-### sl_advance
-
-**Description**
-
-Changes the stage of the current SexLab scene, for the target Actor; advances a single stage if positive, reverses a single stage if negative
-
-**Parameters**
-
-    direction: integer, <negative - backwards / non-negative (including zero) - forwards>  
-    actor: target Actor  
-
-
-**Example**
-
-    sl_advance -3 $system.self  
-
-Only goes back one stage  
-
-
-### sl_animname
-
-**Description**
-
-Sets $$ to the current SexLab animation name
-
-
-**Example**
-
-    sl_animname $system.self  
-    msg_notify "Playing: " $$  
-
-
-
-### sl_disableorgasm
-
-**Description**
-
-Disables or enables the ability to orgasm via standard SexLab sex activity (orgasms can still be forced by mods)
-Only works if called during a scene, when the SexLab thread is still available
-
-**Parameters**
-
-    actor: target Actor  
-    disable: 1 to disable, 0 to enable  
-
-
-**Example**
-
-    sl_disableorgasm $system.player 1  
-    ; this disables orgasm for the player  
-    sl_disableorgasm $system.player 0  
-    ; this enables orgasm for the player  
-
-
-
-### sl_getprop
-
-**Description**
-
-Sets $$ to the value of the requested property
-
-**Parameters**
-
-    property:  Stage | ActorCount  
-    actor: target Actor  
-
-
-**Example**
-
-    sl_getprop Stage $system.self  
-    msg_notify "Current Stage: " $$  
-
-
-
-### sl_getrndactor
-
-**Description**
-
-Return a random actor within specified range of self
-
-**Parameters**
-
-    range: (0 - all | >0 - range in Skyrim units)  
-    option: (0 - all | 1 - not in SexLab scene | 2 - must be in SexLab scene) (optional: default 0 - all)  
-
-
-**Example**
-
-    sl_getrndactor 500 2  
-    actor_isvalid $actor  
-    if $$ = 0 end  
-    msg_notify "Someone is watching you!"  
-    [end]  
-
-
-
-### sl_hastag
-
-**Description**
-
-Sets $$ to 1 if the SexLab scene has the specified tag, 0 otherwise
-
-**Parameters**
-
-    tag: tag name e.g. "Oral", "Anal", "Vaginal"  
-    actor: target Actor  
-
-
-**Example**
-
-    sl_hastag "Oral" $system.self  
-    if $$ = 1 ORAL  
-
-
-
-### sl_isin
-
-**Description**
-
-Sets $$ to 1 if the specified actor is in a SexLab scene, 0 otherwise
-
-**Parameters**
-
-    actor: target Actor  
-
-
-**Example**
-
-    sl_isin $system.self  
-
-
-
-### sl_isinslot
-
-**Description**
-
-Sets $$ to 1 if the specified actor is in the specified SexLab scene slot, 0 otherwise
-
-**Parameters**
-
-    actor: target Actor  
-    slotnumber: 1-based SexLab thread slot number  
-
-
-**Example**
-
-    sl_isinslot $system.player 1  
-
-
-
-### sl_orgasm
-
-**Description**
-
-Immediately forces the specified actor to have a SexLab orgasm.
-
-**Parameters**
-
-    actor: target Actor  
-
-
-**Example**
-
-    sl_orgasm $system.self  
-    sl_orgasm $system.partner  
-
-Simultaneous orgasms  
-
-
-### sl_waitforkbd
-
-**Description**
-
-Returns the keycode pressed after waiting for user to press any of the specified keys or for the end of the SexLab scene
-(See https://ck.uesp.net/wiki/Input_Script for the DXScanCodes)
-
-**Parameters**
-
-    actor: target Actor  
-    dxscancode: DXScanCode of key [<DXScanCode of key> ...]  
-    arguments: ALTERNATIVE: <int list>  
-
-
-**Example**
-
-    sl_waitforkbd 74 78 181 55  
-    if $$ = 74 MINUS  
-    ...  
-    if $$ < 0 END  
-
-Wait for Num-, Num+, Num/, or Num*, or animation expired, and then do something based on the result.  
-
-
-### util_waitforend
-
-**Description**
-
-Wait until specified actor is not in SexLab scene
-
-**Parameters**
-
-    actor: target Actor  
-
-
-**Example**
-
-    util_waitforend $system.self  
-
-Wait until the scene ends  
-
-
-# SexLab Separate Orgasms
-
-### slso_bonus_enjoyment
-
-**Description**
-
-Applies BonusEnjoyment to the specified actor
-
-**Parameters**
-
-    actor: target Actor  
-    enjoyment: int, 1-100?  
-
-
-**Example**
-
-    slso_bonus_enjoyment $system.self 30  
-
-
-
-
-
-***
-
-# OStim Function Library (only functional if OStim is present)
-
-***
-
-# OStim
-
-### ostim_actorcount
-
-**Description**
-
-Returns the actorcount of the OStim scene the targetActor is in; 0 if not in a scene
-
-**Parameters**
-
-    Actor: targetActor: the actor whose scene you want the actor count from  
-
-
-**Example**
-
-    ostim_actorcount $system.self  
-
-
-
-### ostim_animname
-
-**Description**
-
-Sets $$ to the current OStim animation name
-
-
-**Example**
-
-    ostim_animname $system.self  
-    msg_notify "Playing: " $$  
-
-
-
-### ostim_climax
-
-**Description**
-
-Immediately forces the specified actor to have a OStim orgasm.
-May only work during OStim scenes
-
-**Parameters**
-
-    actor: target Actor  
-    bool: ignoreStall: (optional; default:false) should the ClimaxStalled setting be ignored  
-
-
-**Example**
-
-    ostim_climax $system.self  
-    ostim_climax $system.partner  
-
-Simultaneous orgasms  
-
-
-### ostim_findaction
-
-**Description**
-
-int: Returns the action index if the OStim scene metadata has the specified action, -1 otherwise
-
-**Parameters**
-
-    string: action: action name e.g. "vaginalsex", "analsex", "blowjob"  
-    actor: (optional; default:Player) target Actor  
-
-
-**Example**
-
-    ostim_findaction "blowjob" $system.self  
-    if $$ = true [doORALthing]  
-
-
-
-### ostim_getrndactor
-
-**Description**
-
-Return a random actor within specified range of self
-
-**Parameters**
-
-    range: (0 - all | >0 - range in Skyrim units)  
-    option: (0 - all | 1 - not in OStim scene | 2 - must be in OStim scene) (optional: default 0 - all)  
-
-
-**Example**
-
-    ostim_getrndactor 500 2  
-    actor_isvalid $actor  
-    if $$ = 0 end  
-    msg_notify "Someone is watching you!"  
-    [end]  
-
-
-
-### ostim_getsceneid
-
-**Description**
-
-string: returns the SceneID the targetActor is in; "" if not in a scene
-
-
-**Example**
-
-    ostim_getsceneid $system.self  
-    msg_notify "SceneID: " $$  
-
-
-
-### ostim_getthreadid
-
-**Description**
-
-int: returns the ThreadID for the OStim thread the target actor is in; -1 if not in a thread
-
-
-**Example**
-
-    ostim_getthreadid $system.self  
-
-
-
-### ostim_hasaction
-
-**Description**
-
-bool: Returns true if the OStim scene metadata has the specified action, false otherwise
-
-**Parameters**
-
-    string: action: action name e.g. "vaginalsex", "analsex", "blowjob"  
-    actor: (optional; default:Player) target Actor  
-
-
-**Example**
-
-    ostim_hasaction "blowjob" $system.self  
-    if $$ = true [doORALthing]  
-
-
-
-### ostim_isclimaxstalled
-
-**Description**
-
-returns whether the actor is prevented from climaxing
-
-**Parameters**
-
-    actor: target Actor  
-
-
-**Example**
-
-    ostim_isclimaxstalled $system.player  
-
-
-
-### ostim_isin
-
-**Description**
-
-Sets $$ to true if the specified actor is in a OStim scene, false otherwise
-
-**Parameters**
-
-    actor: target Actor  
-
-
-**Example**
-
-    ostim_isin $system.self  
-
-
-
-### ostim_isinslot
-
-**Description**
-
-Sets $$ to true if the specified actor is in the specified OStim scene slot, false otherwise
-
-**Parameters**
-
-    actor: target Actor  
-    slotnumber: 1-based OStim actor position number  
-
-
-**Example**
-
-    ostim_isinslot $system.player 1  
-
-
-
-### ostim_permitclimax
-
-**Description**
-
-permits this actor to climax again (as in it undoes ostim_stallclimax)
-
-**Parameters**
-
-    actor: target Actor  
-
-
-**Example**
-
-    ostim_permitclimax $system.player  
-
-
-
-### ostim_stallclimax
-
-**Description**
-
-prevents this actor from climaxing, including the prevention of auto climax animations
-does not prevent the climaxes of auto climax animations that already started
-
-**Parameters**
-
-    actor: target Actor  
-
-
-**Example**
-
-    ostim_stallclimax $system.player  
-
-
-
-### ostim_waitforkbd
-
-**Description**
-
-Returns the keycode pressed after waiting for user to press any of the specified keys or for the end of the OStim scene
-(See https://ck.uesp.net/wiki/Input_Script for the DXScanCodes)
-
-**Parameters**
-
-    actor: target Actor  
-    dxscancode: DXScanCode of key [<DXScanCode of key> ...]  
-    arguments: ALTERNATIVE: <int list>  
-
-
-**Example**
-
-    ostim_waitforkbd 74 78 181 55  
-    if $$ = 74 MINUS  
-    ...  
-    if $$ < 0 END  
-
-Wait for Num-, Num+, Num/, or Num*, or animation expired, and then do something based on the result.  
-
-
-### util_waitforend
-
-**Description**
-
-Wait until specified actor is not in OStim scene
-
-**Parameters**
-
-    actor: target Actor  
-
-
-**Example**
-
-    util_waitforend $self  
-
-Wait until the scene ends  
-
-
-
-
-***
-
-# Adult Function Library (e.g. Devious Devices, SexLabAroused)
-
-***
-
-# Devious Devices
-
-### dd_unlockall
-
-**Description**
-
-Attempts to unlock all devices locked on the actor
-
-**Parameters**
-
-    actor: target Actor  
-    force: "force" to force an unlock, anything else otherwise  
-
-
-**Example**
-
-    dd_unlockall $self force  
-
-Will attempt to (forcibly if necessary, e.g. quest locked items) unlock all lockable items on targeted actor.  
-
-
-### dd_unlockslot
-
-**Description**
-
-Attempts to unlock any device in the specified slot
-
-**Parameters**
-
-    actor: target Actor  
-    armorslot: int value armor slot e.g. 32 is body armor  
-    force: "force" to force an unlock, anything else otherwise  
-
-
-**Example**
-
-    dd_unlockslot $self 32 force  
-
-Should remove anything in body slot e.g. corset, harness, etc., and forced, so including quest items (be careful!)  
-
-
-# Devious Followers
-
-### df_resetall
-
-**Description**
-
-Resets all Devious Followers values (i.e. quest states, deal states, boredom, debt)
-back to values as if having just started out.
-
-
-**Example**
-
-    df_resetall  
-
-Should be free of all debts, deals, and rules  
-
-
-### df_setdebt
-
-**Description**
-
-Sets current debt to the specified amount
-
-**Parameters**
-
-    newdebt: new debt value  
-
-
-**Example**
-
-    df_setdebt 0  
-
-We all know what you are going to use it for  
-
-
-# OSLAroused
-
-### osla_get_actor_days_since_last_orgasm
-
-**Description**
-
-Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
-
-**Parameters**
-
-    actor: target Actor  
-
-
-**Example**
-
-    osla_get_actor_days_since_last_orgasm $self  
-    msg_console "Arousal is: " $$  
-
-
-
-### osla_get_arousal
-
-**Description**
-
-Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
-
-**Parameters**
-
-    actor: target Actor  
-
-
-**Example**
-
-    osla_get_arousal $self  
-    msg_console "Arousal is: " $$  
-
-
-
-### osla_get_arousal_multiplier
-
-**Description**
-
-Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
-
-**Parameters**
-
-    actor: target Actor  
-
-
-**Example**
-
-    osla_get_arousal_multiplier $self  
-    msg_console "Arousal multiplier is: " $$  
-
-
-
-### osla_get_exposure
-
-**Description**
-
-Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
-
-**Parameters**
-
-    actor: target Actor  
-
-
-**Example**
-
-    osla_get_exposure $self  
-    msg_console "Exposure is: " $$  
-
-
-
-### osla_modify_arousal
-
-**Description**
-
-Sets $$ to the result of OSLAroused_ModInterface.ModifyArousal(Actor, float, string)
-
-**Parameters**
-
-    actor: target Actor  
-    value: float value  
-    reason: string, optional (default "unknown")  
-
-
-**Example**
-
-    osla_modify_arousal $self 20.0 "for reasons"  
-
-
-
-### osla_modify_arousal_multiplier
-
-**Description**
-
-Sets $$ to the result of OSLAroused_ModInterface.ModifyArousalMultiplier(Actor, float, string)
-
-**Parameters**
-
-    actor: target Actor  
-    value: float value  
-    reason: string, optional (default "unknown")  
-
-
-**Example**
-
-    osla_modify_arousal_multiplier $self 0.5 "for reasons"  
-
-
-
-### osla_set_arousal
-
-**Description**
-
-Sets $$ to the result of OSLAroused_ModInterface.SetArousal(Actor, float, string)
-
-**Parameters**
-
-    actor: target Actor  
-    value: float value  
-    reason: string, optional (default "unknown")  
-
-
-**Example**
-
-    osla_set_arousal $self 50.0 "for reasons"  
-
-
-
-### osla_set_arousal_multiplier
-
-**Description**
-
-Sets $$ to the result of OSLAroused_ModInterface.SetArousalMultiplier(Actor, float, string)
-
-**Parameters**
-
-    actor: target Actor  
-    value: float value  
-    reason: string, optional (default "unknown")  
-
-
-**Example**
-
-    osla_set_arousal_multiplier $self 2.0 "for reasons"  
-
-
-
-# SexLab Aroused/OSLAroused
-
-### sla_get_actor_days_since_last_orgasm
-
-**Description**
-
-Returns the days since the actor last had an orgasm as a float
-
-**Parameters**
-
-    actor: target Actor  
-
-
-**Example**
-
-    sla_get_actor_days_since_last_orgasm $system.self  
-
-
-
-### sla_get_actor_hours_since_last_sex
-
-**Description**
-
-Returns the in-game hours since the actor last had sex as an int
-
-**Parameters**
-
-    actor: target Actor  
-
-
-**Example**
-
-    sla_get_actor_hours_since_last_sex $system.self  
-
-
-
-### sla_get_arousal
-
-**Description**
-
-Returns the current arousal of the actor as an int
-
-**Parameters**
-
-    actor: target Actor  
-
-
-**Example**
-
-    sla_get_arousal  
-
-
-
-### sla_get_exposure
-
-**Description**
-
-Returns the current exposure level of the actor as an int
-
-**Parameters**
-
-    actor: target Actor  
-
-
-**Example**
-
-    sla_get_exposure $system.self  
-
-
-
-### sla_get_version
-
-**Description**
-
-Returns the version of SexLabAroused or OSLAroused
-
-
-**Example**
-
-    sla_get_version  
-    msg_console "Version is: " $$  
-
-
-
-### sla_send_exposure_event
-
-**Description**
-
-Sends the "slaUpdateExposure" modevent. No return value.
-
-**Parameters**
-
-    actor: target Actor  
-    exposureAmount: float; amount of exposure update to send  
-
-
-**Example**
-
-    sla_send_exposure_event $system.self 5.0  
-
-
-
-### sla_set_exposure
-
-**Description**
-
-Sets the exposure for the target actor and returns the new amount as an int
-
-**Parameters**
-
-    actor: target Actor  
-    exposureAmount: int; amount of exposure update to set  
-
-
-**Example**
-
-    sla_set_exposure $system.self 25  
-
-
-
-### sla_update_exposure
-
-**Description**
-
-Updates the exposure for the target actor and returns the updated amount as an int.
-This uses the API, not a modevent directly (though the API may still be sending a modevent behind the scenes)
-
-**Parameters**
-
-    actor: target Actor  
-    exposureAmount: int; amount of exposure update to apply  
-
-
-**Example**
-
-    sla_update_exposure $system.self 5  
 
 
 

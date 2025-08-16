@@ -103,15 +103,6 @@ public class SltParser {
         ,Map<String, List<SltSection>> sortedcores
         ,Map<String, List<SltSection>> sortedadults
         ,Map<String, List<SltSection>> sortedostims) {
-/*
-        sortedGroupedAndSorted.forEach((group, sectionsInGroup) -> {
-            //System.out.println("# " + group);
-            System.out.println(String.format("%s:\n==============\n", group));
-            sectionsInGroup.forEach(section -> {
-                System.out.println(Tmpl02(section));
-            });
-        });
-        */
        StringBuilder sb = new StringBuilder();
 
         sb.append("# Function Libraries\nSL Triggers ships with three \"function libraries\". Function libraries allow functions to be overridden to change or enhance functionality contextually. For example, util_waitforkbd will return at the end of a SexLab scene when SexLab is present, in addition to when one of the selected keys is present, as SexLab overrides the behavior.\n\nAs a result, some functions will appear twice. If it is in the SexLab section it is an override to the baseline functionality in the SLT library.\n\n***\n\n# SLT Function Library (base functionality)\n\n***\n\n");
@@ -244,9 +235,73 @@ public class SltParser {
         }
     }
 
+    public static void exportMD_v2(Map<String, List<SltSection>> sortedSections, String outfile, String outputHeader) {
+       StringBuilder sb = new StringBuilder();
+
+        sb.append(String.format("# %s \n\n", outputHeader));
+
+        sortedSections.forEach((group, sectionsInGroup) -> {
+            sb.append(String.format("## %s\n\n", group ));
+            //sb.append(String.format("\n%s:\n==============\n\n", group));
+            sectionsInGroup.forEach(section -> {
+                sb.append(Tmpl01(section));
+            });
+        });
+
+        Path path = Paths.get(outfile);
+        byte[] inbytes = sb.toString().getBytes();
+
+        try {
+            Files.write(path, inbytes);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+    }
+
+    public static void exportTXT_v2(Map<String, List<SltSection>> sortedSections, String outfile, String outputHeader) {
+        
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(String.format("%s\n\n", outputHeader));
+
+        sortedSections.forEach((group, sectionsInGroup) -> {
+            //System.out.println("# " + group);
+            sb.append(String.format("\n%s:\n==============\n\n", group));
+            sectionsInGroup.forEach(section -> {
+                sb.append(Tmpl02(section));
+            });
+        });
+
+        Path path = Paths.get(outfile);
+        byte[] inbytes = sb.toString().getBytes();
+
+        try {
+            Files.write(path, inbytes);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
     // Example usage
     public static void main(String[] args) throws IOException {
+        if (args.length < 3) {
+            System.out.println("Invalid argument count: jcx SltParser <txt outfile> \"<outfile header>\" <infile> [<infile> ...]");
+            return;
+        }
+
+        List<SltSection> sections = new ArrayList<>();
+        for(int i = 2; i < args.length; i++) {
+            List<SltSection> newSections = parseSltSections(args[i]);
+            sections.addAll(newSections);
+        }
+
+        Map<String, List<SltSection>> sortedSections = sortSltSections(sections);
+
+        exportTXT_v2(sortedSections, args[0] + ".txt", args[1]);
+        exportMD_v2(sortedSections, args[0] + ".md", args[1]);
         
+        /*
         List<SltSection> slts = parseSltSections("./src/source/scripts/sl_triggersCmdLibSLT.psc");
         List<SltSection> cores = parseSltSections("./src/source/scripts/sl_triggersCmdLibCore.psc");
         List<SltSection> sexlabs = parseSltSections("./src/source/scripts/sl_triggersCmdLibSexLab.psc");
@@ -258,10 +313,11 @@ public class SltParser {
         Map<String, List<SltSection>> sortedsexlabs = sortSltSections(sexlabs);
         Map<String, List<SltSection>> sortedostims = sortSltSections(ostims);
         Map<String, List<SltSection>> sortedAdults = sortSltSections(adults);
-        
-
+       
         exportMD(sortedslts, sortedsexlabs, sortedcores, sortedAdults, sortedostims);
         exportTXT(sortedslts, sortedsexlabs, sortedcores, sortedAdults, sortedostims);
+        */
+
     }
 
     public static String Tmpl01(SltSection section) {
