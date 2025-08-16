@@ -1,4 +1,4 @@
-SLTriggers Redux SexLab 1.66 Function Library
+SexLab 1.66 Function Library
 
 
 Actor:

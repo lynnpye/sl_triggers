@@ -1,4 +1,4 @@
-# SLTriggers Redux Adult General Function Library 
+# Adult General Function Library 
 
 ## OSLAroused
 

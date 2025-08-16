@@ -179,11 +179,11 @@ populateNEF: _prepsrc
 
 generatedocs:
     jcx SltParser "./src/sl_triggers_function_library" "SLTriggers Redux Base Function Library" "./src/source/scripts/sl_triggersCmdLibSLT.psc" "./src/source/scripts/sl_triggersCmdLibCore.psc"
-    jcx SltParser "./extern/libraries/ostim/sl_triggers_function_library_ostim" "SLTriggers Redux OStim Function Library" "./extern/libraries/ostim/source/scripts/sl_triggersCmdLibOStim.psc"
-    jcx SltParser "./extern/libraries/sexlab/sl_triggers_function_library_sexlab" "SLTriggers Redux SexLab 1.66 Function Library" "./extern/libraries/sexlab/source/scripts/sl_triggersCmdLibSexLab.psc"
-    jcx SltParser "./extern/libraries/sexlab-dependent/sl_triggers_function_library_sexlab_dependent" "SLTriggers Redux SexLab Dependent Function Library" "./extern/libraries/sexlab-dependent/source/scripts/sl_triggersCmdLibSexLabDependent.psc"
-    jcx SltParser "./extern/libraries/sexlabplusplus/sl_triggers_function_library_sexlab" "SLTriggers Redux SexLab P+ Function Library" "./extern/libraries/sexlabplusplus/source/scripts/sl_triggersCmdLibSexLab.psc"
-    jcx SltParser "./extern/libraries/adult-general/sl_triggers_function_library_adult_general" "SLTriggers Redux Adult General Function Library" "./extern/libraries/adult-general/source/scripts/sl_triggersCmdLibOSLAroused.psc"
+    jcx SltParser "./extern/libraries/ostim/sl_triggers_function_library_ostim" "OStim Function Library" "./extern/libraries/ostim/source/scripts/sl_triggersCmdLibOStim.psc"
+    jcx SltParser "./extern/libraries/sexlab/sl_triggers_function_library_sexlab" "SexLab 1.66 Function Library" "./extern/libraries/sexlab/source/scripts/sl_triggersCmdLibSexLab.psc"
+    jcx SltParser "./extern/libraries/sexlab-dependent/sl_triggers_function_library_sexlab_dependent" "SexLab Dependent Function Library" "./extern/libraries/sexlab-dependent/source/scripts/sl_triggersCmdLibSexLabDependent.psc"
+    jcx SltParser "./extern/libraries/sexlabplusplus/sl_triggers_function_library_sexlab" "SexLab P+ Function Library" "./extern/libraries/sexlabplusplus/source/scripts/sl_triggersCmdLibSexLab.psc"
+    jcx SltParser "./extern/libraries/adult-general/sl_triggers_function_library_adult_general" "Adult General Function Library" "./extern/libraries/adult-general/source/scripts/sl_triggersCmdLibOSLAroused.psc"
     Get-Content "./src/sl_triggers_function_library.md" , "./extern/libraries/sexlabplusplus/sl_triggers_function_library_sexlab.md" , "./extern/libraries/sexlab/sl_triggers_function_library_sexlab.md" , "./extern/libraries/sexlab-dependent/sl_triggers_function_library_sexlab_dependent.md" , "./extern/libraries/ostim/sl_triggers_function_library_ostim.md" , "./extern/libraries/adult-general/sl_triggers_function_library_adult_general.md" | Set-Content "./docs/Function_Libraries.md"
 
 packagefomod:

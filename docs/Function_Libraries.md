@@ -2912,7 +2912,7 @@ Weather related functions based on sub-function
 
 
 
-# SLTriggers Redux SexLab P+ Function Library 
+# SexLab P+ Function Library 
 
 ## Actor
 
@@ -3168,7 +3168,7 @@ Wait until specified actor is not in SexLab scene
 Wait until the scene ends  
 
 
-# SLTriggers Redux SexLab 1.66 Function Library 
+# SexLab 1.66 Function Library 
 
 ## Actor
 
@@ -3444,7 +3444,7 @@ Applies BonusEnjoyment to the specified actor
 
 
 
-# SLTriggers Redux SexLab Dependent Function Library 
+# SexLab Dependent Function Library 
 
 ## Devious Devices
 
@@ -3644,7 +3644,7 @@ This uses the API, not a modevent directly (though the API may still be sending 
 
 
 
-# SLTriggers Redux OStim Function Library 
+# OStim Function Library 
 
 ## OStim
 
@@ -3874,6 +3874,24 @@ does not prevent the climaxes of auto climax animations that already started
 
 
 
+### ostim_waitforend
+
+**Description**
+
+Wait until specified actor is not in OStim scene
+
+**Parameters**
+
+    actor: target Actor  
+
+
+**Example**
+
+    ostim_waitforend $self  
+
+Wait until the scene ends  
+
+
 ### ostim_waitforkbd
 
 **Description**
@@ -3898,25 +3916,7 @@ Returns the keycode pressed after waiting for user to press any of the specified
 Wait for Num-, Num+, Num/, or Num*, or animation expired, and then do something based on the result.  
 
 
-### util_waitforend
-
-**Description**
-
-Wait until specified actor is not in OStim scene
-
-**Parameters**
-
-    actor: target Actor  
-
-
-**Example**
-
-    util_waitforend $self  
-
-Wait until the scene ends  
-
-
-# SLTriggers Redux Adult General Function Library 
+# Adult General Function Library 
 
 ## OSLAroused
 

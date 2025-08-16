@@ -1,4 +1,4 @@
-SLTriggers Redux OStim Function Library
+OStim Function Library
 
 
 OStim:
@@ -118,6 +118,15 @@ does not prevent the climaxes of auto climax animations that already started
 
 -=-
 
+ostim_waitforend: Wait until specified actor is not in OStim scene
+
+	Example
+		ostim_waitforend $self
+
+	Wait until the scene ends
+
+-=-
+
 ostim_waitforkbd: Returns the keycode pressed after waiting for user to press any of the specified keys or for the end of the OStim scene
 (See https://ck.uesp.net/wiki/Input_Script for the DXScanCodes)
 	- parameter 1: actor: target Actor
@@ -131,15 +140,6 @@ ostim_waitforkbd: Returns the keycode pressed after waiting for user to press an
 		if $$ < 0 END
 
 	Wait for Num-, Num+, Num/, or Num*, or animation expired, and then do something based on the result.
-
--=-
-
-util_waitforend: Wait until specified actor is not in OStim scene
-
-	Example
-		util_waitforend $self
-
-	Wait until the scene ends
 
 -=-
 

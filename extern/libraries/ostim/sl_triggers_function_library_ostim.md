@@ -1,4 +1,4 @@
-# SLTriggers Redux OStim Function Library 
+# OStim Function Library 
 
 ## OStim
 
@@ -228,6 +228,24 @@ does not prevent the climaxes of auto climax animations that already started
 
 
 
+### ostim_waitforend
+
+**Description**
+
+Wait until specified actor is not in OStim scene
+
+**Parameters**
+
+    actor: target Actor  
+
+
+**Example**
+
+    ostim_waitforend $self  
+
+Wait until the scene ends  
+
+
 ### ostim_waitforkbd
 
 **Description**
@@ -250,23 +268,5 @@ Returns the keycode pressed after waiting for user to press any of the specified
     if $$ < 0 END  
 
 Wait for Num-, Num+, Num/, or Num*, or animation expired, and then do something based on the result.  
-
-
-### util_waitforend
-
-**Description**
-
-Wait until specified actor is not in OStim scene
-
-**Parameters**
-
-    actor: target Actor  
-
-
-**Example**
-
-    util_waitforend $self  
-
-Wait until the scene ends  
 
 

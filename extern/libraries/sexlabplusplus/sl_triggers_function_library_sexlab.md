@@ -1,4 +1,4 @@
-# SLTriggers Redux SexLab P+ Function Library 
+# SexLab P+ Function Library 
 
 ## Actor
 

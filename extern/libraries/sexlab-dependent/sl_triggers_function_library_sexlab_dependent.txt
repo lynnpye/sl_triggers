@@ -1,4 +1,4 @@
-SLTriggers Redux SexLab Dependent Function Library
+SexLab Dependent Function Library
 
 
 Devious Devices:
