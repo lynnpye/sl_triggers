@@ -1,7 +1,4 @@
 sl_isin $system.self
-if $$ == true
-	return
-endif
 
 rnd_int 0 100
 if $$ > 50

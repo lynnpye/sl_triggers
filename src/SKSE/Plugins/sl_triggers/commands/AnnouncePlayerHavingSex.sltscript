@@ -1,2 +1,0 @@
-actor_name $system.player
-msg_notify $$ " has begun having sex."

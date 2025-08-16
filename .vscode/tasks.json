@@ -155,6 +155,12 @@
         "command": "just packagelang"
       },
       {
+        "label": "Package FOMOD",
+        "group": "build",
+        "type": "shell",
+        "command": "just packagefomod"
+      },
+      {
         "label": "Generate Docs",
         "group": "build",
         "type": "shell",

@@ -1,3 +1,22 @@
-rnd_list "skyrim.esm:216158" "skyrim.esm:853342" "skyrim.esm:181082" "skyrim.esm:329930" "skyrim.esm:201531" "skyrim.esm:201532" "skyrim.esm:1079946" "skyrim.esm:901490" "skyrim.esm:758231"
-set $1 $$
-item_adduse $system.self $1 1 0
+; rnd_list "skyrim.esm:216158" "skyrim.esm:853342" "skyrim.esm:181082" "skyrim.esm:329930" "skyrim.esm:201531" "skyrim.esm:201532" "skyrim.esm:1079946" "skyrim.esm:901490" "skyrim.esm:758231"
+; 34c5e   Ale
+; d055e   Stros M'Kai Rum
+; 2c35a   Black-Briar Mead
+; 508ca   Honningbrew Mead
+; 3133b   Alto Wine
+; 107a8a  Mead with Juniper Berry
+; dc172   Balmora Blue
+; b91d7   Cyrodilic Brandy
+
+set $ale                    "skyrim.esm:0x34c5e"
+set $strosMkaiRum           "skyrim.esm:0xd055e"
+set $blackBriarMead         "skyrim.esm:0x2c35a"
+set $honningbrewMead        "skyrim.esm:0x508ca"
+set $altoWine               "skyrim.esm:0x3133b"
+set $meadWithJuniperBerry   "skyrim.esm:0x107a8a"
+set $balmoraBlue            "skyrim.esm:0xdc172"
+set $cyrodilicBrandy        "skyrim.esm:0xb91d7"
+
+rnd_list $ale $strosmkAiRuM $blaCkBrIaRMead $honningbrewMead $altoWine $meadWithJuniperBerry $balmoraBlue $cyrodilicBrandy
+set $hairOfTheDog $$
+item_adduse $system.self $hairOfTheDog 1 0

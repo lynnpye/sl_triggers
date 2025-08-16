@@ -10,7 +10,6 @@
 	},
 	"string" : 
 	{
-		"do_1" : "Greetings",
-		"trigger_deleted_by_user_via_mcm" : "TRUE"
+		"do_1" : "Greetings"
 	}
 }
