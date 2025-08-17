@@ -3,7 +3,7 @@ scriptname sl_triggersPlayerOnLoadGameHandler extends ReferenceAlias
 import sl_triggersStatics
 
 sl_triggersMain			Property SLT Auto
-sl_triggersExtensionCore Property SLTCore Auto Hidden
+sl_triggersExtensionCore Property SLTCore Auto
 
 Keyword kwdVampire
 Race raceVampireLord
@@ -14,8 +14,6 @@ bool wasVampireLord
 bool wasWerewolf
 
 Event OnPlayerLoadGame()
-	SLT.SLTPLYREF = self
-
 	if !kwdVampire
 		kwdVampire = Keyword.GetKeyword("Vampire")
 		raceVampireLord = sl_triggers.GetForm("DLC1VampireBeastRace") as Race
@@ -24,12 +22,11 @@ Event OnPlayerLoadGame()
 	endif
 
 	SLT.DoPlayerLoadGame()
+	SLTCore.DoPlayerLoadGame()
 	InitiateConsoleHook()
 EndEvent
 
 Event OnInit()
-	SLT.SLTPLYREF = self
-
 	kwdVampire = Keyword.GetKeyword("Vampire")
 	raceVampireLord = sl_triggers.GetForm("DLC1VampireBeastRace") as Race
 	raceWerewolf = sl_triggers.GetForm("WerewolfBeastRace") as Race

@@ -25,9 +25,3 @@ EndFunction
 string Function GetOnNewSessionEventName() global
     return sl_triggersStatics.EVENT_SLT_ON_NEW_SESSION()
 EndFunction
-
-Function RegisterExtension(sl_triggersExtension extensionToRegister) global
-    if extensionToRegister
-        extensionToRegister.SendModEvent(sl_triggersStatics.EVENT_SLT_REGISTER_EXTENSION(), extensionToRegister.SLTExtensionKey)
-    endif
-EndFunction

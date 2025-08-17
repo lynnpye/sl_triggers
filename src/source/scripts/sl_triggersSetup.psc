@@ -71,6 +71,7 @@ int 		oidDebug_Extension_Core
 int 		oidDebug_Extension_Core_Keymapping
 int 		oidDebug_Extension_Core_Timer
 int 		oidDebug_Extension_Core_TopOfTheHour
+int			oidDebug_Extension_List
 int 		oidDebug_Extension_SexLab
 int 		oidDebug_Extension_OStim
 int 		oidDebug_Extension_CustomResolveScoped
@@ -108,6 +109,7 @@ Function CallThisToResetTheOIDValuesHextun()
 	oidDebug_Extension_Core_Keymapping		= 0
 	oidDebug_Extension_Core_Timer			= 0
 	oidDebug_Extension_Core_TopOfTheHour	= 0
+	oidDebug_Extension_List					= 0
 	oidDebug_Extension_SexLab				= 0
 	oidDebug_Extension_OStim				= 0
 	oidDebug_Extension_CustomResolveScoped	= 0
@@ -143,12 +145,13 @@ Event OnConfigOpen()
 		SLTDebugMsg("Setup.OnConfigOpen")
 	EndIf
 	ScriptsList = sl_triggers.GetScriptsList()
-	if SLT.Extensions.Length > 0
+	Form[] SLTRExtensions = SLT.GetExtensions()
+	if SLTRExtensions.Length > 0
 		extensionPages = PapyrusUtil.StringArray(0)
 		extensionKeys = PapyrusUtil.StringArray(0)
 		int i = 0
-		while i < SLT.Extensions.Length
-			sl_triggersExtension slext = SLT.Extensions[i] as sl_triggersExtension
+		while i < SLTRExtensions.Length
+			sl_triggersExtension slext = SLTRExtensions[i] as sl_triggersExtension
 			If (slext && slext.IsMCMConfigurable())
 				extensionPages = PapyrusUtil.PushString(extensionPages, slext.SLTFriendlyName)
 				extensionKeys = PapyrusUtil.PushString(extensionKeys, slext.SLTExtensionKey)
@@ -157,6 +160,7 @@ Event OnConfigOpen()
 		endwhile
 		Pages = PapyrusUtil.MergeStringArray(headerPages, extensionPages)
 	else
+		SLTDebugMsg("Setup.OnConfigOpen: SLTRExtensions.Length: " + SLTRExtensions.Length)
 		Pages = headerPages
 	endif
 	refreshOnClose = false
@@ -633,6 +637,7 @@ Function ShowHeaderPage()
 	oidDebug_Extension_Core_Keymapping		= AddToggleOption("Debug_Extension_Core_Keymapping",		SLT.Debug_Extension_Core_Keymapping)
 	oidDebug_Extension_Core_Timer			= AddToggleOption("Debug_Extension_Core_Timer",				SLT.Debug_Extension_Core_Timer)
 	oidDebug_Extension_Core_TopOfTheHour	= AddToggleOption("Debug_Extension_Core_TopOfTheHour",		SLT.Debug_Extension_Core_TopOfTheHour)
+	oidDebug_Extension_List					= AddToggleOption("Debug_Extension_List",					SLT.Debug_Extension_List)
 	oidDebug_Extension_SexLab				= AddToggleOption("Debug_Extension_SexLab", 				SLT.Debug_Extension_SexLab)
 	oidDebug_Extension_OStim				= AddToggleOption("Debug_Extension_OStim",	 				SLT.Debug_Extension_OStim)
 	oidDebug_Extension_CustomResolveScoped	= AddToggleOption("Debug_Extension_CustomResolveScoped",	SLT.Debug_Extension_CustomResolveScoped)
@@ -917,6 +922,11 @@ Event OnOptionSelect(int option)
 		_strVal = "Debug_Extension_Core_TopOfTheHour"
 		_boolVal = !SLT.Debug_Extension_Core_TopOfTheHour
 		SLT.Debug_Extension_Core_TopOfTheHour = DoSaveAndReset(option, _strVal, _boolVal)
+		return
+	elseif option == oidDebug_Extension_List
+		_strVal = "Debug_Extension_List"
+		_boolVal = !SLT.Debug_Extension_List
+		SLT.Debug_Extension_List = DoSaveAndReset(option, _strVal, _boolVal)
 		return
 	elseIf option == oidDebug_Extension_SexLab
 		_strVal = "Debug_Extension_SexLab"

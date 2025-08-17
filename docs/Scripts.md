@@ -217,11 +217,17 @@ $target< otherActor >.varname
 |`$system.is_available.core`|bool - (Added by SLTR Core) is the SLTR Core extension available and enabled (very rare you would want this false)|
 |`$system.toh_elapsed`|float - (Added by SLTR Core) actual elapsed time in hours since the previous top of the hour (may be larger than 1.0 if e.g. sleeping or traveling)|
 |`$system.is_available.sexlab`|bool - (Added by SLTR SexLab) is the SLTR SexLab extension available and enabled (would be false if you installed on a system without SexLab)|
-|`$system.partner`|Actor - (Added by SLTR SexLab) the first member of the target Actor's current SexLab scene that is not the target Actor (same as `$sexlab.partner1`)|
-|`$system.partner1`|Actor - (Added by SLTR SexLab) the first member of the target Actor's current SexLab scene that is not the target Actor (same as `$sexlab.partner`)|
+|`$system.partner`|Actor - (Added by SLTR SexLab) the first member of the target Actor's current SexLab scene that is not the target Actor|
+|`$system.partner1`|Actor - (Added by SLTR SexLab) the first member of the target Actor's current SexLab scene that is not the target Actor|
 |`$system.partner2`|Actor - (Added by SLTR SexLab) the second member of the target Actor's current SexLab scene that is not the target Actor|
 |`$system.partner3`|Actor - (Added by SLTR SexLab) the third member of the target Actor's current SexLab scene that is not the target Actor|
 |`$system.partner4`|Actor - (Added by SLTR SexLab) the fourth member of the target Actor's current SexLab scene that is not the target Actor|
+|`$system.is_available.ostim`|bool - (Added by SLTR OStim) is the SLTR OStim extension available and enabled (would be false if you installed on a system without OStim)|
+|`$system.ostim.partner`|Actor - (Added by SLTR OStim) the first member of the target Actor's current OStim scene that is not the target Actor|
+|`$system.ostim.partner1`|Actor - (Added by SLTR OStim) the first member of the target Actor's current OStim scene that is not the target Actor|
+|`$system.ostim.partner2`|Actor - (Added by SLTR OStim) the second member of the target Actor's current OStim scene that is not the target Actor|
+|`$system.ostim.partner3`|Actor - (Added by SLTR OStim) the third member of the target Actor's current OStim scene that is not the target Actor|
+|`$system.ostim.partner4`|Actor - (Added by SLTR OStim) the fourth member of the target Actor's current OStim scene that is not the target Actor|
 
 #### Request
 `request` scoped variables are also read-only and typically intended to convey information relevant to the context of the trigger, or the environment at the time the script was requested. Unlike `system` scoped variables that are intrinsic to the system, `request` scoped variables are only going to have relevant information in certain circumstances.

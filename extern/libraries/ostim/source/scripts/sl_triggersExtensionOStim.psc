@@ -53,24 +53,43 @@ Event OnInit()
 	if !self
 		return
 	endif
+
 	UpdateOStimStatus()
+	SLTInit()
+
 	; REQUIRED CALL
 	UnregisterForUpdate()
 	RegisterForSingleUpdate(0.01)
 EndEvent
 
-Event OnUpdate()
+Function DoPlayerLoadGame()
+	If (SLT.Debug_Extension || SLT.Debug_Extension_OStim)
+		SLTDebugMsg("OStim.DoPlayerLoadGame")
+	EndIf
 	SLTInit()
+EndFunction
+
+Event OnUpdate()
+	If (SLT.Debug_Extension || SLT.Debug_Extension_OStim)
+		SLTDebugMsg("OStim.OnUpdate")
+	EndIf
+	QueueUpdateLoop(60)
 EndEvent
 
 ; SLTReady
 ; OPTIONAL
 Function SLTReady()
+	If (SLT.Debug_Extension || SLT.Debug_Extension_OStim)
+		SLTDebugMsg("OStim.SLTReady")
+	EndIf
 	UpdateOStimStatus()
 	RefreshData()
 EndFunction
 
 Function RefreshData()
+	If (SLT.Debug_Extension || SLT.Debug_Extension_OStim)
+		SLTDebugMsg("OStim.RefreshData")
+	EndIf
 	RegisterEvents()
 EndFunction
 
@@ -84,13 +103,13 @@ EndFunction
 bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string scope, string token)
 	if scope == "system"
 		int skip = -1
-		if token == "partner" || token == "partner1"
+		if token == "ostim.partner" || token == "ostim.partner1"
 			skip = 1
-		elseif token == "partner2"
+		elseif token == "ostim.partner2"
 			skip = 2
-		elseif token == "partner3"
+		elseif token == "ostim.partner3"
 			skip = 3
-		elseif token == "partner4"
+		elseif token == "ostim.partner4"
 			skip = 4
 		elseif token == "is_available.ostim"
 			CmdPrimary.CustomResolveBoolResult = (IsEnabled && OStimForm)
@@ -141,6 +160,9 @@ bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string scope, strin
 EndFunction
 
 Function RefreshTriggerCache()
+	If (SLT.Debug_Extension || SLT.Debug_Extension_OStim)
+		SLTDebugMsg("OStim.RefreshTriggerCache")
+	EndIf
 	triggerKeys_Start = PapyrusUtil.StringArray(0)
 	triggerKeys_Orgasm = PapyrusUtil.StringArray(0)
 	triggerKeys_Stop = PapyrusUtil.StringArray(0)
@@ -214,6 +236,9 @@ EndFunction
 
 ; selectively enables only events with triggers
 Function RegisterEvents()
+	If (SLT.Debug_Extension || SLT.Debug_Extension_OStim)
+		SLTDebugMsg("OStim.RegisterEvents")
+	EndIf
 	UnregisterForModEvent("ostim_thread_start")
 	if IsEnabled && triggerKeys_Start.Length > 0 && OStimForm
 		SafeRegisterForModEvent_Quest(self, "ostim_thread_start", "OnSexStart")

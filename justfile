@@ -45,6 +45,12 @@ dir_project_sltr_peximport :=   dir_project_skse_sltr / "peximport"
 dir_project_scripts :=          dir_project_src / "source" / "scripts"
 dir_project_headers :=          dir_project_src / "source" / "headeronly"
 
+dir_pexout_core :=              dir_project_src / "scripts"
+dir_pexout_lib_adult_general := dir_lib_adult_general / "scripts"
+dir_pexout_lib_ostim :=         dir_lib_ostim / "scripts"
+dir_pexout_lib_sexlab :=        dir_lib_sexlab / "scripts"
+dir_pexout_lib_sexlabplusplus := dir_lib_sexlabplusplus / "scripts"
+
 dir_wabbajack :=                absolute_path("/wabbajack")
 dir_modlistinstalls :=          dir_wabbajack / "modlistinstalls"
 
@@ -88,9 +94,15 @@ raw_dir_fomod_core :=           replace(dir_fomod_core,                 '/', '\'
 raw_dir_fomod_ostim :=          replace(dir_fomod_ostim,                '/', '\')
 raw_dir_fomod_sexlab :=         replace(dir_fomod_sexlab,               '/', '\')
 raw_dir_fomod_sexlabplusplus := replace(dir_fomod_sexlabplusplus,       '/', '\')
-raw_dir_fomod_example_trigger := replace(dir_fomod_example_trigger,         '/', '\')
+raw_dir_fomod_example_trigger := replace(dir_fomod_example_trigger,     '/', '\')
 raw_dir_fomod_test_scripts :=   replace(dir_fomod_test_scripts,         '/', '\')
 raw_dir_fomod_pet_collar_game := replace(dir_fomod_pet_collar_game,     '/', '\')
+
+raw_dir_pex_core :=             replace(dir_pexout_core,                '/', '\')
+raw_dir_pex_lib_adult_general := replace(dir_pexout_lib_adult_general,  '/', '\')
+raw_dir_pex_lib_ostim :=        replace(dir_pexout_lib_ostim,           '/', '\')
+raw_dir_pex_lib_sexlab :=       replace(dir_pexout_lib_sexlab,          '/', '\')
+raw_dir_pex_lib_sexlabplusplus := replace(dir_pexout_lib_sexlabplusplus,'/', '\')
 
 raw_file_dep_mod :=             replace(file_dep_mod,                   '/', '\')
 raw_file_pet_collar_game :=     replace(file_dep_pet_collar_game,       '/', '\')
@@ -215,6 +227,13 @@ packagefomod:
     xcopy /e /i /y {{str_dir_addon_pet_collar_game}} {{str_dir_fomod_pet_collar_game}}
     powershell.exe -Command "if (Test-Path '{{raw_file_dep_fomod}}') { Remove-Item -Path '{{raw_file_dep_fomod}}' }"
     powershell.exe -Command "Compress-Archive -Path '{{raw_dir_project_fomod}}\\*' -DestinationPath '{{raw_file_dep_fomod}}'"
+
+cleanscripts:
+    powershell.exe -Command "if (Test-Path '{{raw_dir_pex_core}}') { Remove-Item -Path '{{raw_dir_pex_core}}' -Recurse }"
+    powershell.exe -Command "if (Test-Path '{{raw_dir_pex_lib_adult_general}}') { Remove-Item -Path '{{raw_dir_pex_lib_adult_general}}' -Recurse }"
+    powershell.exe -Command "if (Test-Path '{{raw_dir_pex_lib_ostim}}') { Remove-Item -Path '{{raw_dir_pex_lib_ostim}}' -Recurse }"
+    powershell.exe -Command "if (Test-Path '{{raw_dir_pex_lib_sexlab}}') { Remove-Item -Path '{{raw_dir_pex_lib_sexlab}}' -Recurse }"
+    powershell.exe -Command "if (Test-Path '{{raw_dir_pex_lib_sexlabplusplus}}') { Remove-Item -Path '{{raw_dir_pex_lib_sexlabplusplus}}' -Recurse }"
 
 # More targeted replacement (safer - targets specifically the GetModVersion function)
 update-version-safe:

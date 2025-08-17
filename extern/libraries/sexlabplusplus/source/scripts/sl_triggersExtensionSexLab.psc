@@ -58,27 +58,49 @@ bool Function IsMCMConfigurable()
 EndFunction
 
 Event OnInit()
+	if SLT.Debug_Extension || SLT.Debug_Extension_SexLab
+		SLTDebugMsg("SexLab.OnInit")
+	endif
+
 	if !self
 		return
 	endif
+
 	UpdateSexLabStatus()
+	SLTInit()
 	; REQUIRED CALL
 	UnregisterForUpdate()
 	RegisterForSingleUpdate(0.01)
 EndEvent
 
-Event OnUpdate()
+Function DoPlayerLoadGame()
+	if SLT.Debug_Extension || SLT.Debug_Extension_SexLab
+		SLTDebugMsg("SexLab.DoPlayerLoadGame")
+	endif
 	SLTInit()
+EndFunction
+
+Event OnUpdate()
+	if SLT.Debug_Extension || SLT.Debug_Extension_SexLab
+		SLTDebugMsg("SexLab.OnUpdate")
+	endif
+	QueueUpdateLoop(60)
 EndEvent
 
 ; SLTReady
 ; OPTIONAL
 Function SLTReady()
+	if SLT.Debug_Extension || SLT.Debug_Extension_SexLab
+		SLTDebugMsg("SexLab.SLTReady")
+	endif
 	UpdateSexLabStatus()
 	RefreshData()
 EndFunction
 
 Function RefreshData()
+	if SLT.Debug_Extension || SLT.Debug_Extension_SexLab
+		SLTDebugMsg("SexLab.RefreshData")
+	endif
 	RegisterEvents()
 EndFunction
 
@@ -234,6 +256,9 @@ Event OnSexLabOrgasmS(Form ActorRef, Int Thread)
 EndEvent
 
 Function RefreshTriggerCache()
+	if SLT.Debug_Extension || SLT.Debug_Extension_SexLab
+		SLTDebugMsg("SexLab.RefreshTriggerCache")
+	endif
 	triggerKeys_Start = PapyrusUtil.StringArray(0)
 	triggerKeys_Orgasm = PapyrusUtil.StringArray(0)
 	triggerKeys_Stop = PapyrusUtil.StringArray(0)
@@ -302,6 +327,9 @@ Function RefreshTriggerCache()
 EndFunction
 
 Function UpdateSexLabStatus()
+	if SLT.Debug_Extension || SLT.Debug_Extension_SexLab
+		SLTDebugMsg("SexLab.UpdateSexLabStatus")
+	endif
 	SexLabAnimatingFaction = none
 	SexLabForm = none
 	
@@ -313,6 +341,9 @@ EndFunction
 
 ; selectively enables only events with triggers
 Function RegisterEvents()
+	if SLT.Debug_Extension || SLT.Debug_Extension_SexLab
+		SLTDebugMsg("SexLab.RegisterEvents")
+	endif
 	UnregisterForModEvent(EVENT_SEXLAB_START)
 	if IsEnabled && triggerKeys_Start.Length > 0 && SexLabForm
 		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_START, EVENT_SEXLAB_START_HANDLER)

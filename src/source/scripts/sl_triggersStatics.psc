@@ -65,19 +65,11 @@ string Function EVENT_SLT_REQUEST_LIST() global
 	return "OnSLTRequestList"
 EndFunction
 
-; SLT receives these from extensions for registration
-string Function EVENT_SLT_REGISTER_EXTENSION() global
-	return "OnSLTRegisterExtension"
-EndFunction
-
 string Function EVENT_SLT_ON_NEW_SESSION() global
 	return "OnSLTNewSession"
 EndFunction
 
 ;; Internal
-string Function EVENT_SLT_INTERNAL_READY_EVENT() global
-	return "OnSLTInternalReady"
-EndFunction
 
 string Function EVENT_SLT_RESET() global
 	return "OnSLTReset"
@@ -131,11 +123,18 @@ string FUNCTION DELETED_ATTRIBUTE() global
 EndFunction
 
 sl_TriggersMain Function GetSLTMain() global
-	return Game.GetFormFromFile(0x83F, "sl_triggers.esp") as sl_TriggersMain
-EndFunction
-
-Form Function GetForm_SLT_Main() global
-	return Game.GetFormFromFile(0x83F, "sl_triggers.esp")
+	Form mainForm = Game.GetFormFromFile(0x83F, "sl_triggers.esp")
+	if mainForm
+		sl_TriggersMain sltrMain = mainForm as sl_TriggersMain
+		if sltrMain
+			return sltrMain
+		else
+			SLTErrMsg("Statics.GetSLTMain: bizarre life; got a form but isn't an sl_TriggersMain?")
+		endif
+	else
+		SLTErrMsg("Statics.GetSLTMain: unable to retrieve FormID 0x83F from sl_triggers.esp")
+	endif
+	return none
 EndFunction
 
 Form Function GetForm_SLT_ExtensionCore() global
@@ -143,11 +142,11 @@ Form Function GetForm_SLT_ExtensionCore() global
 EndFunction
 
 Form Function GetForm_SLT_ExtensionSexLab() global
-	return Game.GetFormFromFile(0x83D, "sl_triggers.esp")
+	return Game.GetFormFromFile(0x800, "sl_triggersSexLabExtension.esp")
 EndFunction
 
 Form Function GetForm_SLT_ExtensionOStim() global
-	return Game.GetFormFromFile(0x06E, "sl_triggers.esp")
+	return Game.GetFormFromFile(0x800, "sl_triggersOStimExtension.esp")
 EndFunction
 
 Form Function GetForm_Skyrim_ActorTypeNPC() global
@@ -202,6 +201,10 @@ EndFunction
 ;;;;;;;;
 ; Global general values
 ; SLT Global/General
+
+string Function SLTRExtensionListKey() global
+	return "SLTR:internal:extensions:"
+EndFunction
 
 string Function CommandsFolder() global
 	return "../sl_triggers/commands/"
@@ -267,7 +270,7 @@ bool Function GetFlag(bool bDbgOut, string filename, string flagname, bool defau
 	bool storedFlag = IsStringTruthy(JsonUtil.GetStringValue(filename, flagname, defaultValue))
 
 	if bDbgOut
-			SLTInfoMsg("Main.GetFlag: filename(" + filename + ") set (" + flagname + ") to and returning => (" + storedFlag + "); also forcing value back out to JSON")
+		SLTInfoMsg("Main.GetFlag: filename(" + filename + ") set (" + flagname + ") to and returning => (" + storedFlag + "); also forcing value back out to JSON")
 	endif
 
 	JsonUtil.SetStringValue(filename, flagname, storedFlag)
@@ -319,7 +322,6 @@ EndFunction
 bool Function IsStringTruthy(string _value) global
 	return ((_value != "") && (_value != "false") && (_value != "0"))
 EndFunction
-
 
 Function SquawkFunctionError(sl_triggersCmd _cmdPrimary, string msg) global
 	sl_triggers_internal.LogError("SLTR:(" + _cmdPrimary.currentScriptName + ")[" + _cmdPrimary.lineNum + "]: " + msg)

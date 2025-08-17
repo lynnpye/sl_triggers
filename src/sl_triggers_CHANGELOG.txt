@@ -1,13 +1,16 @@
 136
-    Savegame compatibility: Should be savegame compatible
+    Savegame compatibility: New save OR Cleaned save required (i.e. Remove old version -> Load -> Save -> Install new version -> Load)
     
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
         (or whichever folder you have your SKSE logs directed to)
 
     change: updated to use FOMOD installer
+        There are now separate ESL flagged .esp files for Core, SexLab, and OStim extensions
     change: renamed OStim, util_waitforkbd to ostim_waitforkbd to prevent collision with SexLab util_waitforkbd
     bugfix: removed sla_get_actor_hours_since_last_sex; GetActorHoursSinceLastSex only exists for OSLAroused, not for SexLabAroused
-    enhancement: Many more SexLab API functions added to the function library
+    bugfix: Added system.ostim.partner* to match existing SexLab based system.partner* variables; you can now actually access the ostim versions if you have both OStim and SexLab installed
+    bugfix: logic error that fully disabled cell change trigger
+    enhancement: Stabilized extension startup and registration
 
 135
     Savegame compatibility: Should be savegame compatible

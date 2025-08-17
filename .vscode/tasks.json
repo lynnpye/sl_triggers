@@ -2,6 +2,12 @@
     "version": "2.0.0",
     "tasks": [
       {
+        "label": "Clean Scripts",
+        "group": "build",
+        "type": "shell",
+        "command": "just cleanscripts"
+      },
+      {
         "label": "Build Core",
         "group":{
           "kind": "build",
@@ -98,11 +104,15 @@
         "command": "just buildplugin"
       },
       {
-        "label": "Build Mod",
+        "label": "Build All",
         "group": "build",
         "dependsOn": [
+          "Build Plugin",
           "Build Core",
-          "Build Plugin"
+          "Build Adult General",
+          "Build OStim",
+          "Build SexLab",
+          "Build SexLab P+"
         ],
         "dependsOrder": "sequence"
       },
@@ -117,24 +127,6 @@
         "group": "build",
         "type": "shell",
         "command": "just populateNEF"
-      },
-      {
-        "label": "Build SME",
-        "group": "build",
-        "dependsOn": [
-          "Build Mod",
-          "Prep SME"
-        ],
-        "dependsOrder": "sequence"
-      },
-      {
-        "label": "Build NEF",
-        "group": "build",
-        "dependsOn": [
-          "Build Mod",
-          "Prep NEF"
-        ],
-        "dependsOrder": "sequence"
       },
       {
         "label": "Package All",

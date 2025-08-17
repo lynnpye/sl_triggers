@@ -6,10 +6,7 @@ scriptname sl_triggersExtensionCore extends sl_triggersExtension
 
 import sl_triggersStatics
 
-ActorBase Property				pkSentinelBase Auto
 FormList Property				TheContainersWeKnowAndLove Auto ; so many naming schemes to choose from
-
-Actor Property pkSentinel Auto Hidden
 
 string	EVENT_TOP_OF_THE_HOUR					= "TopOfTheHour"
 string	EVENT_TOP_OF_THE_HOUR_HANDLER			= "OnTopOfTheHour"
@@ -118,32 +115,11 @@ string[] 	triggerKeys_vampirism
 string[]	triggerKeys_lycanthropy
 string[]	triggerKeys_vampire_feeding
 
-bool		playerCellChangeHandlingReady
 float 		last_time_PlayerCellChangeEvent
 string[]	common_container_names
 float[]		timer_next_run_time
 float[]		timer_delays
 float 		_lastRealTimeTimerProcessed
-
-int Property CS_DEFAULT 		= 0 AutoReadOnly Hidden
-int Property CS_SLTINIT		 	= 1 AutoReadOnly Hidden
-int Property CS_SENTINEL_SETUP 	= 2 AutoReadOnly Hidden
-int Property CS_POLLING			= 3 AutoReadOnly Hidden
-
-int CoreCurrentState
-
-string Function CS_ToString(int csstate)
-	if CS_POLLING == csstate
-		return "CS_POLLING"
-	elseif CS_SENTINEL_SETUP == csstate
-		return "CS_SENTINEL_SETUP"
-	elseif CS_SLTINIT == csstate
-		return "CS_SLTINIT"
-	elseif CS_DEFAULT == csstate
-		return "CS_DEFAULT"
-	endif
-	return "CS: invalid(" + csstate + ")"
-EndFunction
 
 bool Function IsMCMConfigurable()
 	return true
@@ -162,72 +138,42 @@ Event OnInit()
 	endif
 
 	if !self
+		SLTDebugMsg("Core.OnInit: I am not myself")
 		return
 	endif
 
-	playerCellChangeHandlingReady = false
-
-	; REQUIRED CALL
-	CoreCurrentState = CS_SLTINIT
-	if SLT.Debug_Extension_Core
-		SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : should be SLTInit")
+	if SLT.Debug_Extension || SLT.Debug_Extension_Core
+		SLTDebugMsg("Core.OnInit: Calling SLTInit()")
 	endif
+	SLTInit()
+
 	UnregisterForUpdate()
 	QueueUpdateLoop(0.01)
 EndEvent
 
-Event OnUpdate()
-	if CS_SLTINIT == CoreCurrentState
-		SLTInit()
-		
-		CoreCurrentState = CS_SENTINEL_SETUP
-		if SLT.Debug_Extension_Core
-			SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : should be Polling")
-		endif
-		QueueUpdateLoop(0.01)
-	elseif CS_SENTINEL_SETUP == CoreCurrentState
-		if PopulateSentinel()
-			CoreCurrentState = CS_POLLING
-			if SLT.Debug_Extension_Core
-				SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : should be back to Default after PopulateSentinel()")
-			endif
-			;/
-			; no longer need to deal with actually populating it, just cleaning it up
-		elseif !PlayerRef
-			if SLT.Debug_Extension_Core
-				SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : polling for sentinel; player not loaded")
-			endif
-			QueueUpdateLoop()
-			return
-		elseif PlayerRef && PlayerRef.Is3DLoaded()
-			if SLT.Debug_Extension_Core
-				SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : polling for sentinel; player not 3dloaded")
-			endif
-			QueueUpdateLoop(0.1)
-			return
-			/;
-		endif
-		QueueUpdateLoop(0.01)
-	elseif CS_POLLING == CoreCurrentState
-		QueueUpdateLoop(60)
-		HandleTimers()
-	endif
-EndEvent
-
-bool Function PopulateSentinel()
-	if SLT.Debug_Extension_Core
-		SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ") : PopulateSentinel (is actually cleaning it out)")
+Function DoPlayerLoadGame()
+	if SLT.Debug_Extension || SLT.Debug_Extension_Core
+		SLTDebugMsg("Core.DoPlayerLoadGame: Calling SLTInit()")
 	endif
 
-	if pkSentinel
-		pkSentinel.Delete()
-		pkSentinel = none
-	endif
-
-	return true
+	SLTInit()
+	
+	UnregisterForUpdate()
+	QueueUpdateLoop(0.01)
 EndFunction
 
+Event OnUpdate()
+	if SLT.Debug_Extension || SLT.Debug_Extension_Core
+		SLTDebugMsg("Core.OnUpdate")
+	endif
+	QueueUpdateLoop(60)
+	HandleTimers()
+EndEvent
+
 Function PopulatePerk()
+	if SLT.Debug_Extension || SLT.Debug_Extension_Core
+		SLTDebugMsg("Core.PopulatePerk")
+	endif
 	if !SLT.SLTRContainerPerk
 		SLTErrMsg("Core.PopulatePerk: SLTRContainerPerk is not filled; Container activation tracking disabled; this is probably an error")
 	else
@@ -253,21 +199,12 @@ Function SLTReady()
 		SLTDebugMsg("Core.SLTReady")
 	endif
 
-	SLT.SLTPLYREF.SLTCore = self
-
-	if !SLT.SLTPLYREF
-		SLTErrMsg("Core.SLTReady setting SLT.SLTPLYREF.SLTCore but SLT.SLTPLYREF is still none")
-	endif
-
 	PopulatePerk()
+	;/
 	if SLT.Debug_Extension_Core
 		SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ")")
 	endif
-	if CS_SENTINEL_SETUP != CoreCurrentState
-		CoreCurrentState = CS_SENTINEL_SETUP
-		UnregisterForUpdate()
-		QueueUpdateLoop(0.01)
-	endif
+	/;
 	
 	_keystates = PapyrusUtil.BoolArray(256, false)
 
@@ -277,6 +214,9 @@ Function SLTReady()
 EndFunction
 
 Function ClearKeystates()
+	if SLT.Debug_Extension_Core
+		SLTDebugMsg("Core.ClearKeystates")
+	endif
 	int i = 0
 	while i < _keystates.Length
 		_keystates[i] = false
@@ -285,6 +225,9 @@ Function ClearKeystates()
 EndFunction
 
 Function RefreshData()
+	if SLT.Debug_Extension || SLT.Debug_Extension_Core
+		SLTDebugMsg("Core.RefreshData")
+	endif
 	RefreshTheContainersWeKnowAndLove()
 	RegisterEvents()
 EndFunction
@@ -443,16 +386,10 @@ Event OnKeyDown(Int KeyCode)
 	Endif
 EndEvent
 
-;/
-Event OnSLTRPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Form fkwPlayerLocation, bool playerWasInInterior)
-	if SLT.Debug_Extension_Core
-		Keyword kwpLocation = fkwPlayerLocation as Keyword
-		SLTDebugMsg("\tCore.OnSLTRPlayerCellChange: isNewGameLaunch:" + isNewGameLaunch + " / isNewSession: " + isNewSession + " / keywordPlayerLocation : " + kwpLocation + " / playerWasInInterior:" + playerWasInInterior)
-	endif
-EndEvent
-/;
-
 Event OnSLTRPlayerEquipEvent(Form baseForm, ObjectReference objRef, bool is_equipping)
+	if SLT.Debug_Extension_Core
+		SLTDebugMsg("Core.OnSLTRPlayerEquipEvent")
+	endif
 	HandleEquipmentChange(baseForm, objRef, is_equipping)
 EndEvent
 
@@ -489,14 +426,10 @@ EndEvent
 
 int cellPreviousSessionId
 Function Send_SLTR_OnPlayerCellChange()
-	if triggerKeys_playercellchange.Length > 0
+	if !PlayerRef || !PlayerRef.Is3DLoaded() || PlayerRef.IsDisabled()
+		SLTDebugMsg("Core.Send_SLTR_OnPlayerCellChange: Player not ready for cell change processing")
 		return
 	endif
-
-	if !PlayerRef || !PlayerRef.Is3DLoaded() || PlayerRef.IsDisabled()
-        SLTDebugMsg("Core.Send_SLTR_OnPlayerCellChange: Player not ready for cell change processing")
-        return
-    endif
 
 	float nowtime = Utility.GetCurrentRealTime()
 	bool isNewGameLaunch = false
@@ -505,7 +438,7 @@ Function Send_SLTR_OnPlayerCellChange()
 		if (nowtime - last_time_PlayerCellChangeEvent) < 1.0
 			; ignoring flutter
 			If (SLT.Debug_Extension_Core)
-				SLTDebugMsg("Core.Send_SLTR_OnPlayerCellChange: ignoring flutter")
+				SLTDebugMsg("Core.Send_SLTR_OnPlayerCellChange: ignoring flutter; note that this is bookkeeping, might not have triggers to run")
 			EndIf
 			return
 		endif
@@ -516,7 +449,6 @@ Function Send_SLTR_OnPlayerCellChange()
 	endif
 	last_time_PlayerCellChangeEvent = nowtime
 
-	;RelocatePlayerLoadingScreenSentinel()
 
 	int nowSessionId = sl_triggers.GetSessionId()
 	bool isNewSession = nowSessionId != cellPreviousSessionId
@@ -524,73 +456,22 @@ Function Send_SLTR_OnPlayerCellChange()
 		cellPreviousSessionId = nowSessionId
 	endif
 
-	; should
-	; optional send actual mod event, otherwise at least pass it off to our handlers
-	Keyword playerLocationKeyword = SLT.GetPlayerLocationKeyword()
+	if triggerKeys_playercellchange.Length > 0
+		; should
+		; optional send actual mod event, otherwise at least pass it off to our handlers
+		Keyword playerLocationKeyword = SLT.GetPlayerLocationKeyword()
 
-	HandleOnPlayerCellChange(isNewGameLaunch, isNewSession, playerLocationKeyword, PlayerRef.IsInInterior())
-
-	;/
-	int mehandle = ModEvent.Create(EVENT_SLTR_ON_PLAYER_CELL_CHANGE())
-	; is this in response to a "new launch" (i.e. new run of SkyrimSE.exe) ; multiple can be true
-	ModEvent.PushBool(mehandle, isNewGameLaunch)
-	; is this in response to "new session" (i.e. game load or new game) ; this should imply isNewGameLaunch and otherwise ought to be an error in my opinion
-	ModEvent.PushBool(mehandle, isNewSession)
-	ModEvent.PushForm(mehandle, playerLocationKeyword)
-	ModEvent.PushBool(mehandle, PlayerRef.IsInInterior())
-	ModEvent.Send(mehandle)
-	/;
+		HandleOnPlayerCellChange(isNewGameLaunch, isNewSession, playerLocationKeyword, PlayerRef.IsInInterior())
+	endif
 
 	isNewGameLaunch = false
 EndFunction
 
 Function SLTR_Internal_PlayerCellChange()
-	if !playerCellChangeHandlingReady
-		return
-	endif
 	if triggerKeys_playercellchange.Length > 0
 		Send_SLTR_OnPlayerCellChange()
 	endif
 EndFunction
-
-;/
-Function RelocatePlayerLoadingScreenSentinel()
-	if pkSentinel
-		pkSentinel.MoveTo(PlayerRef, 0.0, 0.0, 256.0)
-	endif
-EndFunction
-
-Event OnSLTRPlayerLoadingScreen(string _eventName, string _strvalue, float _fltvalue, Form _frmvalue)
-	if SLT.Debug_Extension_Core
-		SLTDebugMsg("\tCore.OnSLTRPlayerLoadingScreen")
-	endif
-EndEvent
-
-Function Send_SLTR_OnPlayerLoadingScreen()
-	if triggerKeys_playerloadingscreen.Length > 0
-		HandleOnPlayerLoadingScreen()
-	endif
-
-	;SendModEvent(EVENT_SLTR_ON_PLAYER_LOADING_SCREEN())
-EndFunction
-
-; in the example, called OnPlayerLoadingScreen() but surely it's for more than that?
-Function SLTR_Internal_PlayerNewSpaceEvent()
-	RelocatePlayerLoadingScreenSentinel()
-	if triggerKeys_playerloadingscreen.Length > 0
-		Send_SLTR_OnPlayerLoadingScreen()
-	endif
-EndFunction
-
-Event OnSLTRPlayerContainerActivate(Form fcontainerRef, bool isConCorpse, bool isConEmpty, Form fkwPlayerLocation, bool playerWasInInterior)
-	if SLT.Debug_Extension_Core
-		ObjectReference containerRef = fcontainerRef as ObjectReference
-		Keyword kwpLocation = fkwPlayerLocation as Keyword
-
-		SLTDebugMsg("\tCore.OnSLTRPlayerContainerActivate fcontainerRef(" + fcontainerRef + ") / containerRef(" + containerRef + ") / isConCorpse(" + isConCorpse + ") / isConEmpty(" + isConEmpty + ") / fkwPlayerLocation(" + fkwPlayerLocation + ") / kwpLocation(" + kwpLocation + ")")
-	endif
-EndEvent
-/;
 
 Function Send_SLTR_OnPlayerActivateContainer(ObjectReference containerRef, bool container_is_corpse, bool container_is_empty)
 	if triggerKeys_container.Length > 0
@@ -1592,7 +1473,10 @@ Function HandleOnKeyDown()
 EndFunction
 
 Function HandleOnPlayerCellChange(bool isNewGameLaunch, bool isNewSession, Keyword playerLocationKeyword, bool playerWasInInterior)
-	;SLTDebugMsg("Core.HandleOnPlayerCellChange: isNewGameLaunch(" + isNewGameLaunch + ") / isNewSession(" + isNewSession + ")")
+	if SLT.Debug_Extension_Core
+		SLTDebugMsg("Core.HandleOnPlayerCellChange: isNewGameLaunch(" + isNewGameLaunch + ") / isNewSession(" + isNewSession + ") / playerLocationKeyword(" + playerLocationKeyword + ") / playerWasInInterior(" + playerWasInInterior + ")")
+	endif
+
 	int i = 0
 	int j
 

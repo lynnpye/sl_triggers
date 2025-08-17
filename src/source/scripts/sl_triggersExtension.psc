@@ -13,7 +13,19 @@ Actor               Property PlayerRef Auto
 
 ; sl_triggersMain SLT
 ; access to the sl_triggers API and framework
-sl_triggersMain		Property SLT Auto Hidden ; will be populated on startup
+sl_triggersMain 	_sltrSLT
+sl_triggersMain		Property SLT Hidden ; will be populated on startup
+	
+	; DO NOT ACCESS SLT IN HERE
+	sl_triggersMain Function Get()
+		if !_sltrSLT
+			_sltrSLT = GetSLTMain()
+		endif
+		return _sltrSLT
+	EndFunction
+	; DO NOT ACCESS SLT IN HERE
+
+EndProperty
 
 int Property SLTRVersion = 0 Auto Hidden
 
@@ -33,10 +45,10 @@ bool Function _slt_AdditionalRequirementsSatisfied()
 EndFunction
 
 Function SetEnabled(bool _newEnabledFlag)
-	bEnabled = UpdateFlag(SLT.Debug_Setup || SLT.Debug_Extension, FN_S, "enabled", _newEnabledFlag) && _slt_AdditionalRequirementsSatisfied()
-	if SLT.Debug_Extension_SexLab
-		SLTDebugMsg("SexLab.SetEnabled => (" + IsEnabled + ") vs bEnabled(" + bEnabled + ")")
+	if SLT.Debug_Extension
+		SLTDebugMsg("Extension.SetEnabled: " + SLTExtensionKey + ": _newEnabledFlag: " + _newEnabledFlag)
 	endif
+	bEnabled = UpdateFlag(SLT.Debug_Setup || SLT.Debug_Extension, FN_S, "enabled", _newEnabledFlag) && _slt_AdditionalRequirementsSatisfied()
 	;IsEnabled = SLT.IsEnabled && bEnabled
 	sl_triggers_internal.SetExtensionEnabled(SLTExtensionKey, bEnabled)
 EndFunction
@@ -137,6 +149,9 @@ string 	internalReadyEvent
 
 
 Event OnSLTSettingsUpdated(string eventName, string strArg, float numArg, Form sender)
+	if SLT.Debug_Extension
+		SLTDebugMsg("Extension.OnSLTSettingsUpdated: " + SLTExtensionKey)
+	endif
 	SLTReady()
 	SLTSettingsUpdated()
 EndEvent
@@ -149,18 +164,19 @@ EndEvent
 ; to be first or last at the time of this writing, take that into consideration if you
 ; run into problems.
 Function SLTInit()
+	if SLT.Debug_Extension
+		SLTDebugMsg("Extension.SLTInit: " + SLTExtensionKey)
+	endif
+	SLT.AddExtension(self)
+
 	FN_S = FN_X_Settings(SLTExtensionKey)
 	bEnabled = GetFlag(SLT.Debug_Setup || SLT.Debug_Extension, FN_S, "enabled", true)  && _slt_AdditionalRequirementsSatisfied()
-
-	if !SLT
-		SLT = GetSLTMain()
-	endif
 
 	sl_triggers_internal.SetExtensionEnabled(SLTExtensionKey, bEnabled)
 	
 	CheckVersionUpdates()
 	
-	SafeRegisterForModEvent_Quest(self, EVENT_SLT_INTERNAL_READY_EVENT(), "OnSLTInternalReady")
+	;SafeRegisterForModEvent_Quest(self, EVENT_SLT_INTERNAL_READY_EVENT(), "OnSLTInternalReady")
 	SafeRegisterForModEvent_Quest(self, EVENT_SLT_SETTINGS_UPDATED(), "OnSLTSettingsUpdated")
 	
 	_slt_RefreshTriggers()
@@ -181,6 +197,7 @@ bool Function RequestCommandWithThreadId(Actor _theActor, string _theScript, int
 	return SLT.StartCommandWithThreadId(_theActor, _theScript, _requestId, _threadid)
 EndFunction
 
+;/
 Event OnSLTInternalReady(string eventName, string strArg, float numArg, Form sender)
 	if !self
 		return
@@ -189,8 +206,19 @@ Event OnSLTInternalReady(string eventName, string strArg, float numArg, Form sen
 
 	sl_triggersAPI.RegisterExtension(self)
 EndEvent
+/;
+
+Function QueueUpdateLoop(float afDelay = 1.0)
+	if !self
+		return
+	endif
+	RegisterForSingleUpdate(afDelay)
+EndFunction
 
 Function _slt_RefreshTriggers()
+	if SLT.Debug_Extension
+		SLTDebugMsg("Extension._slt_RefreshTriggers: " + SLTExtensionKey)
+	endif
 	TriggerKeys = sl_triggers_internal.GetTriggerKeys(SLTExtensionKey)
 	If (SLT.Debug_Cmd_RunScript || SLT.Debug_Extension || SLT.Debug_Setup || SLT.Debug_Extension_Core_Keymapping)
 		SLTDebugMsg("_slt_RefreshTriggers: TriggerKeys(" + PapyrusUtil.StringJoin(TriggerKeys, "),(") + ")")

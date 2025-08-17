@@ -32,6 +32,8 @@ Actor			Property PlayerRef Auto
 Keyword			Property ActorTypeNPC Auto
 Keyword			Property ActorTypeUndead Auto
 
+Form[] SLTRExtensions
+
 Actor _cmdTA = none
 string kframe_map_prefix
 string kframe_list_prefix
@@ -815,7 +817,7 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
 
     initialGameTime = SLT.GetTheGameTime()
 
-	CmdTargetActor = akCaster
+	CmdTargetActor = akTarget
     
     threadVarKeys = PapyrusUtil.StringArray(0)
     threadVarVals = PapyrusUtil.StringArray(0)
@@ -836,6 +838,8 @@ Function DoStartup()
     endif
 
 	SafeRegisterForModEvent_AME(self, EVENT_SLT_RESET(), "OnSLTReset")
+
+    SLTRExtensions = SLT.GetExtensions()
     
     if !threadid
         ; need to determine our threadid
@@ -1244,14 +1248,14 @@ bool Function InternalResolve(string token)
             endif
         endif
         
-        while i < SLT.Extensions.Length
+        while i < SLTRExtensions.Length
             if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
                 SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
                 CleanupAndRemove()
                 Return false
             endif
 
-            sl_triggersExtension slext = SLT.Extensions[i] as sl_triggersExtension
+            sl_triggersExtension slext = SLTRExtensions[i] as sl_triggersExtension
             
             resolved = slext.CustomResolveScoped(self, scope, vname)
             if resolved

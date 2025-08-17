@@ -2,6 +2,9 @@
 #include "sl_triggers.h"
 #include "caprunner.h"
 
+#define LOG_EVENT_CALLS true
+#undef LOG_EVENT_CALLS
+
 namespace SLT {
 
 void DelayedFunction(auto function, int delay) {
@@ -225,6 +228,9 @@ RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESActivateEvent*
 };
 
     void GameEventHandler::onLoad() {
+        #ifdef LOG_EVENT_CALLS
+        logger::debug("EventCalls -> onLoad");
+        #endif
         // Register the provider
         REGISTER_PAPYRUS_PROVIDER(SLTPapyrusFunctionProvider, "sl_triggers");
         REGISTER_PAPYRUS_PROVIDER(SLTInternalPapyrusFunctionProvider, "sl_triggers_internal");
@@ -255,51 +261,108 @@ RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESActivateEvent*
 
         // hook quitters
         RegistrationClass::QuitGameHook::install();
+        #ifdef LOG_EVENT_CALLS
+        logger::debug("EventCalls -> onLoad done");
+        #endif
     }
 
     void GameEventHandler::onPostLoad() {
+        #ifdef LOG_EVENT_CALLS
+        logger::debug("EventCalls -> onPostLoad");
+        #endif
         RegistrationClass::HandleSKSEMessage(SKSE::MessagingInterface::kPostLoad);
+        #ifdef LOG_EVENT_CALLS
+        logger::debug("EventCalls -> onPostLoad done");
+        #endif
     }
 
     void GameEventHandler::onPostPostLoad() {
+        #ifdef LOG_EVENT_CALLS
+        logger::debug("EventCalls -> onPostPostLoad");
+        #endif
         RegistrationClass::HandleSKSEMessage(SKSE::MessagingInterface::kPostPostLoad);
+        #ifdef LOG_EVENT_CALLS
+        logger::debug("EventCalls -> onPostPostLoad done");
+        #endif
     }
 
     void GameEventHandler::onInputLoaded() {
+        #ifdef LOG_EVENT_CALLS
+        logger::debug("EventCalls -> onInputLoaded");
+        #endif
         RegistrationClass::HandleSKSEMessage(SKSE::MessagingInterface::kInputLoaded);
+        #ifdef LOG_EVENT_CALLS
+        logger::debug("EventCalls -> onInputLoaded done");
+        #endif
     }
 
     void GameEventHandler::onDataLoaded() {
+        #ifdef LOG_EVENT_CALLS
+        logger::debug("EventCalls -> onDataLoaded");
+        #endif
         FunctionLibrary::PrecacheLibraries();
         ScriptPoolManager::GetSingleton().InitializePool();
 
         //RunCapricaForScripts();
         RegistrationClass::HandleSKSEMessage(SKSE::MessagingInterface::kDataLoaded);
+        #ifdef LOG_EVENT_CALLS
+        logger::debug("EventCalls -> onDataLoaded done");
+        #endif
     }
 
     void GameEventHandler::onNewGame() {
+        #ifdef LOG_EVENT_CALLS
+        logger::debug("EventCalls -> onNewGame");
+        #endif
         SLT::GenerateNewSessionId(true);
         logger::info("{} starting session {}", SystemUtil::File::GetPluginName(), SLT::GetSessionId());
 
         RegistrationClass::HandleSKSEMessage(SKSE::MessagingInterface::kNewGame);
+        #ifdef LOG_EVENT_CALLS
+        logger::debug("EventCalls -> onNewGame done");
+        #endif
     }
 
     void GameEventHandler::onPreLoadGame() {
+        #ifdef LOG_EVENT_CALLS
+        logger::debug("EventCalls -> onPreLoadGame");
+        #endif
         RegistrationClass::HandleSKSEMessage(SKSE::MessagingInterface::kPreLoadGame);
+        #ifdef LOG_EVENT_CALLS
+        logger::debug("EventCalls -> onPreLoadGame done");
+        #endif
     }
 
     void GameEventHandler::onPostLoadGame() {
+        #ifdef LOG_EVENT_CALLS
+        logger::debug("EventCalls -> onPostLoadGame");
+        #endif
         SLT::GenerateNewSessionId(true);
         logger::info("{} starting session {}", SystemUtil::File::GetPluginName(), SLT::GetSessionId());
         RegistrationClass::HandleSKSEMessage(SKSE::MessagingInterface::kPostLoadGame);
+        #ifdef LOG_EVENT_CALLS
+        logger::debug("EventCalls -> onPostLoadGame done");
+        #endif
     }
 
     void GameEventHandler::onSaveGame() {
+        #ifdef LOG_EVENT_CALLS
+        logger::debug("EventCalls -> onSaveGame");
+        #endif
         RegistrationClass::HandleSKSEMessage(SKSE::MessagingInterface::kSaveGame);
+        #ifdef LOG_EVENT_CALLS
+        logger::debug("EventCalls -> onSaveGame done");
+        #endif
     }
 
     void GameEventHandler::onDeleteGame() {
+        #ifdef LOG_EVENT_CALLS
+        logger::debug("EventCalls -> onDeleteGame");
+        #endif
         RegistrationClass::HandleSKSEMessage(SKSE::MessagingInterface::kDeleteGame);
+        #ifdef LOG_EVENT_CALLS
+        logger::debug("EventCalls -> onDeleteGame done");
+        #endif
     }
 }  // namespace plugin
 
