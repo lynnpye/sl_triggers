@@ -6,6 +6,66 @@ sl_triggersExtensionSexLab Function GetExtension() global
     return GetForm_SLT_ExtensionSexLab() as sl_triggersExtensionSexLab
 EndFunction
 
+; sltname sl_getversion
+; sltgrup SexLab P+
+; sltdesc Returns the SexLab version as an int (from SexLabUtil.GetVersion())
+; sltsamp set $slversion resultfrom sl_getversion
+function sl_getversion(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    CmdPrimary.MostRecentIntResult = SexLabUtil.GetVersion()
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname sl_getversionstring
+; sltgrup SexLab P+
+; sltdesc Returns the SexLab version as a string (from SexLabUtil.GetStringVer())
+; sltsamp set $slversionstring resultfrom sl_getversionstring
+function sl_getversionstring(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    CmdPrimary.MostRecentStringResult = SexLabUtil.GetStringVer()
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname sl_getapi
+; sltgrup SexLab P+
+; sltdesc Returns the SexLabFramework API object (from SexLabUtil.GetAPI())
+; sltsamp set $slapi resultfrom sl_getapi
+function sl_getapi(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    CmdPrimary.MostRecentFormResult = SexLabUtil.GetAPI()
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname sl_isactive
+; sltgrup SexLab P+
+; sltdesc Returns active status of SexLab (from SexLabUtil.SexLabIsActive()): true if active, false otherwise
+; sltsamp set $sl_is_active resultfrom sl_isactive
+function sl_isactive(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    CmdPrimary.MostRecentBoolResult = SexLabUtil.SexLabIsActive()
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname sl_isready
+; sltgrup SexLab P+
+; sltdesc Returns ready status of SexLab (from SexLabUtil.SexLabIsReady()): true if ready, false otherwise
+; sltsamp set $sl_is_ready resultfrom sl_isready
+function sl_isready(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    CmdPrimary.MostRecentBoolResult = SexLabUtil.SexLabIsReady()
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
 ; sltname actor_getgender
 ; sltgrup SexLab P+
 ; sltdesc Returns the actor's SexLab gender, 0 - male, 1 - female, 2 - futa, 3 - male creature, 4 - female creature
