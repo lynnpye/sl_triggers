@@ -8,7 +8,7 @@ EndFunction
 
 ; sltname actor_getgender
 ; sltgrup SexLab P+
-; sltdesc Returns the actor's SexLab gender, 0 - male, 1 - female, 2 - creature
+; sltdesc Returns the actor's SexLab gender, 0 - male, 1 - female, 2 - futa, 3 - male creature, 4 - female creature
 ; sltargs actor: target Actor
 ; sltsamp actor_getgender $actor
 function actor_getgender(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
@@ -21,7 +21,7 @@ function actor_getgender(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
     if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
-            nextResult = (slExtension.SexLabForm as SexLabFramework).GetGender(_targetActor)
+            nextResult = (slExtension.SexLabForm as SexLabFramework).GetSex(_targetActor)
         endif
     endif
 
@@ -43,9 +43,8 @@ function util_waitforend(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
 
 	if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
-        Faction anmfc = slExtension.SexLabAnimatingFaction
         
-        while _targetActor.GetFactionRank(anmfc) >= 0 && CmdPrimary.InSameCell(_targetActor)
+        while (slExtension.SexLabForm as SexLabFramework).IsActorActive(_targetActor) && CmdPrimary.InSameCell(_targetActor)
             Utility.wait(4)
         endWhile
     endif
@@ -80,14 +79,13 @@ function sl_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
         
             Keyword ActorTypeNPC = GetForm_Skyrim_ActorTypeNPC() as Keyword
             Cell    cc = CmdPrimary.PlayerRef.getParentCell()
-            Faction anmfc = slExtension.SexLabAnimatingFaction
             bool xenabled = slExtension.IsEnabled
         
             int i = 0
             int nuns = 0
             while i < inCell.Length
                 Actor _targetActor = inCell[i]
-                if !_targetActor || _targetActor == CmdPrimary.PlayerRef || !_targetActor.isEnabled() || _targetActor.isDead() || _targetActor.isInCombat() || _targetActor.IsUnconscious() || (ActorTypeNPC && !_targetActor.HasKeyWord(ActorTypeNPC)) || !_targetActor.Is3DLoaded() || (cc && cc != _targetActor.getParentCell()) || (mode == 1 && xenabled &&  _targetActor.IsInFaction(anmfc)) || (mode == 2 && xenabled && !_targetActor.IsInFaction(anmfc))
+                if !_targetActor || _targetActor == CmdPrimary.PlayerRef || !_targetActor.isEnabled() || _targetActor.isDead() || _targetActor.isInCombat() || _targetActor.IsUnconscious() || (ActorTypeNPC && !_targetActor.HasKeyWord(ActorTypeNPC)) || !_targetActor.Is3DLoaded() || (cc && cc != _targetActor.getParentCell()) || (mode == 1 && xenabled &&  (slExtension.SexLabForm as SexLabFramework).IsActorActive(_targetActor)) || (mode == 2 && xenabled && !((slExtension.SexLabForm as SexLabFramework).IsActorActive(_targetActor)))
                     inCell[i] = none
                     nuns += 1
                 endif
@@ -121,40 +119,6 @@ function sl_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 
     CmdPrimary.CompleteOperationOnActor()
 endfunction
-
-; xsltname actor_say
-; xsltgrup Actor P+
-; xsltdesc Causes the actor to 'say' the topic indicated by FormId; not usable on the Player
-; xsltargs actor: target Actor
-; xsltargs topic: Topic FormID
-; xsltsamp actor_say $actor "Skyrim.esm:1234"
-;/
- Disabling this variant as the restriction about player/freecam may not be an actual restriction
- And that logically devolves to the baseline version.
- Keeping this one commented for now
-function actor_say(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
-	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
-    
-    sl_triggersExtensionSexLab slExtension = GetExtension()
-
-    if ParamLengthEQ(CmdPrimary, param.Length, 3)
-        string thingFormId = CmdPrimary.Resolve(param[2])
-        Topic thing = CmdPrimary.GetFormId(thingFormId) as Topic
-        if thing
-            Actor _targetActor = CmdPrimary.ResolveActor(param[1])
-            if _targetActor
-                if _targetActor == CmdPrimary.PlayerRef && (slExtension.IsEnabled && slExtension.SexLab && slExtension.SexLab.Config.ToggleFreeCamera)
-                    ; nop
-                else
-                    _targetActor.Say(thing)
-                endif
-            endif
-        endIf
-    endif
-
-    CmdPrimary.CompleteOperationOnActor()    
-endFunction
-/;
 
 ; sltname actor_race
 ; sltgrup Actor
@@ -202,7 +166,7 @@ function actor_race(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
             if !ss1 || !slExtension.IsEnabled
                 nextResult = _targetActor.GetRace().GetName()
             elseif "SL" == ss1 && slExtension.IsEnabled
-                nextResult = sslCreatureAnimationSlots.GetRaceKey(_targetActor.GetRace())
+                nextResult = SexlabRegistry.GetRaceKey(_targetActor)
             endIf
         else
             CmdPrimary.SFW("actor_race: Unable to resolve actor token(" + param[1] + ")")
@@ -245,7 +209,7 @@ function sl_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
         int scancode
 
         if CmdTargetActor
-            if (CmdTargetActor != CmdPrimary.PlayerRef) || (cnt <= 1) || !(slExtension.IsEnabled && CmdPrimary.PlayerRef.GetFactionRank(slExtension.SexLabAnimatingFaction) >= 0)
+            if (CmdTargetActor != CmdPrimary.PlayerRef) || (cnt <= 1) || !(slExtension.IsEnabled && (slExtension.SexLabForm as SexLabFramework).IsActorActive(CmdPrimary.PlayerRef))
                 nextResult = -1
             else
                 CmdPrimary.UnregisterForAllKeys()
@@ -274,16 +238,15 @@ function sl_waitforkbd(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, stri
                 CmdPrimary.LastKey = 0
 
                 Actor plyrf = CmdPrimary.PlayerRef
-                Faction anfac = slExtension.SexLabAnimatingFaction
                 
-                while CmdPrimary && CmdPrimary.LastKey == 0 && (slExtension.IsEnabled && plyrf.GetFactionRank(anfac) >= 0)
+                while CmdPrimary && CmdPrimary.LastKey == 0 && (slExtension.IsEnabled && (slExtension.SexLabForm as SexLabFramework).IsActorActive(plyrf))
                     Utility.Wait(0.5)
                 endWhile
                 
                 if CmdPrimary
                     CmdPrimary.UnregisterForAllKeys()
                     
-                    if slExtension.IsEnabled && !(plyrf.GetFactionRank(anfac) >= 0)
+                    if slExtension.IsEnabled && !((slExtension.SexLabForm as SexLabFramework).IsActorActive(plyrf))
                         nextResult = -1
                     else
                         nextResult = CmdPrimary.LastKey
@@ -328,7 +291,7 @@ endFunction
 
 ; sltname sl_isin
 ; sltgrup SexLab P+
-; sltdesc Sets $$ to 1 if the specified actor is in a SexLab scene, 0 otherwise
+; sltdesc Returns true if the specified actor is in a SexLab scene, false otherwise
 ; sltargs actor: target Actor
 ; sltsamp sl_isin $system.self
 function sl_isin(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
@@ -340,7 +303,7 @@ function sl_isin(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] p
 
 	if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
-        if _targetActor && _targetActor.GetFactionRank(slExtension.SexLabAnimatingFaction) >= 0 && CmdPrimary.InSameCell(_targetActor)
+        if _targetActor && (slExtension.SexLabForm as SexLabFramework).IsActorActive(_targetActor) && CmdPrimary.InSameCell(_targetActor)
             nextResult = true
         endIf
     endif
@@ -352,11 +315,11 @@ endFunction
 
 ; sltname sl_hastag
 ; sltgrup SexLab P+
-; sltdesc Sets $$ to 1 if the SexLab scene has the specified tag, 0 otherwise
+; sltdesc Returns true if the SexLab scene has the specified tag, false otherwise
 ; sltargs tag: tag name e.g. "Oral", "Anal", "Vaginal"
 ; sltargs actor: target Actor
 ; sltsamp sl_hastag "Oral" $system.self
-; sltsamp if $$ = 1 ORAL
+; sltsamp if $$ = true ORAL
 function sl_hastag(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -369,12 +332,9 @@ function sl_hastag(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
         if param.Length > 2
             _targetActor = CmdPrimary.ResolveActor(param[2])
         endif
-        sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
-        if thread
-            string ss = CmdPrimary.ResolveString(param[1])
-            if thread.Animation.HasTag(ss)
-                nextResult = true
-            endIf
+        SexLabThread slthread = (slExtension.SexLabForm as SexLabFramework).GetThreadByActor(_targetActor)
+        if slthread
+            nextResult = slthread.HasTag(CmdPrimary.ResolveString(param[1]))
         endIf
     endif
     
@@ -388,10 +348,10 @@ endFunction
 ; sltdesc Disables or enables the ability to orgasm via standard SexLab sex activity (orgasms can still be forced by mods)
 ; sltdesc Only works if called during a scene, when the SexLab thread is still available
 ; sltargs actor: target Actor
-; sltargs disable: 1 to disable, 0 to enable
-; sltsamp sl_disableorgasm $system.player 1
+; sltargs disable: bool: true to disable, false to enable
+; sltsamp sl_disableorgasm $system.player true
 ; sltsamp ; this disables orgasm for the player
-; sltsamp sl_disableorgasm $system.player 0
+; sltsamp sl_disableorgasm $system.player false
 ; sltsamp ; this enables orgasm for the player
 function sl_disableorgasm(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -401,8 +361,8 @@ function sl_disableorgasm(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
 	if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
-            sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
-            thread.ActorAlias(_targetActor).DisableOrgasm(CmdPrimary.ResolveBool(param[2]))
+            SexLabThread slthread = (slExtension.SexLabForm as SexLabFramework).GetThreadByActor(_targetActor)
+            slthread.DisableOrgasm(_targetActor, CmdPrimary.ResolveBool(param[2]))
         endif
 	endif
 
@@ -411,7 +371,8 @@ endFunction
 
 ; sltname sl_animname
 ; sltgrup SexLab P+
-; sltdesc Sets $$ to the current SexLab animation name
+; sltdesc Returns the current SexLab animation name
+; sltdesc WARNING: This uses a deprecated API until/unless an up to date alternative can be found.
 ; sltsamp sl_animname $system.self
 ; sltsamp msg_notify "Playing: " $$
 function sl_animname(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
@@ -439,7 +400,7 @@ endFunction
 
 ; sltname sl_getprop
 ; sltgrup SexLab P+
-; sltdesc Sets $$ to the value of the requested property
+; sltdesc Returns the value of the requested SexLab thread property
 ; sltargs property:  Stage | ActorCount
 ; sltargs actor: target Actor
 ; sltsamp sl_getprop Stage $system.self
@@ -456,13 +417,13 @@ function sl_getprop(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[
         if param.Length > 2
             _targetActor = CmdPrimary.ResolveActor(param[2])
         endif
-        sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
-        if thread
+        SexLabThread slthread = (slExtension.SexLabForm as SexLabFramework).GetThreadByActor(_targetActor)
+        if slthread
             string ss = CmdPrimary.ResolveString(param[1])
             if ss == "Stage"
-                nextResult = thread.Stage as string
+                nextResult = slthread.GetActiveStage()
             elseif ss == "ActorCount"
-                nextResult = thread.ActorCount as string
+                nextResult = slthread.GetPositions().Length
             endIf
         endIf
     endif
@@ -475,6 +436,7 @@ endFunction
 ; sltname sl_advance
 ; sltgrup SexLab P+
 ; sltdesc Changes the stage of the current SexLab scene, for the target Actor; advances a single stage if positive, reverses a single stage if negative
+; sltdesc WARNING: This uses a deprecated API until/unless an up to date alternative can be found.
 ; sltargs direction: integer, <negative - backwards / non-negative (including zero) - forwards>
 ; sltargs actor: target Actor
 ; sltsamp sl_advance -3 $system.self
@@ -513,20 +475,12 @@ function sl_isinslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
 	if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 3)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
-            sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
-            if thread
+            SexLabThread slthread = (slExtension.SexLabForm as SexLabFramework).GetThreadByActor(_targetActor)
+            if slthread
                 int slPosition = CmdPrimary.ResolveInt(param[2])
                 if slPosition > 0 && slPosition < 5
-                    int actorIdx = 0
-                    while actorIdx < thread.Positions.Length
-                        if slPosition == actorIdx + 1 && thread.Positions[actorIdx]
-                            if _targetActor ==  thread.Positions[actorIdx]
-                                nextResult = true
-                                actorIdx = thread.Positions.Length
-                            endif
-                        endif
-                        actorIdx += 1
-                    endwhile
+                    int targetPosition = slthread.GetPositionIdx(_targetActor)
+                    nextResult = (targetPosition == (slPosition - 1))
                 endif
             endif
         endif
@@ -552,9 +506,48 @@ function sl_orgasm(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[]
     if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
-            sslThreadController thread = slExtension.GetThreadForActor(_targetActor)
-            thread.ActorAlias(_targetActor).OrgasmEffect()
+            SexLabThread slthread = (slExtension.SexLabForm as SexLabFramework).GetThreadByActor(_targetActor)
+            if slthread
+                slthread.ForceOrgasm(_targetActor)
+            endif
         endif
+    endif
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname sl_startsex
+; sltgrup SexLab P+
+; sltdesc Starts a SexLab scene and returns the threadid
+; sltargs Form[] list: actors: Form[] list containing the Actors to be in the scene, limited to 5
+; sltargs Form: submissive: Form (Actor) to be the submissive in the scene; specify 'none' if no submissive to be set; must also be in the actors list
+; sltargs string: tags: (From the SexLabFramework source) Requested animation tags (may be empty). Supported prefixes: '-' to disable a tag, '~' for OR-conjunctions
+; sltargs                Example: "~A, B, ~C, -D" <=> Animation has tag B, does NOT have tag D and has EITHER tag A or C 
+; sltargs int: furniture: 0 - Disable, 1 - Allow, 2 - Prefer
+; sltsamp sl_startsex $actorList none "Oral, Anal" 0
+; sltsamp ; starts a sex scene with the given actor list, no submissives, oral or anal tagged, with no beds allowed
+; sltsamp sl_startsex $actorList $actorList[0] "Vaginal" 1
+; sltsamp ; starts a sex scene with the given actor list, the first on the list being the submissive, vaginal tagged, beds allowed but not necessarily preferred
+function sl_startsex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 5)
+        Form[] actorsAsFormList = CmdPrimary.ResolveListForm(param[1])
+        Actor[] actors = PapyrusUtil.ActorArray(actorsAsFormList.Length)
+        int i = actorsAsFormList.Length
+        while i
+            i -= 1
+            actors[i] = actorsAsFormList[i] as Actor
+        endwhile
+        Actor submissive = CmdPrimary.ResolveActor(param[2])
+        string tags = CmdPrimary.ResolveString(param[3])
+        int allowBeds = CmdPrimary.ResolveInt(param[4])
+
+        SexLabFramework slapi = slExtension.SexLabForm as SexLabFramework
+        SexLabThread slthread = slapi.StartScene(actors, tags, submissive, none, allowBeds, "")
+        CmdPrimary.MostRecentIntResult = slthread.GetThreadId()
     endif
 
     CmdPrimary.CompleteOperationOnActor()
