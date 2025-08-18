@@ -1,7 +1,7 @@
 sl_isin $system.self
 
 rnd_int 0 100
-if $$ > 50
+if $$ > 70
 	set $noCumMessage resultfrom rnd_list "Mysterious forces are preventing you from cumming!" "Suddenly your clit feels hypersensitive." "Your clit stands rigidly at attention and yet cummies seem so far away..." "Mara refuses your desire for an orgasm." "Daedric forces surround your clit, enveloping it, engorging it..."
 	msg_notify $noCumMessage
 	deb_msg $"CumControl msg: no: {noCumMessage}"

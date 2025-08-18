@@ -6,7 +6,7 @@ endif
 
 set $chance resultfrom rnd_int 0 100
 
-if $chance >= 97
+if $chance >= 95 ; 5% chance to reset
 	item_adduse $system.player "TFEResetPotion" 1 1
 	return
 endif
@@ -39,7 +39,7 @@ set	$belly			"Belly"
 ; and of course you would not comment out any of the original affix definitions
 ;
 ; but perhaps you want to change up the weighting, exclude a few things, you might do this:
-set $selectedAffix resultfrom rnd_list $curves $flattening $expansion $compacting $magnification $diminishing $boob $butt $butt $hips $hips $hips $thighs $thighs $thighs $thighs
+set $selectedAffix resultfrom rnd_list $curves $flattening $expansion $compacting $magnification $diminishing $boob $butt $butt $butt $butt $hips $hips $hips $thighs $thighs $thighs $thighs
 
 set $desiredElixir $"TFE{selectedAffix}Potion"
 
