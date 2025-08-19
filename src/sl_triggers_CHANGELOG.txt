@@ -4,6 +4,7 @@
         (or whichever folder you have your SKSE logs directed to)
     enhancement: new data type: Alias; peer to string, int, float, bool, Form, Label
     enhancement: new SexLab API calls: sl_sexstart, various others
+    enhancement: internal FormID storage should be load order change resistant (stores modname and relative formid instead of solely the FormID)
     change: SLTScript: Contamination - Transformative Elixir.sltscript - altered transform distribution
     change: SLTScript: CumControl.sltscript - altered chance from 50% to 30%
 
