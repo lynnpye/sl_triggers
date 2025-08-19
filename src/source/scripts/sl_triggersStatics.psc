@@ -362,3 +362,30 @@ bool Function ParamLengthEQ(sl_triggersCmd _cmdPrimary, int actualLength, int ne
     endif
     return true
 EndFunction
+
+Form Function FormFromFormPortableString(string formPortableString) global
+	return sl_triggers.GetForm(formPortableString)
+EndFunction
+
+string Function FormPortableStringFromForm(Form theForm) global
+	if theForm
+		int formID = theForm.GetFormID()
+		string modName
+		int modIndex = Math.RightShift(formID, 24)
+		if modIndex == 254
+			; 0xFEMMMFFF
+			modName = Game.GetLightModName(Math.LogicalAnd(Math.RightShift(formID, 12), 0xFFF))
+			formID = Math.LogicalAnd(formID, 0xFFF)
+		else
+			; 0xMMFFFFFF
+			modName = Game.GetModName(modIndex)
+			formID = Math.LogicalAnd(formID, 0xFFFFFF)
+		endif
+		if modName
+			return modName + ":" + formID
+		else
+			SLTErrMsg("FormPortableStringFromForm: unable to get modName from theForm(" + theForm.GetFormID() + ")")
+		endif
+	endif
+	return ""
+EndFunction

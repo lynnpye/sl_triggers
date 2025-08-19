@@ -4268,7 +4268,7 @@ Form Function SetFrameVarForm(string[] varscope, Form formvalue)
 	int i = frameVarKeys.Find(varscope[SLT.VS_NAME], 0)
     string value
     if formvalue
-        value = formvalue.GetFormId()
+        value = FormPortableStringFromForm(formvalue) ; formvalue.GetFormId()
     endif
 	if i < 0
 		frameVarKeys = PapyrusUtil.PushString(frameVarKeys, varscope[SLT.VS_NAME])
@@ -4964,7 +4964,7 @@ Form Function SetThreadVarForm(string[] varscope, Form formvalue)
 	int i = threadVarKeys.Find(varscope[SLT.VS_NAME], 0)
     string value
     if formvalue
-        value = formvalue.GetFormID()
+        value = FormPortableStringFromForm(formvalue) ; formvalue.GetFormID()
     endif
 	if i < 0
 		threadVarKeys = PapyrusUtil.PushString(threadVarKeys, varscope[SLT.VS_NAME])
@@ -5561,21 +5561,21 @@ Form Function SetTargetVarForm(string typeprefix, string dataprefix, string mapp
     If (varscope[SLT.VS_RESOLVED_MAP_KEY])
         string value
         if formvalue
-            value = formvalue.GetFormID()
+            value = FormPortableStringFromForm(formvalue) ; formvalue.GetFormID()
         endif
         SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_MAP)
         StorageUtil.SetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_FORM)
         StorageUtil.StringListAdd(SLT, mapprefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
         SetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
     elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
-        string value
-        if formvalue
-            value = formvalue.GetFormID()
-        endif
         int rt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
         if !SLT.RT_IsList(rt)
             rt = SLT.RT_LIST_FLOAT
             SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], rt)
+        endif
+        string value
+        if formvalue
+            value = FormPortableStringFromForm(formvalue) ; formvalue.GetFormID()
         endif
         int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
         if SLT.RT_LIST_STRING == rt
@@ -6388,7 +6388,7 @@ Form[] Function SetVarListForm(string[] varscope, Form[] values)
     string[] inputs = PapyrusUtil.StringArray(i)
     while i
         i -= 1
-        inputs[i] = values[i].GetFormID()
+        inputs[i] = FormPortableStringFromForm(values[i]) ;values[i].GetFormID()
     endwhile
     StorageUtil.StringListCopy(SLT, listKey, inputs)
     return values

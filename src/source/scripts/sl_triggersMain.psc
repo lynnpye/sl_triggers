@@ -1208,7 +1208,7 @@ Form Function SetGlobalVarForm(string[] varscope, Form formvalue)
 	int i = globalVarKeys.Find(varscope[VS_NAME], 0)
 	string value
 	if formvalue
-		value = formvalue.GetFormID()
+		value = FormPortableStringFromForm(formvalue) ; formvalue.GetFormID()
 	endif
 	if i < 0
 		globalVarKeys = PapyrusUtil.PushString(globalVarKeys, varscope[VS_NAME])
