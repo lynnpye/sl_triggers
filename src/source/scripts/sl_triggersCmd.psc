@@ -62,20 +62,20 @@ string function Make_kthread_list_prefix()
     return "SLTR:thread:" + threadid + ":lists:"
 endfunction
 
-string function Make_ktarget_map_prefix(int formid)
-    return "SLTR:target:" + formid + ":maps:"
+string function Make_ktarget_map_prefix(string formPortableString)
+    return "SLTR:target:" + formPortableString + ":maps:"
 endfunction
 
-string function Make_ktarget_list_prefix(int formid)
-    return "SLTR:target:" + formid + ":lists:"
+string function Make_ktarget_list_prefix(string formPortableString)
+    return "SLTR:target:" + formPortableString + ":lists:"
 endfunction
 
-string function Make_ktarget_v_prefix(int formid)
-    return "SLTR:target:" + formid + ":vars:"
+string function Make_ktarget_v_prefix(string formPortableString)
+    return "SLTR:target:" + formPortableString + ":vars:"
 endfunction
 
-string function Make_ktarget_type_v_prefix(int formid)
-    return "SLTR:target:" + formid + ":vartypes:"
+string function Make_ktarget_type_v_prefix(string formPortableString)
+    return "SLTR:target:" + formPortableString + ":vartypes:"
 endfunction
 
 string Function Global_Make_krequest_v_prefix(int requestTargetFormId, int requestId) global
@@ -103,17 +103,19 @@ Actor			Property CmdTargetActor Hidden
 
         if _cmdTA
             CmdTargetFormID             = _cmdTA.GetFormID()
-
-            ktarget_map_prefix = Make_ktarget_map_prefix(CmdTargetFormID)
-            ktarget_list_prefix = Make_ktarget_list_prefix(CmdTargetFormID)
-            ktarget_v_prefix = Make_ktarget_v_prefix(CmdTargetFormID)
-            ktarget_type_v_prefix = Make_ktarget_type_v_prefix(CmdTargetFormID)
+            CmdTargetFormPortableString = FormPortableStringFromForm(_cmdTA)
+            
+            ktarget_map_prefix = Make_ktarget_map_prefix(CmdTargetFormPortableString)
+            ktarget_list_prefix = Make_ktarget_list_prefix(CmdTargetFormPortableString)
+            ktarget_v_prefix = Make_ktarget_v_prefix(CmdTargetFormPortableString)
+            ktarget_type_v_prefix = Make_ktarget_type_v_prefix(CmdTargetFormPortableString)
             krequest_v_prefix = Make_krequest_v_prefix()
             krequest_type_prefix = Make_krequest_type_prefix()
         endif
     EndFunction
 EndProperty
 int             Property CmdTargetFormID Auto Hidden
+string          Property CmdTargetFormPortableString Auto Hidden
 
 ; pre-generated keys for thread context
 int _frameid = 0
@@ -5649,9 +5651,9 @@ int function GetVarType(string[] varscope)
         if varscope[SLT.VS_TARGET_EXT]
             Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
             if targetForm
-                int formid = targetForm.GetFormID()
-                typeprefix = Make_ktarget_type_v_prefix(formid)
-                mapprefix = Make_ktarget_map_prefix(formid)
+                string formPortableString = FormPortableStringFromForm(targetForm)
+                typeprefix = Make_ktarget_type_v_prefix(formPortableString)
+                mapprefix = Make_ktarget_map_prefix(formPortableString)
             else
                 SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
             endif
@@ -5684,8 +5686,8 @@ string function GetMapKey(string[] varscope)
         if varscope[SLT.VS_TARGET_EXT]
             Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
             if targetForm
-                int formid = targetForm.GetFormID()
-                mapprefix = Make_ktarget_map_prefix(formid)
+                string formPortableString = FormPortableStringFromForm(targetForm)
+                mapprefix = Make_ktarget_map_prefix(formPortableString)
             else
                 SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
             endif
@@ -5717,8 +5719,8 @@ string function GetVarListKey(string[] varscope)
         if varscope[SLT.VS_TARGET_EXT]
             Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
             if targetForm
-                int formid = targetForm.GetFormID()
-                mapprefix = Make_ktarget_list_prefix(formid)
+                string formPortableString = FormPortableStringFromForm(targetForm)
+                mapprefix = Make_ktarget_list_prefix(formPortableString)
             else
                 SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
             endif
@@ -5752,10 +5754,10 @@ string function GetVarString(string[] varscope, string missing)
         if varscope[SLT.VS_TARGET_EXT]
             Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
             if targetForm
-                int formid = targetForm.GetFormID()
-                typeprefix = Make_ktarget_type_v_prefix(formid)
-                dataprefix = Make_ktarget_v_prefix(formid)
-                mapprefix = Make_ktarget_map_prefix(formid)
+                string formPortableString = FormPortableStringFromForm(targetForm)
+                typeprefix = Make_ktarget_type_v_prefix(formPortableString)
+                dataprefix = Make_ktarget_v_prefix(formPortableString)
+                mapprefix = Make_ktarget_map_prefix(formPortableString)
             else
                 SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
             endif
@@ -5789,10 +5791,10 @@ string function GetVarLabel(string[] varscope, string missing)
         if varscope[SLT.VS_TARGET_EXT]
             Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
             if targetForm
-                int formid = targetForm.GetFormID()
-                typeprefix = Make_ktarget_type_v_prefix(formid)
-                dataprefix = Make_ktarget_v_prefix(formid)
-                mapprefix = Make_ktarget_map_prefix(formid)
+                string formPortableString = FormPortableStringFromForm(targetForm)
+                typeprefix = Make_ktarget_type_v_prefix(formPortableString)
+                dataprefix = Make_ktarget_v_prefix(formPortableString)
+                mapprefix = Make_ktarget_map_prefix(formPortableString)
             else
                 SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
             endif
@@ -5823,10 +5825,10 @@ bool function GetVarBool(string[] varscope, bool missing)
         if varscope[SLT.VS_TARGET_EXT]
             Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
             if targetForm
-                int formid = targetForm.GetFormID()
-                typeprefix = Make_ktarget_type_v_prefix(formid)
-                dataprefix = Make_ktarget_v_prefix(formid)
-                mapprefix = Make_ktarget_map_prefix(formid)
+                string formPortableString = FormPortableStringFromForm(targetForm)
+                typeprefix = Make_ktarget_type_v_prefix(formPortableString)
+                dataprefix = Make_ktarget_v_prefix(formPortableString)
+                mapprefix = Make_ktarget_map_prefix(formPortableString)
             else
                 SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
             endif
@@ -5860,10 +5862,10 @@ int function GetVarInt(string[] varscope, int missing)
         if varscope[SLT.VS_TARGET_EXT]
             Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
             if targetForm
-                int formid = targetForm.GetFormID()
-                typeprefix = Make_ktarget_type_v_prefix(formid)
-                dataprefix = Make_ktarget_v_prefix(formid)
-                mapprefix = Make_ktarget_map_prefix(formid)
+                string formPortableString = FormPortableStringFromForm(targetForm)
+                typeprefix = Make_ktarget_type_v_prefix(formPortableString)
+                dataprefix = Make_ktarget_v_prefix(formPortableString)
+                mapprefix = Make_ktarget_map_prefix(formPortableString)
             else
                 SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
             endif
@@ -5897,10 +5899,10 @@ float function GetVarFloat(string[] varscope, float missing)
         if varscope[SLT.VS_TARGET_EXT]
             Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
             if targetForm
-                int formid = targetForm.GetFormID()
-                typeprefix = Make_ktarget_type_v_prefix(formid)
-                dataprefix = Make_ktarget_v_prefix(formid)
-                mapprefix = Make_ktarget_map_prefix(formid)
+                string formPortableString = FormPortableStringFromForm(targetForm)
+                typeprefix = Make_ktarget_type_v_prefix(formPortableString)
+                dataprefix = Make_ktarget_v_prefix(formPortableString)
+                mapprefix = Make_ktarget_map_prefix(formPortableString)
             else
                 SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
             endif
@@ -5934,10 +5936,10 @@ Form function GetVarForm(string[] varscope, Form missing)
         if varscope[SLT.VS_TARGET_EXT]
             Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
             if targetForm
-                int formid = targetForm.GetFormID()
-                typeprefix = Make_ktarget_type_v_prefix(formid)
-                dataprefix = Make_ktarget_v_prefix(formid)
-                mapprefix = Make_ktarget_map_prefix(formid)
+                string formPortableString = FormPortableStringFromForm(targetForm)
+                typeprefix = Make_ktarget_type_v_prefix(formPortableString)
+                dataprefix = Make_ktarget_v_prefix(formPortableString)
+                mapprefix = Make_ktarget_map_prefix(formPortableString)
             else
                 SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
             endif
@@ -6035,7 +6037,8 @@ function UnsetMapKey(string[] varscope, string mapkey)
         if varscope[SLT.VS_TARGET_EXT]
             Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
             if targetForm
-                mapprefix = Make_ktarget_map_prefix(targetForm.GetFormID())
+                string formPortableString = FormPortableStringFromForm(targetForm)
+                mapprefix = Make_ktarget_map_prefix(formPortableString)
             else
                 SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
             endif
@@ -6066,8 +6069,8 @@ function SetVarType(string[] varscope, int value)
         if varscope[SLT.VS_TARGET_EXT]
             Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
             if targetForm
-                int formid = targetForm.GetFormID()
-                typeprefix = Make_ktarget_type_v_prefix(formid)
+                string formPortableString = FormPortableStringFromForm(targetForm)
+                typeprefix = Make_ktarget_type_v_prefix(formPortableString)
             else
                 SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
             endif
@@ -6103,10 +6106,10 @@ string function SetVarString(string[] varscope, string value)
         if varscope[SLT.VS_TARGET_EXT]
             Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
             if targetForm
-                int formid = targetForm.GetFormID()
-                typeprefix = Make_ktarget_type_v_prefix(formid)
-                dataprefix = Make_ktarget_v_prefix(formid)
-                mapprefix = Make_ktarget_map_prefix(formid)
+                string formPortableString = FormPortableStringFromForm(targetForm)
+                typeprefix = Make_ktarget_type_v_prefix(formPortableString)
+                dataprefix = Make_ktarget_v_prefix(formPortableString)
+                mapprefix = Make_ktarget_map_prefix(formPortableString)
             else
                 SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
             endif
@@ -6144,10 +6147,10 @@ string function SetVarLabel(string[] varscope, string value)
         if varscope[SLT.VS_TARGET_EXT]
             Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
             if targetForm
-                int formid = targetForm.GetFormID()
-                typeprefix = Make_ktarget_type_v_prefix(formid)
-                dataprefix = Make_ktarget_v_prefix(formid)
-                mapprefix = Make_ktarget_map_prefix(formid)
+                string formPortableString = FormPortableStringFromForm(targetForm)
+                typeprefix = Make_ktarget_type_v_prefix(formPortableString)
+                dataprefix = Make_ktarget_v_prefix(formPortableString)
+                mapprefix = Make_ktarget_map_prefix(formPortableString)
             else
                 SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
             endif
@@ -6185,10 +6188,10 @@ bool function SetVarBool(string[] varscope, bool value)
         if varscope[SLT.VS_TARGET_EXT]
             Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
             if targetForm
-                int formid = targetForm.GetFormID()
-                typeprefix = Make_ktarget_type_v_prefix(formid)
-                dataprefix = Make_ktarget_v_prefix(formid)
-                mapprefix = Make_ktarget_map_prefix(formid)
+                string formPortableString = FormPortableStringFromForm(targetForm)
+                typeprefix = Make_ktarget_type_v_prefix(formPortableString)
+                dataprefix = Make_ktarget_v_prefix(formPortableString)
+                mapprefix = Make_ktarget_map_prefix(formPortableString)
             else
                 SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
             endif
@@ -6226,10 +6229,10 @@ int function SetVarInt(string[] varscope, int value)
         if varscope[SLT.VS_TARGET_EXT]
             Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
             if targetForm
-                int formid = targetForm.GetFormID()
-                typeprefix = Make_ktarget_type_v_prefix(formid)
-                dataprefix = Make_ktarget_v_prefix(formid)
-                mapprefix = Make_ktarget_map_prefix(formid)
+                string formPortableString = FormPortableStringFromForm(targetForm)
+                typeprefix = Make_ktarget_type_v_prefix(formPortableString)
+                dataprefix = Make_ktarget_v_prefix(formPortableString)
+                mapprefix = Make_ktarget_map_prefix(formPortableString)
             else
                 SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
             endif
@@ -6267,10 +6270,10 @@ float function SetVarFloat(string[] varscope, float value)
         if varscope[SLT.VS_TARGET_EXT]
             Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
             if targetForm
-                int formid = targetForm.GetFormID()
-                typeprefix = Make_ktarget_type_v_prefix(formid)
-                dataprefix = Make_ktarget_v_prefix(formid)
-                mapprefix = Make_ktarget_map_prefix(formid)
+                string formPortableString = FormPortableStringFromForm(targetForm)
+                typeprefix = Make_ktarget_type_v_prefix(formPortableString)
+                dataprefix = Make_ktarget_v_prefix(formPortableString)
+                mapprefix = Make_ktarget_map_prefix(formPortableString)
             else
                 SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
             endif
@@ -6308,10 +6311,10 @@ Form function SetVarForm(string[] varscope, Form value)
         if varscope[SLT.VS_TARGET_EXT]
             Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
             if targetForm
-                int formid = targetForm.GetFormID()
-                typeprefix = Make_ktarget_type_v_prefix(formid)
-                dataprefix = Make_ktarget_v_prefix(formid)
-                mapprefix = Make_ktarget_map_prefix(formid)
+                string formPortableString = FormPortableStringFromForm(targetForm)
+                typeprefix = Make_ktarget_type_v_prefix(formPortableString)
+                dataprefix = Make_ktarget_v_prefix(formPortableString)
+                mapprefix = Make_ktarget_map_prefix(formPortableString)
             else
                 SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
             endif
