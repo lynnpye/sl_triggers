@@ -666,12 +666,12 @@ Function RefreshTriggerCache()
 							EndIf
 						else
 							; timerDelay is now zero, remove it
-							string sukey = "SLTR:extension:Core:TMP_STRING[]"
+							string sukey = DOMAIN_EXTENSION() + "Core:TMP_STRING[]"
 							StorageUtil.StringListCopy(self, sukey, triggerKeys_timer)
 							StorageUtil.StringListPluck(self, sukey, tkeyidx, "")
 							triggerKeys_timer = StorageUtil.StringListToArray(self, sukey)
 							StorageUtil.StringListClear(self, sukey)
-							sukey = "SLTR:extension:Core:TMP_FLOAT[]"
+							sukey = DOMAIN_EXTENSION() + "Core:TMP_FLOAT[]"
 							StorageUtil.FloatListCopy(self, sukey, timer_delays)
 							StorageUtil.FloatListPluck(self, sukey, tkeyidx, 0.0)
 							timer_delays = StorageUtil.FloatListToArray(self, sukey)
@@ -1151,9 +1151,6 @@ Function HandleNewSession(int _newSessionId)
 					Armor bodyItem = PlayerRef.GetEquippedArmorInSlot(32)
 					doRun = (bodyItem == none) || bodyItem.HasKeywordString("zad_Lockable")
 				endif
-				if SLT.Debug_Extension_Core_Keymapping
-					SLTDebugMsg("Core.HandleOnKeyDown: doRun(" + doRun + ") due to ATTR_IS_CLOTHED/" + ival)
-				endif
 			endif
 		endif
 
@@ -1236,8 +1233,8 @@ Function HandleTopOfTheHour()
 					Armor bodyItem = PlayerRef.GetEquippedArmorInSlot(32)
 					doRun = (bodyItem == none) || bodyItem.HasKeywordString("zad_Lockable")
 				endif
-				if SLT.Debug_Extension_Core_Keymapping
-					SLTDebugMsg("Core.HandleOnKeyDown: doRun(" + doRun + ") due to ATTR_IS_CLOTHED/" + ival)
+				if SLT.Debug_Extension_Core_TopOfTheHour
+					SLTDebugMsg("Core.HandleTopOfTheHour: doRun(" + doRun + ") due to ATTR_IS_CLOTHED/" + ival)
 				endif
 			endif
 		endif

@@ -47,51 +47,51 @@ string krequest_v_prefix
 string krequest_type_prefix
 
 string function Make_kframe_map_prefix()
-    return "SLTR:frame:" + frameid + ":maps:"
+    return DOMAIN_DATA_FRAME() + frameid + ":maps:"
 endfunction
 
 string function Make_kframe_list_prefix()
-    return "SLTR:frame:" + frameid + ":lists:"
+    return DOMAIN_DATA_FRAME() + frameid + ":lists:"
 endfunction
 
 string function Make_kthread_map_prefix()
-    return "SLTR:thread:" + threadid + ":maps:"
+    return DOMAIN_DATA_THREAD() + threadid + ":maps:"
 endfunction
 
 string function Make_kthread_list_prefix()
-    return "SLTR:thread:" + threadid + ":lists:"
+    return DOMAIN_DATA_THREAD() + threadid + ":lists:"
 endfunction
 
 string function Make_ktarget_map_prefix(string formPortableString)
-    return "SLTR:target:" + formPortableString + ":maps:"
+    return DOMAIN_DATA_TARGET() + formPortableString + ":maps:"
 endfunction
 
 string function Make_ktarget_list_prefix(string formPortableString)
-    return "SLTR:target:" + formPortableString + ":lists:"
+    return DOMAIN_DATA_TARGET() + formPortableString + ":lists:"
 endfunction
 
 string function Make_ktarget_v_prefix(string formPortableString)
-    return "SLTR:target:" + formPortableString + ":vars:"
+    return DOMAIN_DATA_TARGET() + formPortableString + ":vars:"
 endfunction
 
 string function Make_ktarget_type_v_prefix(string formPortableString)
-    return "SLTR:target:" + formPortableString + ":vartypes:"
+    return DOMAIN_DATA_TARGET() + formPortableString + ":vartypes:"
 endfunction
 
-string Function Global_Make_krequest_v_prefix(int requestTargetFormId, int requestId) global
-    return "SLTR:target:" + requestTargetFormId + ":system.request:" + requestId + ":vars:"
+string Function Global_Make_krequest_v_prefix(int requestId) global
+    return DOMAIN_DATA_REQUEST() + requestId + ":vars:"
 endFunction
 
 string Function Make_krequest_v_prefix()
-    return Global_Make_krequest_v_prefix(CmdTargetFormID, CmdRequestId)
+    return Global_Make_krequest_v_prefix(CmdRequestId)
 EndFunction
 
-string Function Global_Make_krequest_type_prefix(int requestTargetFormId, int requestId) global
-    return "SLTR:target:" + requestTargetFormId + ":system.request:" + requestId + ":vartypes:"
+string Function Global_Make_krequest_type_prefix(int requestId) global
+    return DOMAIN_DATA_REQUEST() + requestId + ":vartypes:"
 endFunction
 
 string Function Make_krequest_type_prefix()
-    return Global_Make_krequest_type_prefix(CmdTargetFormID, CmdRequestId)
+    return Global_Make_krequest_type_prefix(CmdRequestId)
 EndFunction
 
 Actor			Property CmdTargetActor Hidden
@@ -109,8 +109,6 @@ Actor			Property CmdTargetActor Hidden
             ktarget_list_prefix = Make_ktarget_list_prefix(CmdTargetFormPortableString)
             ktarget_v_prefix = Make_ktarget_v_prefix(CmdTargetFormPortableString)
             ktarget_type_v_prefix = Make_ktarget_type_v_prefix(CmdTargetFormPortableString)
-            krequest_v_prefix = Make_krequest_v_prefix()
-            krequest_type_prefix = Make_krequest_type_prefix()
         endif
     EndFunction
 EndProperty
@@ -909,6 +907,7 @@ Event OnUpdate()
     if SLT.Debug_Cmd
         SFD("Cmd.OnUpdate: starting threadid(" + threadid + ") RunningScriptCount is :" + SLT.RunningScriptCount)
     endif
+    SLT.IncrementRequestCounter(_cmdRequestId)
     RunScript()
     if SLT.Debug_Cmd
         SFD("Cmd.OnUpdate: before ending threadid(" + threadid + ") RunningScriptCount is :" + SLT.RunningScriptCount)
@@ -926,21 +925,22 @@ Function CleanupAndRemove()
         return
     endif
 
+    cleanedup = true
+    isExecuting = false
+    UnregisterForAllModEvents()
+
     if _frameid
-	    StorageUtil.ClearAllObjPrefix(SLT, "SLTR:frame:" + _frameid + ":")
+	    StorageUtil.ClearAllObjPrefix(SLT, DOMAIN_DATA_FRAME() + _frameid + ":")
     endif
     int i = pushed_frameid.Length
     while i
         i -= 1
-	    StorageUtil.ClearAllObjPrefix(SLT, "SLTR:frame:" + pushed_frameid[i] + ":")
+	    StorageUtil.ClearAllObjPrefix(SLT, DOMAIN_DATA_FRAME() + pushed_frameid[i] + ":")
     endwhile
     if _threadid
-	    StorageUtil.ClearAllObjPrefix(SLT, "SLTR:thread:" + _threadid + ":")
+	    StorageUtil.ClearAllObjPrefix(SLT, DOMAIN_DATA_THREAD() + _threadid + ":")
     endif
-
-    cleanedup = true
-    isExecuting = false
-    UnregisterForAllModEvents()
+    SLT.DecrementRequestCounter(_cmdRequestId)
 
     Self.Dispel()
 EndFunction
@@ -3307,7 +3307,7 @@ bool Function slt_Frame_Pop()
         Return false
     endif
 
-	StorageUtil.ClearAllObjPrefix(SLT, "SLTR:frame:" + frameid)
+	StorageUtil.ClearAllObjPrefix(SLT, DOMAIN_DATA_FRAME() + frameid)
 
     currentLine                 = pushed_currentLine[pushed_currentLine.Length - 1]
     totalLines                  = pushed_totalLines[pushed_totalLines.Length - 1]
@@ -6405,53 +6405,51 @@ string[] Function SetVarListLabel(string[] varscope, string[] values)
 endfunction
 
 int Function GetRequestDataType(string _key)
-    string typeprefix = krequest_type_prefix
-    int output =  GetIntValue(SLT, krequest_type_prefix + _key)
-    return GetIntValue(SLT, krequest_type_prefix + _key)
+    return StorageUtil.GetIntValue(SLT, krequest_type_prefix + _key)
 EndFunction
 
 string Function GetRequestString(string _key)
-    return GetStringValue(SLT, krequest_v_prefix + _key)
+    return StorageUtil.GetStringValue(SLT, krequest_v_prefix + _key)
 EndFunction
 
 bool Function GetRequestBool(string _key)
-    return GetIntValue(SLT, krequest_v_prefix + _key) != 0
+    return StorageUtil.GetIntValue(SLT, krequest_v_prefix + _key) != 0
 EndFunction
 
 int Function GetRequestInt(string _key)
-    return GetIntValue(SLT, krequest_v_prefix + _key)
+    return StorageUtil.GetIntValue(SLT, krequest_v_prefix + _key)
 EndFunction
 
 float Function GetRequestFloat(string _key)
-    return GetFloatValue(SLT, krequest_v_prefix + _key)
+    return StorageUtil.GetFloatValue(SLT, krequest_v_prefix + _key)
 EndFunction
 
 Form Function GetRequestForm(string _key)
-    return GetFormValue(SLT, krequest_v_prefix + _key)
+    return StorageUtil.GetFormValue(SLT, krequest_v_prefix + _key)
 EndFunction
 
 function PrecacheRequestString(sl_triggersMain slthost, int requestTargetFormId, int requestId, string varname, string value) global
-    SetIntValue(slthost, Global_Make_krequest_type_prefix(requestTargetFormId, requestId) + varname, slthost.RT_STRING)
-    SetStringValue(slthost, Global_Make_krequest_v_prefix(requestTargetFormId, requestId) + varname, value)
+    StorageUtil.SetIntValue(slthost, Global_Make_krequest_type_prefix(requestId) + varname, slthost.RT_STRING)
+    StorageUtil.SetStringValue(slthost, Global_Make_krequest_v_prefix(requestId) + varname, value)
 endfunction
 
 function PrecacheRequestBool(sl_triggersMain slthost, int requestTargetFormId, int requestId, string varname, bool value) global
-    SetIntValue(slthost, Global_Make_krequest_type_prefix(requestTargetFormId, requestId) + varname, slthost.RT_BOOL)
-    SetIntValue(slthost, Global_Make_krequest_v_prefix(requestTargetFormId, requestId) + varname, value as int)
+    StorageUtil.SetIntValue(slthost, Global_Make_krequest_type_prefix(requestId) + varname, slthost.RT_BOOL)
+    StorageUtil.SetIntValue(slthost, Global_Make_krequest_v_prefix(requestId) + varname, value as int)
 endfunction
 
 function PrecacheRequestInt(sl_triggersMain slthost, int requestTargetFormId, int requestId, string varname, int value) global
-    SetIntValue(slthost, Global_Make_krequest_type_prefix(requestTargetFormId, requestId) + varname, slthost.RT_INT)
-    SetIntValue(slthost, Global_Make_krequest_v_prefix(requestTargetFormId, requestId) + varname, value)
+    StorageUtil.SetIntValue(slthost, Global_Make_krequest_type_prefix(requestId) + varname, slthost.RT_INT)
+    StorageUtil.SetIntValue(slthost, Global_Make_krequest_v_prefix(requestId) + varname, value)
 endfunction
 
 function PrecacheRequestFloat(sl_triggersMain slthost, int requestTargetFormId, int requestId, string varname, float value) global
-    SetIntValue(slthost, Global_Make_krequest_type_prefix(requestTargetFormId, requestId) + varname, slthost.RT_FLOAT)
-    SetFloatValue(slthost, Global_Make_krequest_v_prefix(requestTargetFormId, requestId) + varname, value)
+    StorageUtil.SetIntValue(slthost, Global_Make_krequest_type_prefix(requestId) + varname, slthost.RT_FLOAT)
+    StorageUtil.SetFloatValue(slthost, Global_Make_krequest_v_prefix(requestId) + varname, value)
 endfunction
 
 function PrecacheRequestForm(sl_triggersMain slthost, int requestTargetFormId, int requestId, string varname, Form value) global
-    string typeprefix = Global_Make_krequest_type_prefix(requestTargetFormId, requestId)
-    SetIntValue(slthost, Global_Make_krequest_type_prefix(requestTargetFormId, requestId) + varname, slthost.RT_FORM)
-    SetFormValue(slthost, Global_Make_krequest_v_prefix(requestTargetFormId, requestId) + varname, value)
+    string typeprefix = Global_Make_krequest_type_prefix(requestId)
+    StorageUtil.SetIntValue(slthost, Global_Make_krequest_type_prefix(requestId) + varname, slthost.RT_FORM)
+    StorageUtil.SetFormValue(slthost, Global_Make_krequest_v_prefix(requestId) + varname, value)
 endfunction

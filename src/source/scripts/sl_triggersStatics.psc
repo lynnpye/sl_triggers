@@ -122,6 +122,60 @@ string FUNCTION DELETED_ATTRIBUTE() global
 	return "trigger_deleted_by_user_via_mcm"
 EndFunction
 
+; StorageUtil keys related to SLTriggers Redux will all start with this prefix
+string Function DOMAIN_SLTR() global
+	return "SLTR:"
+EndFunction
+
+; StorageUtil key, stored on each target (Actor), with queued script requests
+; pipe delimited triplet of information for queueing script requests:
+; requestid|threadid|initialscriptname
+string Function DOMAIN_PENDING_SCRIPT_FOR_TARGET_LIST() global
+	return DOMAIN_SLTR() + "pending_script_for_target_list:"
+EndFunction
+
+; StorageUtil keys for extensions are prefixed with this, typically: DOMAIN_EXTENSION() + extensionKey
+; Storage location on a per extension implementation basis; could be on SLTRMain but also on SLTRCore quest
+string Function DOMAIN_EXTENSION() global
+	return DOMAIN_SLTR() + "extension:"
+EndFunction
+
+; StorageUtil keys for SLTR internal use are prefixed with this
+string Function DOMAIN_INTERNAL() global
+	return DOMAIN_SLTR() + "internal:"
+EndFunction
+
+; StorageUtil keys for frame specific data, stored on SLTRMain, are prefixed with this
+; frame:frameId:
+string Function DOMAIN_DATA_FRAME() global
+	return DOMAIN_SLTR() + "frame:"
+EndFunction
+
+; StorageUtil keys for thread specific data, stored on SLTRMain, are prefixed with this
+; thread:threadId:
+string Function DOMAIN_DATA_THREAD() global
+	return DOMAIN_SLTR() + "thread:"
+EndFunction
+
+; StorageUtil keys for target specific data, stored on SLTRMain (yes, on SLTRMain), are prefixed with this
+; target:modname:relativeFormId:
+string Function DOMAIN_DATA_TARGET() global
+	return DOMAIN_SLTR() + "target:"
+EndFunction
+
+; StorageUtil keys for request specific data, stored on SLTRMain, are prefixed with this
+; request:requestId:
+; This is typically (always?) going to be READONLY
+string Function DOMAIN_DATA_REQUEST() global
+	return DOMAIN_SLTR() + "request:"
+EndFunction
+
+; StorageUtil keys for global data, stored on SLTRMain, are prefixed with this
+; global:
+string Function DOMAIN_DATA_GLOBAL() global
+	return DOMAIN_SLTR() + "global:"
+EndFunction
+
 sl_TriggersMain Function GetSLTMain() global
 	Form mainForm = Game.GetFormFromFile(0x83F, "sl_triggers.esp")
 	if mainForm
@@ -203,7 +257,7 @@ EndFunction
 ; SLT Global/General
 
 string Function SLTRExtensionListKey() global
-	return "SLTR:internal:extensions:"
+	return DOMAIN_INTERNAL() + "extensions:"
 EndFunction
 
 string Function CommandsFolder() global

@@ -112,8 +112,16 @@ EndProperty
 
 int					Property SLTRVersion = 0 Auto Hidden
 
-string Property kglobal_map_prefix = "SLTR:global:maps:" Auto Hidden
-string Property kglobal_list_prefix = "SLTR:global:lists:" Auto Hidden
+string Property kglobal_map_prefix Hidden
+	string Function Get()
+		return DOMAIN_DATA_GLOBAL() + "maps:"
+	EndFunction
+EndProperty
+string Property kglobal_list_prefix Hidden
+	string Function Get()
+		return DOMAIN_DATA_GLOBAL() + "lists:"
+	EndFunction
+EndProperty
 
 ; duplicated from sl_triggersCmd
 int Property VS_SCOPE = 0 AutoReadOnly
@@ -467,9 +475,16 @@ Function DoInMemoryReset()
 
 EndFunction
 
+Function SUClearQueuedScripts()
+	StorageUtil.ClearAllPrefix(DOMAIN_PENDING_SCRIPT_FOR_TARGET_LIST())
+EndFunction
+
+Function SUClearSLTR()
+	StorageUtil.ClearAllPrefix(DOMAIN_SLTR())
+EndFunction
+
 Event OnSLTReset(string eventName, string strArg, float numArg, Form sender)
-	; Clear all target contexts
-	StorageUtil.ClearAllObjPrefix(self, "SLTR:")
+	SUClearSLTR()
 
 	; Clear global context
 	globalVarKeys = none
@@ -1274,14 +1289,35 @@ Function StartCommand(Form targetForm, string initialScriptName)
 	StartCommandWithThreadId(targetForm, initialScriptName, requestId, threadId)
 EndFunction
 
+Function IncrementRequestCounter(int requestId)
+	string sukey = DOMAIN_DATA_REQUEST() + requestId
+	int newcount = StorageUtil.AdjustIntValue(self, sukey, 1)
+	if bDebugMsg
+		SLTInfoMsg(">IncrementRequestCounter requestId(" + requestId + "): reached (" + newcount + "); sukey(" + sukey + ")")
+	endif
+EndFunction
+
+Function DecrementRequestCounter(int requestId)
+	string sukey = DOMAIN_DATA_REQUEST() + requestId
+	int newcount = StorageUtil.AdjustIntValue(self, sukey, -1)
+	if newcount < 1
+		if bDebugMsg
+			SLTInfoMsg("<DecrementRequestCounter requestId(" + requestId + "): reached (" + newcount + "); sukey prefix (" + sukey + "); clearing all")
+		endif
+		StorageUtil.ClearAllPrefix(sukey)
+	else
+		if bDebugMsg
+			SLTInfoMsg("<DecrementRequestCounter requestId(" + requestId + "): reached (" + newcount + "); sukey prefix(" + sukey + "); unwinding")
+		endif
+	endif
+EndFunction
+
 Function EnqueueScriptForTarget(Form targetForm, int requestId, int threadid, string initialScriptName)
 	If (!targetForm || !threadid || !initialScriptName || !requestId)
 		SLTErrMsg("EnqueueScriptForTarget: Invalid arguments")
 		return
 	EndIf
-	StorageUtil.IntListAdd(targetForm, "SLTR:pending_requestid_list", requestid)
-	StorageUtil.IntListAdd(targetForm, "SLTR:pending_threadid_list", threadid)
-	StorageUtil.StringListAdd(targetForm, "SLTR:pending_initialscriptname_list", initialScriptName)
+	StorageUtil.StringListAdd(targetForm, DOMAIN_PENDING_SCRIPT_FOR_TARGET_LIST(), requestid + "|" + threadid + "|" + initialScriptName)
 EndFunction
 
 Function DequeueScriptForTarget(Form targetForm, int[] requestId, int[] threadid, string[] initialScriptName)
@@ -1289,9 +1325,11 @@ Function DequeueScriptForTarget(Form targetForm, int[] requestId, int[] threadid
 		SLTErrMsg("DequeueScriptForTarget: Invalid arguments")
 		return
 	EndIf
-	requestid[0] = StorageUtil.IntListShift(targetForm, "SLTR:pending_requestid_list")
-	threadid[0] = StorageUtil.IntListShift(targetForm, "SLTR:pending_threadid_list")
-	initialScriptName[0] = StorageUtil.StringListShift(targetForm, "SLTR:pending_initialscriptname_list")
+	string requestString = StorageUtil.StringListShift(targetForm, DOMAIN_PENDING_SCRIPT_FOR_TARGET_LIST())
+	string[] requestBits = PapyrusUtil.StringSplit(requestString, "|")
+	requestid[0] = requestBits[0] as int
+	threadid[0] = requestBits[1] as int
+	initialScriptName[0] = requestBits[2]
 EndFunction
 
 ; StartCommand
@@ -1305,23 +1343,32 @@ Function StartCommandWithThreadId(Form targetForm, string initialScriptName, int
 		return
 	endif
 
-	Actor target = targetForm as Actor ; for now, only Actors
-	if !target
-		target = PlayerRef
+	Form actualTargetForm
+	Actor actualTarget
+	if targetForm
+		actualTarget = targetForm as Actor ; for now, only Actors
+		if !actualTarget
+			SLTErrMsg("Main.StartCommandWithThreadId: non-Actor targets are not supported at this time: targetForm(" + targetForm + ")")
+			return
+		endif
+		actualTargetForm = targetForm
+	else
+		actualTarget = PlayerRef
+		actualTargetForm = actualTarget
 	endif
 
-	EnqueueScriptForTarget(targetForm, requestId, threadid, initialScriptName)
+	EnqueueScriptForTarget(actualTargetForm, requestId, threadid, initialScriptName)
 	
 	if bDebugMsg
-		SLTDebugMsg("Calling sl_triggers_internal.StartScript(target=<" + target + ">, initialScriptName=<" + initialScriptName + ">)")
+		SLTDebugMsg("Calling sl_triggers_internal.StartScript(actualTarget=<" + actualTarget + ">, initialScriptName=<" + initialScriptName + ">)")
 	endif
-	bool scriptStarted = sl_triggers_internal.StartScript(target, initialScriptName)
+	bool scriptStarted = sl_triggers_internal.StartScript(actualTarget, initialScriptName)
 	if !scriptStarted
-		SLTWarnMsg("Too many SLTR effects on target(" + target + "); attempting to delay script execution")
-		target.SendModEvent(EVENT_SLT_DELAY_START_COMMAND(), initialScriptName, 0.0)
+		SLTWarnMsg("Too many SLTR effects on actualTarget(" + actualTarget + "); attempting to delay script execution")
+		actualTarget.SendModEvent(EVENT_SLT_DELAY_START_COMMAND(), initialScriptName, 0.0)
 	else
 		if bDebugMsg
-			SLTDebugMsg("sl_triggers_internal.StartScript(target=<" + target + ">, initialScriptName=<" + initialScriptName + ">) reported success")
+			SLTDebugMsg("sl_triggers_internal.StartScript(actualTarget=<" + actualTarget + ">, initialScriptName=<" + initialScriptName + ">) reported success")
 		endif
 	endif
 EndFunction
