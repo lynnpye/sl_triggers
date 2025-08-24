@@ -198,12 +198,14 @@ int     _resolvedInt
 float   _resolvedFloat
 Form    _resolvedForm
 string  _resolvedLabel
+Alias   _resolvedAlias
 string[] _resolvedListString
 string[] _resolvedListLabel
 bool[]  _resolvedListBool
 int[]   _resolvedListInt
 float[] _resolvedListFloat
 Form[]  _resolvedListForm
+Alias[] _resolvedListAlias
 
 int         Property CustomResolveType Auto Hidden
 
@@ -270,6 +272,15 @@ string      Property CustomResolveLabelResult Hidden
         CustomResolveType = SLT.RT_LABEL
     EndFunction
 EndProperty
+Alias       Property CustomResolveAliasResult Hidden
+    Alias Function Get()
+        return _resolvedAlias
+    EndFunction
+    Function Set(Alias value)
+        _resolvedAlias = value
+        CustomResolveType = SLT.RT_ALIAS
+    EndFunction
+EndProperty
 string[]    Property CustomResolveListStringResult Hidden
     string[] Function Get()
         return _resolvedListString
@@ -322,6 +333,15 @@ Form[]    Property CustomResolveListFormResult Hidden
     Function Set(Form[] value)
         _resolvedListForm = value
         CustomResolveType = SLT.RT_LIST_FORM
+    EndFunction
+EndProperty
+Alias[]     Property CustomResolveListAliasResult Hidden
+    Alias[] Function Get()
+        return _resolvedListAlias
+    EndFunction
+    Function Set(Alias[] value)
+        _resolvedListAlias = value
+        CustomResolveType = SLT.RT_LIST_ALIAS
     EndFunction
 EndProperty
 
@@ -455,6 +475,15 @@ String Function CRToLabel()
     return "[" + CRToString() + "]"
 EndFunction
 
+Alias Function CRToAlias()
+    if SLT.RT_ALIAS == CustomResolveType
+        return CustomResolveAliasResult
+    else
+        SFE("No auto conversions to Alias")
+    endif
+    return none
+EndFunction
+
 Function SetVarFromCustomResult(string[] varscope)
     if SLT.RT_STRING == CustomResolveType
         if SLT.Debug_Cmd_RunScript_Set
@@ -486,6 +515,11 @@ Function SetVarFromCustomResult(string[] varscope)
             SFD("SetVarfromCustomResult: to (" + debstrjoin(varscope, "/") + ") LABEL from (" + CustomResolveLabelResult + ")")
         endif
         SetVarLabel(varscope, CustomResolveLabelResult)
+    elseif SLT.RT_ALIAS == CustomResolveType
+        if SLT.Debug_Cmd_RunScript_Set
+            SFD("SetVarFromCustomResult: to (" + debstrjoin(varscope, "/") + ") ALIAS from (" + CustomResolveAliasResult + ")")
+        endif
+        SetVarAlias(varscope, CustomResolveAliasResult)
     elseif SLT.RT_LIST_STRING == CustomResolveType
         SetVarListString(varscope, CustomResolveListStringResult)
     elseif SLT.RT_LIST_BOOL == CustomResolveType
@@ -498,6 +532,8 @@ Function SetVarFromCustomResult(string[] varscope)
         SetVarListForm(varscope, CustomResolveListFormResult)
     elseif SLT.RT_LIST_LABEL == CustomResolveType
         SetVarListLabel(varscope, CustomResolveListLabelResult)
+    elseif SLT.RT_LIST_ALIAS == CustomResolveType
+        SetVarListAlias(varscope, CustomResolveListAliasResult)
     else
         if SLT.Debug_Cmd_RunScript_Set
             SFD("SetVarfromCustomResult: unhandled type converted to empty STRING (" + SLT.RT_ToString(CustomResolveType) + ")")
@@ -525,6 +561,8 @@ Function SetCustomResolveFromVar(string[] varscope)
         CustomResolveFormResult = GetVarForm(varscope, none)
     elseif SLT.RT_LABEL == vtype
         CustomResolveLabelResult = GetVarLabel(varscope, "")
+    elseif SLT.RT_ALIAS == vtype
+        CustomResolveAliasResult = GetVarAlias(varscope)
     elseif SLT.RT_MAP == vtype
         SFW("Map not currently valid for assignment")
         CustomResolveStringResult = ""
@@ -540,6 +578,8 @@ Function SetCustomResolveFromVar(string[] varscope)
         CustomResolveListFormResult = GetVarListForm(varscope)
     elseif SLT.RT_LIST_LABEL == vtype
         CustomResolveListLabelResult = GetVarListLabel(varscope)
+    elseif SLT.RT_LIST_ALIAS == vtype
+        CustomResolveListAliasResult = GetVarListAlias(varscope)
     elseif SLT.RT_IsList(vtype)
         SFW("List subtype not currently valid for assignment; type(" + SLT.RT_ToString(vtype) + ")")
         CustomResolveStringResult = ""
@@ -587,12 +627,14 @@ int     _recentResultInt
 float   _recentResultFloat
 Form    _recentResultForm
 string  _recentResultLabel
+Alias   _recentResultAlias
 string[] _recentListString
 string[] _recentListLabel
 bool[]  _recentListBool
 int[]   _recentListInt
 float[] _recentListFloat
 Form[]  _recentListForm
+Alias[] _recentListAlias
 
 string	    Property MostRecentStringResult Hidden
     string Function Get()
@@ -648,6 +690,15 @@ string      Property MostRecentLabelResult Hidden
         MostRecentResultType = SLT.RT_LABEL
     EndFunction
 EndProperty
+Alias       Property MostRecentAliasResult Hidden
+    Alias Function Get()
+        return _recentResultAlias
+    EndFunction
+    Function Set(Alias value)
+        _recentResultAlias = value
+        MostRecentResultType = SLT.RT_ALIAS
+    EndFunction
+EndProperty
 string[]    Property MostRecentListStringResult Hidden
     string[] Function Get()
         return _recentListString
@@ -700,6 +751,15 @@ Form[]    Property MostRecentListFormResult Hidden
     Function Set(Form[] value)
         _recentListForm = value
         MostRecentResultType = SLT.RT_LIST_FORM
+    EndFunction
+EndProperty
+Alias[]     Property MostRecentListAliasResult Hidden
+    Alias[] Function Get()
+        return _recentListAlias
+    EndFunction
+    Function Set(Alias[] value)
+        _recentListAlias = value
+        MostRecentResultType = SLT.RT_LIST_ALIAS
     EndFunction
 EndProperty
 
@@ -1428,6 +1488,16 @@ float Function ResolveFloat(string token)
     return CRToFloat()
 EndFunction
 
+Alias Function ResolveAlias(string token)
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return 0.0
+    endif
+    InternalResolve(token)
+    return CRToAlias()
+EndFunction
+
 string[] Function ResolveListString(string token)
     if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
         SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
@@ -1502,6 +1572,19 @@ string[] Function ResolveListLabel(string token)
     InternalResolve(token)
     if SLT.RT_LIST_LABEL == CustomResolveType
         return CustomResolveListLabelResult
+    endif
+    return none
+EndFunction
+
+Alias[] Function ResolveListAlias(string token)
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return none
+    endif
+    InternalResolve(token)
+    if SLT.RT_LIST_ALIAS == CustomResolveType
+        return CustomResolveListAliasResult
     endif
     return none
 EndFunction
@@ -2580,6 +2663,16 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                 string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
                 if varscope[SLT.VS_SCOPE]
                     SetVarType(varscope, SLT.RT_LIST_LABEL)
+                else
+                    SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
+                endif
+            endif
+            ;currentLine += 1
+        elseIf command == "Alias[]"
+            if ParamLengthEQ(self, cmdLine.Length, 2)
+                string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
+                if varscope[SLT.VS_SCOPE]
+                    SetVarType(varscope, SLT.RT_LIST_ALIAS)
                 else
                     SFE("no resolve found for variable parameter (" + cmdLine[1] + ")")
                 endif
@@ -3981,6 +4074,37 @@ Form Function GetFrameVarForm(string[] varscope, Form missing)
 	return missing
 EndFunction
 
+Alias Function GetFrameVarAlias(string[] varscope)
+	int i = frameVarKeys.Find(varscope[SLT.VS_NAME], 0)
+	if i > -1
+        int rt = frameVarTypes[i]
+		if SLT.RT_ALIAS == rt
+			return AliasFromAliasPortableString(frameVarVals[i])
+		elseif SLT.RT_MAP == rt
+			If (varscope[SLT.VS_RESOLVED_MAP_KEY])
+				int subrt = StorageUtil.GetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY])
+				if SLT.RT_ALIAS == subrt
+					return AliasFromAliasPortableString(StorageUtil.GetStringValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY]))
+				else
+					SFE("GetFrameVar: mapped var found but not recognized type(" + SLT.RT_ToString(subrt) + "); expecting RT_ALIAS")
+				endif
+			else
+        		SFW("GetFrameVar: unable to coerce map to Alias; did you forget a map key?")
+			EndIf
+		elseif SLT.RT_LIST_ALIAS == rt
+			if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+				int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+				return AliasFromAliasPortableString(StorageUtil.StringListGet(SLT, GetFrameListKey(varscope), rli))
+			else
+        		SFW("GetFrameVar: unable to coerce list to Alias; did you forget a list index?")
+			endif
+		else
+        	SFE("GetFrameVar: var found but not recognized type(" + SLT.RT_ToString(rt) + "); expecting RT_ALIAS")
+		endif
+	endif
+	return none
+EndFunction
+
 function UnsetFrameMapKey(string[] varscope, string mapkey)
     if !mapkey
         SFW("Attempted to unset empty map key: varscope(" + SLT.VarScopeToString(varscope) + ") mapkey(" + mapkey + ")")
@@ -4018,8 +4142,7 @@ string Function SetFrameVarString(string[] varscope, string value)
 			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_MAP)
 		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
 			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
-			string retval = SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
-            string flkey = GetFrameListKey(varscope)
+			SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
 			frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
 			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_LIST_STRING)
 		else
@@ -4036,8 +4159,7 @@ string Function SetFrameVarString(string[] varscope, string value)
 			int rt = GetFrameVarType(varscope)
 			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
 			If (SLT.RT_STRING == rt)
-				string retval = SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
-            string flkey = GetFrameListKey(varscope)
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
 			elseif SLT.RT_BOOL == rt
 				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value != "")
 			elseif SLT.RT_INT == rt
@@ -4321,6 +4443,49 @@ Form Function SetFrameVarForm(string[] varscope, Form formvalue)
         endif
 	endif
 	return formvalue
+EndFunction
+
+Alias function SetFrameVarAlias(string[] varscope, Alias aliasvalue)
+	int i = frameVarKeys.Find(varscope[SLT.VS_NAME], 0)
+    If (SLT.Debug_Cmd_RunScript_Set)
+        SFD("Cmd.SetFrameVarAlias: varscope(" + SLT.VarScopeToString(varscope) + ") to value(" + value + "); index from find (" + i + ")")
+    EndIf
+    string value = AliasPortableStringFromAlias(aliasvalue)
+	if i < 0
+		frameVarKeys = PapyrusUtil.PushString(frameVarKeys, varscope[SLT.VS_NAME])
+		If (varscope[SLT.VS_RESOLVED_MAP_KEY])
+			StorageUtil.SetStringValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
+			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_ALIAS)
+			frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
+			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_MAP)
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			frameVarVals = PapyrusUtil.PushString(frameVarVals, "")
+			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_LIST_ALIAS)
+		else
+			frameVarVals = PapyrusUtil.PushString(frameVarVals, value)
+			frameVarTypes = PapyrusUtil.PushInt(frameVarTypes, SLT.RT_ALIAS)
+		EndIf
+    else
+        if (varscope[SLT.VS_RESOLVED_MAP_KEY])
+            StorageUtil.SetStringValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
+			StorageUtil.SetIntValue(SLT, kframe_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_ALIAS)
+            frameVarTypes[i] = SLT.RT_MAP
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rt = GetFrameVarType(varscope)
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			If (SLT.RT_ALIAS == rt)
+				SU_StringListSet(SLT, GetFrameListKey(varscope), rli, value)
+			EndIf
+        else
+            frameVarVals[i] = value
+            frameVarTypes[i] = SLT.RT_ALIAS
+        endif
+	endif
+	return aliasvalue
 EndFunction
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -4682,6 +4847,37 @@ Form Function GetThreadVarForm(string[] varscope, Form missing)
 	return missing
 EndFunction
 
+Alias Function GetThreadVarAlias(string[] varscope)
+	int i = threadVarKeys.Find(varscope[SLT.VS_NAME], 0)
+	if i > -1
+        int rt = threadVarTypes[i]
+		if SLT.RT_ALIAS == rt
+			return AliasFromAliasPortableString(threadVarVals[i])
+		elseif SLT.RT_MAP == rt
+			If (varscope[SLT.VS_RESOLVED_MAP_KEY])
+				int subrt = StorageUtil.GetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY])
+				if SLT.RT_ALIAS == subrt
+					return AliasFromAliasPortableString(StorageUtil.GetStringValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY]))
+				else
+					SFE("GetThreadVar: mapped var found but not recognized type(" + SLT.RT_ToString(subrt) + "); expecting RT_ALIAS")
+				endif
+			else
+        		SFW("GetThreadVar: unable to coerce map to Alias; did you forget a map key?")
+			EndIf
+		elseif SLT.RT_LIST_ALIAS == rt
+			if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+				int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+				return AliasFromAliasPortableString(StorageUtil.StringListGet(SLT, GetThreadListKey(varscope), rli))
+			else
+        		SFW("GetThreadVar: unable to coerce list to Alias; did you forget a list index?")
+			endif
+		else
+        	SFE("GetThreadVar: var found but not recognized type(" + SLT.RT_ToString(rt) + "); expecting RT_ALIAS")
+		endif
+	endif
+	return none
+EndFunction
+
 function UnsetThreadMapKey(string[] varscope, string mapkey)
     if !mapkey
         SFW("Attempted to unset empty map key: varscope(" + SLT.VarScopeToString(varscope) + ") mapkey(" + mapkey + ")")
@@ -5017,6 +5213,49 @@ Form Function SetThreadVarForm(string[] varscope, Form formvalue)
         endif
 	endif
 	return formvalue
+EndFunction
+
+Alias function SetThreadVarAlias(string[] varscope, Alias aliasvalue)
+	int i = threadVarKeys.Find(varscope[SLT.VS_NAME], 0)
+    If (SLT.Debug_Cmd_RunScript_Set)
+        SFD("Cmd.SetThreadVarAlias: varscope(" + SLT.VarScopeToString(varscope) + ") to value(" + value + "); index from find (" + i + ")")
+    EndIf
+    string value = AliasPortableStringFromAlias(aliasvalue)
+	if i < 0
+		threadVarKeys = PapyrusUtil.PushString(threadVarKeys, varscope[SLT.VS_NAME])
+		If (varscope[SLT.VS_RESOLVED_MAP_KEY])
+			StorageUtil.SetStringValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
+			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_ALIAS)
+			threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
+			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_MAP)
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			threadVarVals = PapyrusUtil.PushString(threadVarVals, "")
+			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_LIST_ALIAS)
+		else
+			threadVarVals = PapyrusUtil.PushString(threadVarVals, value)
+			threadVarTypes = PapyrusUtil.PushInt(threadVarTypes, SLT.RT_ALIAS)
+		EndIf
+    else
+        if (varscope[SLT.VS_RESOLVED_MAP_KEY])
+            StorageUtil.SetStringValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
+			StorageUtil.SetIntValue(SLT, kthread_map_prefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_ALIAS)
+            threadVarTypes[i] = SLT.RT_MAP
+		elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+			int rt = GetThreadVarType(varscope)
+			int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+			If (SLT.RT_ALIAS == rt)
+				SU_StringListSet(SLT, GetThreadListKey(varscope), rli, value)
+			EndIf
+        else
+            threadVarVals[i] = value
+            threadVarTypes[i] = SLT.RT_ALIAS
+        endif
+	endif
+	return aliasvalue
 EndFunction
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -5363,6 +5602,35 @@ Form Function GetTargetVarForm(string typeprefix, string dataprefix, string mapp
     return missing
 EndFunction
 
+Alias Function GetTargetVarAlias(string typeprefix, string dataprefix, string mapprefix, string[] varscope)
+    int rt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
+
+    if SLT.RT_ALIAS == rt
+        return AliasFromAliasPortableString(StorageUtil.GetStringValue(SLT, dataprefix + varscope[SLT.VS_NAME], ""))
+    elseIf SLT.RT_MAP == rt
+        If (varscope[SLT.VS_RESOLVED_MAP_KEY])
+            int subrt = StorageUtil.GetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY])
+            if SLT.RT_ALIAS == subrt
+                return AliasFromAliasPortableString(StorageUtil.GetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY]))
+            else
+                SFE("GetTargetVar: mapped var found but not recognized type(" + SLT.RT_ToString(subrt) + "); expecting RT_ALIAS")
+            endif
+        else
+            SFW("GetTargetVar: unable to coerce map to Alias; did you forget a map key?")
+        EndIf
+    elseIf SLT.RT_IsList(rt)
+        if (varscope[SLT.VS_RESOLVED_LIST_INDEX])
+            int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+            return AliasFromAliasPortableString(StorageUtil.StringListGet(SLT, GetTargetListKey(mapprefix, varscope), rli))
+        else
+            SFW("GetThreadVar: unable to coerce list to Alias; did you forget a list index?")
+        endif
+    else
+        SFE("GetTargetVar: var found but not recognized type(" + SLT.RT_ToString(rt) + "); expecting RT_ALIAS")
+    endif
+	return none
+EndFunction
+
 function UnsetTargetMapKey(string mapprefix, string[] varscope, string mapkey)
     if !mapkey
         SFW("Attempted to unset empty map key: varscope(" + SLT.VarScopeToString(varscope) + ") mapkey(" + mapkey + ")")
@@ -5572,7 +5840,7 @@ Form Function SetTargetVarForm(string typeprefix, string dataprefix, string mapp
     elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
         int rt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
         if !SLT.RT_IsList(rt)
-            rt = SLT.RT_LIST_FLOAT
+            rt = SLT.RT_LIST_FORM
             SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], rt)
         endif
         string value
@@ -5602,6 +5870,30 @@ Form Function SetTargetVarForm(string typeprefix, string dataprefix, string mapp
         SetFormValue(SLT, dataprefix + varscope[SLT.VS_NAME], formvalue)
     EndIf
     return formvalue
+EndFunction
+
+Alias function SetTargetVarAlias(string typeprefix, string dataprefix, string mapprefix, string[] varscope, Alias aliasvalue)
+    string value = AliasPortableStringFromAlias(aliasvalue)
+    If (varscope[SLT.VS_RESOLVED_MAP_KEY])
+        SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_MAP)
+        StorageUtil.SetIntValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], SLT.RT_ALIAS)
+        StorageUtil.StringListAdd(SLT, mapprefix + varscope[SLT.VS_NAME] + ":", varscope[SLT.VS_RESOLVED_MAP_KEY], false)
+        SetStringValue(SLT, mapprefix + varscope[SLT.VS_NAME] + ":" + varscope[SLT.VS_RESOLVED_MAP_KEY], value)
+    elseif(varscope[SLT.VS_RESOLVED_LIST_INDEX])
+        int rt = GetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_INVALID)
+        if !SLT.RT_IsList(rt)
+            rt = SLT.RT_LIST_ALIAS
+            SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], rt)
+        endif
+        int rli = varscope[SLT.VS_RESOLVED_LIST_INDEX] as int
+        if SLT.RT_LIST_ALIAS == rt
+            SU_StringListSet(SLT, GetTargetListKey(mapprefix, varscope), rli, value)
+        endif
+    else
+        SetIntValue(SLT, typeprefix + varscope[SLT.VS_NAME], SLT.RT_ALIAS)
+        SetStringValue(SLT, dataprefix + varscope[SLT.VS_NAME], value)
+    EndIf
+	return aliasvalue
 EndFunction
 
 ;;;;
@@ -5913,7 +6205,7 @@ float function GetVarFloat(string[] varscope, float missing)
             mapprefix = ktarget_map_prefix
         endif
         If (SLT.Debug_Cmd_RunScript_Set)
-            SFD("GetVarInt: typeprefix(" + typeprefix + ") dataprefix(" + dataprefix + ") varscope(" + debstrjoin(varscope, "/") + ")")
+            SFD("GetVarFloat: typeprefix(" + typeprefix + ") dataprefix(" + dataprefix + ") varscope(" + debstrjoin(varscope, "/") + ")")
         EndIf
         return GetTargetVarFloat(typeprefix, dataprefix, mapprefix, varscope, missing)
     endif
@@ -5950,11 +6242,48 @@ Form function GetVarForm(string[] varscope, Form missing)
             mapprefix = ktarget_map_prefix
         endif
         If (SLT.Debug_Cmd_RunScript_Set)
-            SFD("GetVarInt: typeprefix(" + typeprefix + ") dataprefix(" + dataprefix + ") varscope(" + debstrjoin(varscope, "/") + ")")
+            SFD("GetVarForm: typeprefix(" + typeprefix + ") dataprefix(" + dataprefix + ") varscope(" + debstrjoin(varscope, "/") + ")")
         EndIf
         return GetTargetVarForm(typeprefix, dataprefix, mapprefix, varscope, missing)
     endif
     return missing
+endfunction
+
+Alias function GetVarAlias(string[] varscope)
+    string scope = varscope[SLT.VS_SCOPE]
+    if scope == "local"
+        return GetFrameVarAlias(varscope)
+    elseif scope == "global"
+        return SLT.GetGlobalVarAlias(self, varscope)
+    elseif scope == "thread"
+        return GetThreadVarAlias(varscope)
+    elseif scope == "target"
+        string varname = varscope[SLT.VS_NAME]
+        string typeprefix
+        string dataprefix
+        string mapprefix
+        if varscope[SLT.VS_TARGET_EXT]
+            Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
+            if targetForm
+                string formPortableString = FormPortableStringFromForm(targetForm)
+                typeprefix = Make_ktarget_type_v_prefix(formPortableString)
+                dataprefix = Make_ktarget_v_prefix(formPortableString)
+                mapprefix = Make_ktarget_map_prefix(formPortableString)
+            else
+                SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
+            endif
+        endif
+        if !typeprefix
+            typeprefix = ktarget_type_v_prefix
+            dataprefix = ktarget_v_prefix
+            mapprefix = ktarget_map_prefix
+        endif
+        If (SLT.Debug_Cmd_RunScript_Set)
+            SFD("GetVarAlias: typeprefix(" + typeprefix + ") dataprefix(" + dataprefix + ") varscope(" + debstrjoin(varscope, "/") + ")")
+        EndIf
+        return GetTargetVarAlias(typeprefix, dataprefix, mapprefix, varscope)
+    endif
+    return none
 endfunction
 
 string[] function GetVarListString(string[] varscope)
@@ -6019,6 +6348,18 @@ string[] function GetVarListLabel(string[] varscope)
     while i
         i -= 1
         retval[i] = values[i]
+    endwhile
+    return retval
+endfunction
+
+Alias[] function GetVarListAlias(string[] varscope)
+    string listKey = GetVarListKey(varscope)
+    string[] values = StorageUtil.StringListToArray(SLT, listKey)
+    Alias[] retval = PapyrusUtil.AliasArray(values.Length)
+    int i = values.Length
+    while i
+        i -= 1
+        retval[i] = AliasFromAliasPortableString(values[i])
     endwhile
     return retval
 endfunction
@@ -6336,6 +6677,47 @@ Form function SetVarForm(string[] varscope, Form value)
     return none
 endfunction
 
+Alias function SetVarAlias(string[] varscope, Alias value)
+    string scope = varscope[SLT.VS_SCOPE]
+    if scope == "local"
+        return SetFrameVarAlias(varscope, value)
+    elseif scope == "global"
+        return SLT.SetGlobalVarAlias(varscope, value)
+    elseif scope == "thread"
+        return SetThreadVarAlias(varscope, value)
+    elseif scope == "target"
+        string varname = varscope[SLT.VS_NAME]
+        string typeprefix
+        string dataprefix
+        string mapprefix
+        if varscope[SLT.VS_TARGET_EXT]
+            Form targetForm = ResolveForm("$" + varscope[SLT.VS_TARGET_EXT])
+            if targetForm
+                string formPortableString = FormPortableStringFromForm(targetForm)
+                typeprefix = Make_ktarget_type_v_prefix(formPortableString)
+                dataprefix = Make_ktarget_v_prefix(formPortableString)
+                mapprefix = Make_ktarget_map_prefix(formPortableString)
+            else
+                SFE("Unable to resolve target-scoped alternate target(" + varscope[SLT.VS_TARGET_EXT] + ")")
+            endif
+        endif
+        if !typeprefix
+            typeprefix = ktarget_type_v_prefix
+            dataprefix = ktarget_v_prefix
+            mapprefix = ktarget_map_prefix
+        endif
+        If (SLT.Debug_Cmd_RunScript_Set)
+            SFD("SetVarAlias: typeprefix(" + typeprefix + ") dataprefix(" + dataprefix + ") varscope(" + debstrjoin(varscope, "/") + ") value(" + value + ")")
+        EndIf
+        return SetTargetVarAlias(typeprefix, dataprefix, mapprefix, varscope, value)
+    elseif scope
+        SFE("Attempted to assign to read-only scope (" + scope + ")")
+        return none
+    endif
+    SFE("Invalid scope for set")
+    return none
+endfunction
+
 string[] Function SetVarListString(string[] varscope, string[] values)
     string listKey = GetVarListKey(varscope)
     SetVarType(varscope, SLT.RT_LIST_STRING)
@@ -6345,7 +6727,7 @@ endfunction
 
 bool[] Function SetVarListBool(string[] varscope, bool[] values)
     string listKey = GetVarListKey(varscope)
-    SetVarType(varscope, SLT.RT_LIST_STRING)
+    SetVarType(varscope, SLT.RT_LIST_BOOL)
     int i = values.Length
     string[] inputs = PapyrusUtil.StringArray(i)
     while i
@@ -6360,7 +6742,7 @@ endfunction
 
 int[] Function SetVarListInt(string[] varscope, int[] values)
     string listKey = GetVarListKey(varscope)
-    SetVarType(varscope, SLT.RT_LIST_STRING)
+    SetVarType(varscope, SLT.RT_LIST_INT)
     int i = values.Length
     string[] inputs = PapyrusUtil.StringArray(i)
     while i
@@ -6373,7 +6755,7 @@ endfunction
 
 float[] Function SetVarListFloat(string[] varscope, float[] values)
     string listKey = GetVarListKey(varscope)
-    SetVarType(varscope, SLT.RT_LIST_STRING)
+    SetVarType(varscope, SLT.RT_LIST_FLOAT)
     int i = values.Length
     string[] inputs = PapyrusUtil.StringArray(i)
     while i
@@ -6386,7 +6768,7 @@ endfunction
 
 Form[] Function SetVarListForm(string[] varscope, Form[] values)
     string listKey = GetVarListKey(varscope)
-    SetVarType(varscope, SLT.RT_LIST_STRING)
+    SetVarType(varscope, SLT.RT_LIST_FORM)
     int i = values.Length
     string[] inputs = PapyrusUtil.StringArray(i)
     while i
@@ -6401,6 +6783,19 @@ string[] Function SetVarListLabel(string[] varscope, string[] values)
     string listKey = GetVarListKey(varscope)
     SetVarType(varscope, SLT.RT_LIST_LABEL)
     StorageUtil.StringListCopy(SLT, listKey, values)
+    return values
+endfunction
+
+Alias[] Function SetVarListAlias(string[] varscope, Alias[] values)
+    string listKey = GetVarListKey(varscope)
+    SetVarType(varscope, SLT.RT_LIST_ALIAS)
+    int i = values.Length
+    string[] inputs = PapyrusUtil.StringArray(i)
+    while i
+        i -= 1
+        inputs[i] = AliasPortableStringFromAlias(values[i]) ;values[i].GetFormID()
+    endwhile
+    StorageUtil.StringListCopy(SLT, listKey, inputs)
     return values
 endfunction
 

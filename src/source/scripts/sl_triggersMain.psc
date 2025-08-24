@@ -149,6 +149,7 @@ int     Property RT_FLOAT =     	4 AutoReadOnly
 int     Property RT_FORM =      	5 AutoReadOnly
 int		Property RT_LABEL =			6 AutoReadOnly
 int		Property RT_MAP	=			7 AutoReadOnly
+int		Property RT_ALIAS =			8 AutoReadOnly
 
 int		Property RT_LIST_TYPE_OFFSET = 100 AutoReadOnly
 int		Property RT_LIST_MIN = 		101 AutoReadOnly
@@ -159,8 +160,10 @@ int		Property RT_LIST_INT =		103 AutoReadOnly
 int		Property RT_LIST_FLOAT =	104 AutoReadOnly
 int		Property RT_LIST_FORM =		105 AutoReadOnly
 int		Property RT_LIST_LABEL = 	106 AutoReadOnly
+int		Property RT_LIST_MAP = 		107 AutoReadOnly ; not actually valid, see the function
+int		Property RT_LIST_ALIAS = 	108 AutoReadOnly
 
-int		Property RT_LIST_MAX = 		106 AutoReadOnly
+int		Property RT_LIST_MAX = 		108 AutoReadOnly
 
 string Function RT_ToString(int rt_type)
     if RT_STRING == rt_type
@@ -177,6 +180,8 @@ string Function RT_ToString(int rt_type)
 		return "RT_LABEL"
 	elseif RT_MAP == rt_type
 		return "RT_MAP"
+	elseif RT_ALIAS == rt_type
+		return "RT_ALIAS"
 	elseif RT_LIST_STRING == rt_type
 		return "RT_LIST_STRING"
 	elseif RT_LIST_BOOL == rt_type
@@ -189,12 +194,16 @@ string Function RT_ToString(int rt_type)
 		return "RT_LIST_FORM"
 	elseif RT_LIST_LABEL == rt_type
 		return "RT_LIST_LABEL"
+	;elseif RT_LIST_MAP == rt_type
+	;	return "RT_LIST_MAP"
+	elseif RT_LIST_ALIAS == rt_type
+		return "RT_LIST_ALIAS"
     endif
     return "<invalid RT type: " + rt_type + ">"
 EndFunction
 
 bool Function RT_IsList(int rt_type)
-	return RT_LIST_MIN <= rt_type && RT_LIST_MAX >= rt_type
+	return RT_LIST_MIN <= rt_type && RT_LIST_MAX >= rt_type && RT_LIST_MAP != rt_type
 EndFunction
 
 int Function RT_ListSubType(int rt_type)
@@ -939,6 +948,37 @@ Form Function GetGlobalVarForm(sl_triggersCmd cmdPrimary, string[] varscope, For
 	return missing
 EndFunction
 
+Alias Function GetGlobalVarAlias(sl_triggersCmd cmdPrimary, string[] varscope)
+	int i = globalVarKeys.Find(varscope[VS_NAME], 0)
+	if i > -1
+        int rt = globalVarTypes[i]
+		if RT_ALIAS == rt
+			return AliasFromAliasPortableString(globalVarVals[i])
+		elseif RT_MAP == rt
+			If (varscope[VS_RESOLVED_MAP_KEY])
+				int subrt = StorageUtil.GetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY])
+				if RT_ALIAS == subrt
+					return AliasFromAliasPortableString(StorageUtil.GetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY]))
+				else
+					cmdPrimary.SFE("GetGlobalVar: mapped var found but not recognized type(" + RT_ToString(subrt) + "); expecting RT_ALIAS")
+				endif
+			else
+        		cmdPrimary.SFW("GetGlobalVar: unable to coerce map to Alias; did you forget a map key?")
+			EndIf
+		elseif RT_LIST_ALIAS == rt
+			if (varscope[VS_RESOLVED_LIST_INDEX])
+				int rli = varscope[VS_RESOLVED_LIST_INDEX] as int
+				return AliasFromAliasPortableString(StorageUtil.StringListGet(self, GetGlobalListKey(varscope), rli))
+			else
+        		cmdPrimary.SFW("GetGlobalVar: unable to coerce list to Alias; did you forget a list index?")
+			endif
+		else
+        	cmdPrimary.SFE("GetGlobalVar: var found but not recognized type(" + RT_ToString(rt) + "); expecting RT_ALIAS")
+		endif
+	endif
+	return none
+EndFunction
+
 function UnsetGlobalMapKey(sl_triggersCmd cmdPrimary, string[] varscope, string mapkey)
     if !mapkey
         cmdPrimary.SFW("Attempted to unset empty map key: varscope(" + VarScopeToString(varscope) + ") mapkey(" + mapkey + ")")
@@ -1274,6 +1314,49 @@ Form Function SetGlobalVarForm(string[] varscope, Form formvalue)
 		EndIf
 	endif
 	return formvalue
+EndFunction
+
+Alias Function SetGlobalVarAlias(string[] varscope, Alias aliasvalue)
+	int i = globalVarKeys.Find(varscope[VS_NAME], 0)
+	string value
+	if aliasvalue
+		value = AliasPortableStringFromAlias(aliasvalue)
+	endif
+	if i < 0
+		globalVarKeys = PapyrusUtil.PushString(globalVarKeys, varscope[VS_NAME])
+		If (varscope[VS_RESOLVED_MAP_KEY])
+			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(self, kglobal_map_prefix + varscope[VS_NAME] + ":", varscope[VS_RESOLVED_MAP_KEY], false)
+			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_ALIAS)
+			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
+			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_MAP)
+		elseif(varscope[VS_RESOLVED_LIST_INDEX])
+			int rli = varscope[VS_RESOLVED_LIST_INDEX] as int
+			SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			globalVarVals = PapyrusUtil.PushString(globalVarVals, "")
+			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_LIST_ALIAS)
+		else
+			globalVarVals = PapyrusUtil.PushString(globalVarVals, value)
+			globalVarTypes = PapyrusUtil.PushInt(globalVarTypes, RT_ALIAS)
+		EndIf
+	else
+		If (varscope[VS_RESOLVED_MAP_KEY])
+			StorageUtil.SetStringValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], value)
+			StorageUtil.StringListAdd(self, kglobal_map_prefix + varscope[VS_NAME] + ":", varscope[VS_RESOLVED_MAP_KEY], false)
+			StorageUtil.SetIntValue(self, kglobal_map_prefix + varscope[VS_NAME] + ":" + varscope[VS_RESOLVED_MAP_KEY], RT_ALIAS)
+			globalVarTypes[i] = RT_MAP
+		elseif(varscope[VS_RESOLVED_LIST_INDEX])
+			int rt = GetGlobalVarType(varscope)
+			int rli = varscope[VS_RESOLVED_LIST_INDEX] as int
+			If (RT_ALIAS == rt)
+				SU_StringListSet(self, GetGlobalListKey(varscope), rli, value)
+			EndIf
+		else
+			globalVarVals[i] = value
+			globalVarTypes[i] = RT_ALIAS
+		EndIf
+	endif
+	return aliasvalue
 EndFunction
 
 Function StartCommand(Form targetForm, string initialScriptName)

@@ -4,7 +4,7 @@
         (or whichever folder you have your SKSE logs directed to)
     bugfix: SLTR Reset now clears all StorageUtil objects (thanks to @nopse0 for the fix)
     bugfix: request value savefile memory leak; old request data was not being cleaned up when all threads completed
-    enhancement: new data type: Alias; peer to string, int, float, bool, Form, Label
+    enhancement: new data type: Alias; peer to string, int, float, bool, Form, Label; with list support (i.e. Alias[])
     enhancement: new SexLab API calls: sl_sexstart, various others
     enhancement: internal FormID storage should be load order change resistant (stores modname and relative formid instead of solely the FormID)
     change: SLTScript: Contamination - Transformative Elixir.sltscript - altered transform distribution

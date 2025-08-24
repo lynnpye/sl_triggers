@@ -417,6 +417,41 @@ bool Function ParamLengthEQ(sl_triggersCmd _cmdPrimary, int actualLength, int ne
     return true
 EndFunction
 
+Alias Function AliasFromAliasPortableString(string aliasPortableString) global
+	string[] aliasParts = PapyrusUtil.StringSplit(aliasPortableString, "^")
+	if aliasParts.Length == 2
+		Quest aliasOwningQuest = sl_triggers.GetForm(aliasParts[0]) as Quest
+		if aliasOwningQuest
+			; note: no error checking, defaults to 0, this is a bug as the error condition of a bad input will always attempt to return the nth alias
+			; note further: still considering shipping because this is intended to be opaque, generated when an alias is fetched, not as something someone generates to retrieve a specific alias
+			; noting still: just noting all of this because of the inevitable bug to save some research time
+			int aliasId = aliasParts[1] as int
+			Alias returnAlias = aliasOwningQuest.GetAlias(aliasId)
+			if (!returnAlias)
+				SLTErrMsg("AliasFromAliasPortableString: aliasPortableString(" + aliasPortableString + "); could not retrieve alias from quest(" + aliasOwningQuest + ") with id(" + aliasId + ")")
+			endif
+			return returnAlias
+		else
+			SLTErrMsg("AliasFromAliasPortableString: aliasPortableString(" + aliasPortableString + "); could not retrieve quest")
+		endif
+	else
+		SLTErrMsg("AliasFromAliasPortableString: aliasPortableString(" + aliasPortableString + "); could not split on ':' and retrieve exactly two parts")
+	endif
+	return none
+EndFunction
+
+string Function AliasPortableStringFromAlias(Alias theAlias) global
+	if theAlias
+		Quest theQuest = theAlias.GetOwningQuest()
+		if theQuest
+			return FormPortableStringFromForm(theQuest) + "^" + theAlias.GetID()
+		else
+			SLTErrMsg("AliasPortableStringFromAlias: theAlias(" + theAlias + ") had no owning quest")
+		endif
+	endif
+	return ""
+EndFunction
+
 Form Function FormFromFormPortableString(string formPortableString) global
 	return sl_triggers.GetForm(formPortableString)
 EndFunction

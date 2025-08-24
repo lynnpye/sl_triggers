@@ -49,6 +49,7 @@ For purposes of SLTScript, you have the following data types available:
 |`float`|floating point (float) numeric value. e.g. `-12.23`, `0.44`, `100.48`|
 |`bool`|boolean value, expressed either `true` or `false`|
 |`Form`|Form values|
+|`Alias`|Alias values|
 |`map`|A set of key-value pairs associated with the variable name. See the `Maps` section below. Reference values by using map key notation e.g. `$var{$mapkey}` where `$mapkey` contains the value of the key; literals may be used e.g. `$var{literalvalue}` will look for a value with the key `"literalvalue"`|
 |`list`|An ordered set of values, sharing a common type. Once a list's type is determined, future assignments will coerce to that type rather than changing the type of the target variable.|
 
@@ -121,6 +122,7 @@ Available list types and their declarations:
 |`int[]`|list of int values e.g. 23, 34, 45, 0x23, -14|
 |`float[]`|list of float values e.g. 1.23, 4.0234, -32|
 |`Form[]`|list of Form values e.g. $system.partner, $system.partner2, $system.player|
+|`Alias[]`|list of Alias values|
 |`label[]`|list of labels e.g. [here], [there], [somewhere]|
 
 ### FormID, Forms, and You
@@ -637,7 +639,7 @@ return
 
 ## Function Libraries
 
-All commands beyond the intrinsics come from Function Libraries. SLTR includes a an expanding library with functions covering not only base Skyrim but also SexLab and related mods.
+All commands beyond the intrinsics come from Function Libraries. SLTR includes an expanding library with functions covering not only base Skyrim but also SexLab, OStim, and other related mods.
 
 For detailed information about available functions, see the [Function Libraries](../Function-Libraries) wiki page.
 
@@ -650,7 +652,7 @@ For detailed information about available functions, see the [Function Libraries]
 
 ## Legacy Support
 
-**JSON Format:** There is still support for the original .json format, but .sltscript is preferred. Future development focuses on .sltscript format.
+**JSON Format:** JSON support has ended. Future development focuses on .sltscript format.
 
 ## Technical Notes
 
