@@ -1492,7 +1492,7 @@ Alias Function ResolveAlias(string token)
     if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
         SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
         CleanupAndRemove()
-        Return 0.0
+        Return none
     endif
     InternalResolve(token)
     return CRToAlias()
@@ -1561,6 +1561,10 @@ Form[] Function ResolveListForm(string token)
         return CustomResolveListFormResult
     endif
     return none
+EndFunction
+
+Actor[] Function ResolveListActor(string token)
+    return FormArrayToActorArray(ResolveListForm(token))
 EndFunction
 
 string[] Function ResolveListLabel(string token)

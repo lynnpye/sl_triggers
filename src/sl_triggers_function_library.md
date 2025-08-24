@@ -1745,6 +1745,31 @@ Set facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecialed
 
 
 
+## NFF (Nether's Follower Framework)
+
+### nff_getfollowers
+
+**Description**
+
+Returns a Form[] containing the followers as Actors
+
+
+**Example**
+
+    nff_getfollowers  
+    set $nffFollowers $$ ; store the result so it's not lost immediately  
+    set $count resultfrom listcount $nffFollowers  
+    ; counting backwards  
+    while $count > 0  
+    inc $count -1  
+    set $follower $nffFollowers[$count]  
+    ; do something for each $follower  
+    set $followerName resultfrom actor_name $follower  
+    msg_notify $"{$followerName} is your #1 fan!"  
+    endwhile  
+
+
+
 ## NiOverride
 
 ### apply_overlay

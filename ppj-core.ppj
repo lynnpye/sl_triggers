@@ -16,6 +16,7 @@
         <Import>.\inc\skyui</Import>
         <Import>.\inc\mfg</Import>
         <Import>.\inc\racemenu</Import>
+        <Import>.\inc\nff</Import>
     </Imports>
     <Folders>
         <Folder>.\src\Source\Scripts</Folder>

@@ -632,13 +632,7 @@ function sl_startsex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
     sl_triggersExtensionSexLab slExtension = GetExtension()
 
     if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 5)
-        Form[] actorsAsFormList = CmdPrimary.ResolveListForm(param[1])
-        Actor[] actors = PapyrusUtil.ActorArray(actorsAsFormList.Length)
-        int i = actorsAsFormList.Length
-        while i
-            i -= 1
-            actors[i] = actorsAsFormList[i] as Actor
-        endwhile
+        Actor[] actors = CmdPrimary.ResolveListActor(param[1])
         Actor submissive = CmdPrimary.ResolveActor(param[2])
         string tags = CmdPrimary.ResolveString(param[3])
         bool allowBeds = CmdPrimary.ResolveBool(param[4])
@@ -654,6 +648,236 @@ function sl_startsex(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
         endif
         int tid = slapi.StartSex(actors, Anims, submissive, none, allowBeds, "")
         CmdPrimary.MostRecentIntResult = tid
+    endif
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname sl_find_available_partners
+; sltgrup SexLab
+; sltdesc Returns a list of Actors (Form[]) that are available for a SexLab scene based on the parameters provided.
+; sltdesc Note: Actors you specify in 'requiredActors' are not guaranteed to be valid SexLab actors.
+; sltdesc If no matches can be found or if totalRequired is less than requiredActors.Length, requiredActors is returned, even if it is none or an empty list.
+; sltargs Form[] requiredActors: list of Actors you require to be in the scene, limited to 5; size applies to totalRequired; specify none or an empty list if you have no required actors
+; sltargs int totalRequired: the total number of actors desired for the scene (including any in the 'actors' list); should be at least as large as requiredActors.Length and should not be greater than 5
+; sltargs int malesRequired: (optional: default: -1) minimum number of males desired for the scene, out of totalRequired; specify -1 to ignore the requirement
+; sltargs int femalesRequired: (optional: default: -1) minimum number of females desired for the scene, out of totalRequired; specify -1 to ignore the requirement
+; sltargs float radius: (optional: default: 10000.0) distance in Skyrim distance units to search for actors
+; sltsamp ; declare a list of actors you require in the scene, in this case, just the player is required, we are looking for partners
+; sltsamp   Form[] $playerOnlyList
+; sltsamp   listadd $playerOnlyList $system.player
+; sltsamp ; Assuming a match can be found, we are looking for having 2 total, starting with the player, adding 1 male, in a 2000 unit radius
+; sltsamp   sl_find_available_partners $playerOnlyList 2 1 -1 2000.0
+; sltsamp ; If instead you want the player plus 2 men and 1 woman, for a total of 4, searched in the default radius (of 10,000.0 distance units)
+; sltsamp   sl_find_available_partners $playerOnlyList 4 2 1
+; sltsamp ; Or if you want to match with anyone so long as you have a partner, taking all other defaults (this is the minimum number of arguments required)
+; sltsamp   sl_find_available_partners $playerOnlyList 2
+; sltsamp ; Make it random? 2-5, inclusive of the player?
+; sltsamp   set $sceneSize resultfrom rnd_int 2 5
+; sltsamp   set $scenePartners resultfrom sl_find_available_partners $playerOnlyList $sceneSize
+; sltsamp ; and then you could call sl_startsex, for example, with the player as the submissive, no tag requirements, no beds allowed
+; sltsamp   sl_startsex $scenePartners $system.player "" false
+; sltsamp ; or if you want a more consensual scene, you could call sl_startsex, with none as the submissive, "Anal", and "Oral" tag requirements, no beds allowed
+; sltsamp   sl_startsex $scenePartners none "Anal, Oral" false
+function sl_find_available_partners(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    if slExtension.IsEnabled && ParamLengthGT(CmdPrimary, param.Length, 2)
+        Actor[] requiredActors = CmdPrimary.ResolveListActor(param[1])
+        int totalRequired = CmdPrimary.ResolveInt(param[2])
+
+        int malesRequired       = -1
+        int femalesRequired     = -1
+        float radius            = 10000.0
+
+        if param.Length > 3
+            malesRequired = CmdPrimary.ResolveInt(param[3])
+            if param.Length > 4
+                femalesRequired = CmdPrimary.ResolveInt(param[4])
+                if param.Length > 5
+                    radius = CmdPrimary.ResolveFloat(param[5])
+                endif
+            endif
+        endif
+
+        SexLabFramework slapi = slExtension.SexLabForm as SexLabFramework
+        Actor[] result = slapi.FindAvailablePartners(requiredActors, totalRequired, malesRequired, femalesRequired, radius)
+        Form[] formResult = ActorArrayToFormArray(result)
+
+        CmdPrimary.MostRecentListFormResult = formResult
+    endif
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname sl_validate_actor
+; sltgrup SexLab
+; sltdesc Returns an int value; 1 - if valid, negative values with respective meanings for non-validity
+; sltdesc   * -1 = The Actor does not exists (it is None)
+; sltdesc   * -10 = The Actor is already part of a SexLab animation
+; sltdesc   * -11 = The Actor is forbidden form SexLab animations
+; sltdesc   * -12 = The Actor does not have the 3D loaded
+; sltdesc   * -13 = The Actor is dead (He's dead Jim.)
+; sltdesc   * -14 = The Actor is disabled
+; sltdesc   * -15 = The Actor is flying (so it cannot be SexLab animated)
+; sltdesc   * -16 = The Actor is on mount (so it cannot be SexLab animated)
+; sltdesc   * -17 = The Actor is a creature but creature animations are disabled
+; sltdesc   * -18 = The Actor is a creature that is not supported by SexLab
+; sltdesc   * -19 = The Actor is a creature but there are no valid animations for this type of creature
+; sltargs Form actor: the Actor to determine SexLab scene validity for
+; sltsamp sl_validate_actor $targetActor
+function sl_validate_actor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor theActor = CmdPrimary.ResolveActor(param[1])
+        if theActor
+            SexLabFramework slapi = slExtension.SexLabForm as SexLabFramework
+            CmdPrimary.MostRecentIntResult = slapi.ValidateActor(theActor)
+        else
+            CmdPrimary.SFW("sl_validate_actor: unable to resolve Actor from (" + param[1] + ")")
+        endif
+    endif
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname sl_is_valid_actor
+; sltgrup SexLab
+; sltdesc Returns true if the actor is valid for SexLab scenes, false otherwise
+; sltargs Form actor: the Actor to determine SexLab scene validity for
+; sltsamp sl_is_valid_actor $targetActor
+function sl_is_valid_actor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor theActor = CmdPrimary.ResolveActor(param[1])
+        if theActor
+            SexLabFramework slapi = slExtension.SexLabForm as SexLabFramework
+            CmdPrimary.MostRecentBoolResult = slapi.IsValidActor(theActor)
+        else
+            CmdPrimary.SFW("sl_is_valid_actor: unable to resolve Actor from (" + param[1] + ")")
+        endif
+    endif
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname sl_allow_actor
+; sltgrup SexLab
+; sltdesc Allows the Actor to join SexLab scenes. Reverses forbiddance.
+; sltargs Form actor: the Actor to allow to join SexLab scenes
+; sltsamp sl_allow_actor $targetActor
+function sl_allow_actor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor theActor = CmdPrimary.ResolveActor(param[1])
+        if theActor
+            SexLabFramework slapi = slExtension.SexLabForm as SexLabFramework
+            slapi.AllowActor(theActor)
+        else
+            CmdPrimary.SFW("sl_allow_actor: unable to resolve Actor from (" + param[1] + ")")
+        endif
+    endif
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname sl_forbid_actor
+; sltgrup SexLab
+; sltdesc Forbids the Actor from joining SexLab scenes.
+; sltargs Form actor: the Actor to forbid from joining SexLab scenes
+; sltsamp sl_forbid_actor $targetActor
+function sl_forbid_actor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor theActor = CmdPrimary.ResolveActor(param[1])
+        if theActor
+            SexLabFramework slapi = slExtension.SexLabForm as SexLabFramework
+            slapi.ForbidActor(theActor)
+        else
+            CmdPrimary.SFW("sl_forbid_actor: unable to resolve Actor from (" + param[1] + ")")
+        endif
+    endif
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname sl_is_forbidden
+; sltgrup SexLab
+; sltdesc Returns true if the actor is forbidden from SexLab scenes, false otherwise
+; sltargs Form actor: the Actor to query about being forbidden from SexLab scenes
+; sltsamp sl_is_forbidden $system.player
+function sl_is_forbidden(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor theActor = CmdPrimary.ResolveActor(param[1])
+        if theActor
+            SexLabFramework slapi = slExtension.SexLabForm as SexLabFramework
+            CmdPrimary.MostRecentBoolResult = slapi.IsForbidden(theActor)
+        else
+            CmdPrimary.SFW("sl_is_forbidden: unable to resolve Actor from (" + param[1] + ")")
+        endif
+    endif
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname sl_get_skill
+; sltgrup SexLab
+; sltdesc Returns the float value of the specificed SexLab skill
+; sltargs Form actor: the Actor to query the skill of
+; sltargs string skillId: the SexLab skill ID
+; sltargs   * Foreplay
+; sltargs   * Vaginal
+; sltargs   * Anal
+; sltargs   * Oral
+; sltargs   * Pure
+; sltargs   * Lewd
+; sltargs   * Males
+; sltargs   * Females
+; sltargs   * Creatures
+; sltargs   * Masturbations
+; sltargs   * Aggressor
+; sltargs   * Victim
+; sltargs   * SexCount
+; sltargs   * PlayerSex
+; sltargs   * Sexuality
+; sltargs   * TimeSpent
+; sltargs   * LastSex.RealTime
+; sltargs   * LastSex.GameTime
+; sltargs   * VaginalCount
+; sltargs   * AnalCount
+; sltargs   * OralCount
+; sltsamp sl_get_skill $system.player 20
+function sl_get_skill(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor theActor = CmdPrimary.ResolveActor(param[1])
+        if theActor
+            SexLabFramework slapi = slExtension.SexLabForm as SexLabFramework
+            CmdPrimary.MostRecentFloatResult = slapi.Stats.GetSkillFloat(theActor, CmdPrimary.ResolveString(param[2]))
+        else
+            CmdPrimary.SFW("sl_is_forbidden: unable to resolve Actor from (" + param[1] + ")")
+        endif
     endif
 
     CmdPrimary.CompleteOperationOnActor()

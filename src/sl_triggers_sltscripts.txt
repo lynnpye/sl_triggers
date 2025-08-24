@@ -77,6 +77,10 @@ Form
 
 Form values
 
+Alias
+
+Alias values
+
 map
 
 A set of key-value pairs associated with the variable name. See the Maps section below. Reference values by using map key notation e.g. $var{$mapkey} where $mapkey contains the value of the key; literals may be used e.g. $var{literalvalue} will look for a value with the key "literalvalue"
@@ -168,6 +172,10 @@ list of float values e.g. 1.23, 4.0234, -32
 Form[]
 
 list of Form values e.g. $system.partner, $system.partner2, $system.player
+
+Alias[]
+
+list of Alias values
 
 label[]
 
@@ -365,11 +373,11 @@ bool - (Added by SLTR SexLab) is the SLTR SexLab extension available and enabled
 
 $system.partner
 
-Actor - (Added by SLTR SexLab) the first member of the target Actor's current SexLab scene that is not the target Actor (same as $sexlab.partner1)
+Actor - (Added by SLTR SexLab) the first member of the target Actor's current SexLab scene that is not the target Actor
 
 $system.partner1
 
-Actor - (Added by SLTR SexLab) the first member of the target Actor's current SexLab scene that is not the target Actor (same as $sexlab.partner)
+Actor - (Added by SLTR SexLab) the first member of the target Actor's current SexLab scene that is not the target Actor
 
 $system.partner2
 
@@ -382,6 +390,30 @@ Actor - (Added by SLTR SexLab) the third member of the target Actor's current Se
 $system.partner4
 
 Actor - (Added by SLTR SexLab) the fourth member of the target Actor's current SexLab scene that is not the target Actor
+
+$system.isavailable.ostim
+
+bool - (Added by SLTR OStim) is the SLTR OStim extension available and enabled (would be false if you installed on a system without OStim)
+
+$system.ostim.partner
+
+Actor - (Added by SLTR OStim) the first member of the target Actor's current OStim scene that is not the target Actor
+
+$system.ostim.partner1
+
+Actor - (Added by SLTR OStim) the first member of the target Actor's current OStim scene that is not the target Actor
+
+$system.ostim.partner2
+
+Actor - (Added by SLTR OStim) the second member of the target Actor's current OStim scene that is not the target Actor
+
+$system.ostim.partner3
+
+Actor - (Added by SLTR OStim) the third member of the target Actor's current OStim scene that is not the target Actor
+
+$system.ostim.partner4
+
+Actor - (Added by SLTR OStim) the fourth member of the target Actor's current OStim scene that is not the target Actor
 
  Request
 
@@ -923,7 +955,7 @@ Syntax: callarg <index> <variable>
 Function Libraries
 ------------------
 
-All commands beyond the intrinsics come from Function Libraries. SLTR includes a an expanding library with functions covering not only base Skyrim but also SexLab and related mods.
+All commands beyond the intrinsics come from Function Libraries. SLTR includes an expanding library with functions covering not only base Skyrim but also SexLab, OStim, and other related mods.
 
 For detailed information about available functions, see the [Function Libraries](../Function-Libraries) wiki page.
 
@@ -938,7 +970,7 @@ Best Practices
 Legacy Support
 --------------
 
-JSON Format: There is still support for the original .json format, but .sltscript is preferred. Future development focuses on .sltscript format.
+JSON Format: JSON support has ended. Future development focuses on .sltscript format.
 
 Technical Notes
 ---------------

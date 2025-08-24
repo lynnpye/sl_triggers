@@ -4,9 +4,12 @@
         (or whichever folder you have your SKSE logs directed to)
     bugfix: SLTR Reset now clears all StorageUtil objects (thanks to @nopse0 for the fix)
     bugfix: request value savefile memory leak; old request data was not being cleaned up when all threads completed
+    bugfix: several internal data type related bugs fixed
     enhancement: new data type: Alias; peer to string, int, float, bool, Form, Label; with list support (i.e. Alias[])
-    enhancement: new SexLab API calls: sl_sexstart, various others
+    enhancement: new SexLab API calls: sl_sexstart, sl_allow_actor, sl_find_available_partners, sl_forbid_actor, sl_get_skill(SexLab)/sl_get_statistic(SexLab P+), sl_getapi
+        sl_getversion, sl_getversionstring, sl_is_forbidden, sl_is_valid_actor, sl_isactive, sl_isready, sl_validate_actor
     enhancement: internal FormID storage should be load order change resistant (stores modname and relative formid instead of solely the FormID)
+    enhancement: new Nether's Follower Framework(NFF) integration/API call: nff_getfollowers: returns a Form[] containing the Actors that are noted as NFF followers
     change: SLTScript: Contamination - Transformative Elixir.sltscript - altered transform distribution
     change: SLTScript: CumControl.sltscript - altered chance from 50% to 30%
 

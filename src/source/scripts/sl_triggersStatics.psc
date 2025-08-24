@@ -478,3 +478,23 @@ string Function FormPortableStringFromForm(Form theForm) global
 	endif
 	return ""
 EndFunction
+
+Actor[] Function FormArrayToActorArray(Form[] value) global
+	Actor[] result = PapyrusUtil.ActorArray(value.Length)
+	int i = value.Length
+	while i
+		i -= 1
+		result[i] = value[i] as Actor
+	endwhile
+	return result
+EndFunction
+
+Form[] Function ActorArrayToFormArray(Actor[] value) global
+	Form[] result = PapyrusUtil.FormArray(value.Length)
+	int i = value.Length
+	while i
+		i -= 1
+		result[i] = value[i]
+	endwhile
+	return result
+EndFunction

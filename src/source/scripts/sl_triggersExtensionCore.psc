@@ -573,19 +573,14 @@ Function RefreshTriggerCache()
 	int i
 	int timerKeyLength = triggerKeys_timer.Length
 
-	string[] new_triggerKeys_timer		= PapyrusUtil.StringArray(timerKeyLength)
-	float[] new_timer_next_run_time		= PapyrusUtil.FloatArray(timerKeyLength)
-	float[] new_timer_delays			= PapyrusUtil.FloatArray(timerKeyLength)
-	i = 0
-	while i < timerKeyLength
-		new_triggerKeys_timer[i] = triggerKeys_timer[i]
-		new_timer_next_run_time[i] = timer_next_run_time[i]
-		new_timer_delays[i] = timer_delays[i]
-		i += 1
-	endwhile
+	; if these are empty, it gives us initialized empty lists
+	; if not, it doesn't change anything
+	triggerKeys_timer					= PapyrusUtil.ResizeStringArray(triggerKeys_timer, timerKeyLength)
+	timer_next_run_time					= PapyrusUtil.ResizeFloatArray(timer_next_run_time, timerKeyLength)
+	timer_delays						= PapyrusUtil.ResizeFloatArray(timer_delays, timerKeyLength)
 
 	;triggerKeys_timer					= PapyrusUtil.StringArray(0)
-	;timer_next_run_time					= PapyrusUtil.FloatArray(0)
+	;timer_next_run_time				= PapyrusUtil.FloatArray(0)
 	;timer_delays						= PapyrusUtil.FloatArray(0)
 	; / paired
 
@@ -647,7 +642,7 @@ Function RefreshTriggerCache()
 				string triggerKey = TriggerKeys[i]
 				float timerDelay = JsonUtil.GetFloatValue(_triggerFile, ATTR_TIMER_DELAY)
 				
-				int tkeyidx = new_triggerKeys_timer.Find(triggerKey)
+				int tkeyidx = triggerKeys_timer.Find(triggerKey)
 				If (tkeyidx > -1)
 					; found
 					if timerDelay == timer_delays[tkeyidx]
@@ -689,7 +684,7 @@ Function RefreshTriggerCache()
 				else
 					If (timerDelay > 0)
 						; new
-						new_triggerKeys_timer = PapyrusUtil.PushString(new_triggerKeys_timer, triggerKey)
+						triggerKeys_timer = PapyrusUtil.PushString(triggerKeys_timer, triggerKey)
 						timer_delays = PapyrusUtil.PushFloat(timer_delays, timerDelay * 60)
 						timer_next_run_time = PapyrusUtil.PushFloat(timer_next_run_time, nowtime + (timerDelay * 60))
 						If (SLT.Debug_Extension_Core_Timer)
