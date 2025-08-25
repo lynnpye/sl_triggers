@@ -794,7 +794,7 @@ function sl_is_forbidden(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, st
 endFunction
 
 ; sltname sl_get_statistic
-; sltgrup SexLab
+; sltgrup SexLab P+
 ; sltdesc Returns the float value of the specificed SexLab statistic
 ; sltargs Form actor: the Actor to query the statistic of
 ; sltargs int statisticID: the SexLab statistic ID

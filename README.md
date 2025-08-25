@@ -20,6 +20,8 @@ These mods provide additional functionality, mostly in the form of integration, 
 - [Devious Followers Continued](https://www.loverslab.com/files/file/11732-devious-followers-continued-se/)
 - [OSLAroused](https://www.loverslab.com/files/file/20867-osl-aroused-arousal-reborn-sse-ae/)
 - [Devious Devices NG](https://www.loverslab.com/files/file/29779-devious-devices-ng/)/[Devious Devices SE](https://www.loverslab.com/files/file/5878-devious-devices-se/)
+- [Pet Collar](https://www.loverslab.com/files/file/1423-petcollar/) - the PetCollar Game is centered on this mod
+- [Nether's Follower Framework](https://www.nexusmods.com/skyrimspecialedition/mods/55653)
 
 # More Details Please!
 SL Triggers Redux (SLTR, though you may still see references to SLT) is two things: first, it is a scripting engine for the SLTScript scripting language and second, it is an extensible set of triggers that let you set up SLTScripts to be run in response to in-game events. The original focus of SLTR was purely on the four basic SexLab events (Sex Start, Orgasm, Sex End, Separate Orgasm via SLSO), but the framework has been expanded to not be tied solely to SexLab events. In addition, out of the box, you can also set up hotkeys to run scripts on demand, set scripts up to run on the (in-game) hour, and even run scripts directly via console command.

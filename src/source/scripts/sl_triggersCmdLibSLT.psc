@@ -5449,7 +5449,7 @@ endFunction
 ; sltname json_getvalue
 ; sltgrup JSON
 ; sltdesc Sets $$ to value from JSON file (uses PapyrusUtil/JsonUtil)
-; sltargs filename: name of file, rooted from 'Data/SKSE/Plugins/sl_triggers'
+; sltargs filename: name of file, rooted from 'Data/SKSE/Plugins/StorageUtilData'
 ; sltargs datatype: int, float, string
 ; sltargs key: the key
 ; sltargs default: default value in case it isn't present (optional: default for type)
@@ -5494,7 +5494,7 @@ endFunction
 ; sltname json_setvalue
 ; sltgrup JSON
 ; sltdesc Sets a value in a JSON file (uses PapyrusUtil/JsonUtil)
-; sltargs filename: name of file, rooted from 'Data/SKSE/Plugins/sl_triggers'
+; sltargs filename: name of file, rooted from 'Data/SKSE/Plugins/StorageUtilData'
 ; sltargs datatype: int, float, string
 ; sltargs key: the key
 ; sltargs new value: value to set
@@ -5537,7 +5537,7 @@ endFunction
 ; sltname json_save
 ; sltgrup JSON
 ; sltdesc Tells JsonUtil to immediately save the specified file from cache
-; sltargs filename: name of file, rooted from 'Data/SKSE/Plugins/sl_triggers'
+; sltargs filename: name of file, rooted from 'Data/SKSE/Plugins/StorageUtilData'
 ; sltsamp json_save "../somefolder/afile"
 function json_save(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -5564,7 +5564,7 @@ endfunction
 ; sltgrup PapyrusUtil
 ; sltdesc Wrapper around most JsonUtil functions
 ; sltargs <sub-function> - JsonUtil functionality to perform
-; sltargs <filename> - JSON file to interact with
+; sltargs <filename> - JSON file to interact with, rooted from 'Data/SKSE/Plugins/StorageUtilData'
 ; sltargsmore Valid sub-functions are:
 ; sltargsmore load              : <filename>
 ; sltargsmore save              : <filename>

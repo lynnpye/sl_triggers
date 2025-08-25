@@ -17,7 +17,7 @@ Function SLTWarnMsg(string msg) global
 EndFunction
 
 int Function GetModVersion() global
-	return 137
+	return 138
 EndFunction
 
 ;;;;;;;
@@ -260,6 +260,7 @@ string Function SLTRExtensionListKey() global
 	return DOMAIN_INTERNAL() + "extensions:"
 EndFunction
 
+;/
 string Function CommandsFolder() global
 	return "../sl_triggers/commands/"
 EndFunction
@@ -267,6 +268,7 @@ EndFunction
 string Function FullCommandsFolder() global
 	return "data/SKSE/Plugins/sl_triggers/commands/"
 EndFunction
+/;
 
 string Function ExtensionTriggersFolder(string _extensionKey) global
 	return "../sl_triggers/extensions/" + _extensionKey + "/"

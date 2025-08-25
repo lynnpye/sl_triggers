@@ -1,5 +1,13 @@
+138
+    Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
+        (or whichever folder you have your SKSE logs directed to)
+    bugfix: documentation cleanup for json related functions related to root point for file access
+    change: removed plugin .json file related code for sltscripts (cleanup)
+    change: documentation updates, various (cleanup)
+    change: updated SLTScripts to add more comments for ease of user modification
+
 137
-    Savegame compatibility: Should be savegame compatible
+    Savegame compatibility: New save OR Cleaned save required (i.e. Remove old version -> Load -> Save -> Install new version -> Load)
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
         (or whichever folder you have your SKSE logs directed to)
     bugfix: SLTR Reset now clears all StorageUtil objects (thanks to @nopse0 for the fix)

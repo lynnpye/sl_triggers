@@ -88,7 +88,7 @@ std::vector<std::string> SLTNativeFunctions::GetScriptsList(PAPYRUS_NATIVE_DECL)
         for (const auto& entry : fs::directory_iterator(scriptsFolderPath)) {
             if (entry.is_regular_file()) {
                 auto scriptname = entry.path().filename().string();
-                if (scriptname.ends_with(".ini") || scriptname.ends_with(".sltscript") || scriptname.ends_with(".json")) {
+                if (scriptname.ends_with(".ini") || scriptname.ends_with(".sltscript")) {
                     auto stem = entry.path().filename().stem().string();
                     
                     // Convert to lowercase for case-insensitive comparison
@@ -1018,12 +1018,6 @@ std::int32_t SLTNativeFunctions::NormalizeScriptfilename(PAPYRUS_NATIVE_DECL, st
         if (!scrpath.empty() && fs::exists(scrpath)) {
             return 20;
         }
-        
-        scrfn = std::string(scriptfilename) + ".json";
-        scrpath = GetScriptfilePath(scrfn);
-        if (!scrpath.empty() && fs::exists(scrpath)) {
-            return 10;
-        }
     } else {
         scrfn = scrpath.extension().string();
         if (!scrpath.empty() && !scrfn.empty() && fs::exists(scrpath)) {
@@ -1032,9 +1026,6 @@ std::int32_t SLTNativeFunctions::NormalizeScriptfilename(PAPYRUS_NATIVE_DECL, st
             }
             if (scrfn == ".ini") {
                 return 2;
-            }
-            if (scrfn == ".json") {
-                return 1;
             }
         }
     }

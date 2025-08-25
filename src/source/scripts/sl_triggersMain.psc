@@ -598,6 +598,311 @@ Event OnSLTDelayStartCommand(string eventName, string initialScriptName, float r
 	endif
 EndEvent
 
+
+Function StartCommand(Form targetForm, string initialScriptName)
+	if bDebugMsg
+		SLTDebugMsg("Main.StartCommand targetForm(" + targetForm + ") initialScriptName(" + initialScriptName + ")")
+	endif
+	if !self
+		return
+	endif
+	
+	int requestId = GetNextInstanceId()
+	int threadId = GetNextInstanceId()
+	StartCommandWithThreadId(targetForm, initialScriptName, requestId, threadId)
+EndFunction
+
+Function IncrementRequestCounter(int requestId)
+	string sukey = DOMAIN_DATA_REQUEST() + requestId
+	int newcount = StorageUtil.AdjustIntValue(self, sukey, 1)
+	if bDebugMsg
+		SLTInfoMsg(">IncrementRequestCounter requestId(" + requestId + "): reached (" + newcount + "); sukey(" + sukey + ")")
+	endif
+EndFunction
+
+Function DecrementRequestCounter(int requestId)
+	string sukey = DOMAIN_DATA_REQUEST() + requestId
+	int newcount = StorageUtil.AdjustIntValue(self, sukey, -1)
+	if newcount < 1
+		if bDebugMsg
+			SLTInfoMsg("<DecrementRequestCounter requestId(" + requestId + "): reached (" + newcount + "); sukey prefix (" + sukey + "); clearing all")
+		endif
+		StorageUtil.ClearAllPrefix(sukey)
+	else
+		if bDebugMsg
+			SLTInfoMsg("<DecrementRequestCounter requestId(" + requestId + "): reached (" + newcount + "); sukey prefix(" + sukey + "); unwinding")
+		endif
+	endif
+EndFunction
+
+Function EnqueueScriptForTarget(Form targetForm, int requestId, int threadid, string initialScriptName)
+	If (!targetForm || !threadid || !initialScriptName || !requestId)
+		SLTErrMsg("EnqueueScriptForTarget: Invalid arguments")
+		return
+	EndIf
+	StorageUtil.StringListAdd(targetForm, DOMAIN_PENDING_SCRIPT_FOR_TARGET_LIST(), requestid + "|" + threadid + "|" + initialScriptName)
+EndFunction
+
+Function DequeueScriptForTarget(Form targetForm, int[] requestId, int[] threadid, string[] initialScriptName)
+	If (!targetForm || !threadid.Length || !initialScriptName.Length || !requestId.Length)
+		SLTErrMsg("DequeueScriptForTarget: Invalid arguments")
+		return
+	EndIf
+	string requestString = StorageUtil.StringListShift(targetForm, DOMAIN_PENDING_SCRIPT_FOR_TARGET_LIST())
+	string[] requestBits = PapyrusUtil.StringSplit(requestString, "|")
+	requestid[0] = requestBits[0] as int
+	threadid[0] = requestBits[1] as int
+	initialScriptName[0] = requestBits[2]
+EndFunction
+
+; StartCommand
+; Form targetForm: the Actor to attach this command to
+; string initialScriptName: the file to run
+Function StartCommandWithThreadId(Form targetForm, string initialScriptName, int requestId, int threadid)
+	if bDebugMsg
+		SLTDebugMsg("Main.StartCommandWithThreadId targetForm(" + targetForm + ") initialScriptName(" + initialScriptName + ") requestId(" + requestId + ") threadId(" + threadid + ")")
+	endif
+	if !self
+		return
+	endif
+
+	Form actualTargetForm
+	Actor actualTarget
+	if targetForm
+		actualTarget = targetForm as Actor ; for now, only Actors
+		if !actualTarget
+			SLTErrMsg("Main.StartCommandWithThreadId: non-Actor targets are not supported at this time: targetForm(" + targetForm + ")")
+			return
+		endif
+		actualTargetForm = targetForm
+	else
+		actualTarget = PlayerRef
+		actualTargetForm = actualTarget
+	endif
+
+	EnqueueScriptForTarget(actualTargetForm, requestId, threadid, initialScriptName)
+	
+	if bDebugMsg
+		SLTDebugMsg("Calling sl_triggers_internal.StartScript(actualTarget=<" + actualTarget + ">, initialScriptName=<" + initialScriptName + ">)")
+	endif
+	bool scriptStarted = sl_triggers_internal.StartScript(actualTarget, initialScriptName)
+	if !scriptStarted
+		SLTWarnMsg("Too many SLTR effects on actualTarget(" + actualTarget + "); attempting to delay script execution")
+		actualTarget.SendModEvent(EVENT_SLT_DELAY_START_COMMAND(), initialScriptName, 0.0)
+	else
+		if bDebugMsg
+			SLTDebugMsg("sl_triggers_internal.StartScript(actualTarget=<" + actualTarget + ">, initialScriptName=<" + initialScriptName + ">) reported success")
+		endif
+	endif
+EndFunction
+
+; flagset: bool[] - min length >= 19
+; Upon return, flagset will have the following values (true if the indicated keyword is present at current location):
+; [0] - no Location set
+; [1] - LocTypePlayerHome
+; [2] - LocTypeJail
+; ...etc
+Function GetLocationFlags(Location pLoc, bool[] flagset)
+	if flagset.Length < (LocationKeywords.Length + 1)
+		SLTErrMsg("Main.GetLocationFlags: flagset must have minimum length(" + (LocationKeywords.Length + 1) + "); not setting any flags")
+		return
+	endif
+
+	flagset[0] = pLoc != none
+
+	int i = 1
+	while i < LocationKeywords.Length && i < flagset.Length
+		flagset[i] = pLoc.HasKeyword(LocationKeywords[i - 1])
+		i += 1
+	endwhile
+EndFunction
+
+Function GetPlayerLocationFlags(bool[] flagset)
+	if !PlayerRef
+		SLTWarnMsg("Main.GetPlayerLocationFlags: PlayerRef(" + PlayerRef + ") is required but was not provided")
+		return
+	endif
+
+	Location pLoc = PlayerRef.GetCurrentLocation()
+	GetLocationFlags(pLoc, flagset)
+EndFunction
+
+Function GetActorLocationFlags(Actor theActor, bool[] flagset)
+	if !theActor
+		SLTWarnMsg("Main.GetActorLocationFlags: theActor(" + theActor + ") is required but was not provided")
+		return
+	endif
+
+	Location pLoc = theActor.GetCurrentLocation()
+	GetLocationFlags(pLoc, flagset)
+EndFunction
+
+Keyword Function GetPlayerLocationKeyword()
+	Location pLoc = PlayerRef.GetCurrentLocation()
+	int i = 0
+	while pLoc && i < LocationKeywords.length
+		if pLoc.HasKeyword(LocationKeywords[i])
+			return LocationKeywords[i]
+		endif
+		i += 1
+	endwhile
+	return none
+EndFunction
+
+Keyword Function GetActorLocationKeyword(Actor theActor)
+	Location pLoc = theActor.GetCurrentLocation()
+	int i = 0
+	while pLoc && i < LocationKeywords.length
+		if pLoc.HasKeyword(LocationKeywords[i])
+			return LocationKeywords[i]
+		endif
+		i += 1
+	endwhile
+	return none
+EndFunction
+
+bool Function IsFlagsetSafe(bool[] flagset)
+	If (flagset.Length < (LocationKeywords.Length + 1))
+		return false
+	EndIf
+	return flagset[1] || flagset[2] || flagset[17]
+EndFunction
+
+bool Function IsFlagsetInCity(bool[] flagset)
+	If (flagset.Length < (LocationKeywords.Length + 1))
+		return false
+	EndIf
+	return flagset[6] || flagset[7] || flagset[8] || flagset[5]
+EndFunction
+
+bool Function IsFlagsetInWilderness(bool[] flagset)
+	If (flagset.Length < (LocationKeywords.Length + 1))
+		return false
+	EndIf
+	return flagset[0] || (flagset[18] || flagset[11] || flagset[15])
+EndFunction
+
+bool Function IsFlagsetInDungeon(bool[] flagset)
+	If (flagset.Length < (LocationKeywords.Length + 1))
+		return false
+	EndIf
+	return flagset[9] || flagset[10] || flagset[12] || flagset[13] || flagset[14] || flagset[3] || flagset[16] || flagset[4]
+EndFunction
+
+bool Function IsLocationKeywordSafe(Keyword locKeyword)
+	return locKeyword == LocTypePlayerHome || locKeyword == LocTypeJail || locKeyword == LocTypeInn
+EndFunction
+
+bool Function IsLocationKeywordCity(Keyword locKeyword)
+	return locKeyword == LocTypeCity || locKeyword == LocTypeTown || locKeyword == LocTypeHabitation || locKeyword == LocTypeDwelling
+EndFunction
+
+bool Function IsLocationKeywordWilderness(Keyword locKeyword)
+	return !locKeyword || locKeyword == LocTypeHold || locKeyword == LocTypeBanditCamp || locKeyword == LocTypeMilitaryFort
+EndFunction
+
+bool Function IsLocationKeywordDungeon(Keyword locKeyword)
+	return locKeyword == LocTypeDraugrCrypt || locKeyword == LocTypeDragonPriestLair || locKeyword == LocTypeFalmerHive || locKeyword == LocTypeVampireLair || locKeyword == LocTypeDwarvenAutomatons || locKeyword == LocTypeDungeon || locKeyword == LocTypeMine || locKeyword == LocSetCave
+EndFunction
+
+bool Function IsLocationSafe(Location pLoc)
+	return pLoc && (pLoc.HasKeyword(LocTypePlayerHome) || pLoc.HasKeyword(LocTypeJail) || pLoc.HasKeyword(LocTypeInn))
+EndFunction
+
+bool Function IsLocationInCity(Location pLoc)
+	return pLoc && (pLoc.HasKeyword(LocTypeCity) || pLoc.HasKeyword(LocTypeTown) || pLoc.HasKeyword(LocTypeHabitation) || pLoc.HasKeyword(LocTypeDwelling))
+EndFunction
+
+bool Function IsLocationInWilderness(Location pLoc)
+	return !pLoc || pLoc.HasKeyword(LocTypeHold) || ploc.HasKeyword(LocTypeBanditCamp) || ploc.HasKeyword(LocTypeMilitaryFort)
+EndFunction
+
+bool Function IsLocationInDungeon(Location pLoc)
+	return pLoc && (pLoc.HasKeyword(LocTypeDraugrCrypt) || ploc.HasKeyword(LocTypeDragonPriestLair) || ploc.HasKeyword(LocTypeFalmerHive) || ploc.HasKeyword(LocTypeVampireLair) || ploc.HasKeyword(LocTypeDwarvenAutomatons) || ploc.HasKeyword(LocTypeDungeon) || ploc.HasKeyword(LocTypeMine) || ploc.HasKeyword(LocSetCave))
+EndFunction
+
+; available in a pinch, but not performant
+bool Function PlayerIsInDungeon()
+	if !PlayerRef.GetParentCell().IsInterior()
+		return false
+	endif
+
+	return IsLocationInDungeon(PlayerRef.GetCurrentLocation())
+EndFunction
+
+bool Function PlayerIsInWilderness()
+	if PlayerRef.GetParentCell().IsInterior()
+		return false
+	endif
+
+	return IsLocationInWilderness(PlayerRef.GetCurrentLocation())
+EndFunction
+
+bool Function PlayerIsInCity()
+	return IsLocationInCity(PlayerRef.GetCurrentLocation())
+EndFunction
+
+bool Function PlayerIsInSafeLocation()
+	return IsLocationSafe(PlayerRef.GetCurrentLocation())
+EndFunction
+
+bool Function ActorIsInDungeon(Actor theActor)
+	if !theActor.GetParentCell().IsInterior()
+		return false
+	endif
+
+	return IsLocationInDungeon(theActor.GetCurrentLocation())
+EndFunction
+
+bool Function ActorIsInWilderness(Actor theActor)
+	if theActor.GetParentCell().IsInterior()
+		return false
+	endif
+
+	return IsLocationInWilderness(theActor.GetCurrentLocation())
+EndFunction
+
+bool Function ActorIsInCity(Actor theActor)
+	return IsLocationInCity(theActor.GetCurrentLocation())
+EndFunction
+
+bool Function ActorIsInSafeLocation(Actor theActor)
+	return IsLocationSafe(theActor.GetCurrentLocation())
+EndFunction
+
+;; handle version updates, let extensions do it too
+Function CheckVersionUpdates()
+	int newVersion = GetModVersion()
+	if bDebugMsg
+		SLTDebugMsg("Main.CheckVersionUpdates: oldVersion(" + SLTRVersion + ") newVersion(" + newVersion + ")")
+	endif
+
+	SLTRVersion = newVersion
+EndFunction
+
+; some helper methods
+Int Function ActorRaceType(Actor _actor)
+    if _actor == PlayerRef
+        return 1
+    endIf
+	If _actor.HasKeyword(ActorTypeUndead)
+		return 3
+	EndIf
+	If _actor.HasKeyword(ActorTypeNPC)
+		return 2
+	EndIf
+	return 4
+EndFunction
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;
+;;
+;; Global
+;;
 bool Function HasGlobalVar(string[] varscope)
 	return (globalVarKeys.Find(varscope[VS_NAME], 0) > -1)
 EndFunction
@@ -1357,300 +1662,4 @@ Alias Function SetGlobalVarAlias(string[] varscope, Alias aliasvalue)
 		EndIf
 	endif
 	return aliasvalue
-EndFunction
-
-Function StartCommand(Form targetForm, string initialScriptName)
-	if bDebugMsg
-		SLTDebugMsg("Main.StartCommand targetForm(" + targetForm + ") initialScriptName(" + initialScriptName + ")")
-	endif
-	if !self
-		return
-	endif
-	
-	int requestId = GetNextInstanceId()
-	int threadId = GetNextInstanceId()
-	StartCommandWithThreadId(targetForm, initialScriptName, requestId, threadId)
-EndFunction
-
-Function IncrementRequestCounter(int requestId)
-	string sukey = DOMAIN_DATA_REQUEST() + requestId
-	int newcount = StorageUtil.AdjustIntValue(self, sukey, 1)
-	if bDebugMsg
-		SLTInfoMsg(">IncrementRequestCounter requestId(" + requestId + "): reached (" + newcount + "); sukey(" + sukey + ")")
-	endif
-EndFunction
-
-Function DecrementRequestCounter(int requestId)
-	string sukey = DOMAIN_DATA_REQUEST() + requestId
-	int newcount = StorageUtil.AdjustIntValue(self, sukey, -1)
-	if newcount < 1
-		if bDebugMsg
-			SLTInfoMsg("<DecrementRequestCounter requestId(" + requestId + "): reached (" + newcount + "); sukey prefix (" + sukey + "); clearing all")
-		endif
-		StorageUtil.ClearAllPrefix(sukey)
-	else
-		if bDebugMsg
-			SLTInfoMsg("<DecrementRequestCounter requestId(" + requestId + "): reached (" + newcount + "); sukey prefix(" + sukey + "); unwinding")
-		endif
-	endif
-EndFunction
-
-Function EnqueueScriptForTarget(Form targetForm, int requestId, int threadid, string initialScriptName)
-	If (!targetForm || !threadid || !initialScriptName || !requestId)
-		SLTErrMsg("EnqueueScriptForTarget: Invalid arguments")
-		return
-	EndIf
-	StorageUtil.StringListAdd(targetForm, DOMAIN_PENDING_SCRIPT_FOR_TARGET_LIST(), requestid + "|" + threadid + "|" + initialScriptName)
-EndFunction
-
-Function DequeueScriptForTarget(Form targetForm, int[] requestId, int[] threadid, string[] initialScriptName)
-	If (!targetForm || !threadid.Length || !initialScriptName.Length || !requestId.Length)
-		SLTErrMsg("DequeueScriptForTarget: Invalid arguments")
-		return
-	EndIf
-	string requestString = StorageUtil.StringListShift(targetForm, DOMAIN_PENDING_SCRIPT_FOR_TARGET_LIST())
-	string[] requestBits = PapyrusUtil.StringSplit(requestString, "|")
-	requestid[0] = requestBits[0] as int
-	threadid[0] = requestBits[1] as int
-	initialScriptName[0] = requestBits[2]
-EndFunction
-
-; StartCommand
-; Form targetForm: the Actor to attach this command to
-; string initialScriptName: the file to run
-Function StartCommandWithThreadId(Form targetForm, string initialScriptName, int requestId, int threadid)
-	if bDebugMsg
-		SLTDebugMsg("Main.StartCommandWithThreadId targetForm(" + targetForm + ") initialScriptName(" + initialScriptName + ") requestId(" + requestId + ") threadId(" + threadid + ")")
-	endif
-	if !self
-		return
-	endif
-
-	Form actualTargetForm
-	Actor actualTarget
-	if targetForm
-		actualTarget = targetForm as Actor ; for now, only Actors
-		if !actualTarget
-			SLTErrMsg("Main.StartCommandWithThreadId: non-Actor targets are not supported at this time: targetForm(" + targetForm + ")")
-			return
-		endif
-		actualTargetForm = targetForm
-	else
-		actualTarget = PlayerRef
-		actualTargetForm = actualTarget
-	endif
-
-	EnqueueScriptForTarget(actualTargetForm, requestId, threadid, initialScriptName)
-	
-	if bDebugMsg
-		SLTDebugMsg("Calling sl_triggers_internal.StartScript(actualTarget=<" + actualTarget + ">, initialScriptName=<" + initialScriptName + ">)")
-	endif
-	bool scriptStarted = sl_triggers_internal.StartScript(actualTarget, initialScriptName)
-	if !scriptStarted
-		SLTWarnMsg("Too many SLTR effects on actualTarget(" + actualTarget + "); attempting to delay script execution")
-		actualTarget.SendModEvent(EVENT_SLT_DELAY_START_COMMAND(), initialScriptName, 0.0)
-	else
-		if bDebugMsg
-			SLTDebugMsg("sl_triggers_internal.StartScript(actualTarget=<" + actualTarget + ">, initialScriptName=<" + initialScriptName + ">) reported success")
-		endif
-	endif
-EndFunction
-
-; flagset: bool[] - min length >= 19
-; Upon return, flagset will have the following values (true if the indicated keyword is present at current location):
-; [0] - no Location set
-; [1] - LocTypePlayerHome
-; [2] - LocTypeJail
-; ...etc
-Function GetLocationFlags(Location pLoc, bool[] flagset)
-	if flagset.Length < (LocationKeywords.Length + 1)
-		SLTErrMsg("Main.GetLocationFlags: flagset must have minimum length(" + (LocationKeywords.Length + 1) + "); not setting any flags")
-		return
-	endif
-
-	flagset[0] = pLoc != none
-
-	int i = 1
-	while i < LocationKeywords.Length && i < flagset.Length
-		flagset[i] = pLoc.HasKeyword(LocationKeywords[i - 1])
-		i += 1
-	endwhile
-EndFunction
-
-Function GetPlayerLocationFlags(bool[] flagset)
-	if !PlayerRef
-		SLTWarnMsg("Main.GetPlayerLocationFlags: PlayerRef(" + PlayerRef + ") is required but was not provided")
-		return
-	endif
-
-	Location pLoc = PlayerRef.GetCurrentLocation()
-	GetLocationFlags(pLoc, flagset)
-EndFunction
-
-Function GetActorLocationFlags(Actor theActor, bool[] flagset)
-	if !theActor
-		SLTWarnMsg("Main.GetActorLocationFlags: theActor(" + theActor + ") is required but was not provided")
-		return
-	endif
-
-	Location pLoc = theActor.GetCurrentLocation()
-	GetLocationFlags(pLoc, flagset)
-EndFunction
-
-Keyword Function GetPlayerLocationKeyword()
-	Location pLoc = PlayerRef.GetCurrentLocation()
-	int i = 0
-	while pLoc && i < LocationKeywords.length
-		if pLoc.HasKeyword(LocationKeywords[i])
-			return LocationKeywords[i]
-		endif
-		i += 1
-	endwhile
-	return none
-EndFunction
-
-Keyword Function GetActorLocationKeyword(Actor theActor)
-	Location pLoc = theActor.GetCurrentLocation()
-	int i = 0
-	while pLoc && i < LocationKeywords.length
-		if pLoc.HasKeyword(LocationKeywords[i])
-			return LocationKeywords[i]
-		endif
-		i += 1
-	endwhile
-	return none
-EndFunction
-
-bool Function IsFlagsetSafe(bool[] flagset)
-	If (flagset.Length < (LocationKeywords.Length + 1))
-		return false
-	EndIf
-	return flagset[1] || flagset[2] || flagset[17]
-EndFunction
-
-bool Function IsFlagsetInCity(bool[] flagset)
-	If (flagset.Length < (LocationKeywords.Length + 1))
-		return false
-	EndIf
-	return flagset[6] || flagset[7] || flagset[8] || flagset[5]
-EndFunction
-
-bool Function IsFlagsetInWilderness(bool[] flagset)
-	If (flagset.Length < (LocationKeywords.Length + 1))
-		return false
-	EndIf
-	return flagset[0] || (flagset[18] || flagset[11] || flagset[15])
-EndFunction
-
-bool Function IsFlagsetInDungeon(bool[] flagset)
-	If (flagset.Length < (LocationKeywords.Length + 1))
-		return false
-	EndIf
-	return flagset[9] || flagset[10] || flagset[12] || flagset[13] || flagset[14] || flagset[3] || flagset[16] || flagset[4]
-EndFunction
-
-bool Function IsLocationKeywordSafe(Keyword locKeyword)
-	return locKeyword == LocTypePlayerHome || locKeyword == LocTypeJail || locKeyword == LocTypeInn
-EndFunction
-
-bool Function IsLocationKeywordCity(Keyword locKeyword)
-	return locKeyword == LocTypeCity || locKeyword == LocTypeTown || locKeyword == LocTypeHabitation || locKeyword == LocTypeDwelling
-EndFunction
-
-bool Function IsLocationKeywordWilderness(Keyword locKeyword)
-	return !locKeyword || locKeyword == LocTypeHold || locKeyword == LocTypeBanditCamp || locKeyword == LocTypeMilitaryFort
-EndFunction
-
-bool Function IsLocationKeywordDungeon(Keyword locKeyword)
-	return locKeyword == LocTypeDraugrCrypt || locKeyword == LocTypeDragonPriestLair || locKeyword == LocTypeFalmerHive || locKeyword == LocTypeVampireLair || locKeyword == LocTypeDwarvenAutomatons || locKeyword == LocTypeDungeon || locKeyword == LocTypeMine || locKeyword == LocSetCave
-EndFunction
-
-bool Function IsLocationSafe(Location pLoc)
-	return pLoc && (pLoc.HasKeyword(LocTypePlayerHome) || pLoc.HasKeyword(LocTypeJail) || pLoc.HasKeyword(LocTypeInn))
-EndFunction
-
-bool Function IsLocationInCity(Location pLoc)
-	return pLoc && (pLoc.HasKeyword(LocTypeCity) || pLoc.HasKeyword(LocTypeTown) || pLoc.HasKeyword(LocTypeHabitation) || pLoc.HasKeyword(LocTypeDwelling))
-EndFunction
-
-bool Function IsLocationInWilderness(Location pLoc)
-	return !pLoc || pLoc.HasKeyword(LocTypeHold) || ploc.HasKeyword(LocTypeBanditCamp) || ploc.HasKeyword(LocTypeMilitaryFort)
-EndFunction
-
-bool Function IsLocationInDungeon(Location pLoc)
-	return pLoc && (pLoc.HasKeyword(LocTypeDraugrCrypt) || ploc.HasKeyword(LocTypeDragonPriestLair) || ploc.HasKeyword(LocTypeFalmerHive) || ploc.HasKeyword(LocTypeVampireLair) || ploc.HasKeyword(LocTypeDwarvenAutomatons) || ploc.HasKeyword(LocTypeDungeon) || ploc.HasKeyword(LocTypeMine) || ploc.HasKeyword(LocSetCave))
-EndFunction
-
-; available in a pinch, but not performant
-bool Function PlayerIsInDungeon()
-	if !PlayerRef.GetParentCell().IsInterior()
-		return false
-	endif
-
-	return IsLocationInDungeon(PlayerRef.GetCurrentLocation())
-EndFunction
-
-bool Function PlayerIsInWilderness()
-	if PlayerRef.GetParentCell().IsInterior()
-		return false
-	endif
-
-	return IsLocationInWilderness(PlayerRef.GetCurrentLocation())
-EndFunction
-
-bool Function PlayerIsInCity()
-	return IsLocationInCity(PlayerRef.GetCurrentLocation())
-EndFunction
-
-bool Function PlayerIsInSafeLocation()
-	return IsLocationSafe(PlayerRef.GetCurrentLocation())
-EndFunction
-
-bool Function ActorIsInDungeon(Actor theActor)
-	if !theActor.GetParentCell().IsInterior()
-		return false
-	endif
-
-	return IsLocationInDungeon(theActor.GetCurrentLocation())
-EndFunction
-
-bool Function ActorIsInWilderness(Actor theActor)
-	if theActor.GetParentCell().IsInterior()
-		return false
-	endif
-
-	return IsLocationInWilderness(theActor.GetCurrentLocation())
-EndFunction
-
-bool Function ActorIsInCity(Actor theActor)
-	return IsLocationInCity(theActor.GetCurrentLocation())
-EndFunction
-
-bool Function ActorIsInSafeLocation(Actor theActor)
-	return IsLocationSafe(theActor.GetCurrentLocation())
-EndFunction
-
-;; handle version updates, let extensions do it too
-Function CheckVersionUpdates()
-	int newVersion = GetModVersion()
-	if bDebugMsg
-		SLTDebugMsg("Main.CheckVersionUpdates: oldVersion(" + SLTRVersion + ") newVersion(" + newVersion + ")")
-	endif
-
-	SLTRVersion = newVersion
-EndFunction
-
-
-; some helper methods
-Int Function ActorRaceType(Actor _actor)
-    if _actor == PlayerRef
-        return 1
-    endIf
-	If _actor.HasKeyword(ActorTypeUndead)
-		return 3
-	EndIf
-	If _actor.HasKeyword(ActorTypeNPC)
-		return 2
-	EndIf
-	return 4
 EndFunction

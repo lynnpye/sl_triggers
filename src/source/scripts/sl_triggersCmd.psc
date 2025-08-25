@@ -359,7 +359,7 @@ String Function CRToString()
         if CustomResolveFormResult == none
             return ""
         endif
-        return CustomResolveFormResult.GetFormID() as string
+        return FormPortableStringFromForm(CustomResolveFormResult)
     elseif SLT.RT_FLOAT == CustomResolveType
         return CustomResolveFloatResult
     elseif SLT.RT_INT == CustomResolveType

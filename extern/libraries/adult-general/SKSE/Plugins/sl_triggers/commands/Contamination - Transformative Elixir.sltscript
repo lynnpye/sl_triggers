@@ -1,18 +1,29 @@
+;;;;;;
+;; spam prevention - no closer than 3 in-game hours per call
+;; remove these lines if you want to call it more frequently
 set $difftime $system.gametime - $global.last_transform_time
 set $global.last_transform_time $system.gametime
+; $difftime is in "game days", so 0.125 is 1/8 of a day or 3 hours
+; if you still want the protection, you can still reduce this number
 if $difftime < 0.125
 	return
 endif
+;;;;;;
 
+;;;;;;
+;; 5% reset chance - 1 in 20 chance that you will get a reset potion and exit early
+;; remove this block or change the odds below
 set $chance resultfrom rnd_int 0 100
 
 if $chance >= 95 ; 5% chance to reset
 	item_adduse $system.player "TFEResetPotion" 1 1
 	return
 endif
+;;;;;;
 
-; comment unnecessary choices to improve performance
-; the reset potion, just documenting it, it isn't intended for the pool
+;;;;;;
+;; comment unnecessary choices to improve performance
+;; the reset potion, just documenting it, it isn't intended for the pool
 ;set	$tfeResetPotion	"TFEResetPotion"
 
 ; affixes (15)
