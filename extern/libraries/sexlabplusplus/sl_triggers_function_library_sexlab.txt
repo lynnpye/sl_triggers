@@ -18,37 +18,6 @@ if parameter 2 is "SL": return actors Sexlab frameworks race key name. Like: "do
 -=-
 
 
-SexLab:
-==============
-
-sl_get_statistic: Returns the float value of the specificed SexLab statistic
-	- parameter 1: Form actor: the Actor to query the statistic of
-	- parameter 2: int statisticID: the SexLab statistic ID
-	- parameter 3: * 0 - LastUpdate_GameTime
-	- parameter 4: * 1 - SecondsInScene
-	- parameter 5: * 2 - XP_Vaginal
-	- parameter 6: * 3 - XP_Anal
-	- parameter 7: * 4 - XP_Oral
-	- parameter 8: * 5 - PartnersMale
-	- parameter 9: * 6 - PartnersFemale
-	- parameter 10: * 7 - PartnersFuta
-	- parameter 11: * 8 - PartnersCreature
-	- parameter 12: * 9 - TimesOral
-	- parameter 13: * 10 - TimesVaginal
-	- parameter 14: * 11 - TimesAnal
-	- parameter 15: * 12 - TimesMasturbated
-	- parameter 16: * 13 - TimesSubmissive
-	- parameter 17: * 14 - TimesDominant
-	- parameter 18: * 15 - TimesTotal
-	- parameter 19: * 16 - Sexuality
-	- parameter 20: * 17 - Arousal
-
-	Example
-		sl_get_statistic $system.player 15
-
--=-
-
-
 SexLab P+:
 ==============
 
@@ -134,6 +103,33 @@ sl_forbid_actor: Forbids the Actor from joining SexLab scenes.
 
 	Example
 		sl_forbid_actor $targetActor
+
+-=-
+
+sl_get_statistic: Returns the float value of the specificed SexLab statistic
+	- parameter 1: Form actor: the Actor to query the statistic of
+	- parameter 2: int statisticID: the SexLab statistic ID
+	- parameter 3: * 0 - LastUpdate_GameTime
+	- parameter 4: * 1 - SecondsInScene
+	- parameter 5: * 2 - XP_Vaginal
+	- parameter 6: * 3 - XP_Anal
+	- parameter 7: * 4 - XP_Oral
+	- parameter 8: * 5 - PartnersMale
+	- parameter 9: * 6 - PartnersFemale
+	- parameter 10: * 7 - PartnersFuta
+	- parameter 11: * 8 - PartnersCreature
+	- parameter 12: * 9 - TimesOral
+	- parameter 13: * 10 - TimesVaginal
+	- parameter 14: * 11 - TimesAnal
+	- parameter 15: * 12 - TimesMasturbated
+	- parameter 16: * 13 - TimesSubmissive
+	- parameter 17: * 14 - TimesDominant
+	- parameter 18: * 15 - TimesTotal
+	- parameter 19: * 16 - Sexuality
+	- parameter 20: * 17 - Arousal
+
+	Example
+		sl_get_statistic $system.player 15
 
 -=-
 

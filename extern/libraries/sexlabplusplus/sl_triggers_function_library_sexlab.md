@@ -24,44 +24,6 @@ Returns the race name based on sub-function. Blank, empty sub-function returns V
 
 
 
-## SexLab
-
-### sl_get_statistic
-
-**Description**
-
-Returns the float value of the specificed SexLab statistic
-
-**Parameters**
-
-    Form actor: the Actor to query the statistic of  
-    int statisticID: the SexLab statistic ID  
-    * 0 - LastUpdate_GameTime  
-    * 1 - SecondsInScene  
-    * 2 - XP_Vaginal  
-    * 3 - XP_Anal  
-    * 4 - XP_Oral  
-    * 5 - PartnersMale  
-    * 6 - PartnersFemale  
-    * 7 - PartnersFuta  
-    * 8 - PartnersCreature  
-    * 9 - TimesOral  
-    * 10 - TimesVaginal  
-    * 11 - TimesAnal  
-    * 12 - TimesMasturbated  
-    * 13 - TimesSubmissive  
-    * 14 - TimesDominant  
-    * 15 - TimesTotal  
-    * 16 - Sexuality  
-    * 17 - Arousal  
-
-
-**Example**
-
-    sl_get_statistic $system.player 15  
-
-
-
 ## SexLab P+
 
 ### actor_getgender
@@ -208,6 +170,42 @@ Forbids the Actor from joining SexLab scenes.
 **Example**
 
     sl_forbid_actor $targetActor  
+
+
+
+### sl_get_statistic
+
+**Description**
+
+Returns the float value of the specificed SexLab statistic
+
+**Parameters**
+
+    Form actor: the Actor to query the statistic of  
+    int statisticID: the SexLab statistic ID  
+    * 0 - LastUpdate_GameTime  
+    * 1 - SecondsInScene  
+    * 2 - XP_Vaginal  
+    * 3 - XP_Anal  
+    * 4 - XP_Oral  
+    * 5 - PartnersMale  
+    * 6 - PartnersFemale  
+    * 7 - PartnersFuta  
+    * 8 - PartnersCreature  
+    * 9 - TimesOral  
+    * 10 - TimesVaginal  
+    * 11 - TimesAnal  
+    * 12 - TimesMasturbated  
+    * 13 - TimesSubmissive  
+    * 14 - TimesDominant  
+    * 15 - TimesTotal  
+    * 16 - Sexuality  
+    * 17 - Arousal  
+
+
+**Example**
+
+    sl_get_statistic $system.player 15  
 
 
 

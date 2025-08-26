@@ -14,26 +14,28 @@ bool wasVampireLord
 bool wasWerewolf
 
 Event OnPlayerLoadGame()
-	if !kwdVampire
-		kwdVampire = Keyword.GetKeyword("Vampire")
-		raceVampireLord = sl_triggers.GetForm("DLC1VampireBeastRace") as Race
-		raceWerewolf = sl_triggers.GetForm("WerewolfBeastRace") as Race
-		UpdatePriorRace(GetActorReference().GetRace())
-	endif
+	SetupRaceTracking()
 
 	SLT.DoPlayerLoadGame()
 	SLTCore.DoPlayerLoadGame()
+
 	InitiateConsoleHook()
 EndEvent
 
 Event OnInit()
-	kwdVampire = Keyword.GetKeyword("Vampire")
-	raceVampireLord = sl_triggers.GetForm("DLC1VampireBeastRace") as Race
-	raceWerewolf = sl_triggers.GetForm("WerewolfBeastRace") as Race
-	UpdatePriorRace(GetActorReference().GetRace())
-	
+	SetupRaceTracking()
+
 	InitiateConsoleHook()
 EndEvent
+
+Function SetupRaceTracking()
+	if !kwdVampire
+		kwdVampire = 		Keyword.GetKeyword("Vampire")
+		raceVampireLord = 	sl_triggers.GetForm("DLC1VampireBeastRace") as Race
+		raceWerewolf = 		sl_triggers.GetForm("WerewolfBeastRace") as Race
+		UpdatePriorRace(GetActorReference().GetRace())
+	endif
+EndFunction
 
 Event OnLocationChange(Location akOldLoc, Location akNewLoc)
 	SLTCore.HandleLocationChanged(akOldLoc, akNewLoc)
@@ -50,12 +52,6 @@ Event OnLycanthropyStateChanged(bool abIsWerewolf)
 		SLTCore.HandleLycanthropy(false, true, false, false)
 	endif
 EndEvent
-
-;/
-Event OnVampirismStateChanged(bool abIsVampire)
-	SLTDebugMsg("OnVampirismStateChanged (" + abIsVampire + ")")
-EndEvent
-/;
 
 Event OnRaceSwitchComplete()
 	Race newRace = GetActorReference().GetRace()

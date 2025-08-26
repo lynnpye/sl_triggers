@@ -18,6 +18,7 @@
         <Import>.\inc\mfg</Import>
         <Import>.\inc\racemenu</Import>
         <Import>.\inc\osla</Import>
+        <Import>.\inc\slif</Import>
     </Imports>
     <Folders>
         <Folder>.\extern\libraries\adult-general\source\scripts</Folder>

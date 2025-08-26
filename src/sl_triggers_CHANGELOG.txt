@@ -1,12 +1,53 @@
-138
+0.900
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
         (or whichever folder you have your SKSE logs directed to)
+    enhancement: SLIF function bindings
+        slif_get_version
+        slif_get_versionstring
+        slif_is_installed
+        slif_is_updating
+        slif_is_working
+        slif_is_inmaintenance
+        slif_inflate
+        slif_register_actor
+        slif_unregister_actor
+        slif_update_actor
+        slif_reset_actor
+        slif_hide_node
+        slif_show_node
+        slif_is_node_hidden
+        slif_get_gender
+        slif_set_default_values
+        slif_get_value
+        slif_get_minvalue
+        slif_get_maxvalue
+        slif_get_multvalue
+        slif_get_incrvalue
+    enhancement: NIO function bindings
+        nio_hasnodeoverride
+        nio_getnodeoverride_float
+        nio_getnodeoverride_int
+        nio_getnodeoverride_bool
+        nio_getnodeoverride_string
+        nio_getnodeoverride_textureset
+        nio_addnodeoverride_float
+        nio_addnodeoverride_int
+        nio_addnodeoverride_bool
+        nio_addnodeoverride_string
+        nio_addnodeoverride_textureset
+        nio_hasbodymorph
+        nio_setbodymorph
+        nio_getbodymorph
+        nio_clearbodymorph
+        nio_updatemodelweight
+        nio_get_morphnames
+        nio_get_morphkeys
     bugfix: documentation cleanup for json related functions related to root point for file access
     change: removed plugin .json file related code for sltscripts (cleanup)
     change: documentation updates, various (cleanup)
     change: updated SLTScripts to add more comments for ease of user modification
 
-137
+0.137
     Savegame compatibility: New save OR Cleaned save required (i.e. Remove old version -> Load -> Save -> Install new version -> Load)
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
         (or whichever folder you have your SKSE logs directed to)
@@ -21,7 +62,7 @@
     change: SLTScript: Contamination - Transformative Elixir.sltscript - altered transform distribution
     change: SLTScript: CumControl.sltscript - altered chance from 50% to 30%
 
-136
+0.136
     Savegame compatibility: New save OR Cleaned save required (i.e. Remove old version -> Load -> Save -> Install new version -> Load)
     
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 

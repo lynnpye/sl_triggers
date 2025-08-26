@@ -50,7 +50,7 @@
     ],
     "triggerattribute_role" : [
         ["type", "int"],
-        ["widget", "menu", "Role: ", "0", "Any", "Aggressor", "Victim", "Not part of rape"],
+        ["widget", "menu", "Role: ", "0", "Any", "Aggressor", "Victim", "Not part of aggressive scene."],
         ["info", "The role of a scene participant with regard to aggression."]
     ],
     "triggerattribute_player" : [
@@ -130,7 +130,7 @@
     ],
     "triggerattribute_partner_role" : [
         ["type", "int"],
-        ["widget", "menu", "Partner Role: ", "0", "Any", "Aggressor", "Victim", "Not part of rape"],
+        ["widget", "menu", "Partner Role: ", "0", "Any", "Aggressor", "Victim", "Not part of aggressive scene"],
         ["info", "Requires the script target's partner to be in the selected role, if any."]
     ],
     "triggerattribute_partner_gender" : [

@@ -1069,7 +1069,7 @@ JSON:
 ==============
 
 json_getvalue: Sets $$ to value from JSON file (uses PapyrusUtil/JsonUtil)
-	- parameter 1: filename: name of file, rooted from 'Data/SKSE/Plugins/sl_triggers'
+	- parameter 1: filename: name of file, rooted from 'Data/SKSE/Plugins/StorageUtilData'
 	- parameter 2: datatype: int, float, string
 	- parameter 3: key: the key
 	- parameter 4: default: default value in case it isn't present (optional: default for type)
@@ -1089,7 +1089,7 @@ json_save: Tells JsonUtil to immediately save the specified file from cache
 -=-
 
 json_setvalue: Sets a value in a JSON file (uses PapyrusUtil/JsonUtil)
-	- parameter 1: filename: name of file, rooted from 'Data/SKSE/Plugins/sl_triggers'
+	- parameter 1: filename: name of file, rooted from 'Data/SKSE/Plugins/StorageUtilData'
 	- parameter 2: datatype: int, float, string
 	- parameter 3: key: the key
 	- parameter 4: new value: value to set
@@ -1159,39 +1159,205 @@ nff_getfollowers: Returns a Form[] containing the followers as Actors
 NiOverride:
 ==============
 
-apply_overlay: use NiOverride to apply change/parameters to overlay in previous functions
+apply_overlay: Tells NIO to apply pending changes. Not typically required.
+
+	Example
+		apply_overlay $system.player
 
 -=-
 
-changeoverlay_transparency: use NiOverride to change overlay transparency
+changeoverlay_transparency: Modifies the transparency of a given overlay
 	- parameter 1: actor: target Actor
 	- parameter 2: isFemale : bool
-	- parameter 3: nodeName (see getoverlay function) : string
+	- parameter 3: nodeName (see getoverlay_slot function) : string
 	- parameter 4: transparency : float
+
+	Example
+		changeoverlay_transparency $system.player true $nodeName 1.0
 
 -=-
 
-getoverlay_slot: use NiOverride to get free overlay slot
+getoverlay_slot: Returns a string, representing a free overlay slot
 	- parameter 1: actor: target Actor
 	- parameter 2: isFemale : bool
 	- parameter 3: node (body, face, etc...) : string
 
+	Example
+		set $nodeName resultfrom getvoverlay_slot $system.player true "Body"
+
 -=-
 
-param_overlay: use NiOverride to params overlays
+nio_addnodeoverride_bool: Calls NiOveride.AddNodeOverride for bool
+	- parameter 1: Form ref: target of function (e.g. $system.player)
+	- parameter 2: bool isFemale: true if a female target, false otherwise
+	- parameter 3: string node: NIO node you are working with
+	- parameter 4: int _key: NIO key
+	- parameter 5: int index: NIO index
+	- parameter 6: bool value: value to apply
+	- parameter 7: bool persist: persist the override?
+
+-=-
+
+nio_addnodeoverride_float: Calls NiOveride.AddNodeOverride for float
+	- parameter 1: Form ref: target of function (e.g. $system.player)
+	- parameter 2: bool isFemale: true if a female target, false otherwise
+	- parameter 3: string node: NIO node you are working with
+	- parameter 4: int _key: NIO key
+	- parameter 5: int index: NIO index
+	- parameter 6: float value: value to apply
+	- parameter 7: bool persist: persist the override?
+
+-=-
+
+nio_addnodeoverride_int: Calls NiOveride.AddNodeOverride for int
+	- parameter 1: Form ref: target of function (e.g. $system.player)
+	- parameter 2: bool isFemale: true if a female target, false otherwise
+	- parameter 3: string node: NIO node you are working with
+	- parameter 4: int _key: NIO key
+	- parameter 5: int index: NIO index
+	- parameter 6: int value: value to apply
+	- parameter 7: bool persist: persist the override?
+
+-=-
+
+nio_addnodeoverride_string: Calls NiOveride.AddNodeOverride for string
+	- parameter 1: Form ref: target of function (e.g. $system.player)
+	- parameter 2: bool isFemale: true if a female target, false otherwise
+	- parameter 3: string node: NIO node you are working with
+	- parameter 4: int _key: NIO key
+	- parameter 5: int index: NIO index
+	- parameter 6: string value: value to apply
+	- parameter 7: bool persist: persist the override?
+
+-=-
+
+nio_addnodeoverride_textureset: Calls NiOveride.AddNodeOverride for TextureSet
+	- parameter 1: Form ref: target of function (e.g. $system.player)
+	- parameter 2: bool isFemale: true if a female target, false otherwise
+	- parameter 3: string node: NIO node you are working with
+	- parameter 4: int _key: NIO key
+	- parameter 5: int index: NIO index
+	- parameter 6: Form (TextureSet) value: value to apply
+	- parameter 7: bool persist: persist the override?
+
+-=-
+
+nio_clearbodymorph: Clears the morph value of the target
+	- parameter 1: Form ref: target of function (e.g. $system.player)
+	- parameter 2: string morphName: name of the morph you are working with
+	- parameter 3: string keyName: NIO key you are working with
+
+-=-
+
+nio_get_morphkeys: Returns a string[] the keys applied to the target actor for the specified morph.
+	- parameter 1: Form ref: target of function (e.g. $system.player)
+	- parameter 2: string morphName: name of the morph you are working with
+
+-=-
+
+nio_get_morphnames: Returns a string[] the morphNames applied to the target actor.
+
+-=-
+
+nio_getbodymorph: Returns the current morph value for the target
+	- parameter 1: Form ref: target of function (e.g. $system.player)
+	- parameter 2: string morphName: name of the morph you are working with
+	- parameter 3: string keyName: NIO key you are working with
+
+-=-
+
+nio_getnodeoverride_bool: Returns the bool override for the node on the target
+	- parameter 1: Form ref: target of function (e.g. $system.player)
+	- parameter 2: bool isFemale: true if a female target, false otherwise
+	- parameter 3: string node: NIO node you are working with
+	- parameter 4: int _key: NIO key
+	- parameter 5: int index: NIO index
+
+-=-
+
+nio_getnodeoverride_float: Returns the float override for the node on the target
+	- parameter 1: Form ref: target of function (e.g. $system.player)
+	- parameter 2: bool isFemale: true if a female target, false otherwise
+	- parameter 3: string node: NIO node you are working with
+	- parameter 4: int _key: NIO key
+	- parameter 5: int index: NIO index
+
+-=-
+
+nio_getnodeoverride_int: Returns the int override for the node on the target
+	- parameter 1: Form ref: target of function (e.g. $system.player)
+	- parameter 2: bool isFemale: true if a female target, false otherwise
+	- parameter 3: string node: NIO node you are working with
+	- parameter 4: int _key: NIO key
+	- parameter 5: int index: NIO index
+
+-=-
+
+nio_getnodeoverride_string: Returns the string override for the node on the target
+	- parameter 1: Form ref: target of function (e.g. $system.player)
+	- parameter 2: bool isFemale: true if a female target, false otherwise
+	- parameter 3: string node: NIO node you are working with
+	- parameter 4: int _key: NIO key
+	- parameter 5: int index: NIO index
+
+-=-
+
+nio_getnodeoverride_textureset: Returns the TextureSet override for the node on the target
+	- parameter 1: Form ref: target of function (e.g. $system.player)
+	- parameter 2: bool isFemale: true if a female target, false otherwise
+	- parameter 3: string node: NIO node you are working with
+	- parameter 4: int _key: NIO key
+	- parameter 5: int index: NIO index
+
+-=-
+
+nio_hasbodymorph: Returns true if the target has the body morph, false otherwise
+	- parameter 1: Form ref: target of function (e.g. $system.player)
+	- parameter 2: string morphName: name of the morph you are working with
+	- parameter 3: string keyName: NIO key you are working with
+
+-=-
+
+nio_hasnodeoverride: Returns true if the target has the node override, false otherwise
+	- parameter 1: Form ref: target of function (e.g. $system.player)
+	- parameter 2: bool isFemale: true if a female target, false otherwise
+	- parameter 3: string node: NIO node you are working with
+	- parameter 4: int _key: NIO key
+	- parameter 5: int index: NIO index
+
+-=-
+
+nio_setbodymorph: Sets the bodymorph of the target
+	- parameter 1: Form ref: target of function (e.g. $system.player)
+	- parameter 2: string morphName: name of the morph you are working with
+	- parameter 3: string keyName: NIO key you are working with
+	- parameter 4: float value: value to apply
+
+-=-
+
+nio_updatemodelweight: Updates the weight data post morph value. Only to be used on actors who have morph values set.
+
+-=-
+
+param_overlay: Adds a tattoo overlay to the node with the given transparency
 	- parameter 1: actor: target Actor
 	- parameter 2: isFemale : bool
-	- parameter 3: nodeName (see getoverlay function) : string
+	- parameter 3: nodeName (see getoverlay_slot function) : string
 	- parameter 4: tattoo : string
 	- parameter 5: transparency : float
 
+	Example
+		param_overlay $system.player true $nodeName $tattooName 1.0
+
 -=-
 
-remove_overlay: use NiOverride to remove overlay
+remove_overlay: Removes the overlay indicated by nodeName
 	- parameter 1: actor: target Actor
 	- parameter 2: isFemale : bool
-	- parameter 3: nodeName (see getoverlay function) : string
-	- parameter 4: transparency : float
+	- parameter 3: nodeName (see getoverlay_slot function) : string
+
+	Example
+		remove_overlay $system.player true $nodeName
 
 -=-
 
@@ -1411,7 +1577,7 @@ PapyrusUtil:
 
 jsonutil: Wrapper around most JsonUtil functions
 	- parameter 1: <sub-function> - JsonUtil functionality to perform
-	- parameter 2: <filename> - JSON file to interact with
+	- parameter 2: <filename> - JSON file to interact with, rooted from 'Data/SKSE/Plugins/StorageUtilData'
 
 Valid sub-functions are:
 load              : <filename>

@@ -16,8 +16,28 @@ int Function GetNumFaceOverlays() global
     return NiOverride.GetNumFaceOverlays()
 EndFunction
 
+bool Function HasNodeOverride(ObjectReference ref, bool isFemale, string node, int _key, int index) global
+    return NiOverride.HasNodeOverride(ref, isFemale, node, _key, index)
+EndFunction
+
+float Function GetNodeOverrideFloat(ObjectReference ref, bool isFemale, string node, int _key, int index) global
+    return NiOverride.GetNodeOverrideFloat(ref, isFemale, node, _key, index)
+EndFunction
+
+int Function GetNodeOverrideInt(ObjectReference ref, bool isFemale, string node, int _key, int index) global
+    return NiOverride.GetNodeOverrideInt(ref, isFemale, node, _key, index)
+EndFunction
+
+bool Function GetNodeOverrideBool(ObjectReference ref, bool isFemale, string node, int _key, int index) global
+    return NiOverride.GetNodeOverrideBool(ref, isFemale, node, _key, index)
+EndFunction
+
 string Function GetNodeOverrideString(ObjectReference ref, bool isFemale, string node, int _key, int index) global
     return NiOverride.GetNodeOverrideString(ref, isFemale, node, _key, index)
+EndFunction
+
+TextureSet Function GetNodeOverrideTextureSet(ObjectReference ref, bool isFemale, string node, int _key, int index) global
+    return NiOverride.GetNodeOverrideTextureSet(ref, isFemale, node, _key, index)
 EndFunction
 
 Function AddNodeOverrideFloat(ObjectReference ref, bool isFemale, string node, int _key, int index, float value, bool persist) global
@@ -50,4 +70,32 @@ EndFunction
 
 Function AddOverlays(ObjectReference ref) global
     NiOverride.AddOverlays(ref)
+EndFunction
+
+bool Function HasBodyMorph(ObjectReference ref, string morphName, string keyName) global
+    return NiOverride.HasBodyMorph(ref, morphName, keyName)
+EndFunction
+
+Function SetBodyMorph(ObjectReference ref, string morphName, string keyName, float value) global
+    NiOverride.SetBodyMorph(ref, morphName, keyName, value)
+EndFunction
+
+float Function GetBodyMorph(ObjectReference ref, string morphName, string keyName) global
+    return NiOverride.GetBodyMorph(ref, morphName, keyName)
+EndFunction
+
+Function ClearBodyMorph(ObjectReference ref, string morphName, string keyName) global
+    NiOverride.ClearBodyMorph(ref, morphName, keyName)
+EndFunction
+
+Function UpdateModelWeight(ObjectReference ref) global
+    NiOverride.UpdateModelWeight(ref)
+EndFunction
+
+string[] Function GetMorphNames(ObjectReference ref) global
+    return NiOverride.GetMorphNames(ref)
+EndFunction
+
+string[] Function GetMorphKeys(ObjectReference ref, string morphName) global
+    return NiOverride.GetMorphKeys(ref, morphName)
 EndFunction
