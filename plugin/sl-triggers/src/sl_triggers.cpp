@@ -1044,15 +1044,16 @@ bool SLTNativeFunctions::RunSLTRMain(PAPYRUS_NATIVE_DECL, RE::Actor* cmdTarget, 
 
 void SLTNativeFunctions::SetExtensionEnabled(PAPYRUS_NATIVE_DECL, std::string_view extensionKey, bool enabledState) {
     //SLTExtensionTracker::SetEnabled(extensionKey, enabledState);
-    FunctionLibrary* funlib = FunctionLibrary::ByExtensionKey(extensionKey);
+    auto funlibs = FunctionLibrary::ByExtensionKey(extensionKey);
 
-    //SLTStackAnalyzer::Walk(stackId);
-    if (funlib) {
-        funlib->enabled = enabledState;
-        logger::info("SetExtensionEnabled: functionLibrary->extensionKey({}) ->enabled({})", funlib->extensionKey, funlib->enabled);
-        FunctionLibrary::RefreshFunctionLibraryCache();
-    } else {
-        logger::error("Unable to find function library for extensionKey '{}' to set enabled to '{}'", extensionKey, enabledState);
+    for (auto* funlib : funlibs) {
+        if (funlib) {
+            funlib->enabled = enabledState;
+            logger::info("SetExtensionEnabled: FunctionLibrary[{}]", funlib->GetDescription());
+            FunctionLibrary::RefreshFunctionLibraryCache();
+        } else {
+            logger::error("FunctionLibrary in vector for extensionKey '{}' was nullptr; unable to set enabled to '{}'", extensionKey, enabledState);
+        }
     }
 }
 

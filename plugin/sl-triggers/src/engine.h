@@ -70,10 +70,14 @@ struct FunctionLibrary {
     explicit FunctionLibrary(std::string_view _configFile, std::string_view _functionFile, std::string_view _extensionKey, std::int32_t _priority, bool _enabled = true)
         : configFile(_configFile), functionFile(_functionFile), extensionKey(_extensionKey), priority(_priority), enabled(_enabled) {}
 
-    static FunctionLibrary* ByExtensionKey(std::string_view _extensionKey);
+    static std::vector<FunctionLibrary*> ByExtensionKey(std::string_view _extensionKey);
     static void GetFunctionLibraries();
     static void RefreshFunctionLibraryCache();
     static bool PrecacheLibraries();
+
+    std::string GetDescription() {
+        return std::format("ExtKey({}) CmdLib({}) Pri({}) Enabled({})", extensionKey, functionFile, priority, enabled);
+    }
 };
 #pragma endregion
 }

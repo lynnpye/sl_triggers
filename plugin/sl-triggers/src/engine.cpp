@@ -93,17 +93,16 @@ std::vector<std::unique_ptr<FunctionLibrary>> FunctionLibrary::g_FunctionLibrari
 
 std::unordered_map<std::string, std::string, CaseInsensitiveHash, CaseInsensitiveEqual> FunctionLibrary::functionScriptCache;
 
-FunctionLibrary* FunctionLibrary::ByExtensionKey(std::string_view _extensionKey) {
-    auto it = std::find_if(g_FunctionLibraries.begin(), g_FunctionLibraries.end(),
-        [_extensionKey = std::string(_extensionKey)](const std::unique_ptr<FunctionLibrary>& lib) {
-            return Util::String::iEquals(lib->extensionKey, _extensionKey);
-        });
-
-    if (it != g_FunctionLibraries.end()) {
-        return it->get();
-    } else {
-        return nullptr;
+std::vector<FunctionLibrary*> FunctionLibrary::ByExtensionKey(std::string_view _extensionKey) {
+    std::vector<FunctionLibrary*> results;
+    
+    for (const auto& lib : g_FunctionLibraries) {
+        if (Util::String::iEquals(lib->extensionKey, _extensionKey)) {
+            results.push_back(lib.get());
+        }
     }
+    
+    return results;
 }
 
 void FunctionLibrary::GetFunctionLibraries() {
