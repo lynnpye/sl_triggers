@@ -45,7 +45,7 @@
     ],
     "triggerattribute_race" : [
         ["type", "int"],
-        ["widget", "menu", "Race: ", "0", "Any", "Humanoid", "Creature", "Undead", "Partner Humanoid", "Partner Creature", "Partner Undead"],
+        ["widget", "menu", "Race: ", "0", "Any", "Humanoid", "Creature", "Undead"],
         ["info", "The 'race' of a scene participant for the script to run on them."]
     ],
     "triggerattribute_role" : [
@@ -61,12 +61,12 @@
     "triggerattribute_gender" : [
         ["type", "int"],
         ["widget", "menu", "Gender: ", "0", "Any", "Male", "Female"],
-        ["info", "The SexLab gender of a scene participant."]
+        ["info", "The OStim gender of a scene participant."]
     ],
     "triggerattribute_tag" : [
         ["type", "int"],
-        ["widget", "menu", "SL Tag :", "0", "Any", "Vaginal", "Anal", "Oral"],
-        ["info", "The SexLab 'tag' for the animation the scene participant is in."]
+        ["widget", "menu", "OStim Action :", "0", "Any", "Vaginal", "Anal", "Oral"],
+        ["info", "The OStim 'action' for the animation the scene participant is in."]
     ],
     "triggerattribute_daytime" : [
         ["type", "int"],
@@ -81,7 +81,7 @@
     "triggerattribute_position" : [
         ["type", "int"],
         ["widget", "menu", "Position :", "0", "Any", "1", "2", "3", "4", "5"],
-        ["info", "The SexLab 'position' the scene participant is in (1-5)."]
+        ["info", "The OStim 'position' the scene participant is in (1-5)."]
     ],
     "triggerattribute_do_1" : [
         ["type", "string"],

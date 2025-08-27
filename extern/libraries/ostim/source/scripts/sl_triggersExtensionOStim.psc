@@ -97,7 +97,47 @@ bool Function _slt_AdditionalRequirementsSatisfied()
 	return OStimForm != none
 EndFunction
 
+Function VersionUpdateTriggerFile(string _triggerFile)
+	If (SLT.FF_VersionUpdate_Remove_Race_Partner_Types)
+		; version 0.901 removed RACE values for "Partner Humanoid", "Partner Creature", or "Partner Undead"
+		; PARTNER_RACE exists
+		int triggerVersion = JsonUtil.GetIntValue(_triggerFile, ATTR_MOD_VERSION)
+		if (triggerVersion < 901)
+			JsonUtil.SetIntValue(_triggerFile, ATTR_MOD_VERSION, GetModVersion())
+
+			if (JsonUtil.HasIntValue(_triggerFile, ATTR_RACE))
+				int ival = JsonUtil.GetIntValue(_triggerFile, ATTR_RACE)
+
+				If (ival > 3)
+					JsonUtil.UnsetIntValue(_triggerFile, ATTR_RACE)
+					If (!JsonUtil.HasIntValue(_triggerFile, ATTR_PARTNER_RACE))
+						; only replace it if it wasn't already set
+						JsonUtil.SetIntValue(_triggerFile, ATTR_PARTNER_RACE, ival - 3)
+						SLTInfoMsg("OStim.HandleVersionUpdate: updating triggerFile(" + _triggerFile + ") to migrate RACE filter Partner value to PARTNER_RACE; original RACE filter cleared")
+					else
+						SLTInfoMsg("OStim.HandleVersionUpdate: updating triggerFile(" + _triggerFile + ") to migrate RACE filter Partner value to PARTNER_RACE; PARTNER_RACE already set, clearing conflicting RACE value")
+					EndIf
+				EndIf
+			endif
+
+			JsonUtil.Save(_triggerFile)
+		endif
+	EndIf
+EndFunction
+
 Function HandleVersionUpdate(int oldVersion, int newVersion)
+	If (SLT.Debug_Extension || SLT.Debug_Setup || SLT.Debug_Extension_Core)
+		SLTDebugMsg("OStim.HandleVersionUpdate: oldVersion(" + SLTRVersion + ") newVersion(" + newVersion + ")")
+	EndIf
+	int i = 0
+	string[] updateKeys = sl_triggers_internal.GetTriggerKeys(SLTExtensionKey)
+	while i < updateKeys.Length
+		string _triggerFile = FN_T(updateKeys[i])
+
+		VersionUpdateTriggerFile(_triggerFile)
+
+		i += 1
+	endwhile
 EndFunction
 
 bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string scope, string token)
@@ -169,6 +209,8 @@ Function RefreshTriggerCache()
 	int i = 0
 	while i < TriggerKeys.Length
 		string _triggerFile = FN_T(TriggerKeys[i])
+
+		VersionUpdateTriggerFile(_triggerFile)
 
 		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
 			int eventCode = JsonUtil.GetIntValue(_triggerFile, ATTR_EVENT)

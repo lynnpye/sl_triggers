@@ -251,6 +251,5 @@ packagelang:
     powershell.exe -Command "Compress-Archive -Path '{{raw_dir_lang_npp}}\\*' -DestinationPath '{{raw_file_lang_npp}}'"
     powershell.exe -Command "Compress-Archive -Path '{{raw_dir_lang_vscode}}\\*' -DestinationPath '{{raw_file_lang_vscode}}'"
 
-packageall: _package_preclean packagemodonly packagelang
-    powershell.exe -Command "Compress-Archive -Path '{{raw_dir_pet_collar_game}}\\*' -DestinationPath '{{raw_file_pet_collar_game}}'"
-    powershell.exe -Command "Compress-Archive -Path '{{raw_dir_test_scripts}}\\*' -DestinationPath '{{raw_file_test_scripts}}'"
+packageall: _package_preclean packagefomod packagelang
+    @echo "Packaging all"

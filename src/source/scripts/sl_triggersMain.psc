@@ -3,8 +3,7 @@ Scriptname sl_TriggersMain extends Quest
 import sl_triggersStatics
 
 ; Feature Flags
-bool Property FF_VersionUpdate_Remove_EVENT_ID_PLAYER_LOADING_SCREEN = true Auto Hidden
-bool Property FF_VersionUpdate_SexLab_Migrate_LOCATION_to_DEEPLOCATION = true Auto Hidden
+bool Property FF_VersionUpdate_Remove_Race_Partner_Types = true Auto Hidden
 
 ; CONSTANTS
 int		SLT_HEARTBEAT					= 0

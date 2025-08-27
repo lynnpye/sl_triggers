@@ -45,7 +45,7 @@
     ],
     "triggerattribute_race" : [
         ["type", "int"],
-        ["widget", "menu", "Race: ", "0", "Any", "Humanoid", "Creature", "Undead", "Partner Humanoid", "Partner Creature", "Partner Undead"],
+        ["widget", "menu", "Race: ", "0", "Any", "Humanoid", "Creature", "Undead"],
         ["info", "The 'race' of a scene participant for the script to run on them."]
     ],
     "triggerattribute_role" : [

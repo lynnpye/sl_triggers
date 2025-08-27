@@ -590,22 +590,6 @@ Function RefreshTriggerCache()
 	i = 0	
 	while i < TriggerKeys.Length
 		string _triggerFile = FN_T(TriggerKeys[i])
-			
-		If (SLT.FF_VersionUpdate_Remove_EVENT_ID_PLAYER_LOADING_SCREEN)
-			int triggerVersion = JsonUtil.GetIntValue(_triggerFile, ATTR_MOD_VERSION)
-			if (triggerVersion < 127)
-				JsonUtil.SetIntValue(_triggerFile, ATTR_MOD_VERSION, GetModVersion())
-
-				int eventCode = JsonUtil.GetIntValue(_triggerFile, ATTR_EVENT)
-				If (eventCode >= DEPRECATED_EVENT_ID_PLAYER_LOADING_SCREEN)
-					eventCode -= 1
-					SLTInfoMsg("Core.RefreshTriggerCache: updating triggerFile(" + _triggerFile + ") to handle removal of 'Player Loading Screen' event")
-					JsonUtil.SetIntValue(_triggerFile, ATTR_EVENT, eventCode)
-				EndIf
-
-				JsonUtil.Save(_triggerFile)
-			endif
-		endif
 
 		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
 			int eventCode = JsonUtil.GetIntValue(_triggerFile, ATTR_EVENT)
@@ -786,31 +770,6 @@ EndFunction
 Function HandleVersionUpdate(int oldVersion, int newVersion)
 	If (SLT.Debug_Extension || SLT.Debug_Setup || SLT.Debug_Extension_Core)
 		SLTDebugMsg("Core.HandleVersionUpdate: oldVersion(" + SLTRVersion + ") newVersion(" + newVersion + ")")
-	EndIf
-	If (SLT.FF_VersionUpdate_Remove_EVENT_ID_PLAYER_LOADING_SCREEN)
-		; version 127: removed "Player Loading Screen" event handling, so Core triggers with an event_id
-		; of 5 or higher need to have it decremented by 1 and updated
-		int i = 0
-		string[] updateKeys = sl_triggers_internal.GetTriggerKeys(SLTExtensionKey)
-		while i < updateKeys.Length
-			string _triggerFile = FN_T(updateKeys[i])
-			
-			int triggerVersion = JsonUtil.GetIntValue(_triggerFile, ATTR_MOD_VERSION)
-			if (triggerVersion < 127)
-				JsonUtil.SetIntValue(_triggerFile, ATTR_MOD_VERSION, GetModVersion())
-
-				int eventCode = JsonUtil.GetIntValue(_triggerFile, ATTR_EVENT)
-				If (eventCode >= DEPRECATED_EVENT_ID_PLAYER_LOADING_SCREEN)
-					eventCode -= 1
-					SLTInfoMsg("Core.HandleVersionUpdate: updating triggerFile(" + _triggerFile + ") to handle removal of 'Player Loading Screen' event")
-					JsonUtil.SetIntValue(_triggerFile, ATTR_EVENT, eventCode)
-				EndIf
-
-				JsonUtil.Save(_triggerFile)
-			endif
-
-			i += 1
-		endwhile
 	EndIf
 EndFunction
 
