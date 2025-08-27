@@ -6,6 +6,7 @@
         triggers with mod version < 901 will be auto-updated
             if the trigger, with mod version < 901, doesn't already have a "Partner Race:" filter and the "Race:" is a "Partner *" value
             then the "Race:" filter will be removed and an appropriate "Partner Race:" filter added
+    change: minor rearrangement of command libraries internally
 
 0.900
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
