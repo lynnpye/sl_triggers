@@ -18,7 +18,6 @@
         ["gender",          "triggerattribute_gender"],
         ["tag",             "triggerattribute_tag"],
         ["daytime",         "triggerattribute_daytime"],
-        ["location",        "triggerattribute_location"],
         ["position",        "triggerattribute_position"],
         ["deeplocation",    "triggerattribute_deeplocation"],
         ["is_armed",        "triggerattribute_is_armed"],
@@ -73,11 +72,6 @@
         ["widget", "menu", "Daytime :", "0", "Any", "Day", "Night"],
         ["info", "The time of day the scene is taking place in."]
     ],
-    "triggerattribute_location" : [
-        ["type", "int"],
-        ["widget", "menu", "Location :", "0", "Any", "Inside", "Outside"],
-        ["info", "The location, indoors or outdoors, the scene is taking place in."]
-    ],
     "triggerattribute_position" : [
         ["type", "int"],
         ["widget", "menu", "Position :", "0", "Any", "1", "2", "3", "4", "5"],
@@ -86,22 +80,22 @@
     "triggerattribute_do_1" : [
         ["type", "string"],
         ["widget", "command", "Script 1: "],
-        ["info", "You can run 1 or more commands associated with this keymapping. This is the first."]
+        ["info", "You can run 1 or more scripts associated with this trigger. This is the first."]
     ],
     "triggerattribute_do_2" : [
         ["type", "string"],
         ["widget", "command", "Script 2: "],
-        ["info", "You can run 1 or more commands associated with this keymapping. This is the second."]
+        ["info", "You can run 1 or more scripts associated with this trigger. This is the second."]
     ],
     "triggerattribute_do_3" : [
         ["type", "string"],
         ["widget", "command", "Script 3: "],
-        ["info", "You can run 1 or more commands associated with this keymapping. This is the third."]
+        ["info", "You can run 1 or more scripts associated with this trigger. This is the third."]
     ],
     "triggerattribute_do_4" : [
         ["type", "string"],
         ["widget", "command", "Script 4: "],
-        ["info", "You can run 1 or more commands associated with this keymapping. This is the fourth."]
+        ["info", "You can run 1 or more scripts associated with this trigger. This is the fourth."]
     ],
     "triggerattribute_is_armed" : [
         ["type", "int"],

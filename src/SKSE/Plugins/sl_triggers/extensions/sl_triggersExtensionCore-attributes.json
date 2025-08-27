@@ -15,7 +15,6 @@
         ["modifierkeymapping",      "triggerattribute_modifierkeymapping"],
         ["usedak",                  "triggerattribute_usedak"],
         ["daytime",                 "triggerattribute_daytime"],
-        ["location",                "triggerattribute_location"],
         ["chance",                  "triggerattribute_chance"],
         ["comconmat",               "triggerattribute_comconmat"],
         ["deeplocation",            "triggerattribute_deeplocation"],
@@ -141,11 +140,6 @@
         ["widget", "menu", "Daytime :", "0", "Any", "Day", "Night"],
         ["info", "The time of day the cell change is taking place in."]
     ],
-    "triggerattribute_location" : [
-        ["type", "int"],
-        ["widget", "menu", "Location :", "0", "Any", "Inside", "Outside"],
-        ["info", "The location, indoors or outdoors, the cell qualifies as."]
-    ],
     "triggerattribute_chance" : [
         ["type", "float", "100.0"],
         ["widget", "slider", "Chance: ", "0.0", "100.0", "1.0", "{0}"],
@@ -214,22 +208,22 @@
     "triggerattribute_do_1" : [
         ["type", "string"],
         ["widget", "command", "Script 1: "],
-        ["info", "You can run 1 or more commands associated with this keymapping. This is the first."]
+        ["info", "You can run 1 or more scripts associated with this trigger. This is the first."]
     ],
     "triggerattribute_do_2" : [
         ["type", "string"],
         ["widget", "command", "Script 2: "],
-        ["info", "You can run 1 or more commands associated with this keymapping. This is the second."]
+        ["info", "You can run 1 or more scripts associated with this trigger. This is the second."]
     ],
     "triggerattribute_do_3" : [
         ["type", "string"],
         ["widget", "command", "Script 3: "],
-        ["info", "You can run 1 or more commands associated with this keymapping. This is the third."]
+        ["info", "You can run 1 or more scripts associated with this trigger. This is the third."]
     ],
     "triggerattribute_do_4" : [
         ["type", "string"],
         ["widget", "command", "Script 4: "],
-        ["info", "You can run 1 or more commands associated with this keymapping. This is the fourth."]
+        ["info", "You can run 1 or more scripts associated with this trigger. This is the fourth."]
     ],
     "trigger_layoutconditions" : [
         ["# checked in sequence shown, first match determines layout selection"],
@@ -238,7 +232,6 @@
         ["2", "triggerlayout_topofthehour"],
         ["3", "triggerlayout_newsession"],
         ["4", "triggerlayout_playercellchange"],
-        ["# deprecated, later events renumbered", "5", "triggerlayout_playerloadingscreen"],
         ["5", "triggerlayout_playercontaineractivate"],
         ["6", "triggerlayout_locationchange"],
         ["7", "triggerlayout_equipment_change"],
