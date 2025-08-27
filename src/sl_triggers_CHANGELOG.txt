@@ -2,6 +2,7 @@
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
         (or whichever folder you have your SKSE logs directed to)
     bugfix: updated some OStim labeling to no longer say SexLab
+    bugfix: corrected handling of multiple cmdlibs in a single lib json
     change: removed "Partner Humanoid", "Partner Creature", and "Partner Undead" from "Race:" now that "Partner Race:" is available
         triggers with mod version < 901 will be auto-updated
             if the trigger, with mod version < 901, doesn't already have a "Partner Race:" filter and the "Race:" is a "Partner *" value
