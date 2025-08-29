@@ -475,6 +475,21 @@ bool function _slt_objectreference_dogetter(sl_triggersCmd CmdPrimary, ObjectRef
     return false
 endFunction
 
+bool function _slt_globalvariable_dogetter(sl_triggersCmd CmdPrimary, GlobalVariable _target, string _theAction) global
+    if _target && _theAction
+        if _theAction == "GetValue"
+            CmdPrimary.MostRecentFloatResult = _target.GetValue()
+        elseif _theAction == "GetValueInt"
+            CmdPrimary.MostRecentIntResult = _target.GetValueInt()
+        else
+            return _slt_form_dogetter(CmdPrimary, _target, _theAction)
+        endif
+        return true
+    endif
+
+    return false
+endFunction
+
 bool function _slt_armor_dogetter(sl_triggersCmd CmdPrimary, Armor _target, string _theAction) global
     if _target && _theAction
         if _theAction == "GetWarmthRating"
@@ -866,6 +881,35 @@ function objectreference_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPr
             if _theAction
                 if !_slt_objectreference_dogetter(CmdPrimary, _target, _theAction)
                     SquawkFunctionError(CmdPrimary, "objectreference_dogetter: action returned empty string result, possibly a problem(" + _theAction + ")")
+                endif
+            endif
+        endIf
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname globalvariable_dogetter
+; sltgrup GlobalVariable
+; sltdesc For the targeted GlobalVariable, set $$ to the result of the specified getter
+; sltdesc 'Getter' in this case specifically refers to functions that take no parameters but return a value
+; sltdesc https://ck.uesp.net/wiki/GlobalVariable_Script
+; sltargs Form: target GlobalVariable  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs getter: getter name
+; sltargsmore GetValue
+; sltargsmore GetValueInt
+function globalvariable_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        GlobalVariable _target = CmdPrimary.ResolveForm(param[1]) as GlobalVariable
+        
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_globalvariable_dogetter(CmdPrimary, _target, _theAction)
+                    SquawkFunctionError(CmdPrimary, "globalvariable_dogetter: action returned empty string result, possibly a problem(" + _theAction + ")")
                 endif
             endif
         endIf
@@ -1479,6 +1523,20 @@ bool function _slt_objectreference_doconsumer(sl_triggersCmd CmdPrimary, ObjectR
         endif
         return true
     endif    
+    return false
+endFunction
+
+bool function _slt_globalvariable_doconsumer(sl_triggersCmd CmdPrimary, GlobalVariable _target, string _theAction, string[] param) global
+    if _target && _theAction
+        if _theAction == "SetValue"
+            _target.SetValue(CmdPrimary.ResolveFloat(param[3]))
+        elseif _theAction == "SetValueInt"
+            _target.SetValueInt(CmdPrimary.ResolveInt(param[3]))
+        else
+            return _slt_form_doconsumer(CmdPrimary, _target, _theAction, param)
+        endif
+        return true
+    endif
     return false
 endFunction
 
@@ -2305,6 +2363,35 @@ function objectreference_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _Cmd
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
+; sltname globalvariable_doconsumer
+; sltgrup GlobalVariable
+; sltdesc For the specified GlobalVariable, perform the requested consumer, provided the appropriate additional parameters
+; sltdesc 'Consumer' in this case specifically refers to functions that take parameters but return no result
+; sltdesc https://ck.uesp.net/wiki/GlobalVariable_Script
+; sltargs Form: target GlobalVariable (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs consumer: consumer name
+; sltargsmore SetValue
+; sltargsmore SetValueInt
+function globalvariable_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthGT(CmdPrimary, param.Length, 3)
+        GlobalVariable _target = CmdPrimary.ResolveForm(param[1]) as GlobalVariable
+        
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_globalvariable_doconsumer(CmdPrimary, _target, _theAction, param)
+                    SquawkFunctionError(CmdPrimary, "globalvariable_doconsumer: unrecognized action(" + _theAction + ")")
+                endif
+            endif
+        endIf
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
 ; sltname armor_doconsumer
 ; sltgrup Armor
 ; sltdesc For the specified Armor, perform the requested consumer, provided the appropriate additional parameters
@@ -2758,6 +2845,19 @@ bool Function _slt_objectreference_dofunction(sl_triggersCmd CmdPrimary, ObjectR
                     CmdPrimary.MostRecentFormResult = linkref
                 endif
             endif
+        else
+            return _slt_form_dofunction(CmdPrimary, _target, _theAction, param)
+        endif
+        return true
+    endif
+
+    return false
+endFunction
+
+bool Function _slt_globalvariable_dofunction(sl_triggersCmd CmdPrimary, GlobalVariable _target, string _theAction, string[] param) global
+    if _target && _theAction
+        if _theAction == "Mod"
+            CmdPrimary.MostRecentFloatResult = _target.Mod(CmdPrimary.ResolveFloat(param[3]))
         else
             return _slt_form_dofunction(CmdPrimary, _target, _theAction, param)
         endif
@@ -3302,6 +3402,33 @@ function objectreference_dofunction(Actor CmdTargetActor, ActiveMagicEffect _Cmd
             if _theAction
                 if !_slt_objectreference_dofunction(CmdPrimary, _target, _theAction, param)
                     SquawkFunctionError(CmdPrimary, "objectreference_dofunction: unrecognized action(" + _theAction + ")")
+                endif
+            endif
+        endif
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname globalvariable_dofunction
+; sltgrup GlobalVariable
+; sltdesc For the targeted GlobalVariable, set $$ to the result of the specified function
+; sltdesc 'Function' in this case specifically refers to functions that take one or more parameters and return a value
+; sltdesc https://ck.uesp.net/wiki/GlobalVariable_Script
+; sltargs Form: target GlobalVariable  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs function: function name
+; sltargsmore Mod
+function globalvariable_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthGT(CmdPrimary, param.Length, 3)
+        GlobalVariable _target = CmdPrimary.ResolveForm(param[1]) as GlobalVariable
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_globalvariable_dofunction(CmdPrimary, _target, _theAction, param)
+                    SquawkFunctionError(CmdPrimary, "globalvariable_dofunction: unrecognized action(" + _theAction + ")")
                 endif
             endif
         endif

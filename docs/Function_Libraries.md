@@ -1514,6 +1514,62 @@ Finds the indicated GlobalVariable and sets its current value.
 
 
 
+### globalvariable_doconsumer
+
+**Description**
+
+For the specified GlobalVariable, perform the requested consumer, provided the appropriate additional parameters
+'Consumer' in this case specifically refers to functions that take parameters but return no result
+https://ck.uesp.net/wiki/GlobalVariable_Script
+
+**Parameters**
+
+    Form: target GlobalVariable (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
+    consumer: consumer name  
+
+    SetValue  
+    SetValueInt  
+
+
+
+
+### globalvariable_dofunction
+
+**Description**
+
+For the targeted GlobalVariable, set $$ to the result of the specified function
+'Function' in this case specifically refers to functions that take one or more parameters and return a value
+https://ck.uesp.net/wiki/GlobalVariable_Script
+
+**Parameters**
+
+    Form: target GlobalVariable  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
+    function: function name  
+
+    Mod  
+
+
+
+
+### globalvariable_dogetter
+
+**Description**
+
+For the targeted GlobalVariable, set $$ to the result of the specified getter
+'Getter' in this case specifically refers to functions that take no parameters but return a value
+https://ck.uesp.net/wiki/GlobalVariable_Script
+
+**Parameters**
+
+    Form: target GlobalVariable  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
+    getter: getter name  
+
+    GetValue  
+    GetValueInt  
+
+
+
+
 ## Imagespace Modifier
 
 ### ism_applyfade

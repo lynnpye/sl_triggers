@@ -5,6 +5,7 @@
     bugfix: corrected handling of multiple cmdlibs in a single lib json
     enhancement: added quest_doaction/quest_dogetter/quest_doconsumer/quest_dofunction to implement Quest related functions
     enhancement: added armor_doaction/armor_dogetter/armor_doconsumer/armor_dofunction to implement Armor related functions
+    enhancement: added globalvariable_doaction/globalvariable_dogetter/globalvariable_doconsumer/globalvariable_dofunction to implement GlobalVariable related functions
     enhancement: added "GetNthReferenceAlias" implementation to objectreference_dofunction
     change: Perk: sl_triggersContainerPerk: expanded the objects it works with; should work with all CONT (Container) types
         containers.json: now has a list, "dt_blacklist", containing containers that will not trigger
