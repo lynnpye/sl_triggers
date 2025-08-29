@@ -5,22 +5,8 @@
 		"dt_common" : [ "Barrel", "Large Sack", "Sack", "Urn", "Burial Urn", "Honningbrew Mead Barrel", "Black-Briar Mead Barrel" ],
 
 		
-        "comment2": ["These are JsonUtil formID format entries for containers which will be dynamically added to the container list at game start"],
-		"dt_additional" : [
-			  "0x0101C95|Skyrim.esm"
-			, "0x08836C|Skyrim.esm"
-			, "0x0040A5|Dawnguard.esm"
-			, "0x019DD6|Dawnguard.esm"
-			, "0x025E46|Dragonborn.esm"
-			, "0x02AABA|Dragonborn.esm"
-			, "0x02AABF|Dragonborn.esm"
-			, "0x02AAC2|Dragonborn.esm"
-			, "0x02C456|Dragonborn.esm"
-			, "0x02C461|Dragonborn.esm"
-			, "0x024FA5|Dragonborn.esm"
-			, "0x02C464|Dragonborn.esm"
-			, "0x003881|Quick Start - SE.esp"
-			, "0x00B9C8|Quick Start - SE.esp"
-	]
+        "comment2": ["These are JsonUtil formID format entries for containers which will be dynamically added to the container blacklist at game start"],
+		"dt_blacklist" : [
+		]
 	}
 }

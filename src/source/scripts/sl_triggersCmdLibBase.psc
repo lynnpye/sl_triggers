@@ -1,0 +1,3488 @@
+scriptname sl_triggersCmdLibBase
+
+import sl_triggersStatics
+
+;;;;;;;;;;
+;; 
+
+
+bool function _slt_form_doaction(sl_triggersCmd CmdPrimary, Form _target, string _theAction) global
+    if _target && _theAction
+        if _theAction == "RegisterForSleep"
+            _target.RegisterForSleep()
+        elseif _theAction == "RegisterForTrackedStatsEvent"
+            _target.RegisterForTrackedStatsEvent()
+        elseif _theAction == "StartObjectProfiling"
+            _target.StartObjectProfiling()
+        elseif _theAction == "StopObjectProfiling"
+            _target.StopObjectProfiling()
+        elseif _theAction == "UnregisterForSleep"
+            _target.UnregisterForSleep()
+        elseif _theAction == "UnregisterForTrackedStatsEvent"
+            _target.UnregisterForTrackedStatsEvent()
+        elseif _theAction == "UnregisterForUpdate"
+            _target.UnregisterForUpdate()
+        elseif _theAction == "UnregisterForUpdateGameTime"
+            _target.UnregisterForUpdateGameTime()
+        elseif _theAction == "UnregisterForAllKeys"
+            _target.UnregisterForAllKeys()
+        elseif _theAction == "UnregisterForAllControls"
+            _target.UnregisterForAllControls()
+        elseif _theAction == "UnregisterForAllMenus"
+            _target.UnregisterForAllMenus()
+        elseif _theAction == "RegisterForCameraState"
+            _target.RegisterForCameraState()
+        elseif _theAction == "UnregisterForCameraState"
+            _target.UnregisterForCameraState()
+        elseif _theAction == "RegisterForCrosshairRef"
+            _target.RegisterForCrosshairRef()
+        elseif _theAction == "UnregisterForCrosshairRef"
+            _target.UnregisterForCrosshairRef()
+        elseif _theAction == "RegisterForNiNodeUpdate"
+            _target.RegisterForNiNodeUpdate()
+        elseif _theAction == "UnregisterForNiNodeUpdate"
+            _target.UnregisterForNiNodeUpdate()
+        else
+            return false
+        endif
+        return true
+    endif
+    return false
+endFunction
+
+bool function _slt_objectreference_doaction(sl_triggersCmd CmdPrimary, ObjectReference _target, string _theAction) global
+    if _target && _theAction
+        if _theAction == "ClearDestruction"
+            _target.ClearDestruction()
+        elseif _theAction == "Delete"
+            _target.Delete()
+        elseif _theAction == "DeleteWhenAble"
+            _target.DeleteWhenAble()
+        elseif _theAction == "ForceAddRagdollToWorld"
+            _target.ForceAddRagdollToWorld()
+        elseif _theAction == "ForceRemoveRagdollFromWorld"
+            _target.ForceRemoveRagdollFromWorld()
+        elseif _theAction == "InterruptCast"
+            _target.InterruptCast()
+        elseif _theAction == "MoveToMyEditorLocation"
+            _target.MoveToMyEditorLocation()
+        elseif _theAction == "RemoveAllInventoryEventFilters"
+            _target.RemoveAllInventoryEventFilters()
+        elseif _theAction == "StopTranslation"
+            _target.StopTranslation()
+        elseif _theAction == "ResetInventory"
+            _target.ResetInventory()
+        else
+            return _slt_form_doaction(CmdPrimary, _target, _theAction)
+        endif
+        return true
+    endif
+    return false
+endFunction
+
+bool function _slt_quest_doaction(sl_triggersCmd CmdPrimary, Quest _target, string _theAction) global
+    if _target && _theAction
+        if _theAction == "CompleteAllObjectives"
+            _target.CompleteAllObjectives()
+        elseif _theAction == "CompleteQuest"
+            _target.CompleteQuest()
+        elseif _theAction == "FailAllObjectives"
+            _target.FailAllObjectives()
+        elseif _theAction == "Reset"
+            _target.Reset()
+        elseif _theAction == "Stop"
+            _target.Stop()
+        else
+            return _slt_form_doaction(CmdPrimary, _target, _theAction)
+        endif
+        return true
+    endif
+    return false
+endFunction
+
+bool function _slt_actor_doaction(sl_triggersCmd CmdPrimary, Actor _target, string _theAction) global
+    if _target && _theAction
+        if _theAction == "ClearArrested"
+            _target.ClearArrested()
+        elseif _theAction == "ClearExpressionOverride"
+            _target.ClearExpressionOverride()
+        elseif _theAction == "ClearExtraArrows"
+            _target.ClearExtraArrows()
+        elseif _theAction == "ClearForcedLandingMarker"
+            _target.ClearForcedLandingMarker()
+        elseif _theAction == "ClearKeepOffsetFromActor"
+            _target.ClearKeepOffsetFromActor()
+        elseif _theAction == "ClearLookAt"
+            _target.ClearLookAt()
+        elseif _theAction == "DispelAllSpells"
+            _target.DispelAllSpells()
+        elseif _theAction == "DrawWeapon"
+            _target.DrawWeapon()
+        elseif _theAction == "EndDeferredKill"
+            _target.EndDeferredKill()
+        elseif _theAction == "EvaluatePackage"
+            _target.EvaluatePackage()
+        elseif _theAction == "MakePlayerFriend"
+            _target.MakePlayerFriend()
+        elseif _theAction == "MoveToPackageLocation"
+            _target.MoveToPackageLocation()
+        elseif _theAction == "RemoveFromAllFactions"
+            _target.RemoveFromAllFactions()
+        elseif _theAction == "ResetHealthAndLimbs"
+            _target.ResetHealthAndLimbs()
+        elseif _theAction == "Resurrect"
+            _target.Resurrect()
+        elseif _theAction == "SendAssaultAlarm"
+            _target.SendAssaultAlarm()
+        elseif _theAction == "SetPlayerResistingArrest"
+            _target.SetPlayerResistingArrest()
+        elseif _theAction == "ShowBarterMenu"
+            _target.ShowBarterMenu()
+        elseif _theAction == "StartDeferredKill"
+            _target.StartDeferredKill()
+        elseif _theAction == "StartSneaking"
+            _target.StartSneaking()
+        elseif _theAction == "StopCombat"
+            _target.StopCombat()
+        elseif _theAction == "StopCombatAlarm"
+            _target.StopCombatAlarm()
+        elseif _theAction == "UnequipAll"
+            _target.UnequipAll()
+        elseif _theAction == "UnlockOwnedDoorsInCell"
+            _target.UnlockOwnedDoorsInCell()
+        elseif _theAction == "QueueNiNodeUpdate"
+            _target.QueueNiNodeUpdate()
+        elseif _theAction == "RegenerateHead"
+            _target.RegenerateHead()
+        elseif _theAction == "SheatheWeapon"
+            _target.SheatheWeapon()
+        else
+            return _slt_objectreference_doaction(CmdPrimary, _target, _theAction)
+        endif
+        return true
+    endIf
+    return false
+endFunction
+
+; sltname form_doaction
+; sltgrup Form
+; sltdesc For the targeted Form, perform the associated function based on the specified action
+; sltdesc 'Action' in this case specifically refers to functions that take no parameters and return no values
+; sltdesc https://ck.uesp.net/wiki/Form_Script
+; sltargs form: target Form (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs action: action name
+; sltargsmore ;;;; These are from Form
+; sltargsmore RegisterForSleep
+; sltargsmore RegisterForTrackedStatsEvent
+; sltargsmore StartObjectProfiling
+; sltargsmore StopObjectProfiling
+; sltargsmore UnregisterForSleep
+; sltargsmore UnregisterForTrackedStatsEvent
+; sltargsmore UnregisterForUpdate
+; sltargsmore UnregisterForUpdateGameTime
+; sltargsmore ;;;; These are from SKSE
+; sltargsmore UnregisterForAllKeys
+; sltargsmore UnregisterForAllControls
+; sltargsmore UnregisterForAllMenus
+; sltargsmore RegisterForCameraState
+; sltargsmore UnregisterForCameraState
+; sltargsmore RegisterForCrosshairRef
+; sltargsmore UnregisterForCrosshairRef
+; sltargsmore RegisterForNiNodeUpdate
+; sltargsmore UnregisterForNiNodeUpdate
+; sltsamp form_doaction $system.self StopCombat
+function form_doaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Form _target = CmdPrimary.ResolveForm(param[1])
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_form_doaction(CmdPrimary, _target, _theAction)
+                    SquawkFunctionError(CmdPrimary, "form_doaction: unrecognized action(" + _theAction + ")")
+                endif
+            endif
+        endif
+    endif
+EndFunction
+
+; sltname objectreference_doaction
+; sltgrup ObjectReference
+; sltdesc For the targeted ObjectReference, perform the associated function based on the specified action
+; sltdesc 'Action' in this case specifically refers to functions that take no parameters and return no values
+; sltdesc https://ck.uesp.net/wiki/ObjectReference_Script
+; sltargs objectreference: target ObjectReference  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs action: action name
+; sltargsmore ;;;; These are from ObjectReference
+; sltargsmore ClearDestruction
+; sltargsmore Delete
+; sltargsmore DeleteWhenAble
+; sltargsmore ForceAddRagdollToWorld
+; sltargsmore ForceRemoveRagdollFromWorld
+; sltargsmore InterruptCast
+; sltargsmore MoveToMyEditorLocation
+; sltargsmore RemoveAllInventoryEventFilters
+; sltargsmore StopTranslation
+; sltargsmore ;;;; These are from SKSE
+; sltargsmore ResetInventory
+; sltargsmore ;;;; will call form_doaction if no matches are found
+; sltsamp objectreference_doaction $system.self StopCombat
+function objectreference_doaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        ObjectReference _target = CmdPrimary.ResolveForm(param[1]) as ObjectReference
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_objectreference_doaction(CmdPrimary, _target, _theAction)
+                    SquawkFunctionError(CmdPrimary, "objectreference_doaction: unrecognized action(" + _theAction + ")")
+                endif
+            endif
+        endif
+    endif
+EndFunction
+
+; sltname quest_doaction
+; sltgrup Quest
+; sltdesc For the targeted Quest, perform the associated function based on the specified action
+; sltdesc 'Action' in this case specifically refers to functions that take no parameters and return no values
+; sltdesc https://ck.uesp.net/wiki/Quest_Script
+; sltargs Form: target Quest  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs action: action name
+; sltargsmore CompleteAllObjectives
+; sltargsmore CompleteQuest
+; sltargsmore FailAllObjectives
+; sltargsmore Reset
+; sltargsmore Stop
+; sltargsmore ;;;; will call form_doaction if no matches are found
+; sltsamp quest_doaction $system.self CompleteQuest
+function quest_doaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Quest _target = CmdPrimary.ResolveForm(param[1]) as Quest
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_quest_doaction(CmdPrimary, _target, _theAction)
+                    SquawkFunctionError(CmdPrimary, "quest_doaction: unrecognized action(" + _theAction + ")")
+                endif
+            endif
+        endif
+    endif
+EndFunction
+
+; sltname actor_doaction
+; sltgrup Actor
+; sltdesc For the targeted Actor, perform the associated function based on the specified action
+; sltdesc 'Action' in this case specifically refers to functions that take no parameters and return no values
+; sltdesc https://ck.uesp.net/wiki/Actor_Script
+; sltargs actor: target Actor
+; sltargs action: action name
+; sltargsmore ;;;; These are from Actor
+; sltargsmore ClearArrested
+; sltargsmore ClearExpressionOverride
+; sltargsmore ClearExtraArrows
+; sltargsmore ClearForcedLandingMarker
+; sltargsmore ClearKeepOffsetFromActor
+; sltargsmore ClearLookAt
+; sltargsmore DispelAllSpells
+; sltargsmore DrawWeapon
+; sltargsmore EndDeferredKill
+; sltargsmore EvaluatePackage
+; sltargsmore MakePlayerFriend
+; sltargsmore MoveToPackageLocation
+; sltargsmore RemoveFromAllFactions
+; sltargsmore ResetHealthAndLimbs
+; sltargsmore Resurrect
+; sltargsmore SendAssaultAlarm
+; sltargsmore SetPlayerResistingArrest
+; sltargsmore ShowBarterMenu
+; sltargsmore StartDeferredKill
+; sltargsmore StartSneaking
+; sltargsmore StopCombat
+; sltargsmore StopCombatAlarm
+; sltargsmore UnequipAll
+; sltargsmore UnlockOwnedDoorsInCell
+; sltargsmore ;;;; will call objectreference_doaction if no matches are found
+; sltsamp actor_doaction $system.self StopCombat
+function actor_doaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor _target = CmdPrimary.ResolveActor(param[1])
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_actor_doaction(CmdPrimary, _target, _theAction)
+                    SquawkFunctionError(CmdPrimary, "actor_doaction: unrecognized action(" + _theAction + ")")
+                endif
+            endif
+        endif
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+
+bool function _slt_form_dogetter(sl_triggersCmd CmdPrimary, Form _target, string _theAction) global
+    if _target && _theAction
+        if _theAction == "GetFormID"
+            CmdPrimary.MostRecentIntResult = _target.GetFormID()
+        elseif _theAction == "GetGoldValue"
+            CmdPrimary.MostRecentIntResult = _target.GetGoldValue()
+        elseif _theAction == "PlayerKnows"
+            CmdPrimary.MostRecentBoolResult = _target.PlayerKnows()
+        elseif _theAction == "GetType"
+            CmdPrimary.MostRecentIntResult = _target.GetType()
+        elseif _theAction == "GetName"
+            CmdPrimary.MostRecentStringResult = _target.GetName()
+        elseif _theAction == "GetWeight"
+            CmdPrimary.MostRecentFloatResult = _target.GetWeight()
+        elseif _theAction == "GetNumKeywords"
+            CmdPrimary.MostRecentIntResult = _target.GetNumKeywords()
+        elseif _theAction == "IsPlayable"
+            CmdPrimary.MostRecentBoolResult = _target.IsPlayable()
+        elseif _theAction == "HasWorldModel"
+            CmdPrimary.MostRecentBoolResult = _target.HasWorldModel()
+        elseif _theAction == "GetWorldModelPath"
+            CmdPrimary.MostRecentStringResult = _target.GetWorldModelPath()
+        elseif _theAction == "GetWorldModelNumTextureSets"
+            CmdPrimary.MostRecentIntResult = _target.GetWorldModelNumTextureSets()
+        elseif _theAction == "TempClone"
+            CmdPrimary.MostRecentFormResult = _target.TempClone()
+        else
+            return false
+        endif
+        return true
+    endIf
+
+    return false
+endFunction
+
+bool function _slt_objectreference_dogetter(sl_triggersCmd CmdPrimary, ObjectReference _target, string _theAction) global
+    if _target && _theAction
+        if _theAction == "CanFastTravelToMarker"
+            CmdPrimary.MostRecentBoolResult = _target.CanFastTravelToMarker()
+        elseif _theAction == "GetActorOwner"
+            CmdPrimary.MostRecentFormResult = _target.GetActorOwner()
+        elseif _theAction == "GetAngleX"
+            CmdPrimary.MostRecentFloatResult = _target.GetAngleX()
+        elseif _theAction == "GetAngleY"
+            CmdPrimary.MostRecentFloatResult = _target.GetAngleY()
+        elseif _theAction == "GetAngleZ"
+            CmdPrimary.MostRecentFloatResult = _target.GetAngleZ()
+        elseif _theAction == "GetBaseObject"
+            CmdPrimary.MostRecentFormResult = _target.GetBaseObject()
+        elseif _theAction == "GetCurrentDestructionStage"
+            CmdPrimary.MostRecentIntResult = _target.GetCurrentDestructionStage()
+        elseif _theAction == "GetCurrentLocation"
+            CmdPrimary.MostRecentFormResult = _target.GetCurrentLocation()
+        elseif _theAction == "GetCurrentScene"
+            CmdPrimary.MostRecentFormResult = _target.GetCurrentScene()
+        elseif _theAction == "GetEditorLocation"
+            CmdPrimary.MostRecentFormResult = _target.GetEditorLocation()
+        elseif _theAction == "GetFactionOwner"
+            CmdPrimary.MostRecentFormResult = _target.GetFactionOwner()
+        elseif _theAction == "GetHeight"
+            CmdPrimary.MostRecentFloatResult = _target.GetHeight()
+        elseif _theAction == "GetItemHealthPercent"
+            CmdPrimary.MostRecentFloatResult = _target.GetItemHealthPercent()
+        elseif _theAction == "GetKey"
+            CmdPrimary.MostRecentFormResult = _target.GetKey()
+        elseif _theAction == "GetLength"
+            CmdPrimary.MostRecentFloatResult = _target.GetLength()
+        elseif _theAction == "GetLockLevel"
+            CmdPrimary.MostRecentIntResult = _target.GetLockLevel()
+        elseif _theAction == "GetMass"
+            CmdPrimary.MostRecentFloatResult = _target.GetMass()
+        elseif _theAction == "GetOpenState"
+            CmdPrimary.MostRecentIntResult = _target.GetOpenState()
+        elseif _theAction == "GetParentCell"
+            CmdPrimary.MostRecentFormResult = _target.GetParentCell()
+        elseif _theAction == "GetPositionX"
+            CmdPrimary.MostRecentFloatResult = _target.GetPositionX()
+        elseif _theAction == "GetPositionY"
+            CmdPrimary.MostRecentFloatResult = _target.GetPositionY()
+        elseif _theAction == "GetPositionZ"
+            CmdPrimary.MostRecentFloatResult = _target.GetPositionZ()
+        elseif _theAction == "GetScale"
+            CmdPrimary.MostRecentFloatResult = _target.GetScale()
+        elseif _theAction == "GetTriggerObjectCount"
+            CmdPrimary.MostRecentIntResult = _target.GetTriggerObjectCount()
+        elseif _theAction == "GetVoiceType"
+            CmdPrimary.MostRecentFormResult = _target.GetVoiceType()
+        elseif _theAction == "GetWidth"
+            CmdPrimary.MostRecentFloatResult = _target.GetWidth()
+        elseif _theAction == "GetWorldSpace"
+            CmdPrimary.MostRecentFormResult = _target.GetWorldSpace()
+        elseif _theAction == "IsActivationBlocked"
+            CmdPrimary.MostRecentBoolResult = _target.IsActivationBlocked()
+        elseif _theAction == "Is3DLoaded"
+            CmdPrimary.MostRecentBoolResult = _target.Is3DLoaded()
+        elseif _theAction == "IsDeleted"
+            CmdPrimary.MostRecentBoolResult = _target.IsDeleted()
+        elseif _theAction == "IsDisabled"
+            CmdPrimary.MostRecentBoolResult = _target.IsDisabled()
+        elseif _theAction == "IsEnabled"
+            CmdPrimary.MostRecentBoolResult = _target.IsEnabled()
+        elseif _theAction == "IsIgnoringFriendlyHits"
+            CmdPrimary.MostRecentBoolResult = _target.IsIgnoringFriendlyHits()
+        elseif _theAction == "IsInDialogueWithPlayer"
+            CmdPrimary.MostRecentBoolResult = _target.IsInDialogueWithPlayer()
+        elseif _theAction == "IsInInterior"
+            CmdPrimary.MostRecentBoolResult = _target.IsInInterior()
+        elseif _theAction == "IsLocked"
+            CmdPrimary.MostRecentBoolResult = _target.IsLocked()
+        elseif _theAction == "IsMapMarkerVisible"
+            CmdPrimary.MostRecentBoolResult = _target.IsMapMarkerVisible()
+        elseif _theAction == "IsNearPlayer"
+            CmdPrimary.MostRecentBoolResult = _target.IsNearPlayer()
+        elseif _theAction == "GetNumItems"
+            CmdPrimary.MostRecentIntResult = _target.GetNumItems()
+        elseif _theAction == "GetTotalItemWeight"
+            CmdPrimary.MostRecentFloatResult = _target.GetTotalItemWeight()
+        elseif _theAction == "GetTotalArmorWeight"
+            CmdPrimary.MostRecentFloatResult = _target.GetTotalArmorWeight()
+        elseif _theAction == "IsHarvested"
+            CmdPrimary.MostRecentBoolResult = _target.IsHarvested()
+        elseif _theAction == "GetItemMaxCharge"
+            CmdPrimary.MostRecentFloatResult = _target.GetItemMaxCharge()
+        elseif _theAction == "GetItemCharge"
+            CmdPrimary.MostRecentFloatResult = _target.GetItemCharge()
+        elseif _theAction == "IsOffLimits"
+            CmdPrimary.MostRecentBoolResult = _target.IsOffLimits()
+        elseif _theAction == "GetDisplayName"
+            CmdPrimary.MostRecentStringResult = _target.GetDisplayName()
+        elseif _theAction == "GetEnableParent"
+            CmdPrimary.MostRecentFormResult = _target.GetEnableParent()
+        elseif _theAction == "GetEnchantment"
+            CmdPrimary.MostRecentFormResult = _target.GetEnchantment()
+        elseif _theAction == "GetNumReferenceAliases"
+            CmdPrimary.MostRecentIntResult = _target.GetNumReferenceAliases()
+        else
+            return _slt_form_dogetter(CmdPrimary, _target, _theAction)
+        endif
+        return true
+    endIf
+
+    return false
+endFunction
+
+bool function _slt_armor_dogetter(sl_triggersCmd CmdPrimary, Armor _target, string _theAction) global
+    if _target && _theAction
+        if _theAction == "GetWarmthRating"
+            CmdPrimary.MostRecentFloatResult = _target.GetWarmthRating()
+        elseif _theAction == "GetArmorRating"
+            CmdPrimary.MostRecentIntResult = _target.GetArmorRating()
+        elseif _theAction == "GetAR"
+            CmdPrimary.MostRecentIntResult = _target.GetAR()
+        elseif _theAction == "GetWeightClass"
+            CmdPrimary.MostRecentIntResult = _target.GetWeightClass()
+        elseif _theAction == "GetEnchantment"
+            CmdPrimary.MostRecentFormResult = _target.GetEnchantment()
+        elseif _theAction == "GetSlotMask"
+            CmdPrimary.MostRecentIntResult = _target.GetSlotMask()
+        elseif _theAction == "GetNumArmorAddons"
+            CmdPrimary.MostRecentIntResult = _target.GetNumArmorAddons()
+        elseif _theAction == "IsLightArmor"
+            CmdPrimary.MostRecentBoolResult = _target.IsLightArmor()
+        elseif _theAction == "IsHeavyArmor"
+            CmdPrimary.MostRecentBoolResult = _target.IsHeavyArmor()
+        elseif _theAction == "IsClothing"
+            CmdPrimary.MostRecentBoolResult = _target.IsClothing()
+        elseif _theAction == "IsBoots"
+            CmdPrimary.MostRecentBoolResult = _target.IsBoots()
+        elseif _theAction == "IsCuirass"
+            CmdPrimary.MostRecentBoolResult = _target.IsCuirass()
+        elseif _theAction == "IsGauntlets"
+            CmdPrimary.MostRecentBoolResult = _target.IsGauntlets()
+        elseif _theAction == "IsHelmet"
+            CmdPrimary.MostRecentBoolResult = _target.IsHelmet()
+        elseif _theAction == "IsShield"
+            CmdPrimary.MostRecentBoolResult = _target.IsShield()
+        elseif _theAction == "IsJewelry"
+            CmdPrimary.MostRecentBoolResult = _target.IsJewelry()
+        elseif _theAction == "IsClothingHead"
+            CmdPrimary.MostRecentBoolResult = _target.IsClothingHead()
+        elseif _theAction == "IsClothingBody"
+            CmdPrimary.MostRecentBoolResult = _target.IsClothingBody()
+        elseif _theAction == "IsClothingFeet"
+            CmdPrimary.MostRecentBoolResult = _target.IsClothingFeet()
+        elseif _theAction == "IsClothingHands"
+            CmdPrimary.MostRecentBoolResult = _target.IsClothingHands()
+        elseif _theAction == "IsClothingRing"
+            CmdPrimary.MostRecentBoolResult = _target.IsClothingRing()
+        elseif _theAction == "IsClothingRich"
+            CmdPrimary.MostRecentBoolResult = _target.IsClothingRich()
+        elseif _theAction == "IsClothingPoor"
+            CmdPrimary.MostRecentBoolResult = _target.IsClothingPoor()
+        else
+            return _slt_form_dogetter(CmdPrimary, _target, _theAction)
+        endif
+        return true
+    endIf
+
+    return false
+endFunction
+
+bool function _slt_quest_dogetter(sl_triggersCmd CmdPrimary, Quest _target, string _theAction) global
+    if _target && _theAction
+        if _theAction == "GetCurrentStageID"
+            CmdPrimary.MostRecentIntResult = _target.GetCurrentStageID()
+        elseif _theAction == "GetStage"
+            CmdPrimary.MostRecentIntResult = _target.GetStage()
+        elseif _theAction == "IsActive"
+            CmdPrimary.MostRecentBoolResult = _target.IsActive()
+        elseif _theAction == "IsCompleted"
+            CmdPrimary.MostRecentBoolResult = _target.IsCompleted()
+        elseif _theAction == "IsRunning"
+            CmdPrimary.MostRecentBoolResult = _target.IsRunning()
+        elseif _theAction == "IsStarting"
+            CmdPrimary.MostRecentBoolResult = _target.IsStarting()
+        elseif _theAction == "IsStopping"
+            CmdPrimary.MostRecentBoolResult = _target.IsStopping()
+        elseif _theAction == "IsStopped"
+            CmdPrimary.MostRecentBoolResult = _target.IsStopped()
+        elseif _theAction == "Start"
+            CmdPrimary.MostRecentBoolResult = _target.Start()
+        elseif _theAction == "GetID"
+            CmdPrimary.MostRecentStringResult = _target.GetID()
+        elseif _theAction == "GetPriority"
+            CmdPrimary.MostRecentIntResult = _target.GetPriority()
+        elseif _theAction == "GetNumAliases"
+            CmdPrimary.MostRecentIntResult = _target.GetNumAliases()
+        else
+            return _slt_form_dogetter(CmdPrimary, _target, _theAction)
+        endif
+        return true
+    endIf
+
+    return false
+endFunction
+
+bool function _slt_actorbase_dogetter(sl_triggersCmd CmdPrimary, ActorBase _target, string _theAction) global
+    if _target && _theAction
+        if _theAction == "GetClass"
+            CmdPrimary.MostRecentFormResult = _target.GetClass()
+        elseif _theAction == "GetDeadCount"
+            CmdPrimary.MostRecentIntResult = _target.GetDeadCount()
+        elseif _theAction == "GetGiftFilter"
+            CmdPrimary.MostRecentFormResult = _target.GetGiftFilter()
+        elseif _theAction == "GetRace"
+            CmdPrimary.MostRecentFormResult = _target.GetRace()
+        elseif _theAction == "GetSex"
+            CmdPrimary.MostRecentIntResult = _target.GetSex()
+        elseif _theAction == "IsEssential"
+            CmdPrimary.MostRecentBoolResult = _target.IsEssential()
+        elseif _theAction == "IsInvulnerable"
+            CmdPrimary.MostRecentBoolResult = _target.IsInvulnerable()
+        elseif _theAction == "IsProtected"
+            CmdPrimary.MostRecentBoolResult = _target.IsProtected()
+        elseif _theAction == "IsUnique"
+            CmdPrimary.MostRecentBoolResult = _target.IsUnique()
+        elseif _theAction == "GetCombatStyle"
+            CmdPrimary.MostRecentFormResult = _target.GetCombatStyle()
+        elseif _theAction == "GetHeight"
+            CmdPrimary.MostRecentFloatResult = _target.GetHeight()
+        elseif _theAction == "GetWeight"
+            CmdPrimary.MostRecentFloatResult = _target.GetWeight()
+        elseif _theAction == "GetNumHeadParts"
+            CmdPrimary.MostRecentIntResult = _target.GetNumHeadParts()
+        elseif _theAction == "GetNumOverlayHeadParts"
+            CmdPrimary.MostRecentIntResult = _target.GetNumOverlayHeadParts()
+        elseif _theAction == "GetHairColor"
+            CmdPrimary.MostRecentFormResult = _target.GetHairColor()
+        elseif _theAction == "GetSpellCount"
+            CmdPrimary.MostRecentIntResult = _target.GetSpellCount()
+        elseif _theAction == "GetFaceTextureSet"
+            CmdPrimary.MostRecentFormResult = _target.GetFaceTextureSet()
+        elseif _theAction == "GetVoiceType"
+            CmdPrimary.MostRecentFormResult = _target.GetVoiceType()
+        elseif _theAction == "GetSkin"
+            CmdPrimary.MostRecentFormResult = _target.GetSkin()
+        elseif _theAction == "GetSkinFar"
+            CmdPrimary.MostRecentFormResult = _target.GetSkinFar()
+        elseif _theAction == "GetTemplate"
+            CmdPrimary.MostRecentFormResult = _target.GetTemplate()
+        else
+            return _slt_form_dogetter(CmdPrimary, _target, _theAction)
+        endif
+        return true
+    endif
+    return false
+endFunction
+
+bool function _slt_actor_dogetter(sl_triggersCmd CmdPrimary, Actor _target, string _theAction) global
+    if _target && _theAction
+        if _theAction == "CanFlyHere"
+            CmdPrimary.MostRecentBoolResult = _target.CanFlyHere()
+        elseif _theAction == "Dismount"
+            CmdPrimary.MostRecentBoolResult = _target.Dismount()
+        elseif _theAction == "GetActorBase"
+            CmdPrimary.MostRecentFormResult = _target.GetActorBase()
+        elseif _theAction == "GetBribeAmount"
+            CmdPrimary.MostRecentIntResult = _target.GetBribeAmount()
+        elseif _theAction == "GetCrimeFaction"
+            CmdPrimary.MostRecentFormResult = _target.GetCrimeFaction()
+        elseif _theAction == "GetCombatState"
+            CmdPrimary.MostRecentIntResult = _target.GetCombatState()
+        elseif _theAction == "GetCombatTarget"
+            CmdPrimary.MostRecentFormResult = _target.GetCombatTarget()
+        elseif _theAction == "GetCurrentPackage"
+            CmdPrimary.MostRecentFormResult = _target.GetCurrentPackage()
+        elseif _theAction == "GetDialogueTarget"
+            CmdPrimary.MostRecentFormResult = _target.GetDialogueTarget()
+        elseif _theAction == "GetEquippedShield"
+            CmdPrimary.MostRecentFormResult = _target.GetEquippedShield()
+        elseif _theAction == "GetEquippedShout"
+            CmdPrimary.MostRecentFormResult = _target.GetEquippedShout()
+        elseif _theAction == "GetFlyingState"
+            CmdPrimary.MostRecentIntResult = _target.GetFlyingState()
+        elseif _theAction == "GetForcedLandingMarker"
+            CmdPrimary.MostRecentFormResult = _target.GetForcedLandingMarker()
+        elseif _theAction == "GetGoldAmount"
+            CmdPrimary.MostRecentIntResult = _target.GetGoldAmount()
+        elseif _theAction == "GetHighestRelationshipRank"
+            CmdPrimary.MostRecentIntResult = _target.GetHighestRelationshipRank()
+        elseif _theAction == "GetKiller"
+            CmdPrimary.MostRecentFormResult = _target.GetKiller()
+        elseif _theAction == "GetLevel"
+            CmdPrimary.MostRecentIntResult = _target.GetLevel()
+        elseif _theAction == "GetLeveledActorBase"
+            CmdPrimary.MostRecentFormResult = _target.GetLeveledActorBase()
+        elseif _theAction == "GetLightLevel"
+            CmdPrimary.MostRecentFloatResult = _target.GetLightLevel()
+        elseif _theAction == "GetLowestRelationshipRank"
+            CmdPrimary.MostRecentIntResult = _target.GetLowestRelationshipRank()
+        elseif _theAction == "GetNoBleedoutRecovery"
+            CmdPrimary.MostRecentBoolResult = _target.GetNoBleedoutRecovery()
+        elseif _theAction == "GetPlayerControls"
+            CmdPrimary.MostRecentBoolResult = _target.GetPlayerControls()
+        elseif _theAction == "GetRace"
+            CmdPrimary.MostRecentFormResult = _target.GetRace()
+        elseif _theAction == "GetSitState"
+            CmdPrimary.MostRecentIntResult = _target.GetSitState()
+        elseif _theAction == "GetSleepState"
+            CmdPrimary.MostRecentIntResult = _target.GetSleepState()
+        elseif _theAction == "GetVoiceRecoveryTime"
+            CmdPrimary.MostRecentFloatResult = _target.GetVoiceRecoveryTime()
+        elseif _theAction == "IsAlarmed"
+            CmdPrimary.MostRecentBoolResult = _target.IsAlarmed() 
+        elseif _theAction == "IsAlerted"
+            CmdPrimary.MostRecentBoolResult = _target.IsAlerted() 
+        elseif _theAction == "IsAllowedToFly"
+            CmdPrimary.MostRecentBoolResult = _target.IsAllowedToFly()
+        elseif _theAction == "IsArrested"
+            CmdPrimary.MostRecentBoolResult = _target.IsArrested() 
+        elseif _theAction == "IsArrestingTarget"
+            CmdPrimary.MostRecentBoolResult = _target.IsArrestingTarget()
+        elseif _theAction == "IsBeingRidden"
+            CmdPrimary.MostRecentBoolResult = _target.IsBeingRidden()
+        elseif _theAction == "IsBleedingOut"
+            CmdPrimary.MostRecentBoolResult = _target.IsBleedingOut()
+        elseif _theAction == "IsBribed"
+            CmdPrimary.MostRecentBoolResult = _target.IsBribed()
+        elseif _theAction == "IsChild"
+            CmdPrimary.MostRecentBoolResult = _target.IsChild() 
+        elseif _theAction == "IsCommandedActor"
+            CmdPrimary.MostRecentBoolResult = _target.IsCommandedActor()
+        elseif _theAction == "IsDead"
+            CmdPrimary.MostRecentBoolResult = _target.IsDead() 
+        elseif _theAction == "IsDoingFavor"
+            CmdPrimary.MostRecentBoolResult = _target.IsDoingFavor()
+        elseif _theAction == "IsEssential"
+            CmdPrimary.MostRecentBoolResult = _target.IsEssential() 
+        elseif _theAction == "IsFlying"
+            CmdPrimary.MostRecentBoolResult = _target.IsFlying()
+        elseif _theAction == "IsGhost"
+            CmdPrimary.MostRecentBoolResult = _target.IsGhost()
+        elseif _theAction == "IsGuard"
+            CmdPrimary.MostRecentBoolResult = _target.IsGuard() 
+        elseif _theAction == "IsInCombat"
+            CmdPrimary.MostRecentBoolResult = _target.IsInCombat() 
+        elseif _theAction == "IsInKillMove"
+            CmdPrimary.MostRecentBoolResult = _target.IsInKillMove() 
+        elseif _theAction == "IsIntimidated"
+            CmdPrimary.MostRecentBoolResult = _target.IsIntimidated()
+        elseif _theAction == "IsOnMount"
+            CmdPrimary.MostRecentBoolResult = _target.IsOnMount() 
+        elseif _theAction == "IsPlayersLastRiddenHorse"
+            CmdPrimary.MostRecentBoolResult = _target.IsPlayersLastRiddenHorse()
+        elseif _theAction == "IsPlayerTeammate"
+            CmdPrimary.MostRecentBoolResult = _target.IsPlayerTeammate()
+        elseif _theAction == "IsRunning"
+            CmdPrimary.MostRecentBoolResult = _target.IsRunning()
+        elseif _theAction == "IsSneaking"
+            CmdPrimary.MostRecentBoolResult = _target.IsSneaking()
+        elseif _theAction == "IsSprinting"
+            CmdPrimary.MostRecentBoolResult = _target.IsSprinting()
+        elseif _theAction == "IsTrespassing"
+            CmdPrimary.MostRecentBoolResult = _target.IsTrespassing()
+        elseif _theAction == "IsUnconscious"
+            CmdPrimary.MostRecentBoolResult = _target.IsUnconscious()
+        elseif _theAction == "IsWeaponDrawn"
+            CmdPrimary.MostRecentBoolResult = _target.IsWeaponDrawn()
+        elseif _theAction == "GetSpellCount"
+            CmdPrimary.MostRecentIntResult = _target.GetSpellCount()
+        elseif _theAction == "IsAIEnabled"
+            CmdPrimary.MostRecentBoolResult = _target.IsAIEnabled()
+        elseif _theAction == "IsSwimming"
+            CmdPrimary.MostRecentBoolResult = _target.IsSwimming()
+        elseif _theAction == "WillIntimidateSucceed"
+            CmdPrimary.MostRecentBoolResult = _target.WillIntimidateSucceed()
+        elseif _theAction == "IsOverEncumbered"
+            CmdPrimary.MostRecentBoolResult = _target.IsOverEncumbered()
+        elseif _theAction == "GetWarmthRating"
+            CmdPrimary.MostRecentFloatResult = _target.GetWarmthRating()
+        else
+            return _slt_objectreference_dogetter(CmdPrimary, _target, _theAction)
+        endif
+        return true
+    endIf
+
+    return false
+endFunction
+
+; sltname form_dogetter
+; sltgrup Form
+; sltdesc For the targeted Actor, set $$ to the result of the specified getter
+; sltdesc 'Getter' in this case specifically refers to functions that take no parameters but return a value
+; sltdesc https://ck.uesp.net/wiki/Form_Script
+; sltargs form: target Form (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs getter: getter name
+; sltargsmore ;;;; T79686hese are from Form
+; sltargsmore GetFormID
+; sltargsmore GetGoldValue
+; sltargsmore PlayerKnows
+; sltargsmore ;;;; These are from SKSE
+; sltargsmore GetType
+; sltargsmore GetName
+; sltargsmore GetWeight
+; sltargsmore GetNumKeywords
+; sltargsmore IsPlayable
+; sltargsmore HasWorldModel
+; sltargsmore GetWorldModelPath
+; sltargsmore GetWorldModelNumTextureSets
+; sltargsmore TempClone
+; sltsamp form_dogetter $system.self IsPlayable
+; sltsamp if $$ = 1 itwasplayable
+function form_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Form _target = CmdPrimary.ResolveForm(param[1])
+        
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_form_dogetter(CmdPrimary, _target, _theAction)
+                    SquawkFunctionError(CmdPrimary, "form_dogetter: action returned empty string result, possibly a problem(" + _theAction + ")")
+                endif
+            endif
+        endIf
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname objectreference_dogetter
+; sltgrup ObjectReference
+; sltdesc For the targeted ObjectReference, set $$ to the result of the specified getter
+; sltdesc 'Getter' in this case specifically refers to functions that take no parameters but return a value
+; sltdesc https://ck.uesp.net/wiki/ObjectReference_Script
+; sltargs objectreference: target ObjectReference  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs getter: getter name
+; sltargsmore ;;;; These are from ObjectReference
+; sltargsmore CanFastTravelToMarker
+; sltargsmore GetActorOwner
+; sltargsmore GetAngleX
+; sltargsmore GetAngleY
+; sltargsmore GetAngleZ
+; sltargsmore GetBaseObject
+; sltargsmore GetCurrentDestructionStage
+; sltargsmore GetCurrentLocation
+; sltargsmore GetCurrentScene
+; sltargsmore GetEditorLocation
+; sltargsmore GetFactionOwner
+; sltargsmore GetHeight
+; sltargsmore GetItemHealthPercent
+; sltargsmore GetKey
+; sltargsmore GetLength
+; sltargsmore GetLockLevel
+; sltargsmore GetMass
+; sltargsmore GetOpenState
+; sltargsmore GetParentCell
+; sltargsmore GetPositionX
+; sltargsmore GetPositionY
+; sltargsmore GetPositionZ
+; sltargsmore GetScale
+; sltargsmore GetTriggerObjectCount
+; sltargsmore GetVoiceType
+; sltargsmore GetWidth
+; sltargsmore GetWorldSpace
+; sltargsmore IsActivationBlocked
+; sltargsmore Is3DLoaded
+; sltargsmore IsDeleted
+; sltargsmore IsDisabled
+; sltargsmore IsEnabled
+; sltargsmore IsIgnoringFriendlyHits
+; sltargsmore IsInDialogueWithPlayer
+; sltargsmore IsInInterior
+; sltargsmore IsLocked
+; sltargsmore IsMapMarkerVisible
+; sltargsmore IsNearPlayer
+; sltargsmore ;;;; These are from SKSE
+; sltargsmore GetNumItems
+; sltargsmore GetTotalItemWeight
+; sltargsmore GetTotalArmorWeight
+; sltargsmore IsHarvested
+; sltargsmore GetItemMaxCharge
+; sltargsmore GetItemCharge
+; sltargsmore IsOffLimits
+; sltargsmore GetDisplayName
+; sltargsmore GetEnableParent
+; sltargsmore GetEnchantment
+; sltargsmore GetNumReferenceAliases
+; sltsamp objectreference_dogetter $system.self CanFlyHere
+; sltsamp if $$ = 1 ICanFlyAroundHere
+; sltsamp if $$ = 0 IAmGroundedLikeAlways
+function objectreference_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        ObjectReference _target = CmdPrimary.ResolveForm(param[1]) as ObjectReference
+        
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_objectreference_dogetter(CmdPrimary, _target, _theAction)
+                    SquawkFunctionError(CmdPrimary, "objectreference_dogetter: action returned empty string result, possibly a problem(" + _theAction + ")")
+                endif
+            endif
+        endIf
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname armor_dogetter
+; sltgrup Armor
+; sltdesc For the targeted Armor, set $$ to the result of the specified getter
+; sltdesc 'Getter' in this case specifically refers to functions that take no parameters but return a value
+; sltdesc https://ck.uesp.net/wiki/Armor_Script
+; sltargs Form: target Armor  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs getter: getter name
+; sltargsmore GetWarmthRating
+; sltargsmore GetArmorRating
+; sltargsmore GetAR
+; sltargsmore GetWeightClass
+; sltargsmore GetEnchantment
+; sltargsmore GetSlotMask
+; sltargsmore GetNumArmorAddons
+; sltargsmore IsLightArmor
+; sltargsmore IsHeavyArmor
+; sltargsmore IsClothing
+; sltargsmore IsBoots
+; sltargsmore IsCuirass
+; sltargsmore IsGauntlets
+; sltargsmore IsHelmet
+; sltargsmore IsShield
+; sltargsmore IsJewelry
+; sltargsmore IsClothingHead
+; sltargsmore IsClothingBody
+; sltargsmore IsClothingFeet
+; sltargsmore IsClothingHands
+; sltargsmore IsClothingRing
+; sltargsmore IsClothingRich
+; sltargsmore IsClothingPoor
+; sltsamp armor_dogetter $system.self GetStage
+function armor_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Armor _target = CmdPrimary.ResolveForm(param[1]) as Armor
+        
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_armor_dogetter(CmdPrimary, _target, _theAction)
+                    SquawkFunctionError(CmdPrimary, "armor_dogetter: action returned empty string result, possibly a problem(" + _theAction + ")")
+                endif
+            endif
+        endIf
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname quest_dogetter
+; sltgrup Quest
+; sltdesc For the targeted Quest, set $$ to the result of the specified getter
+; sltdesc 'Getter' in this case specifically refers to functions that take no parameters but return a value
+; sltdesc https://ck.uesp.net/wiki/Quest_Script
+; sltargs Form: target Quest  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs getter: getter name
+; sltargsmore GetCurrentStageID
+; sltargsmore GetStage
+; sltargsmore IsActive
+; sltargsmore IsCompleted
+; sltargsmore IsRunning
+; sltargsmore IsStarting
+; sltargsmore IsStopping
+; sltargsmore IsStopped
+; sltargsmore Start
+; sltargsmore GetID
+; sltargsmore GetPriority
+; sltargsmore GetNumAliases
+; sltsamp quest_dogetter $system.self GetStage
+function quest_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Quest _target = CmdPrimary.ResolveForm(param[1]) as Quest
+        
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_quest_dogetter(CmdPrimary, _target, _theAction)
+                    SquawkFunctionError(CmdPrimary, "quest_dogetter: action returned empty string result, possibly a problem(" + _theAction + ")")
+                endif
+            endif
+        endIf
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname actorbase_dogetter
+; sltgrup ActorBase
+; sltdesc For the targeted ActorBase, return the value from the specified getter
+; sltdesc 'Getter' in this case specifically refers to functions that take no parameters but return a value
+; sltdesc https://ck.uesp.net/wiki/ActorBase_Script
+; sltargs actor: target ActorBase  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs getter: getter name
+; sltargsmore ;;;; These are from ActorBase
+; sltargsmore GetClass
+; sltargsmore GetDeadCount
+; sltargsmore GetGiftFilter
+; sltargsmore GetRace
+; sltargsmore GetSex
+; sltargsmore IsEssential
+; sltargsmore IsInvulnerable
+; sltargsmore IsProtected
+; sltargsmore IsUnique
+; sltargsmore ;;;; These are from SKSE
+; sltargsmore GetCombatStyle
+; sltargsmore GetHeight
+; sltargsmore GetWeight
+; sltargsmore GetNumHeadParts
+; sltargsmore GetNumOverlayHeadParts
+; sltargsmore GetHairColor
+; sltargsmore GetSpellCount
+; sltargsmore GetFaceTextureSet
+; sltargsmore GetVoiceType
+; sltargsmore GetSkin
+; sltargsmore GetSkinFar
+; sltargsmore GetTemplate
+function actorbase_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        ActorBase _target = CmdPrimary.ResolveForm(param[1]) as ActorBase
+        
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_actorbase_dogetter(CmdPrimary, _target, _theAction)
+                    CmdPrimary.SFE("actorbase_dogetter: action returned empty string result, possibly a problem(" + _theAction + ")")
+                endif
+            endif
+        endIf
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname actor_dogetter
+; sltgrup Actor
+; sltdesc For the targeted Actor, set $$ to the result of the specified getter
+; sltdesc 'Getter' in this case specifically refers to functions that take no parameters but return a value
+; sltdesc https://ck.uesp.net/wiki/Actor_Script
+; sltargs actor: target Actor  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs getter: getter name
+; sltargsmore ;;;; These are from Actor
+; sltargsmore CanFlyHere
+; sltargsmore Dismount
+; sltargsmore GetActorBase
+; sltargsmore GetBribeAmount
+; sltargsmore GetCrimeFaction
+; sltargsmore GetCombatState
+; sltargsmore GetCombatTarget
+; sltargsmore GetCurrentPackage
+; sltargsmore GetDialogueTarget
+; sltargsmore GetEquippedShield
+; sltargsmore GetEquippedShout
+; sltargsmore GetFlyingState
+; sltargsmore GetForcedLandingMarker
+; sltargsmore GetGoldAmount
+; sltargsmore GetHighestRelationshipRank
+; sltargsmore GetKiller
+; sltargsmore GetLevel
+; sltargsmore GetLeveledActorBase
+; sltargsmore GetLightLevel
+; sltargsmore GetLowestRelationshipRank
+; sltargsmore GetNoBleedoutRecovery
+; sltargsmore GetPlayerControls
+; sltargsmore GetRace
+; sltargsmore GetSitState
+; sltargsmore GetSleepState
+; sltargsmore GetVoiceRecoveryTime
+; sltargsmore IsAlarmed
+; sltargsmore IsAlerted
+; sltargsmore IsAllowedToFly
+; sltargsmore IsArrested
+; sltargsmore IsArrestingTarget
+; sltargsmore IsBeingRidden - not a SexLab setting
+; sltargsmore IsBleedingOut
+; sltargsmore IsBribed
+; sltargsmore IsChild
+; sltargsmore IsCommandedActor
+; sltargsmore IsDead
+; sltargsmore IsDoingFavor
+; sltargsmore IsEssential
+; sltargsmore IsFlying
+; sltargsmore IsGhost
+; sltargsmore IsGuard
+; sltargsmore IsInCombat
+; sltargsmore IsInKillMove
+; sltargsmore IsIntimidated
+; sltargsmore IsOnMount - see IsBeingRidden
+; sltargsmore IsPlayersLastRiddenHorse - I don't even need to comment now, do I?
+; sltargsmore IsPlayerTeammate
+; sltargsmore IsRunning
+; sltargsmore IsSneaking
+; sltargsmore IsSprinting
+; sltargsmore IsTrespassing
+; sltargsmore IsUnconscious
+; sltargsmore IsWeaponDrawn
+; sltargsmore ;;;; These are from SKSE
+; sltargsmore GetSpellCount
+; sltargsmore IsAIEnabled
+; sltargsmore IsSwimming
+; sltargsmore ;;;; These are Special Edition exclusive
+; sltargsmore WillIntimidateSucceed
+; sltargsmore IsOverEncumbered
+; sltargsmore GetWarmthRating
+; sltsamp actor_dogetter $system.self CanFlyHere
+; sltsamp if $$ = 1 ICanFlyAroundHere
+; sltsamp if $$ = 0 IAmGroundedLikeAlways
+function actor_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Actor _target = CmdPrimary.ResolveActor(param[1])
+        
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_actor_dogetter(CmdPrimary, _target, _theAction)
+                    SquawkFunctionError(CmdPrimary, "actor_dogetter: action returned empty string result, possibly a problem(" + _theAction + ")")
+                endif
+            endif
+        endIf
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+
+bool function _slt_form_doconsumer(sl_triggersCmd CmdPrimary, Form _target, string _theAction, string[] param) global
+    if _target && _theAction
+        if _theAction == "SetPlayerKnows"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetPlayerKnows(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "SetWorldModelPath"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetWorldModelPath(CmdPrimary.ResolveString(param[3]))
+            endif
+        elseif _theAction == "SetName"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetName(CmdPrimary.ResolveString(param[3]))
+            endif
+        elseif _theAction == "SetWeight"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetWeight(CmdPrimary.ResolveFloat(param[3]))
+            endif
+        elseif _theAction == "SetGoldValue"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetGoldValue(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "SendModEvent"
+            if ParamLengthGT(CmdPrimary, param.Length, 3)
+                string _eventname = CmdPrimary.ResolveString(param[3])
+                string _strarg
+                float _fltarg
+                if param.Length > 4
+                    _strarg = CmdPrimary.ResolveString(param[4])
+                    if param.Length > 5
+                        _fltarg = CmdPrimary.ResolveFloat(param[5])
+                    endif
+                endif
+                _target.SendModEvent(_eventname, _strarg, _fltarg)
+            endif
+        else
+            return false
+        endif
+        return true
+    endif    
+    return false
+endFunction
+
+bool function _slt_objectreference_doconsumer(sl_triggersCmd CmdPrimary, ObjectReference _target, string _theAction, string[] param) global
+    if _target && _theAction
+        if _theAction == "Activate"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                ObjectReference _obj = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                if _obj
+                    _target.Activate(_obj)
+                endif
+            endif
+        elseif _theAction == "AddInventoryEventFilter"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Form _obj = CmdPrimary.ResolveForm(param[3])
+                if _obj
+                    _target.AddInventoryEventFilter(_obj)
+                endif
+            endif
+        elseif _theAction == "AddItem"
+            if ParamLengthGT(CmdPrimary, param.Length, 3)
+                Form itemToAdd = CmdPrimary.ResolveForm(param[3])
+                if itemToAdd
+                    int itemCount = 1
+                    bool isSilent
+                    if param.Length > 4
+                        itemCount = CmdPrimary.ResolveInt(param[4])
+                        if param.Length > 5
+                            isSilent = CmdPrimary.ResolveBool(param[5])
+                        endif
+                    endif
+                    _target.AddItem(itemToAdd, itemCount, isSilent)
+                endif
+            endif
+        elseif _theAction == "AddKeyIfNeeded"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                ObjectReference _obj = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                if _obj
+                    _target.AddKeyIfNeeded(_obj)
+                endif
+            endif
+        elseif _theAction == "AddToMap"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.AddToMap(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "ApplyHavokImpulse"
+            if ParamLengthEQ(CmdPrimary, param.Length, 7)
+                _target.ApplyHavokImpulse(CmdPrimary.ResolveFloat(param[3]), CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveFloat(param[6]))
+            endif
+        elseif _theAction == "BlockActivation"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.BlockActivation(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "CreateDetectionEvent"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                Actor _akOwner = CmdPrimary.ResolveActor(param[3])
+                if _akOwner
+                    _target.CreateDetectionEvent(_akOwner, CmdPrimary.ResolveInt(param[4]))
+                endif
+            endif
+        elseif _theAction == "DamageObject"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.DamageObject(CmdPrimary.ResolveFloat(param[3]))
+            endif
+        elseif _theAction == "Disable"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.Disable(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "DisableLinkChain"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                Keyword _apKeyword = CmdPrimary.ResolveForm(param[3]) as Keyword
+                if _apKeyword
+                    _target.DisableLinkChain(_apKeyword, CmdPrimary.ResolveBool(param[4]))
+                endif
+            endif
+        elseif _theAction == "DisableNoWait"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.DisableNoWait(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "DropObject"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                Form _akObject = CmdPrimary.ResolveForm(param[3])
+                if _akObject
+                    _target.DropObject(_akObject, CmdPrimary.ResolveInt(param[4]))
+                endif
+            endif
+        elseif _theAction == "Enable"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.Enable(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "EnableFastTravel"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.EnableFastTravel(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "EnableLinkChain"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Keyword _apKeyword = CmdPrimary.ResolveForm(param[3]) as Keyword
+                if _apKeyword
+                    _target.EnableLinkChain(_apKeyword)
+                endif
+            endif
+        elseif _theAction == "EnableNoWait"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.EnableNoWait(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "IgnoreFriendlyHits"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.IgnoreFriendlyHits(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "KnockAreaEffect"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.KnockAreaEffect(CmdPrimary.ResolveFloat(param[3]), CmdPrimary.ResolveFloat(param[4]))
+            endif
+        elseif _theAction == "Lock"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.Lock(CmdPrimary.ResolveBool(param[3]), CmdPrimary.ResolveBool(param[4]))
+            endif
+        elseif _theAction == "MoveTo"
+            if ParamLengthEQ(CmdPrimary, param.Length, 8)
+                ObjectReference _akTarget = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                if _akTarget
+                    _target.MoveTo(_akTarget, CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveFloat(param[6]), CmdPrimary.ResolveBool(param[7]))
+                endif
+            endif
+        elseif _theAction == "MoveToInteractionLocation"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                ObjectReference _akTarget = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                if _akTarget
+                    _target.MoveToInteractionLocation(_akTarget)
+                endif
+            endif
+        elseif _theAction == "MoveToNode"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                ObjectReference _akTarget = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                if _akTarget
+                    _target.MoveToNode(_akTarget, CmdPrimary.ResolveString(param[4]))
+                endif
+            endif
+        elseif _theAction == "PlayTerrainEffect"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.PlayTerrainEffect(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveString(param[4]))
+            endif
+        elseif _theAction == "ProcessTrapHit"
+            if ParamLengthEQ(CmdPrimary, param.Length, 14)
+                ObjectReference _akTrap = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                if _akTrap
+                    _target.ProcessTrapHit(_akTrap, CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveFloat(param[6]), CmdPrimary.ResolveFloat(param[7]), CmdPrimary.ResolveFloat(param[8]), CmdPrimary.ResolveFloat(param[9]), CmdPrimary.ResolveFloat(param[10]), CmdPrimary.ResolveFloat(param[11]), CmdPrimary.ResolveInt(param[12]), CmdPrimary.ResolveFloat(param[13]))
+                endif
+            endif
+        elseif _theAction == "PushActorAway"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                Actor _akActor = CmdPrimary.ResolveActor(param[3])
+                if _akActor
+                    _target.PushActorAway(_akActor, CmdPrimary.ResolveFloat(param[4]))
+                endif
+            endif
+        elseif _theAction == "RemoveAllItems"
+            if ParamLengthEQ(CmdPrimary, param.Length, 6)
+                ObjectReference _akTransferTo = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                _target.RemoveAllItems(_akTransferTo, CmdPrimary.ResolveBool(param[4]), CmdPrimary.ResolveBool(param[5]))
+            endif
+        elseif _theAction == "RemoveInventoryEventFilter"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Form _akObject = CmdPrimary.ResolveForm(param[3])
+                if _akObject
+                    _target.RemoveInventoryEventFilter(_akObject)
+                endif
+            endif
+        elseif _theAction == "RemoveItem"
+            if ParamLengthGT(CmdPrimary, param.Length, 5)
+                Form _toRemove = CmdPrimary.ResolveForm(param[3])
+                ObjectReference _akTransferTo = CmdPrimary.ResolveForm(param[6]) as ObjectReference
+                _target.RemoveItem(_toRemove, CmdPrimary.ResolveInt(param[4]), CmdPrimary.ResolveBool(param[5]), _akTransferTo)
+            endif
+        elseif _theAction == "Reset"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                ObjectReference _akTarget = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                _target.Reset(_akTarget)
+            endif
+        elseif _theAction == "Say"
+            if ParamLengthEQ(CmdPrimary, param.Length, 6)
+                Topic _topic = CmdPrimary.ResolveForm(param[3]) as Topic
+                if _topic
+                    Actor _speakAs = CmdPrimary.ResolveActor(param[4])
+                    bool _inPlayerHead = CmdPrimary.ResolveBool(param[5])
+                    _target.Say(_topic, _speakAs, _inPlayerHead)
+                endif
+            endif
+        elseif _theAction == "SendStealAlarm"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Actor _akActor = CmdPrimary.ResolveActor(param[3])
+                if _akActor
+                    _target.SendStealAlarm(_akActor)
+                endif
+            endif
+        elseif _theAction == "SetActorCause"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Actor _akActor = CmdPrimary.ResolveActor(param[3])
+                if _akActor
+                    _target.SetActorCause(_akActor)
+                endif
+            endif
+        elseif _theAction == "SetActorOwner"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                ActorBase _akActorBase = CmdPrimary.ResolveForm(param[3]) as ActorBase
+                if _akActorBase
+                    _target.SetActorOwner(_akActorBase)
+                endif
+            endif
+        elseif _theAction == "SetAngle"
+            if ParamLengthEQ(CmdPrimary, param.Length, 6)
+                _target.SetAngle(CmdPrimary.ResolveFloat(param[3]), CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]))
+            endif
+        elseif _theAction == "SetAnimationVariableBool"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.SetAnimationVariableBool(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveBool(param[4]))
+            endif
+        elseif _theAction == "SetAnimationVariableFloat"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.SetAnimationVariableFloat(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
+            endif
+        elseif _theAction == "SetAnimationVariableInt"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.SetAnimationVariableInt(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveInt(param[4]))
+            endif
+        elseif _theAction == "SetDestroyed"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetDestroyed(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "SetFactionOwner"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Faction _akfaction = CmdPrimary.ResolveForm(param[3]) as Faction
+                if _akfaction
+                    _target.SetFactionOwner(_akfaction)
+                endif
+            endif
+        elseif _theAction == "SetLockLevel"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetLockLevel(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "SetMotionType"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.SetMotionType(CmdPrimary.ResolveInt(param[3]), CmdPrimary.ResolveBool(param[4]))
+            endif
+        elseif _theAction == "SetNoFavorAllowed"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetNoFavorAllowed(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "SetOpen"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetOpen(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "SetPosition"
+            if ParamLengthEQ(CmdPrimary, param.Length, 6)
+                _target.SetPosition(CmdPrimary.ResolveFloat(param[3]), CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]))
+            endif
+        elseif _theAction == "SetScale"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetScale(CmdPrimary.ResolveFloat(param[3]))
+            endif
+        elseif _theAction == "TetherToHorse"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                ObjectReference _akHorse = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                if _akHorse
+                    _target.TetherToHorse(_akHorse)
+                endif
+            endif
+        elseif _theAction == "TranslateTo"
+            if ParamLengthEQ(CmdPrimary, param.Length, 11)
+                _target.TranslateTo(CmdPrimary.ResolveFloat(param[3]), CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveFloat(param[6]), CmdPrimary.ResolveFloat(param[7]), CmdPrimary.ResolveFloat(param[8]), CmdPrimary.ResolveFloat(param[9]), CmdPrimary.ResolveFloat(param[10]))
+            endif
+        elseif _theAction == "TranslateToRef"
+            if ParamLengthEQ(CmdPrimary, param.Length, 6)
+                ObjectReference _akref = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                if _akref
+                    _target.TranslateToRef(_akref, CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]))
+                endif
+            endif
+        elseif _theAction == "SetHarvested"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetHarvested(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "SetItemHealthPercent"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetItemHealthPercent(CmdPrimary.ResolveFloat(param[3]))
+            endif
+        elseif _theAction == "SetItemMaxCharge"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetItemMaxCharge(CmdPrimary.ResolveFloat(param[3]))
+            endif
+        elseif _theAction == "SetItemCharge"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetItemCharge(CmdPrimary.ResolveFloat(param[3]))
+            endif
+        elseif _theAction == "SetEnchantment"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                Enchantment _ench = CmdPrimary.ResolveForm(param[3]) as Enchantment
+                if _ench
+                    _target.SetEnchantment(_ench, CmdPrimary.ResolveFloat(param[4]))
+                endif
+            endif
+        elseif _theAction == "CreateEnchantment"
+            if ParamLengthGT(CmdPrimary, param.Length, 7)
+                float _maxCharge = CmdPrimary.ResolveFloat(param[3])
+                int i = 4
+                int needlen = (param.Length - 4) / 4
+                if needlen > 127
+                    needlen = 127
+                endif
+                int listindex = 0
+                MagicEffect[] _mgefs    = sl_triggersListGenerators.CreateMGEFList(needlen)
+                float[] _mags           = PapyrusUtil.FloatArray(needlen)
+                int[] _areas            = PapyrusUtil.IntArray(needlen)
+                int[] _durations        = PapyrusUtil.IntArray(needlen)
+                while (i + 3) < param.Length
+                    _mgefs[listindex] = CmdPrimary.ResolveForm(param[i]) as MagicEffect
+                    _mags[listindex] = CmdPrimary.ResolveFloat(param[i + 1])
+                    _areas[listindex] = CmdPrimary.ResolveInt(param[i + 2])
+                    _durations[listindex] = CmdPrimary.ResolveInt(param[i + 3])
+
+                    listindex += 1
+                    i += 4
+                endwhile
+                _target.CreateEnchantment(_maxCharge, _mgefs, _mags, _areas, _durations)
+            endif
+        else
+            return _slt_form_doconsumer(CmdPrimary, _target, _theAction, param)
+        endif
+        return true
+    endif    
+    return false
+endFunction
+
+bool function _slt_armor_doconsumer(sl_triggersCmd CmdPrimary, Armor _target, string _theAction, string[] param) global
+    if _target && _theAction
+        if _theAction == "SetArmorRating"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetArmorRating(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "SetAR"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetAR(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "ModArmorRating"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.ModArmorRating(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "ModAR"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.ModAR(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "SetModelPath"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.SetModelPath(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveString(param[4]))
+            endif
+        elseif _theAction == "SetIconPath"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.SetIconPath(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveString(param[4]))
+            endif
+        elseif _theAction == "SetMessageIconPath"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.SetMessageIconPath(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveString(param[4]))
+            endif
+        elseif _theAction == "SetWeightClass"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetWeightClass(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "SetEnchantment"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetEnchantment(CmdPrimary.ResolveForm(param[3]) as Enchantment)
+            endif
+        elseif _theAction == "SetSlotMask"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetSlotMask(CmdPrimary.ResolveInt(param[3]))
+            endif
+        else
+            return _slt_form_doconsumer(CmdPrimary, _target, _theAction, param)
+        endif
+        return true
+    endif    
+    return false
+endFunction
+
+bool function _slt_quest_doconsumer(sl_triggersCmd CmdPrimary, Quest _target, string _theAction, string[] param) global
+    if _target && _theAction
+        if _theAction == "SetActive"
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool active = true
+                if param.Length > 3
+                    active = CmdPrimary.ResolveBool(param[3])
+                endif
+                _target.SetActive(active)
+            endif
+        elseif _theAction == "SetObjectiveCompleted"
+            if ParamLengthGT(CmdPrimary, param.Length, 3)
+                int aiObjective = CmdPrimary.ResolveInt(param[3])
+                bool abCompleted = true
+                if param.Length > 4
+                    abCompleted = CmdPrimary.ResolveBool(param[4])
+                endif
+                _target.SetObjectiveCompleted(aiObjective, abCompleted)
+            endif
+        elseif _theAction == "SetObjectiveDisplayed"
+            if ParamLengthGT(CmdPrimary, param.Length, 3)
+                int aiObjective = CmdPrimary.ResolveInt(param[3])
+                bool abDisplayed = true
+                bool abForced = false
+                if param.Length > 4
+                    abDisplayed = CmdPrimary.ResolveBool(param[4])
+                    if param.Length > 5
+                        abForced = CmdPrimary.ResolveBool(param[5])
+                    endif
+                endif
+                _target.SetObjectiveDisplayed(aiObjective, abDisplayed, abForced)
+            endif
+        elseif _theAction == "SetObjectiveFailed"
+            if ParamLengthGT(CmdPrimary, param.Length, 3)
+                int aiObjective = CmdPrimary.ResolveInt(param[3])
+                bool abFailed = true
+                if param.Length > 4
+                    abFailed = CmdPrimary.ResolveBool(param[4])
+                endif
+                _target.SetObjectiveFailed(aiObjective, abFailed)
+            endif
+        else
+            return _slt_form_doconsumer(CmdPrimary, _target, _theAction, param)
+        endif
+        return true
+    endif    
+    return false
+endFunction
+
+bool function _slt_actorbase_doconsumer(sl_triggersCmd CmdPrimary, ActorBase _target, string _theAction, string[] param) global
+    if _target && _theAction
+        if _theAction == "SetEssential"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetEssential(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "SetInvulnerable"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetInvulnerable(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "SetProtected"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetProtected(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "SetOutfit"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                Outfit p1 = CmdPrimary.ResolveForm(param[3]) as Outfit
+                If (p1)
+                    _target.SetOutfit(p1, CmdPrimary.ResolveBool(param[4]))
+                else
+                    CmdPrimary.SFE("Unable to resolve Outfit from (" + param[3] + ")")
+                EndIf
+            endif
+        elseif _theAction == "SetCombatStyle"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CombatStyle p1 = CmdPrimary.ResolveForm(param[3]) as CombatStyle
+                If (p1)
+                    _target.SetCombatStyle(p1)
+                else
+                    CmdPrimary.SFE("Unable to resolve CombatStyle from (" + param[3] + ")")
+                EndIf
+            endif
+        elseif _theAction == "SetClass"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Class p1 = CmdPrimary.ResolveForm(param[3]) as Class
+                If (p1)
+                    _target.SetClass(p1)
+                else
+                    CmdPrimary.SFE("Unable to resolve Class from (" + param[3] + ")")
+                EndIf
+            endif
+        elseif _theAction == "SetHeight"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetHeight(CmdPrimary.ResolveFloat(param[3]))
+            endif
+        elseif _theAction == "SetWeight"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetWeight(CmdPrimary.ResolveFloat(param[3]))
+            endif
+        elseif _theAction == "SetNthHeadPart"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                HeadPart p1 = CmdPrimary.ResolveForm(param[3]) as HeadPart
+                If (p1)
+                    _target.SetNthHeadPart(p1, CmdPrimary.ResolveInt(param[4]))
+                else
+                    CmdPrimary.SFE("Unable to resolve HeadPart from (" + param[3] + ")")
+                EndIf
+            endif
+        elseif _theAction == "SetFaceMorph"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.SetFaceMorph(CmdPrimary.ResolveFloat(param[3]), CmdPrimary.ResolveInt(param[4]))
+            endif
+        elseif _theAction == "SetFacePreset"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.SetFacePreset(CmdPrimary.ResolveInt(param[3]), CmdPrimary.ResolveInt(param[4]))
+            endif
+        elseif _theAction == "SetHairColor"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                ColorForm p1 = CmdPrimary.ResolveForm(param[3]) as ColorForm
+                If (p1)
+                    _target.SetHairColor(p1)
+                else
+                    CmdPrimary.SFE("Unable to resolve ColorForm from (" + param[3] + ")")
+                EndIf
+            endif
+        elseif _theAction == "SetFaceTextureSet"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                TextureSet p1 = CmdPrimary.ResolveForm(param[3]) as TextureSet
+                If (p1)
+                    _target.SetFaceTextureSet(p1)
+                else
+                    CmdPrimary.SFE("Unable to resolve TextureSet from (" + param[3] + ")")
+                EndIf
+            endif
+        elseif _theAction == "SetVoiceType"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                VoiceType p1 = CmdPrimary.ResolveForm(param[3]) as VoiceType
+                If (p1)
+                    _target.SetVoiceType(p1)
+                else
+                    CmdPrimary.SFE("Unable to resolve VoiceType from (" + param[3] + ")")
+                EndIf
+            endif
+        elseif _theAction == "SetSkin"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Armor p1 = CmdPrimary.ResolveForm(param[3]) as Armor
+                If (p1)
+                    _target.SetSkin(p1)
+                else
+                    CmdPrimary.SFE("Unable to resolve Armor from (" + param[3] + ")")
+                EndIf
+            endif
+        elseif _theAction == "SetSkinFar"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Armor p1 = CmdPrimary.ResolveForm(param[3]) as Armor
+                If (p1)
+                    _target.SetSkinFar(p1)
+                else
+                    CmdPrimary.SFE("Unable to resolve Armor from (" + param[3] + ")")
+                EndIf
+            endif
+        else
+            return _slt_form_doconsumer(CmdPrimary, _target, _theAction, param)
+        endif
+        return true
+    endif    
+    return false
+endFunction
+
+bool function _slt_actor_doconsumer(sl_triggersCmd CmdPrimary, Actor _target, string _theAction, string[] param) global
+    if _target && _theAction
+        if _theAction == "AddPerk"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Perk _obj = CmdPrimary.ResolveForm(param[3]) as Perk
+                if _obj
+				    _target.AddPerk(_obj)
+                endif
+			endif
+		elseif _theAction == "AddToFaction"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Faction _obj = CmdPrimary.ResolveForm(param[3]) as Faction
+                if _obj
+				    _target.AddToFaction(_obj)
+                endif
+			endif
+		elseif _theAction == "AllowBleedoutDialogue"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.AllowBleedoutDialogue(CmdPrimary.ResolveInt(param[3]))
+			endif
+		elseif _theAction == "AllowPCDialogue"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.AllowPCDialogue(CmdPrimary.ResolveInt(param[3]))
+			endif
+		elseif _theAction == "AttachAshPile"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Form _obj = CmdPrimary.ResolveForm(param[3])
+                if _obj
+				    _target.AttachAshPile(_obj)
+                endif
+			endif
+		elseif _theAction == "DamageActorValue"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+				_target.DamageActorValue(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
+			endif
+		elseif _theAction == "DamageAV"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+				_target.DamageAV(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
+			endif
+		elseif _theAction == "DoCombatSpellApply"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                Spell _obj = CmdPrimary.ResolveForm(param[3]) as Spell
+                ObjectReference _obj2 = CmdPrimary.ResolveForm(param[4]) as ObjectReference
+                if _obj && _obj2
+				    _target.DoCombatSpellApply(_obj, _obj2)
+                endif
+			endif
+		elseif _theAction == "EnableAI"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.EnableAI(CmdPrimary.ResolveBool(param[3]))
+			endif
+		elseif _theAction == "EquipItem"
+			if ParamLengthEQ(CmdPrimary, param.Length, 6)
+                Form _obj = CmdPrimary.ResolveForm(param[3])
+                if _obj
+				    _target.EquipItem(_obj, CmdPrimary.ResolveBool(param[4]), CmdPrimary.ResolveBool(param[5]))
+                endif
+			endif
+		elseif _theAction == "EquipShout"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Shout _obj = CmdPrimary.ResolveForm(param[3]) as Shout
+                if _obj
+				    _target.EquipShout(_obj)
+                endif
+			endif
+		elseif _theAction == "EquipSpell"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                Spell _obj = CmdPrimary.ResolveForm(param[3]) as Spell
+                if _obj
+				    _target.EquipSpell(_obj, CmdPrimary.ResolveInt(param[4]))
+                endif
+			endif
+		elseif _theAction == "ForceActorValue"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.ForceActorValue(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
+			endif
+		elseif _theAction == "ForceAV"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.ForceAV(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
+			endif
+		elseif _theAction == "KeepOffsetFromActor"
+			if ParamLengthEQ(CmdPrimary, param.Length, 11)
+                Actor _obj = CmdPrimary.ResolveActor(param[3])
+                if _obj
+				    _target.KeepOffsetFromActor(_obj, CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveFloat(param[6]), CmdPrimary.ResolveFloat(param[7]), CmdPrimary.ResolveFloat(param[8]), CmdPrimary.ResolveFloat(param[9]), CmdPrimary.ResolveFloat(param[10]))
+                endif
+			endif
+		elseif _theAction == "Kill"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Actor _obj = CmdPrimary.ResolveActor(param[3])
+                if _obj
+				    _target.Kill(_obj)
+                endif
+			endif
+		elseif _theAction == "KillEssential"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Actor _obj = CmdPrimary.ResolveActor(param[3])
+                if _obj
+				    _target.KillEssential(_obj)
+                endif
+			endif
+		elseif _theAction == "KillSilent"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Actor _obj = CmdPrimary.ResolveActor(param[3])
+                if _obj
+				    _target.KillSilent(_obj)
+                endif
+			endif
+		elseif _theAction == "ModActorValue"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.ModActorValue(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
+			endif
+		elseif _theAction == "ModAV"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.ModAV(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
+			endif
+		elseif _theAction == "ModFactionRank"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                Faction _obj = CmdPrimary.ResolveForm(param[3]) as Faction
+                if _obj
+				    _target.ModFactionRank(_obj, CmdPrimary.ResolveInt(param[4]))
+                endif
+			endif
+		elseif _theAction == "OpenInventory"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.OpenInventory(CmdPrimary.ResolveBool(param[3]))
+			endif
+		elseif _theAction == "PlaySubGraphAnimation"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.PlaySubGraphAnimation(CmdPrimary.ResolveString(param[3]))
+			endif
+		elseif _theAction == "RemoveFromFaction"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Faction _obj = CmdPrimary.ResolveForm(param[3]) as Faction
+                if _obj
+				    _target.RemoveFromFaction(_obj)
+                endif
+			endif
+		elseif _theAction == "RemovePerk"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Perk _obj = CmdPrimary.ResolveForm(param[3]) as Perk
+                if _obj
+				    _target.RemovePerk(_obj)
+                endif
+			endif
+		elseif _theAction == "RestoreActorValue"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.RestoreActorValue(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
+			endif
+		elseif _theAction == "RestoreAV"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.RestoreAV(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
+			endif
+		elseif _theAction == "SendTrespassAlarm"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Actor _obj = CmdPrimary.ResolveActor(param[3])
+                if _obj
+				    _target.SendTrespassAlarm(_obj)
+                endif
+			endif
+		elseif _theAction == "SetActorValue"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.SetActorValue(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
+			endif
+		elseif _theAction == "SetAlert"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.SetAlert(CmdPrimary.ResolveBool(param[3]))
+			endif
+		elseif _theAction == "SetAllowFlying"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.SetAllowFlying(CmdPrimary.ResolveBool(param[3]))
+			endif
+		elseif _theAction == "SetAllowFlyingEx"
+			if ParamLengthEQ(CmdPrimary, param.Length, 6)
+				_target.SetAllowFlyingEx(CmdPrimary.ResolveBool(param[3]), CmdPrimary.ResolveBool(param[4]), CmdPrimary.ResolveBool(param[5]))
+			endif
+		elseif _theAction == "SetAlpha"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.SetAlpha(CmdPrimary.ResolveFloat(param[3]), CmdPrimary.ResolveBool(param[4]))
+			endif
+		elseif _theAction == "SetAttackActorOnSight"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.SetAttackActorOnSight(CmdPrimary.ResolveBool(param[3]))
+			endif
+		elseif _theAction == "SetAV"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                _target.SetAV(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
+			endif
+		elseif _theAction == "SetBribed"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.SetBribed(CmdPrimary.ResolveBool(param[3]))
+			endif
+		elseif _theAction == "SetCrimeFaction"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Faction _obj = CmdPrimary.ResolveForm(param[3]) as Faction
+                if _obj
+                    _target.SetCrimeFaction(_obj)
+                endif
+			endif
+		elseif _theAction == "SetCriticalStage"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.SetCriticalStage(CmdPrimary.ResolveInt(param[3]))
+			endif
+		elseif _theAction == "SetDoingFavor"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.SetDoingFavor(CmdPrimary.ResolveBool(param[3]))
+			endif
+		elseif _theAction == "SetDontMove"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.SetDontMove(CmdPrimary.ResolveBool(param[3]))
+			endif
+		elseif _theAction == "SetExpressionOverride"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+				_target.SetExpressionOverride(CmdPrimary.ResolveInt(param[3]), CmdPrimary.ResolveInt(param[4]))
+			endif
+		elseif _theAction == "SetEyeTexture"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                TextureSet _obj = CmdPrimary.ResolveForm(param[3]) as TextureSet
+                if _obj
+                    _target.SetEyeTexture(_obj)
+                endif
+			endif
+		elseif _theAction == "SetFactionRank"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                Faction _obj = CmdPrimary.ResolveForm(param[3]) as Faction
+                if _obj
+                    _target.SetFactionRank(_obj, CmdPrimary.ResolveInt(param[4]))
+                endif
+			endif
+		elseif _theAction == "SetForcedLandingMarker"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                ObjectReference _obj = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                if _obj
+                    _target.SetForcedLandingMarker(_obj)
+                endif
+			endif
+		elseif _theAction == "SetGhost"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.SetGhost(CmdPrimary.ResolveBool(param[3]))
+			endif
+		elseif _theAction == "SetHeadTracking"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.SetHeadTracking(CmdPrimary.ResolveBool(param[3]))
+			endif
+		elseif _theAction == "SetIntimidated"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.SetIntimidated(CmdPrimary.ResolveBool(param[3]))
+			endif
+		elseif _theAction == "SetLookAt"
+			if ParamLengthGT(CmdPrimary, param.Length, 3)
+                ObjectReference _obj = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                if _obj
+                    bool pathingLookAt
+                    if param.Length > 4
+                        pathingLookAt = CmdPrimary.ResolveBool(param[4])
+                    endif
+                    _target.SetLookAt(_obj, pathingLookAt)
+                endif
+			endif
+		elseif _theAction == "SetNoBleedoutRecovery"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.SetNoBleedoutRecovery(CmdPrimary.ResolveBool(param[3]))
+			endif
+		elseif _theAction == "SetNotShowOnStealthMeter"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.SetNotShowOnStealthMeter(CmdPrimary.ResolveBool(param[3]))
+			endif
+		elseif _theAction == "SetOutfit"
+			if ParamLengthGT(CmdPrimary, param.Length, 3)
+                Outfit _obj = CmdPrimary.ResolveForm(param[3]) as Outfit
+                if _obj
+                    bool _boolval
+                    if param.Length > 4
+                        _boolval = CmdPrimary.ResolveBool(param[4])
+                    endif
+                    _target.SetOutfit(_obj, _boolval)
+                endif
+			endif
+		elseif _theAction == "SetPlayerControls"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.SetPlayerControls(CmdPrimary.ResolveBool(param[3]))
+			endif
+		elseif _theAction == "SetPlayerTeammate"
+			if ParamLengthGT(CmdPrimary, param.Length, 3)
+                bool _bv1 = true
+                bool _bv2 = true
+                if param.Length > 3
+                    _bv1 = CmdPrimary.ResolveBool(param[3])
+                    if param.Length > 4
+                        _bv2 = CmdPrimary.ResolveBool(param[4])
+                    endif
+                endif
+				_target.SetPlayerTeammate(_bv1, _bv2)
+			endif
+		elseif _theAction == "SetRace"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Race _obj = CmdPrimary.ResolveForm(param[3]) as Race
+                if _obj
+                    _target.SetRace(_obj)
+                endif
+			endif
+		elseif _theAction == "SetRelationshipRank"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                Actor _obj = CmdPrimary.ResolveActor(param[3])
+                if _obj
+                    _target.SetRelationshipRank(_obj, CmdPrimary.ResolveInt(param[4]))
+                endif
+			endif
+		elseif _theAction == "SetRestrained"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.SetRestrained(CmdPrimary.ResolveBool(param[3]))
+			endif
+		elseif _theAction == "SetSubGraphFloatVariable"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                Actor _obj = CmdPrimary.ResolveActor(param[3])
+                if _obj
+                    _target.SetSubGraphFloatVariable(_obj, CmdPrimary.ResolveFloat(param[4]))
+                endif
+			endif
+		elseif _theAction == "SetUnconscious"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.SetUnconscious(CmdPrimary.ResolveBool(param[3]))
+			endif
+		elseif _theAction == "SetVehicle"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                ObjectReference _obj = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                if _obj
+                    _target.SetVehicle(_obj)
+                endif
+			endif
+		elseif _theAction == "SetVoiceRecoveryTime"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.SetVoiceRecoveryTime(CmdPrimary.ResolveFloat(param[3]))
+			endif
+		elseif _theAction == "StartCannibal"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Actor _obj = CmdPrimary.ResolveActor(param[3])
+                if _obj
+                    _target.StartCannibal(_obj)
+                endif
+			endif
+		elseif _theAction == "StartCombat"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Actor _obj = CmdPrimary.ResolveActor(param[3])
+                if _obj
+                    _target.StartCombat(_obj)
+                endif
+			endif
+		elseif _theAction == "StartVampireFeed"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Actor _obj = CmdPrimary.ResolveActor(param[3])
+                if _obj
+                    _target.StartVampireFeed(_obj)
+                endif
+			endif
+		elseif _theAction == "UnequipItem"
+			if ParamLengthGT(CmdPrimary, param.Length, 3)
+                Form _obj = CmdPrimary.ResolveForm(param[3])
+
+                if _obj
+                    bool _bv1
+                    bool _bv2
+                    if param.Length > 3
+                        _bv1 = CmdPrimary.ResolveBool(param[3])
+                        if param.Length > 4
+                            _bv2 = CmdPrimary.ResolveBool(param[4])
+                        endif
+                    endif
+                    _target.UnequipItem(_obj, _bv1, _bv2)
+                endif
+			endif
+		elseif _theAction == "UnequipItemSlot"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.UnequipItemSlot(CmdPrimary.ResolveInt(param[3]))
+			endif
+		elseif _theAction == "UnequipShout"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Shout _obj = CmdPrimary.ResolveForm(param[3]) as Shout
+                if _obj
+                    _target.UnequipShout(_obj)
+                endif
+			endif
+		elseif _theAction == "UnequipSpell"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                Spell _obj = CmdPrimary.ResolveForm(param[3]) as Spell
+                if _obj
+                    _target.UnequipSpell(_obj, CmdPrimary.ResolveInt(param[4]))
+                endif
+			endif
+		elseif _theAction == "SendLycanthropyStateChanged"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.SendLycanthropyStateChanged(CmdPrimary.ResolveBool(param[3]))
+			endif
+		elseif _theAction == "SendVampirismStateChanged"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.SendVampirismStateChanged(CmdPrimary.ResolveBool(param[3]))
+			endif
+		elseif _theAction == "EquipItemEx"
+			if ParamLengthGT(CmdPrimary, param.Length, 4)
+                Form _obj = CmdPrimary.ResolveForm(param[3])
+
+                if _obj
+                    int _slot = CmdPrimary.ResolveInt(param[4])
+                    bool _bv1
+                    bool _bv2
+                    if param.Length > 5
+                        _bv1 = CmdPrimary.ResolveBool(param[5])
+                        if param.Length > 6
+                            _bv2 = CmdPrimary.ResolveBool(param[6])
+                        endif
+                    endif
+                    _target.EquipItemEx(_obj, _slot, _bv1, _bv2)
+                endif
+			endif
+		elseif _theAction == "EquipItemById"
+			if ParamLengthGT(CmdPrimary, param.Length, 5)
+                Form _obj = CmdPrimary.ResolveForm(param[3])
+
+                if _obj
+                    Form _itemForm = CmdPrimary.ResolveForm(param[4]) 
+                    int _itemid 
+                    if _itemForm
+                        _itemid = _itemForm.GetFormID()
+                    else
+                        _itemid = CmdPrimary.ResolveInt(param[4])
+                        CmdPrimary.SFW("Unable to load Form using (" + param[4] + ") ; resolved for int (" + _itemid + "); good luck")
+                    endif
+                    int _slot = CmdPrimary.ResolveInt(param[5]) 
+                    bool _bv1
+                    bool _bv2
+                    if param.Length > 6
+                        _bv1 = CmdPrimary.ResolveBool(param[6])
+                        if param.Length > 7
+                            _bv2 = CmdPrimary.ResolveBool(param[7])
+                        endif
+                    endif
+                    _target.EquipItemById(_obj, _itemid, _slot, _bv1, _bv2)
+                endif
+			endif
+		elseif _theAction == "UnequipItemEx"
+			if ParamLengthGT(CmdPrimary, param.Length, 4)
+                Form _obj = CmdPrimary.ResolveForm(param[3])
+
+                if _obj
+                    int _slot = CmdPrimary.ResolveInt(param[4])
+                    bool _bv1
+                    if param.Length > 5
+                        _bv1 = CmdPrimary.ResolveBool(param[5])
+                    endif
+                    _target.UnequipItemEx(_obj, _slot, _bv1)
+                endif
+			endif
+		elseif _theAction == "ChangeHeadPart"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                HeadPart _obj = CmdPrimary.ResolveForm(param[3]) as HeadPart
+
+                if _obj
+                    _target.ChangeHeadPart(_obj)
+                endif
+			endif
+		elseif _theAction == "ReplaceHeadPart"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                HeadPart _obj = CmdPrimary.ResolveForm(param[3]) as HeadPart
+
+                if _obj
+                    HeadPart _newObj = CmdPrimary.ResolveForm(param[4]) as HeadPart
+                    _target.ReplaceHeadPart(_obj, _newObj)
+                endif
+			endif
+		elseif _theAction == "UpdateWeight"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				_target.UpdateWeight(CmdPrimary.ResolveFloat(param[3]))
+			endif
+        else
+            return _slt_objectreference_doconsumer(CmdPrimary, _target, _theAction, param)
+        endif
+        return true
+    endif    
+    return false
+endFunction
+
+; sltname form_doconsumer
+; sltgrup Form
+; sltdesc For the specified Form, perform the requested consumer, provided the appropriate additional parameters
+; sltdesc 'Consumer' in this case specifically refers to functions that take parameters but return no result
+; sltdesc https://ck.uesp.net/wiki/Form_Script
+; sltargs form: target Form (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs consumer: consumer name
+; sltargsmore SetPlayerKnows
+; sltargsmore SetWorldModelPath
+; sltargsmore SetName
+; sltargsmore SetWeight
+; sltargsmore SetGoldValue
+; sltargsmore SendModEvent
+; sltsamp actor_dogetter $system.player GetEquippedShield
+; sltsamp set $shieldFormID $$
+; sltsamp form_doconsumer $shieldFormID SetWeight 0.1 ; featherweight shield
+function form_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthGT(CmdPrimary, param.Length, 3)
+        Form _target = CmdPrimary.ResolveForm(param[1])
+        
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_form_doconsumer(CmdPrimary, _target, _theAction, param)
+                    SquawkFunctionError(CmdPrimary, "form_doconsumer: unrecognized action(" + _theAction + ")")
+                endif
+            endif
+        endIf
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname objectreference_doconsumer
+; sltgrup ObjectReference
+; sltdesc For the specified ObjectReference, perform the requested consumer, provided the appropriate additional parameters
+; sltdesc 'Consumer' in this case specifically refers to functions that take parameters but return no result
+; sltdesc https://ck.uesp.net/wiki/ObjectReference_Script
+; sltargs objectreference: target ObjectReference (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs consumer: consumer name
+; sltargsmore Activate
+; sltargsmore AddInventoryEventFilter
+; sltargsmore AddItem
+; sltargsmore AddKeyIfNeeded
+; sltargsmore AddToMap
+; sltargsmore ApplyHavokImpulse
+; sltargsmore BlockActivation
+; sltargsmore CreateDetectionEvent
+; sltargsmore DamageObject
+; sltargsmore Disable
+; sltargsmore DisableLinkChain
+; sltargsmore DisableNoWait
+; sltargsmore DropObject
+; sltargsmore Enable
+; sltargsmore EnableFastTravel
+; sltargsmore EnableLinkChain
+; sltargsmore EnableNoWait
+; sltargsmore IgnoreFriendlyHits
+; sltargsmore KnockAreaEffect
+; sltargsmore Lock
+; sltargsmore MoveTo
+; sltargsmore MoveToInteractionLocation
+; sltargsmore MoveToNode
+; sltargsmore PlayTerrainEffect
+; sltargsmore ProcessTrapHit
+; sltargsmore PushActorAway
+; sltargsmore RemoveAllItems
+; sltargsmore RemoveInventoryEventFilter
+; sltargsmore RemoveItem
+; sltargsmore Reset
+; sltargsmore Say
+; sltargsmore SendStealAlarm
+; sltargsmore SetActorCause
+; sltargsmore SetActorOwner
+; sltargsmore SetAngle
+; sltargsmore SetAnimationVariableBool
+; sltargsmore SetAnimationVariableFloat
+; sltargsmore SetAnimationVariableInt
+; sltargsmore SetDestroyed
+; sltargsmore SetFactionOwner
+; sltargsmore SetLockLevel
+; sltargsmore SetMotionType
+; sltargsmore SetNoFavorAllowed
+; sltargsmore SetOpen
+; sltargsmore SetPosition
+; sltargsmore SetScale
+; sltargsmore SplineTranslateTo
+; sltargsmore SplineTranslateToRef
+; sltargsmore SplineTranslateToRefNode
+; sltargsmore TetherToHorse
+; sltargsmore TranslateTo
+; sltargsmore TranslateToRef
+; sltargsmore SetHarvested
+; sltargsmore SetItemHealthPercent
+; sltargsmore SetItemMaxCharge
+; sltargsmore SetItemCharge
+; sltargsmore SetEnchantment
+; sltargsmore CreateEnchantment
+; sltsamp actor_dogetter $system.player GetEquippedShield
+; sltsamp set $shieldFormID $$
+; sltsamp objectreference_doconsumer $shieldFormID CreateEnchantment 200.0 "Skyrim.esm:form-id-for-MGEF" 20.0 0.0 30.0
+function objectreference_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthGT(CmdPrimary, param.Length, 3)
+        ObjectReference _target = CmdPrimary.ResolveForm(param[1]) as ObjectReference
+        
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_objectreference_doconsumer(CmdPrimary, _target, _theAction, param)
+                    SquawkFunctionError(CmdPrimary, "objectreference_doconsumer: unrecognized action(" + _theAction + ")")
+                endif
+            endif
+        endIf
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname armor_doconsumer
+; sltgrup Armor
+; sltdesc For the specified Armor, perform the requested consumer, provided the appropriate additional parameters
+; sltdesc 'Consumer' in this case specifically refers to functions that take parameters but return no result
+; sltdesc https://ck.uesp.net/wiki/Armor_Script
+; sltargs Form: target Armor (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs consumer: consumer name
+; sltargsmore SetActive
+; sltargsmore SetObjectiveCompleted
+; sltargsmore SetObjectiveDisplayed
+; sltargsmore SetObjectiveFailed
+; sltsamp armor_doconsumer $someQuest SetActive true
+function armor_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthGT(CmdPrimary, param.Length, 3)
+        Armor _target = CmdPrimary.ResolveForm(param[1]) as Armor
+        
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_armor_doconsumer(CmdPrimary, _target, _theAction, param)
+                    SquawkFunctionError(CmdPrimary, "armor_doconsumer: unrecognized action(" + _theAction + ")")
+                endif
+            endif
+        endIf
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname quest_doconsumer
+; sltgrup Quest
+; sltdesc For the specified Quest, perform the requested consumer, provided the appropriate additional parameters
+; sltdesc 'Consumer' in this case specifically refers to functions that take parameters but return no result
+; sltdesc https://ck.uesp.net/wiki/Quest_Script
+; sltargs Form: target Quest (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs consumer: consumer name
+; sltargsmore SetActive
+; sltargsmore SetObjectiveCompleted
+; sltargsmore SetObjectiveDisplayed
+; sltargsmore SetObjectiveFailed
+; sltsamp quest_doconsumer $someQuest SetActive true
+function quest_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthGT(CmdPrimary, param.Length, 3)
+        Quest _target = CmdPrimary.ResolveForm(param[1]) as Quest
+        
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_quest_doconsumer(CmdPrimary, _target, _theAction, param)
+                    SquawkFunctionError(CmdPrimary, "quest_doconsumer: unrecognized action(" + _theAction + ")")
+                endif
+            endif
+        endIf
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname actorbase_doconsumer
+; sltgrup ActorBase
+; sltdesc For the specified ActorBase, perform the requested consumer, provided the appropriate additional parameters
+; sltdesc 'Consumer' in this case specifically refers to functions that take parameters but return no result
+; sltdesc https://ck.uesp.net/wiki/ActorBase_Script
+; sltargs actor: target ActorBase (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs consumer: consumer name
+; sltargsmore SetEssential
+; sltargsmore SetInvulnerable
+; sltargsmore SetProtected
+; sltargsmore SetOutfit
+; sltargsmore SetCombatStyle
+; sltargsmore SetClass
+; sltargsmore SetHeight
+; sltargsmore SetWeight
+; sltargsmore SetNthHeadPart
+; sltargsmore SetFaceMorph
+; sltargsmore SetFacePreset
+; sltargsmore SetHairColor
+; sltargsmore SetFaceTextureSet
+; sltargsmore SetVoiceType
+; sltargsmore SetSkin
+; sltargsmore SetSkinFar
+; sltsamp actorbase_doconsumer $actorBase SetInvulnerable true
+function actorbase_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthGT(CmdPrimary, param.Length, 3)
+        ActorBase _target = CmdPrimary.ResolveForm(param[1]) as ActorBase
+        
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_actorbase_doconsumer(CmdPrimary, _target, _theAction, param)
+                    CmdPrimary.SFE("actorbase_doconsumer: unrecognized action(" + _theAction + ")")
+                endif
+            endif
+        endIf
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname actor_doconsumer
+; sltgrup Actor
+; sltdesc For the specified Actor, perform the requested consumer, provided the appropriate additional parameters
+; sltdesc 'Consumer' in this case specifically refers to functions that take parameters but return no result
+; sltdesc https://ck.uesp.net/wiki/Actor_Script
+; sltargs actor: target Actor (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs consumer: consumer name
+; sltargsmore AddPerk
+; sltargsmore AddToFaction
+; sltargsmore AllowBleedoutDialogue
+; sltargsmore AllowPCDialogue
+; sltargsmore AttachAshPile
+; sltargsmore DamageActorValue
+; sltargsmore DamageAV
+; sltargsmore DoCombatSpellApply
+; sltargsmore EnableAI
+; sltargsmore EquipItem
+; sltargsmore EquipShout
+; sltargsmore EquipSpell
+; sltargsmore ForceActorValue
+; sltargsmore ForceAV
+; sltargsmore KeepOffsetFromActor
+; sltargsmore Kill
+; sltargsmore KillEssential
+; sltargsmore KillSilent
+; sltargsmore ModActorValue
+; sltargsmore ModAV
+; sltargsmore ModFactionRank
+; sltargsmore OpenInventory
+; sltargsmore PlaySubGraphAnimation
+; sltargsmore RemoveFromFaction
+; sltargsmore RemovePerk
+; sltargsmore RestoreActorValue
+; sltargsmore RestoreAV
+; sltargsmore SendTrespassAlarm
+; sltargsmore SetActorValue
+; sltargsmore SetAlert
+; sltargsmore SetAllowFlying
+; sltargsmore SetAllowFlyingEx
+; sltargsmore SetAlpha
+; sltargsmore SetAttackActorOnSight
+; sltargsmore SetAV
+; sltargsmore SetBribed
+; sltargsmore SetCrimeFaction
+; sltargsmore SetCriticalStage
+; sltargsmore SetDoingFavor
+; sltargsmore SetDontMove
+; sltargsmore SetExpressionOverride
+; sltargsmore SetEyeTexture
+; sltargsmore SetFactionRank
+; sltargsmore SetForcedLandingMarker
+; sltargsmore SetGhost
+; sltargsmore SetHeadTracking
+; sltargsmore SetIntimidated
+; sltargsmore SetLookAt
+; sltargsmore SetNoBleedoutRecovery
+; sltargsmore SetNotShowOnStealthMeter
+; sltargsmore SetOutfit
+; sltargsmore SetPlayerControls
+; sltargsmore SetPlayerTeammate
+; sltargsmore SetRace
+; sltargsmore SetRelationshipRank
+; sltargsmore SetRestrained
+; sltargsmore SetSubGraphFloatVariable
+; sltargsmore SetUnconscious
+; sltargsmore SetVehicle
+; sltargsmore SetVoiceRecoveryTime
+; sltargsmore StartCannibal
+; sltargsmore StartCombat
+; sltargsmore StartVampireFeed
+; sltargsmore UnequipItem
+; sltargsmore UnequipItemSlot
+; sltargsmore UnequipShout
+; sltargsmore UnequipSpell
+; sltargsmore SendLycanthropyStateChanged
+; sltargsmore SendVampirismStateChanged
+; sltargsmore EquipItemEx
+; sltargsmore EquipItemById
+; sltargsmore UnequipItemEx
+; sltargsmore ChangeHeadPart
+; sltargsmore ReplaceHeadPart
+; sltargsmore UpdateWeight
+; sltsamp set $newGhostStatus 1
+; sltsamp actor_doconsumer $system.self SetGhost $newGhostStatus
+function actor_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthGT(CmdPrimary, param.Length, 3)
+        Actor _target = CmdPrimary.ResolveActor(param[1])
+        
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_actor_doconsumer(CmdPrimary, _target, _theAction, param)
+                    SquawkFunctionError(CmdPrimary, "actor_doconsumer: unrecognized action(" + _theAction + ")")
+                endif
+            endif
+        endIf
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+bool Function _slt_form_dofunction(sl_triggersCmd CmdPrimary, Form _target, string _theAction, string[] param) global
+    if _target && _theAction
+        if _theAction == "HasKeywordString"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				CmdPrimary.MostRecentBoolResult = _target.HasKeywordString(CmdPrimary.ResolveString(param[3]))
+			endif
+        elseif _theAction == "HasKeyword"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Keyword _obj = CmdPrimary.ResolveForm(param[3]) as Keyword
+                if _obj
+				    CmdPrimary.MostRecentBoolResult = _target.HasKeyword(_obj)
+                endif
+			endif
+        elseif _theAction == "GetNthKeyword"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Keyword _obj = _target.GetNthKeyword(CmdPrimary.ResolveInt(param[3]))
+                if _obj
+				    CmdPrimary.MostRecentIntResult = _obj.GetFormID()
+                endif
+			endif
+        elseif _theAction == "GetWorldModelNthTextureSet"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                TextureSet _obj = _target.GetWorldModelNthTextureSet(CmdPrimary.ResolveInt(param[3]))
+                if _obj
+				    CmdPrimary.MostRecentFormResult = _obj.GetWorldModelNthTextureSet(CmdPrimary.ResolveInt(param[3]))
+                endif
+			endif
+        else
+            return false
+        endif
+        return true
+    endif
+
+    return false
+endFunction
+
+bool Function _slt_objectreference_dofunction(sl_triggersCmd CmdPrimary, ObjectReference _target, string _theAction, string[] param) global
+    if _target && _theAction
+        if _theAction == "CalculateEncounterLevel"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentIntResult = _target.CalculateEncounterLevel(CmdPrimary.ResolveInt(param[3]))
+            endif
+		elseif _theAction == "CountLinkedRefChain"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                Keyword _obj = CmdPrimary.ResolveForm(param[3]) as Keyword
+                if _obj
+                    CmdPrimary.MostRecentIntResult = _target.CountLinkedRefChain(_obj, CmdPrimary.ResolveInt(param[4]))
+                endif
+            endif
+		elseif _theAction == "GetAnimationVariableBool"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentBoolResult = _target.GetAnimationVariableBool(CmdPrimary.ResolveString(param[3]))
+            endif
+		elseif _theAction == "GetAnimationVariableFloat"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentFloatResult = _target.GetAnimationVariableFloat(CmdPrimary.ResolveString(param[3]))
+            endif
+		elseif _theAction == "GetAnimationVariableInt"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentIntResult = _target.GetAnimationVariableInt(CmdPrimary.ResolveString(param[3]))
+            endif
+		elseif _theAction == "GetDistance"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                ObjectReference _obj = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                if _obj
+                    CmdPrimary.MostRecentFloatResult = _target.GetDistance(_obj)
+                endif
+            endif
+		elseif _theAction == "GetHeadingAngle"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                ObjectReference _obj = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                if _obj
+                    CmdPrimary.MostRecentFloatResult = _target.GetHeadingAngle(_obj)
+                endif
+            endif
+		elseif _theAction == "GetItemCount"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Form _obj = CmdPrimary.ResolveForm(param[3])
+                if _obj
+                    CmdPrimary.MostRecentIntResult = _target.GetItemCount(_obj)
+                endif
+            endif
+		elseif _theAction == "HasEffectKeyword"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Keyword _obj = CmdPrimary.ResolveForm(param[3]) as Keyword
+                if _obj
+                    CmdPrimary.MostRecentBoolResult = _target.HasEffectKeyword(_obj)
+                endif
+            endif
+		elseif _theAction == "HasNode"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentBoolResult = _target.HasNode(CmdPrimary.ResolveString(param[3]))
+            endif
+		elseif _theAction == "HasRefType"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                LocationRefType _obj = CmdPrimary.ResolveForm(param[3]) as LocationRefType
+                if _obj
+                    CmdPrimary.MostRecentBoolResult = _target.HasRefType(_obj)
+                endif
+            endif
+		elseif _theAction == "IsActivateChild"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                ObjectReference _obj = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                if _obj
+                    CmdPrimary.MostRecentBoolResult = _target.IsActivateChild(_obj)
+                endif
+            endif
+		elseif _theAction == "IsFurnitureInUse"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentBoolResult = _target.IsFurnitureInUse(CmdPrimary.ResolveBool(param[3]))
+            endif
+		elseif _theAction == "IsFurnitureMarkerInUse"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                CmdPrimary.MostRecentBoolResult = _target.IsFurnitureMarkerInUse(CmdPrimary.ResolveInt(param[3]), CmdPrimary.ResolveBool(param[4]))
+            endif
+		elseif _theAction == "IsInLocation"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Location _obj = CmdPrimary.ResolveForm(param[3]) as Location
+                if _obj
+                    CmdPrimary.MostRecentBoolResult = _target.IsInLocation(_obj)
+                endif
+            endif
+		elseif _theAction == "MoveToIfUnloaded"
+            if ParamLengthEQ(CmdPrimary, param.Length, 7)
+                ObjectReference _obj = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                if _obj
+                    CmdPrimary.MostRecentBoolResult = _target.MoveToIfUnloaded(_obj, CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveFloat(param[6]))
+                endif
+            endif
+		elseif _theAction == "PlayAnimation"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentBoolResult = _target.PlayAnimation(CmdPrimary.ResolveString(param[3]))
+            endif
+		elseif _theAction == "PlayAnimationAndWait"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                CmdPrimary.MostRecentBoolResult = _target.PlayAnimationAndWait(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveString(param[4]))
+            endif
+		elseif _theAction == "PlayGamebryoAnimation"
+            if ParamLengthEQ(CmdPrimary, param.Length, 6)
+                CmdPrimary.MostRecentBoolResult = _target.PlayGamebryoAnimation(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveBool(param[4]), CmdPrimary.ResolveFloat(param[5]))
+            endif
+		elseif _theAction == "PlayImpactEffect"
+            if ParamLengthEQ(CmdPrimary, param.Length, 11)
+                ImpactDataSet _obj = CmdPrimary.ResolveForm(param[3]) as ImpactDataSet
+                if _obj
+                    CmdPrimary.MostRecentBoolResult = _target.PlayImpactEffect(_obj, CmdPrimary.ResolveString(param[4]), CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveFloat(param[6]), CmdPrimary.ResolveFloat(param[7]), CmdPrimary.ResolveFloat(param[8]), CmdPrimary.ResolveBool(param[9]), CmdPrimary.ResolveBool(param[10]))
+                endif
+            endif
+		elseif _theAction == "PlaySyncedAnimationAndWaitSS"
+            if ParamLengthEQ(CmdPrimary, param.Length, 8)
+                ObjectReference _obj = CmdPrimary.ResolveForm(param[5]) as ObjectReference
+                if _obj
+                    CmdPrimary.MostRecentBoolResult = _target.PlaySyncedAnimationAndWaitSS(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveString(param[4]), _obj, CmdPrimary.ResolveString(param[6]), CmdPrimary.ResolveString(param[7]))
+                endif
+            endif
+		elseif _theAction == "PlaySyncedAnimationSS"
+            if ParamLengthEQ(CmdPrimary, param.Length, 6)
+                ObjectReference _obj = CmdPrimary.ResolveForm(param[4]) as ObjectReference
+                if _obj
+                    CmdPrimary.MostRecentBoolResult = _target.PlaySyncedAnimationSS(CmdPrimary.ResolveString(param[3]), _obj, CmdPrimary.ResolveString(param[5]))
+                endif
+            endif
+		elseif _theAction == "RampRumble"
+            if ParamLengthEQ(CmdPrimary, param.Length, 6)
+                CmdPrimary.MostRecentBoolResult = _target.RampRumble(CmdPrimary.ResolveFloat(param[3]), CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]))
+            endif
+		elseif _theAction == "WaitForAnimationEvent"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentBoolResult = _target.WaitForAnimationEvent(CmdPrimary.ResolveString(param[3]))
+            endif
+		elseif _theAction == "SetDisplayName"
+            if ParamLengthGT(CmdPrimary, param.Length, 3)
+                bool force
+                if param.Length > 4
+                    force = CmdPrimary.ResolveBool(param[4])
+                endif
+                CmdPrimary.MostRecentBoolResult = _target.SetDisplayName(CmdPrimary.ResolveString(param[3]), force)
+            endif
+		elseif _theAction == "GetNthForm"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Form _obj = _target.GetNthForm(CmdPrimary.ResolveInt(param[3]))
+                if _obj
+                    CmdPrimary.MostRecentFormResult = _obj
+                endif
+            endif
+		elseif _theAction == "GetNthReferenceAlias"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                ReferenceAlias _obj = _target.GetNthReferenceAlias(CmdPrimary.ResolveInt(param[3]))
+                if _obj
+                    CmdPrimary.MostRecentAliasResult = _obj
+                endif
+            endif
+		elseif _theAction == "PlaceActorAtMe"
+            if ParamLengthGT(CmdPrimary, param.Length, 3)
+                ActorBase _obj = CmdPrimary.ResolveForm(param[3]) as ActorBase
+                if _obj
+                    int aiLevelMod = 4
+                    EncounterZone akZone
+                    if param.Length > 4
+                        aiLevelMod = CmdPrimary.ResolveInt(param[4])
+                        if param.Length > 5
+                            akZone = CmdPrimary.ResolveForm(param[5]) as EncounterZone
+                        endif
+                    endif
+                    Actor _actor = _target.PlaceActorAtMe(_obj, aiLevelMod, akZone)
+                    if _actor
+                        CmdPrimary.MostRecentFormResult = _actor
+                    endif
+                endif
+            endif
+		elseif _theAction == "PlaceAtMe"
+            if ParamLengthGT(CmdPrimary, param.Length, 3)
+                Form _obj = CmdPrimary.ResolveForm(param[3])
+                if _obj
+                    int aiCount = 1
+                    if param.Length > 4
+                        aiCount = CmdPrimary.ResolveInt(param[4])
+                    endif
+                    ObjectReference _placed = _target.PlaceAtMe(_obj, aiCount)
+                    if _placed
+                        CmdPrimary.MostRecentFormResult = _placed
+                    endif
+                endif
+            endif
+		elseif _theAction == "GetLinkedRef"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Keyword _obj = CmdPrimary.ResolveForm(param[3]) as Keyword
+                if _obj
+                    ObjectReference linkref = _target.GetLinkedRef(_obj)
+                    if linkref
+                        CmdPrimary.MostRecentFormResult = linkref
+                    endif
+                endif
+            endif
+		elseif _theAction == "GetNthLinkedRef"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                ObjectReference linkref = _target.GetNthLinkedRef(CmdPrimary.ResolveInt(param[3]))
+                if linkref
+                    CmdPrimary.MostRecentFormResult = linkref
+                endif
+            endif
+        else
+            return _slt_form_dofunction(CmdPrimary, _target, _theAction, param)
+        endif
+        return true
+    endif
+
+    return false
+endFunction
+
+bool Function _slt_armor_dofunction(sl_triggersCmd CmdPrimary, Armor _target, string _theAction, string[] param) global
+    if _target && _theAction
+        if _theAction == "GetMaskForSlot"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentIntResult = Armor.GetMaskForSlot(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "GetModelPath"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentStringResult = _target.GetModelPath(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "GetIconPath"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentStringResult = _target.GetIconPath(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "GetMessageIconPath"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentStringResult = _target.GetMessageIconPath(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "AddSlotToMask"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentIntResult = _target.AddSlotToMask(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "RemoveSlotFromMask"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentIntResult = _target.RemoveSlotFromMask(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "GetNthArmorAddon"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentFormResult = _target.GetNthArmorAddon(CmdPrimary.ResolveInt(param[3]))
+            endif
+        else
+            return _slt_form_dofunction(CmdPrimary, _target, _theAction, param)
+        endif
+        return true
+    endif
+
+    return false
+endFunction
+
+bool Function _slt_quest_dofunction(sl_triggersCmd CmdPrimary, Quest _target, string _theAction, string[] param) global
+    if _target && _theAction
+        if _theAction == "GetAlias"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentAliasResult = _target.GetAlias(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "GetStageDone"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentBoolResult = _target.GetStageDone(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "IsObjectiveCompleted"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentBoolResult = _target.IsObjectiveCompleted(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "IsObjectiveDisplayed"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentBoolResult = _target.IsObjectiveDisplayed(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "IsObjectiveFailed"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentBoolResult = _target.IsObjectiveFailed(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "IsStageDone"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentBoolResult = _target.IsStageDone(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "ModObjectiveGlobal"
+            if ParamLengthGT(CmdPrimary, param.Length, 4)
+                float afModValue = CmdPrimary.ResolveFloat(param[3])
+                GlobalVariable aModGlobal = CmdPrimary.ResolveForm(param[4]) as GlobalVariable
+                if aModGlobal
+                    int aiObjectiveID = -1
+                    float afTargetValue = -1.0
+                    bool abCountingUp = true
+                    bool abCompleteObjective = true
+                    bool abRedisplayObjective = true
+                    if param.Length > 5
+                        aiObjectiveID = CmdPrimary.ResolveInt(param[5])
+                        if param.Length > 6
+                            afTargetValue = CmdPrimary.ResolveFloat(param[6])
+                            if param.Length > 7
+                                abCountingUp = CmdPrimary.ResolveBool(param[7])
+                                if param.Length > 8
+                                    abCompleteObjective = CmdPrimary.ResolveBool(param[8])
+                                    if param.Length > 9
+                                        abRedisplayObjective = CmdPrimary.ResolveBool(param[9])
+                                    endif
+                                endif
+                            endif
+                        endif
+                    endif
+                    CmdPrimary.MostRecentBoolResult = _target.ModObjectiveGlobal(afModValue, aModGlobal, aiObjectiveID, afTargetValue, abCountingUp, abCompleteObjective, abRedisplayObjective)
+                endif
+            endif
+        elseif _theAction == "SetCurrentStageID"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentBoolResult = _target.SetCurrentStageID(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "SetStage"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentBoolResult = _target.SetStage(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "UpdateCurrentInstanceGlobal"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                GlobalVariable globvar = CmdPrimary.ResolveForm(param[3]) as GlobalVariable
+                If (globvar)
+                    CmdPrimary.MostRecentBoolResult = _target.UpdateCurrentInstanceGlobal(globvar)
+                EndIf
+            endif
+        elseif _theAction == "GetQuest"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentFormResult = Quest.GetQuest(CmdPrimary.ResolveString(param[3]))
+            endif
+        elseif _theAction == "GetNthAlias"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentAliasResult = _target.GetNthAlias(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "GetAliasByName"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentAliasResult = _target.GetAliasByName(CmdPrimary.ResolveString(param[3]))
+            endif
+        else
+            return _slt_form_dofunction(CmdPrimary, _target, _theAction, param)
+        endif
+        return true
+    endif
+
+    return false
+endFunction
+
+bool Function _slt_actorbase_dofunction(sl_triggersCmd CmdPrimary, ActorBase _target, string _theAction, string[] param) global
+    if _target && _theAction
+        if _theAction == "GetOutfit"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentFormResult = _target.GetOutfit(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "GetNthHeadPart"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentFormResult = _target.GetNthHeadPart(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "GetIndexOfHeadPartByType"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentIntResult = _target.GetIndexOfHeadPartByType(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "GetNthOverlayHeadPart"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentFormResult = _target.GetNthOverlayHeadPart(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "GetIndexOfOverlayHeadPartByType"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentIntResult = _target.GetIndexOfOverlayHeadPartByType(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "GetFaceMorph"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentFloatResult = _target.GetFaceMorph(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "GetFacePreset"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentIntResult = _target.GetFacePreset(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "GetNthSpell"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentFormResult = _target.GetNthSpell(CmdPrimary.ResolveInt(param[3]))
+            endif
+        else
+            return _slt_form_dofunction(CmdPrimary, _target, _theAction, param)
+        endif
+        return true
+    endif
+
+    return false
+endFunction
+
+bool Function _slt_actor_dofunction(sl_triggersCmd CmdPrimary, Actor _target, string _theAction, string[] param) global
+    if _target && _theAction
+        if _theAction == "AddShout"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Shout _obj = CmdPrimary.ResolveForm(param[3]) as Shout
+                if _obj
+				    CmdPrimary.MostRecentBoolResult = _target.AddShout(_obj)
+                endif
+			endif
+		elseif _theAction == "AddSpell"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Spell _obj = CmdPrimary.ResolveForm(param[3]) as Spell
+                if _obj
+				    CmdPrimary.MostRecentBoolResult = _target.AddSpell(_obj)
+                endif
+			endif
+		elseif _theAction == "DispelSpell"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Spell _obj = CmdPrimary.ResolveForm(param[3]) as Spell
+                if _obj
+				    CmdPrimary.MostRecentBoolResult = _target.DispelSpell(_obj)
+                endif
+			endif
+		elseif _theAction == "GetActorValue"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				CmdPrimary.MostRecentFloatResult = _target.GetActorValue(CmdPrimary.ResolveString(param[3]))
+			endif
+		elseif _theAction == "GetActorValuePercentage"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				CmdPrimary.MostRecentFloatResult = _target.GetActorValuePercentage(CmdPrimary.ResolveString(param[3]))
+			endif
+		elseif _theAction == "GetAV"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				CmdPrimary.MostRecentFloatResult = _target.GetAV(CmdPrimary.ResolveString(param[3]))
+			endif
+		elseif _theAction == "GetAVPercentage"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				CmdPrimary.MostRecentFloatResult = _target.GetAVPercentage(CmdPrimary.ResolveString(param[3]))
+			endif
+		elseif _theAction == "GetBaseActorValue"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				CmdPrimary.MostRecentFloatResult = _target.GetBaseActorValue(CmdPrimary.ResolveString(param[3]))
+			endif
+		elseif _theAction == "GetBaseAV"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				CmdPrimary.MostRecentFloatResult = _target.GetBaseAV(CmdPrimary.ResolveString(param[3]))
+			endif
+		elseif _theAction == "GetEquippedItemType"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				CmdPrimary.MostRecentIntResult = _target.GetEquippedItemType(CmdPrimary.ResolveInt(param[3]))
+			endif
+		elseif _theAction == "GetFactionRank"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Faction _obj = CmdPrimary.ResolveForm(param[3]) as Faction
+                if _obj
+				    CmdPrimary.MostRecentIntResult = _target.GetFactionRank(_obj)
+                endif
+			endif
+		elseif _theAction == "GetFactionReaction"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Actor _obj = CmdPrimary.ResolveActor(param[3])
+                if _obj
+				    CmdPrimary.MostRecentIntResult = _target.GetFactionReaction(_obj)
+                endif
+			endif
+		elseif _theAction == "GetRelationshipRank"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Actor _obj = CmdPrimary.ResolveActor(param[3])
+                if _obj
+				    CmdPrimary.MostRecentIntResult = _target.GetRelationshipRank(_obj)
+                endif
+			endif
+		elseif _theAction == "HasAssociation"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                AssociationType _assoc = CmdPrimary.ResolveForm(param[3]) as AssociationType
+                if _assoc
+                    Actor _obj = CmdPrimary.ResolveActor(param[4])
+                    if _obj
+                        CmdPrimary.MostRecentBoolResult = _target.HasAssociation(_assoc, _obj)
+                    endif
+                endif
+			endif
+		elseif _theAction == "HasFamilyRelationship"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Actor _obj = CmdPrimary.ResolveActor(param[3])
+                if _obj
+				    CmdPrimary.MostRecentBoolResult = _target.HasFamilyRelationship(_obj)
+                endif
+			endif
+		elseif _theAction == "HasLOS"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                ObjectReference _obj = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                if _obj
+				    CmdPrimary.MostRecentBoolResult = _target.HasLOS(_obj)
+                endif
+			endif
+		elseif _theAction == "HasMagicEffect"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                MagicEffect _obj = CmdPrimary.ResolveForm(param[3]) as MagicEffect
+                if _obj
+				    CmdPrimary.MostRecentBoolResult = _target.HasMagicEffect(_obj)
+                endif
+			endif
+		elseif _theAction == "HasMagicEffectWithKeyword"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Keyword _obj = CmdPrimary.ResolveForm(param[3]) as Keyword
+                if _obj
+				    CmdPrimary.MostRecentBoolResult = _target.HasMagicEffectWithKeyword(_obj)
+                endif
+			endif
+		elseif _theAction == "HasParentRelationship"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Actor _obj = CmdPrimary.ResolveActor(param[3])
+                if _obj
+				    CmdPrimary.MostRecentBoolResult = _target.HasParentRelationship(_obj)
+                endif
+			endif
+		elseif _theAction == "HasPerk"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Perk _obj = CmdPrimary.ResolveForm(param[3]) as Perk
+                if _obj
+				    CmdPrimary.MostRecentBoolResult = _target.HasPerk(_obj)
+                endif
+			endif
+		elseif _theAction == "HasSpell"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Spell _obj = CmdPrimary.ResolveForm(param[3]) as Spell
+                if _obj
+				    CmdPrimary.MostRecentBoolResult = _target.HasSpell(_obj)
+                endif
+			endif
+		elseif _theAction == "IsDetectedBy"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Actor _obj = CmdPrimary.ResolveActor(param[3])
+                if _obj
+				    CmdPrimary.MostRecentBoolResult = _target.IsDetectedBy(_obj)
+                endif
+			endif
+		elseif _theAction == "IsEquipped"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Form _obj = CmdPrimary.ResolveForm(param[3])
+                if _obj
+				    CmdPrimary.MostRecentBoolResult = _target.IsEquipped(_obj)
+                endif
+			endif
+		elseif _theAction == "IsHostileToActor"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Actor _obj = CmdPrimary.ResolveActor(param[3])
+                if _obj
+				    CmdPrimary.MostRecentBoolResult = _target.IsHostileToActor(_obj) 
+                endif
+			endif
+		elseif _theAction == "IsInFaction"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Faction _obj = CmdPrimary.ResolveForm(param[3]) as Faction
+                if _obj
+				    CmdPrimary.MostRecentBoolResult = _target.IsInFaction(_obj)
+                endif
+			endif
+		elseif _theAction == "PathToReference"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                ObjectReference _obj = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                if _obj
+				    CmdPrimary.MostRecentBoolResult = _target.PathToReference(_obj, CmdPrimary.ResolveFloat(param[4]))
+                endif
+			endif
+		elseif _theAction == "PlayIdle"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Idle _obj = CmdPrimary.ResolveForm(param[3]) as Idle
+                if _obj
+				    CmdPrimary.MostRecentBoolResult = _target.PlayIdle(_obj)
+                endif
+			endif
+		elseif _theAction == "PlayIdleWithTarget"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Idle _obj = CmdPrimary.ResolveForm(param[3]) as Idle
+                if _obj
+                    ObjectReference _objref = CmdPrimary.ResolveForm(param[4]) as ObjectReference
+                    if _objref
+				        CmdPrimary.MostRecentBoolResult = _target.PlayIdleWithTarget(_obj, _objref)
+                    endif
+                endif
+			endif
+		elseif _theAction == "RemoveShout"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Shout _obj = CmdPrimary.ResolveForm(param[3]) as Shout
+                if _obj
+				    CmdPrimary.MostRecentBoolResult = _target.RemoveShout(_obj)
+                endif
+			endif
+		elseif _theAction == "RemoveSpell"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Spell _obj = CmdPrimary.ResolveForm(param[3]) as Spell
+                if _obj
+				    CmdPrimary.MostRecentBoolResult = _target.RemoveSpell(_obj)
+                endif
+			endif
+		elseif _theAction == "TrapSoul"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Actor _obj = CmdPrimary.ResolveActor(param[3])
+                if _obj
+				    CmdPrimary.MostRecentBoolResult = _target.TrapSoul(_obj) 
+                endif
+			endif
+		elseif _theAction == "WornHasKeyword"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Keyword _obj = CmdPrimary.ResolveForm(param[3]) as Keyword
+                if _obj
+				    CmdPrimary.MostRecentBoolResult = _target.WornHasKeyword(_obj)
+                endif
+			endif
+		elseif _theAction == "GetActorValueMax"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				CmdPrimary.MostRecentFloatResult = _target.GetActorValueMax(CmdPrimary.ResolveString(param[3]))
+			endif
+		elseif _theAction == "GetAVMax"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				CmdPrimary.MostRecentFloatResult = _target.GetAVMax(CmdPrimary.ResolveString(param[3]))
+			endif
+		elseif _theAction == "GetEquippedItemId"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+				CmdPrimary.MostRecentIntResult = _target.GetEquippedItemId(CmdPrimary.ResolveInt(param[3]))
+			endif
+		elseif _theAction == "GetEquippedSpell"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Spell _obj = _target.GetEquippedSpell(CmdPrimary.ResolveInt(param[3]))
+                if _obj
+				    CmdPrimary.MostRecentFormResult = _obj
+                endif
+			endif
+		elseif _theAction == "GetEquippedWeapon"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Weapon _obj = _target.GetEquippedWeapon(CmdPrimary.ResolveBool(param[3]))
+                if _obj
+				    CmdPrimary.MostRecentFormResult = _obj
+                endif
+			endif
+		elseif _theAction == "GetEquippedArmorInSlot"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Armor _obj = _target.GetEquippedArmorInSlot(CmdPrimary.ResolveInt(param[3]))
+                if _obj
+				    CmdPrimary.MostRecentFormResult = _obj
+                endif
+			endif
+		elseif _theAction == "GetWornForm"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Form _obj = _target.GetWornForm(CmdPrimary.ResolveInt(param[3]))
+                if _obj
+				    CmdPrimary.MostRecentFormResult = _obj
+                endif
+			endif
+		elseif _theAction == "GetEquippedObject"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Form _obj = _target.GetEquippedObject(CmdPrimary.ResolveInt(param[3]))
+                if _obj
+				    CmdPrimary.MostRecentFormResult = _obj
+                endif
+			endif
+		elseif _theAction == "GetNthSpell"
+			if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Spell _obj = _target.GetNthSpell(CmdPrimary.ResolveInt(param[3]))
+                if _obj
+				    CmdPrimary.MostRecentFormResult = _obj
+                endif
+			endif
+		elseif _theAction == "GetFactions"
+			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                Faction[] factions = _target.GetFactions(CmdPrimary.ResolveInt(param[3]), CmdPrimary.ResolveInt(param[4]))
+                Form[] formFactions = FactionArrayToFormArray(factions)
+                CmdPrimary.MostRecentListFormResult = formFactions
+			endif
+        else
+            return _slt_objectreference_dofunction(CmdPrimary, _target, _theAction, param)
+        endif
+        return true
+    endif
+
+    return false
+endFunction
+
+; sltname form_dofunction
+; sltgrup Form
+; sltdesc For the targeted Form, set $$ to the result of the specified function
+; sltdesc 'Function' in this case specifically refers to functions that take one or more parameters and return a value
+; sltdesc https://ck.uesp.net/wiki/Form_Script
+; sltargs actor: target Form  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs function: function name
+; sltargsmore HasKeywordString
+; sltargsmore HasKeyword
+; sltargsmore GetNthKeyword
+; sltargsmore GetWorldModelNthTextureSet
+; sltsamp form_dofunction $system.self HasKeywordString "ActorTypeNPC"
+; sltsamp ; $$ should contain true/false based on whether self has the indicated keyword
+function form_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthGT(CmdPrimary, param.Length, 3)
+        Form _target = CmdPrimary.ResolveForm(param[1])
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_form_dofunction(CmdPrimary, _target, _theAction, param)
+                    SquawkFunctionError(CmdPrimary, "form_dofunction: unrecognized action(" + _theAction + ")")
+                endif
+            endif
+        endif
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname objectreference_dofunction
+; sltgrup ObjectReference
+; sltdesc For the targeted ObjectReference, set $$ to the result of the specified function
+; sltdesc 'Function' in this case specifically refers to functions that take one or more parameters and return a value
+; sltdesc https://ck.uesp.net/wiki/ObjectReference_Script
+; sltargs actor: target ObjectReference  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs function: function name
+; sltargsmore CalculateEncounterLevel
+; sltargsmore CountLinkedRefChain
+; sltargsmore GetAnimationVariableBool
+; sltargsmore GetAnimationVariableFloat
+; sltargsmore GetAnimationVariableInt
+; sltargsmore GetDistance
+; sltargsmore GetHeadingAngle
+; sltargsmore GetItemCount
+; sltargsmore HasEffectKeyword
+; sltargsmore HasNode
+; sltargsmore HasRefType
+; sltargsmore IsActivateChild
+; sltargsmore IsFurnitureInUse
+; sltargsmore IsFurnitureMarkerInUse
+; sltargsmore IsInLocation
+; sltargsmore MoveToIfUnloaded
+; sltargsmore PlayAnimation
+; sltargsmore PlayAnimationAndWait
+; sltargsmore PlayGamebryoAnimation
+; sltargsmore PlayImpactEffect
+; sltargsmore PlaySyncedAnimationAndWaitSS
+; sltargsmore PlaySyncedAnimationSS
+; sltargsmore RampRumble
+; sltargsmore WaitForAnimationEvent
+; sltargsmore SetDisplayName
+; sltargsmore GetNthForm
+; sltargsmore PlaceActorAtMe
+; sltargsmore PlaceAtMe
+; sltargsmore GetLinkedRef
+; sltargsmore GetNthLinkedRef
+; sltsamp set $containerFormID "AContainerEditorIDForExample"
+; sltsamp objectreference_dofunction $system.self GetItemCount $containerFormID
+; sltsamp ; $$ should contain an int value with the number of items in the container
+function objectreference_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthGT(CmdPrimary, param.Length, 3)
+        ObjectReference _target = CmdPrimary.ResolveForm(param[1]) as ObjectReference
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_objectreference_dofunction(CmdPrimary, _target, _theAction, param)
+                    SquawkFunctionError(CmdPrimary, "objectreference_dofunction: unrecognized action(" + _theAction + ")")
+                endif
+            endif
+        endif
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname armor_dofunction
+; sltgrup Armor
+; sltdesc For the targeted Armor, set $$ to the result of the specified function
+; sltdesc 'Function' in this case specifically refers to functions that take one or more parameters and return a value
+; sltdesc https://ck.uesp.net/wiki/Armor_Script
+; sltargs Form: target Armor  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs function: function name
+; sltargsmore GetMaskForSlot
+; sltargsmore GetModelPath
+; sltargsmore GetIconPath
+; sltargsmore GetMessageIconPath
+; sltargsmore AddSlotToMask
+; sltargsmore RemoveSlotFromMask
+; sltargsmore GetNthArmorAddon
+function armor_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthGT(CmdPrimary, param.Length, 3)
+        Armor _target = CmdPrimary.ResolveForm(param[1]) as Armor
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_armor_dofunction(CmdPrimary, _target, _theAction, param)
+                    SquawkFunctionError(CmdPrimary, "armor_dofunction: unrecognized action(" + _theAction + ")")
+                endif
+            endif
+        endif
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname quest_dofunction
+; sltgrup Quest
+; sltdesc For the targeted Quest, set $$ to the result of the specified function
+; sltdesc 'Function' in this case specifically refers to functions that take one or more parameters and return a value
+; sltdesc https://ck.uesp.net/wiki/Quest_Script
+; sltargs Form: target Quest  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs function: function name
+; sltargsmore GetAlias
+; sltargsmore GetStageDone
+; sltargsmore IsObjectiveCompleted
+; sltargsmore IsObjectiveDisplayed
+; sltargsmore IsObjectiveFailed
+; sltargsmore IsStageDone
+; sltargsmore ModObjectiveGlobal
+; sltargsmore SetCurrentStageID
+; sltargsmore SetStage
+; sltargsmore UpdateCurrentInstanceGlobal
+; sltargsmore GetQuest
+; sltargsmore GetNthAlias
+; sltargsmore GetAliasByName
+; sltsamp set $success resultfrom quest_dofunction $questForm SetCurrentStageID 0
+function quest_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthGT(CmdPrimary, param.Length, 3)
+        Quest _target = CmdPrimary.ResolveForm(param[1]) as Quest
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_quest_dofunction(CmdPrimary, _target, _theAction, param)
+                    SquawkFunctionError(CmdPrimary, "quest_dofunction: unrecognized action(" + _theAction + ")")
+                endif
+            endif
+        endif
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname actorbase_dofunction
+; sltgrup ActorBase
+; sltdesc For the targeted ActorBase, set $$ to the result of the specified Function
+; sltdesc 'Function' in this case specifically refers to functions that take one or more parameters and return a value
+; sltdesc https://ck.uesp.net/wiki/ActorBase_Script
+; sltargs actor: target ActorBase  (both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs function: function name
+; sltargsmore GetOutfit
+; sltargsmore GetNthHeadPart
+; sltargsmore GetIndexOfHeadPartByType
+; sltargsmore GetNthOverlayHeadPart
+; sltargsmore GetIndexOfOverlayHeadPartByType
+; sltargsmore GetFaceMorph
+; sltargsmore GetFacePreset
+; sltargsmore GetNthSpell
+; sltsamp set $spell resultfrom actorbase_dofunction $anActorBase GetNthSpell 0
+function actorbase_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthGT(CmdPrimary, param.Length, 3)
+        ActorBase _target = CmdPrimary.ResolveForm(param[1]) as ActorBase
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_actorbase_dofunction(CmdPrimary, _target, _theAction, param)
+                    CmdPrimary.SFE("actorbase_dofunction: unrecognized action(" + _theAction + ")")
+                endif
+            endif
+        endif
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname actor_dofunction
+; sltgrup Actor
+; sltdesc For the targeted Actor, set $$ to the result of the specified Function
+; sltdesc 'Function' in this case specifically refers to functions that take one or more parameters and return a value
+; sltdesc https://ck.uesp.net/wiki/Actor_Script
+; sltargs actor: target Actor  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs function: function name
+; sltargsmore AddShout
+; sltargsmore AddSpell
+; sltargsmore DispelSpell
+; sltargsmore GetActorValue
+; sltargsmore GetActorValuePercentage
+; sltargsmore GetAV
+; sltargsmore GetAVPercentage
+; sltargsmore GetBaseActorValue
+; sltargsmore GetBaseAV
+; sltargsmore GetEquippedItemType
+; sltargsmore GetFactionRank
+; sltargsmore GetFactionReaction
+; sltargsmore GetRelationshipRank
+; sltargsmore HasAssociation
+; sltargsmore HasFamilyRelationship
+; sltargsmore HasLOS
+; sltargsmore HasMagicEffect
+; sltargsmore HasMagicEffectWithKeyword
+; sltargsmore HasParentRelationship
+; sltargsmore HasPerk
+; sltargsmore HasSpell
+; sltargsmore IsDetectedBy
+; sltargsmore IsEquipped
+; sltargsmore IsHostileToActor
+; sltargsmore IsInFaction
+; sltargsmore PathToReference
+; sltargsmore PlayIdle
+; sltargsmore PlayIdleWithTarget
+; sltargsmore RemoveShout
+; sltargsmore RemoveSpell
+; sltargsmore TrapSoul
+; sltargsmore WornHasKeyword
+; sltargsmore GetActorValueMax
+; sltargsmore GetAVMax
+; sltargsmore GetEquippedItemId
+; sltargsmore GetEquippedSpell
+; sltargsmore GetEquippedWeapon
+; sltargsmore GetEquippedArmorInSlot
+; sltargsmore GetWornForm
+; sltargsmore GetEquippedObject
+; sltargsmore GetNthSpell
+; sltsamp actor_dofunction $system.self GetBaseAV "Health"
+; sltsamp ; $$ should contain a float value with the base "Health" Actor Value
+function actor_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthGT(CmdPrimary, param.Length, 3)
+        Actor _target = CmdPrimary.ResolveActor(param[1])
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_actor_dofunction(CmdPrimary, _target, _theAction, param)
+                    SquawkFunctionError(CmdPrimary, "actor_dofunction: unrecognized action(" + _theAction + ")")
+                endif
+            endif
+        endif
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction

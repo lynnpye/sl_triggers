@@ -1,0 +1,11 @@
+{
+	"int" : 
+	{
+		"__slt_mod_version__" : 900,
+		"event" : 5
+	},
+	"string" : 
+	{
+		"do_1" : "ChangeIsGood"
+	}
+}

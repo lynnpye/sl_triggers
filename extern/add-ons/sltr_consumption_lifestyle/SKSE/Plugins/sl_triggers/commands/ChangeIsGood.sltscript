@@ -1,0 +1,51 @@
+; this runs after a container has been closed
+; $request.core.activatedContainer
+;   .is_corpse  ; don't care
+;   .is_empty   ; don't care
+;   .is_common  ; don't care
+beginsub checksub
+	set $itemCount resultfrom objectreference_dofunction $request.core.activatedContainer GetItemCount $checkFormID
+	if $itemCount > 0
+		inc $foundItems 1
+        item_remove $request.core.activatedContainer $checkFormID $itemCount false $system.player
+	endif
+endsub
+
+if $request.core.activatedContainer == none
+    deb_msg $"$request.core.activatedContainer is 'none'; did you run this outside the 'On Container Activate' event?"
+    return
+endif
+
+set $checkFormID "TFEResetPotion"
+gosub checksub
+set $checkFormID "TFEMagnificationPotion"
+gosub checksub
+set $checkFormID "TFEDiminishingPotion"
+gosub checksub
+set $checkFormID "TFEExpansionPotion"
+gosub checksub
+set $checkFormID "TFECompactingPotion"
+gosub checksub
+set $checkFormID "TFECurvesPotion"
+gosub checksub
+set $checkFormID "TFEFlatteningPotion"
+gosub checksub
+set $checkFormID "TFENippleIncreasePotion"
+gosub checksub
+set $checkFormID "TFENippleReducePotion"
+gosub checksub
+set $checkFormID "TFEBoobPotion"
+gosub checksub
+set $checkFormID "TFEButtPotion"
+gosub checksub
+set $checkFormID "TFEHipsPotion"
+gosub checksub
+set $checkFormID "TFEThighsPotion"
+gosub checksub
+set $checkFormID "TFEArmsPotion"
+gosub checksub
+set $checkFormID "TFEWaistPotion"
+gosub checksub
+set $checkFormID "TFEBellyPotion"
+gosub checksub
+

@@ -278,7 +278,7 @@ string Function FN_Settings() global
 	return "../sl_triggers/settings"
 EndFunction
 
-string Function FN_MoreContainersWeKnowAndLove() global
+string Function FN_ContainerBlacklistJSON() global
 	return "../sl_triggers/containers.json"
 EndFunction
 
@@ -492,6 +492,16 @@ Actor[] Function FormArrayToActorArray(Form[] value) global
 EndFunction
 
 Form[] Function ActorArrayToFormArray(Actor[] value) global
+	Form[] result = PapyrusUtil.FormArray(value.Length)
+	int i = value.Length
+	while i
+		i -= 1
+		result[i] = value[i]
+	endwhile
+	return result
+EndFunction
+
+Form[] Function FactionArrayToFormArray(Faction[] value) global
 	Form[] result = PapyrusUtil.FormArray(value.Length)
 	int i = value.Length
 	while i

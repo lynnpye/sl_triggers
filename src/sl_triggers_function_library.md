@@ -121,7 +121,7 @@ https://ck.uesp.net/wiki/Actor_Script
 
 **Parameters**
 
-    actor: target Actor (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)  
+    actor: target Actor (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     consumer: consumer name  
 
     AddPerk  
@@ -218,7 +218,7 @@ https://ck.uesp.net/wiki/Actor_Script
 
 **Parameters**
 
-    actor: target Actor  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0f" and absolute "0f" values)  
+    actor: target Actor  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     function: function name  
 
     AddShout  
@@ -281,7 +281,7 @@ https://ck.uesp.net/wiki/Actor_Script
 
 **Parameters**
 
-    actor: target Actor  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0f" and absolute "0f" values)  
+    actor: target Actor  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     getter: getter name  
 
     ;;;; These are from Actor  
@@ -1112,7 +1112,7 @@ https://ck.uesp.net/wiki/ActorBase_Script
 
 **Parameters**
 
-    actor: target ActorBase (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)  
+    actor: target ActorBase (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     consumer: consumer name  
 
     SetEssential  
@@ -1149,7 +1149,7 @@ https://ck.uesp.net/wiki/ActorBase_Script
 
 **Parameters**
 
-    actor: target ActorBase  (both relative "Skyrim.esm:0f" and absolute "0f" values)  
+    actor: target ActorBase  (both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     function: function name  
 
     GetOutfit  
@@ -1178,7 +1178,7 @@ https://ck.uesp.net/wiki/ActorBase_Script
 
 **Parameters**
 
-    actor: target ActorBase  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0f" and absolute "0f" values)  
+    actor: target ActorBase  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     getter: getter name  
 
     ;;;; These are from ActorBase  
@@ -1205,6 +1205,101 @@ https://ck.uesp.net/wiki/ActorBase_Script
     GetSkinFar  
     GetTemplate  
 
+
+
+
+## Armor
+
+### armor_doconsumer
+
+**Description**
+
+For the specified Armor, perform the requested consumer, provided the appropriate additional parameters
+'Consumer' in this case specifically refers to functions that take parameters but return no result
+https://ck.uesp.net/wiki/Armor_Script
+
+**Parameters**
+
+    Form: target Armor (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
+    consumer: consumer name  
+
+    SetActive  
+    SetObjectiveCompleted  
+    SetObjectiveDisplayed  
+    SetObjectiveFailed  
+
+
+**Example**
+
+    armor_doconsumer $someQuest SetActive true  
+
+
+
+### armor_dofunction
+
+**Description**
+
+For the targeted Armor, set $$ to the result of the specified function
+'Function' in this case specifically refers to functions that take one or more parameters and return a value
+https://ck.uesp.net/wiki/Armor_Script
+
+**Parameters**
+
+    Form: target Armor  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
+    function: function name  
+
+    GetMaskForSlot  
+    GetModelPath  
+    GetIconPath  
+    GetMessageIconPath  
+    AddSlotToMask  
+    RemoveSlotFromMask  
+    GetNthArmorAddon  
+
+
+
+
+### armor_dogetter
+
+**Description**
+
+For the targeted Armor, set $$ to the result of the specified getter
+'Getter' in this case specifically refers to functions that take no parameters but return a value
+https://ck.uesp.net/wiki/Armor_Script
+
+**Parameters**
+
+    Form: target Armor  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
+    getter: getter name  
+
+    GetWarmthRating  
+    GetArmorRating  
+    GetAR  
+    GetWeightClass  
+    GetEnchantment  
+    GetSlotMask  
+    GetNumArmorAddons  
+    IsLightArmor  
+    IsHeavyArmor  
+    IsClothing  
+    IsBoots  
+    IsCuirass  
+    IsGauntlets  
+    IsHelmet  
+    IsShield  
+    IsJewelry  
+    IsClothingHead  
+    IsClothingBody  
+    IsClothingFeet  
+    IsClothingHands  
+    IsClothingRing  
+    IsClothingRich  
+    IsClothingPoor  
+
+
+**Example**
+
+    armor_dogetter $system.self GetStage  
 
 
 
@@ -1237,7 +1332,7 @@ https://ck.uesp.net/wiki/Form_Script
 
 **Parameters**
 
-    form: target Form (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)  
+    form: target Form (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     action: action name  
 
     ;;;; These are from Form  
@@ -1277,7 +1372,7 @@ https://ck.uesp.net/wiki/Form_Script
 
 **Parameters**
 
-    form: target Form (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)  
+    form: target Form (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     consumer: consumer name  
 
     SetPlayerKnows  
@@ -1306,7 +1401,7 @@ https://ck.uesp.net/wiki/Form_Script
 
 **Parameters**
 
-    actor: target Form  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0f" and absolute "0f" values)  
+    actor: target Form  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     function: function name  
 
     HasKeywordString  
@@ -1332,7 +1427,7 @@ https://ck.uesp.net/wiki/Form_Script
 
 **Parameters**
 
-    form: target Form (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)  
+    form: target Form (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     getter: getter name  
 
     ;;;; T79686hese are from Form  
@@ -1592,17 +1687,18 @@ Remove the item from the actor's inventory
 
 **Parameters**
 
-    actor: target Actor  
+    ObjectReference container: container (typically an Actor) to remove an item from  
     item: ITEM FormId  
     count: number  
-    displaymessage: 0 - show message | 1 - silent (optional: default 0 - show message)  
+    silent: false - show message | true - silent (optional: default false - show message)  
+    ObjectReference targetContainer: other container to move the item to (optional: default none)  
 
 
 **Example**
 
-    item_remove $system.self "skyrim.esm:15" 10 0  
+    item_remove $system.self "skyrim.esm:15" 10 0 $system.player  
 
-Removes up to 10 gold from the actor  
+Removes up to 10 gold from the actor, looting it to the player  
 
 
 ### item_unequipex
@@ -2178,7 +2274,7 @@ https://ck.uesp.net/wiki/ObjectReference_Script
 
 **Parameters**
 
-    objectreference: target ObjectReference  (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)  
+    objectreference: target ObjectReference  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     action: action name  
 
     ;;;; These are from ObjectReference  
@@ -2212,7 +2308,7 @@ https://ck.uesp.net/wiki/ObjectReference_Script
 
 **Parameters**
 
-    objectreference: target ObjectReference (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)  
+    objectreference: target ObjectReference (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     consumer: consumer name  
 
     Activate  
@@ -2293,7 +2389,7 @@ https://ck.uesp.net/wiki/ObjectReference_Script
 
 **Parameters**
 
-    actor: target ObjectReference  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0f" and absolute "0f" values)  
+    actor: target ObjectReference  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     function: function name  
 
     CalculateEncounterLevel  
@@ -2346,7 +2442,7 @@ https://ck.uesp.net/wiki/ObjectReference_Script
 
 **Parameters**
 
-    objectreference: target ObjectReference  (accepts both relative "Skyrim.esm:0f" and absolute "0f" values)  
+    objectreference: target ObjectReference  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     getter: getter name  
 
     ;;;; These are from ObjectReference  
@@ -2716,6 +2812,127 @@ Remove specified perk from the targeted actor
 **Example**
 
     perk_remove "skyrim.esm:12384" $system.self  
+
+
+
+## Quest
+
+### quest_doaction
+
+**Description**
+
+For the targeted Quest, perform the associated function based on the specified action
+'Action' in this case specifically refers to functions that take no parameters and return no values
+https://ck.uesp.net/wiki/Quest_Script
+
+**Parameters**
+
+    Form: target Quest  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
+    action: action name  
+
+    CompleteAllObjectives  
+    CompleteQuest  
+    FailAllObjectives  
+    Reset  
+    Stop  
+    ;;;; will call form_doaction if no matches are found  
+
+
+**Example**
+
+    quest_doaction $system.self CompleteQuest  
+
+
+
+### quest_doconsumer
+
+**Description**
+
+For the specified Quest, perform the requested consumer, provided the appropriate additional parameters
+'Consumer' in this case specifically refers to functions that take parameters but return no result
+https://ck.uesp.net/wiki/Quest_Script
+
+**Parameters**
+
+    Form: target Quest (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
+    consumer: consumer name  
+
+    SetActive  
+    SetObjectiveCompleted  
+    SetObjectiveDisplayed  
+    SetObjectiveFailed  
+
+
+**Example**
+
+    quest_doconsumer $someQuest SetActive true  
+
+
+
+### quest_dofunction
+
+**Description**
+
+For the targeted Quest, set $$ to the result of the specified function
+'Function' in this case specifically refers to functions that take one or more parameters and return a value
+https://ck.uesp.net/wiki/Quest_Script
+
+**Parameters**
+
+    Form: target Quest  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
+    function: function name  
+
+    GetAlias  
+    GetStageDone  
+    IsObjectiveCompleted  
+    IsObjectiveDisplayed  
+    IsObjectiveFailed  
+    IsStageDone  
+    ModObjectiveGlobal  
+    SetCurrentStageID  
+    SetStage  
+    UpdateCurrentInstanceGlobal  
+    GetQuest  
+    GetNthAlias  
+    GetAliasByName  
+
+
+**Example**
+
+    set $success resultfrom quest_dofunction $questForm SetCurrentStageID 0  
+
+
+
+### quest_dogetter
+
+**Description**
+
+For the targeted Quest, set $$ to the result of the specified getter
+'Getter' in this case specifically refers to functions that take no parameters but return a value
+https://ck.uesp.net/wiki/Quest_Script
+
+**Parameters**
+
+    Form: target Quest  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
+    getter: getter name  
+
+    GetCurrentStageID  
+    GetStage  
+    IsActive  
+    IsCompleted  
+    IsRunning  
+    IsStarting  
+    IsStopping  
+    IsStopped  
+    Start  
+    GetID  
+    GetPriority  
+    GetNumAliases  
+
+
+**Example**
+
+    quest_dogetter $system.self GetStage  
 
 
 

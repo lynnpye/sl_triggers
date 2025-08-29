@@ -1,4 +1,5 @@
 {
+    "sl_triggersCmdLibBase" : 11000,
     "sl_triggersCmdLibRacemenuNIO" : 10000,
     "sl_triggersCmdLibNFF" : 10000
 }

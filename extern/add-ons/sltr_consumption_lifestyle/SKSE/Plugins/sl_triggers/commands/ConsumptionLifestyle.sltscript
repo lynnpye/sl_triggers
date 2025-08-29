@@ -1,0 +1,50 @@
+beginsub consumecheck
+	set $itemCount resultfrom objectreference_dofunction $system.player GetItemCount $checkFormID
+	if $itemCount > 0
+		inc $foundItems 1
+		while $itemCount > 0
+			inc $itemCount -1
+			item_equip $system.player $checkFormID false false
+		endwhile
+	endif
+endsub
+
+set $playerName resultfrom actor_name $system.player
+deb_msg $"Scanning {$playerName} inventory for that consumption lifestyle."
+
+set $foundItems 0
+set $consumedItems 0
+set $checkFormID "TFEResetPotion"
+gosub consumecheck
+set $checkFormID "TFEMagnificationPotion"
+gosub consumecheck
+set $checkFormID "TFEDiminishingPotion"
+gosub consumecheck
+set $checkFormID "TFEExpansionPotion"
+gosub consumecheck
+set $checkFormID "TFECompactingPotion"
+gosub consumecheck
+set $checkFormID "TFECurvesPotion"
+gosub consumecheck
+set $checkFormID "TFEFlatteningPotion"
+gosub consumecheck
+set $checkFormID "TFENippleIncreasePotion"
+gosub consumecheck
+set $checkFormID "TFENippleReducePotion"
+gosub consumecheck
+set $checkFormID "TFEBoobPotion"
+gosub consumecheck
+set $checkFormID "TFEButtPotion"
+gosub consumecheck
+set $checkFormID "TFEHipsPotion"
+gosub consumecheck
+set $checkFormID "TFEThighsPotion"
+gosub consumecheck
+set $checkFormID "TFEArmsPotion"
+gosub consumecheck
+set $checkFormID "TFEWaistPotion"
+gosub consumecheck
+set $checkFormID "TFEBellyPotion"
+gosub consumecheck
+
+deb_msg $"Done scanning for that consumption lifestyle; found {$foundItems} consumables; consumed {$consumedItems}."

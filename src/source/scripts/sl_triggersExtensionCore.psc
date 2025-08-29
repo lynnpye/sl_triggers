@@ -6,7 +6,7 @@ scriptname sl_triggersExtensionCore extends sl_triggersExtension
 
 import sl_triggersStatics
 
-FormList Property				TheContainersWeKnowAndLove Auto ; so many naming schemes to choose from
+FormList Property				ContainerBlacklist Auto ; so many naming schemes to choose from
 
 string	EVENT_TOP_OF_THE_HOUR					= "TopOfTheHour"
 string	EVENT_TOP_OF_THE_HOUR_HANDLER			= "OnTopOfTheHour"
@@ -228,7 +228,7 @@ Function RefreshData()
 	if SLT.Debug_Extension || SLT.Debug_Extension_Core
 		SLTDebugMsg("Core.RefreshData")
 	endif
-	RefreshTheContainersWeKnowAndLove()
+	RefreshContainerBlacklist()
 	RegisterEvents()
 EndFunction
 
@@ -492,27 +492,27 @@ Function SLTR_Internal_PlayerActivatedContainer(ObjectReference containerRef, bo
 	endif
 EndFunction
 
-Function RefreshTheContainersWeKnowAndLove()
+Function RefreshContainerBlacklist()
 	if SLT.Debug_Cmd
-		SLTDebugMsg("Core.RefreshTheContainersWeKnowAndLove: starting")
+		SLTDebugMsg("Core.RefreshContainerBlacklist: starting")
 	endif
 
-	TheContainersWeKnowAndLove.Revert()
+	ContainerBlacklist.Revert()
 	Container containerToAdd
-	Int i = JsonUtil.StringListCount(FN_MoreContainersWeKnowAndLove(), "dt_additional")
+	Int i = JsonUtil.StringListCount(FN_ContainerBlacklistJSON(), "dt_blacklist")
 	string conFormStr
 	string[] conFormStrParts
 	Form conForm
 
 	While i
 		i -=1
-		conFormStr = JsonUtil.StringListGet(FN_MoreContainersWeKnowAndLove(), "dt_additional", i)
+		conFormStr = JsonUtil.StringListGet(FN_ContainerBlacklistJSON(), "dt_blacklist", i)
 		conFormStrParts = PapyrusUtil.StringSplit(conFormStr, ":")
 		if conFormStrParts.Length == 2
 			int modindex = Game.GetModByName(conFormStrParts[0])
 			if 255 == modindex
 				; not present
-				SLTWarnMsg("Core.RefreshTheContainersWeKnowAndLove: mod unavailable(" + conFormStrParts[0] + "); skipping entry '" + conFormStr + "'")
+				SLTWarnMsg("Core.RefreshContainerBlacklist: mod unavailable(" + conFormStrParts[0] + "); skipping entry '" + conFormStr + "'")
 				conForm = none
 			else
 				conForm = sl_triggers.GetForm(conFormStr)
@@ -523,7 +523,7 @@ Function RefreshTheContainersWeKnowAndLove()
 				int modindex = Game.GetModByName(conFormStrParts[1])
 				if 255 == modindex
 					; not present
-					SLTWarnMsg("Core.RefreshTheContainersWeKnowAndLove: mod unavailable(" + conFormStrParts[1] + "); skipping entry '" + conFormStr + "'")
+					SLTWarnMsg("Core.RefreshContainerBlacklist: mod unavailable(" + conFormStrParts[1] + "); skipping entry '" + conFormStr + "'")
 					conForm = none
 				else
 					conForm = sl_triggers.GetForm(conFormStr)
@@ -534,16 +534,16 @@ Function RefreshTheContainersWeKnowAndLove()
 		endif
 
 		if conForm
-			TheContainersWeKnowAndLove.AddForm(conForm)
+			ContainerBlacklist.AddForm(conForm)
 		else
-			SLTWarnMsg("Core.RefreshTheContainersWeKnowAndLove: unable to load form for " + i)
+			SLTWarnMsg("Core.RefreshContainerBlacklist: unable to load form for " + i)
 		endif
 	EndWhile
 
-	common_container_names = JsonUtil.StringListToArray(FN_MoreContainersWeKnowAndLove(), "dt_common")
+	common_container_names = JsonUtil.StringListToArray(FN_ContainerBlacklistJSON(), "dt_common")
 	
 	if SLT.Debug_Cmd
-		SLTDebugMsg("Core.RefreshTheContainersWeKnowAndLove: completed")
+		SLTDebugMsg("Core.RefreshContainerBlacklist: completed")
 	endif
 EndFunction
 

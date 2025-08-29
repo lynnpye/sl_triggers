@@ -1,0 +1,15 @@
+{
+	"float" : 
+	{
+		"timer_delay" : 1
+	},
+	"int" : 
+	{
+		"__slt_mod_version__" : 901,
+		"event" : 10
+	},
+	"string" : 
+	{
+		"do_1" : "ConsumptionLifestyle"
+	}
+}
