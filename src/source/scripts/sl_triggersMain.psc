@@ -50,6 +50,8 @@ bool				Property bDebugMsg		= false	Auto Hidden
 int					Property nextInstanceId			Auto Hidden
 GlobalVariable 		Property GameDaysPassed Auto Hidden
 
+bool fbSendNewSessionEvent = false
+
 Form[]				instensions
 Form[] Function GetExtensions()
 	if Debug_Extension_List || Debug_Setup
@@ -342,7 +344,7 @@ Function DoPlayerLoadGame()
 	endif
 	BootstrapSLTInit(false)
 	
-	SendEventSLTOnNewSession()
+	fbSendNewSessionEvent = true
 EndFunction
 
 Function BootstrapSLTInit(bool bSetupFlags)
@@ -394,6 +396,11 @@ EndFunction
 Event OnUpdate()
 	if !self
 		return
+	endif
+
+	if fbSendNewSessionEvent
+		fbSendNewSessionEvent = false
+		SendEventSLTOnNewSession()
 	endif
 
 	; state checks

@@ -332,6 +332,10 @@ Event OnUpdateGameTime()
 EndEvent
 
 Event OnSLTNewSession(int _newSessionId)
+	If (SLT.Debug_Extension_Core)
+		SLTDebugMsg("Core.OnSLTNewSession: _newSessionId:" + _newSessionId)
+	EndIf
+
 	if !self
 		Return
 	endif
@@ -778,6 +782,9 @@ Function RegisterEvents()
 	if !self || !IsEnabled
 		return
 	endif
+	If (SLT.Debug_Extension_Core)
+		SLTDebugMsg("Core.RegisterEvents")
+	EndIf
 
 	UnregisterForModEvent(EVENT_SLT_ON_NEW_SESSION())
 	if triggerKeys_newSession.Length > 0
@@ -885,7 +892,7 @@ Function HandleTimers()
 
 	float nowtime = Utility.GetCurrentRealTime()
 	_lastRealTimeTimerProcessed = nowtime
-	If (SLT.Debug_Extension_Core_Timer)
+	If (SLT.Debug_Extension_Core_Timer || SLT.Debug_Extension_Core)
 		SLTDebugMsg("Core.HandleTimers: starting at nowtime(" + nowtime + ")")
 	EndIf
 
@@ -1061,6 +1068,9 @@ Function HandleTimers()
 EndFunction
 
 Function HandleNewSession(int _newSessionId)
+	If (SLT.Debug_Extension_Core)
+		SLTDebugMsg("Core.HandleNewSession: _newSessionId:" + _newSessionId)
+	EndIf
 	int i = 0
 	string triggerKey
 	string _triggerFile

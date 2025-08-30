@@ -463,9 +463,13 @@ string Function FormPortableStringFromForm(Form theForm) global
 		int formID = theForm.GetFormID()
 		string modName
 		int modIndex = Math.RightShift(formID, 24)
+		int lightModIndex
+		int lightShift
 		if modIndex == 254
 			; 0xFEMMMFFF
-			modName = Game.GetLightModName(Math.LogicalAnd(Math.RightShift(formID, 12), 0xFFF))
+			lightShift = Math.RightShift(formID, 12)
+			lightModIndex = Math.LogicalAnd(lightShift, 0xFFF)
+			modName = Game.GetLightModName(lightModIndex)
 			formID = Math.LogicalAnd(formID, 0xFFF)
 		else
 			; 0xMMFFFFFF
@@ -475,7 +479,7 @@ string Function FormPortableStringFromForm(Form theForm) global
 		if modName
 			return modName + ":" + formID
 		else
-			SLTErrMsg("FormPortableStringFromForm: unable to get modName from theForm(" + theForm.GetFormID() + ")")
+			SLTErrMsg("FormPortableStringFromForm: unable to get modName from theForm(" + theForm.GetName() + ")<" + theForm + "> formID(" + formID + ") modIndex(" + modIndex + ") light modIndex(" + lightModIndex + ") lightShift(" + lightShift + ")")
 		endif
 	endif
 	return ""
