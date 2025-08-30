@@ -3,6 +3,7 @@
         (or whichever folder you have your SKSE logs directed to)
     bugfix: updated some OStim labeling to no longer say SexLab
     bugfix: corrected handling of multiple cmdlibs in a single lib json
+    bugfix: adjusted timing of onnewsession
     enhancement: added quest_doaction/quest_dogetter/quest_doconsumer/quest_dofunction to implement Quest related functions
     enhancement: added armor_doaction/armor_dogetter/armor_doconsumer/armor_dofunction to implement Armor related functions
     enhancement: added globalvariable_doaction/globalvariable_dogetter/globalvariable_doconsumer/globalvariable_dofunction to implement GlobalVariable related functions
