@@ -6,8 +6,11 @@
     bugfix: adjusted timing of onnewsession
     enhancement: added quest_doaction/quest_dogetter/quest_doconsumer/quest_dofunction to implement Quest related functions
     enhancement: added armor_doaction/armor_dogetter/armor_doconsumer/armor_dofunction to implement Armor related functions
+    enhancement: added armor_getmaskforslot
     enhancement: added globalvariable_doaction/globalvariable_dogetter/globalvariable_doconsumer/globalvariable_dofunction to implement GlobalVariable related functions
+    enhancement: added game_doaction/game_dogetter/game_doconsumer/game_dofunction to implement Game related functions
     enhancement: added "GetNthReferenceAlias" implementation to objectreference_dofunction
+    change: sl_triggersCmd.ResolveActor no longer defaults to the Player if not specified or the Form cannot be found; defaults to none instead
     change: Perk: sl_triggersContainerPerk: expanded the objects it works with; should work with all CONT (Container) types
         containers.json: now has a list, "dt_blacklist", containing containers that will not trigger
         note: this is retroactive in that containers that didn't previously trigger in your game might now

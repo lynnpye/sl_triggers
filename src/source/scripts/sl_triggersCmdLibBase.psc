@@ -3613,3 +3613,889 @@ function actor_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;
+;;
+;;
+;; GLOBALS
+
+; sltname armor_getmaskforslot
+; sltgrup Armor
+; sltdesc Returns the slot mask (https://ck.uesp.net/wiki/Slot_Masks_-_Armor) for the specified armor slot.
+; sltargs int: slot number
+; sltsamp set $slotMask resultfrom armor_getmaskforslot 32 ; $slotMask should be 0x4
+function armor_getmaskforslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        CmdPrimary.MostRecentIntResult = Armor.GetMaskForSlot(CmdPrimary.ResolveInt(param[1]))
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname game_doaction
+; sltgrup Game
+; sltdesc Calls the specified global Game script action.
+; sltdesc https://ck.uesp.net/wiki/Game_Script
+; sltargs string: action name
+; sltargs remaining arguments vary by action
+; sltargsmore ClearPrison()
+; sltargsmore ClearTempEffects()
+; sltargsmore ForceFirstPerson()
+; sltargsmore ForceThirdPerson()
+; sltargsmore HideTitleSequenceMenu()
+; sltargsmore PrecacheCharGen()
+; sltargsmore PrecacheCharGenClear()
+; sltargsmore QuitToMainMenu()
+; sltargsmore RequestAutoSave()
+; sltargsmore RequestSave()
+; sltargsmore SendWereWolfTransformation()
+; sltargsmore ServeTime()
+; sltargsmore ShowLimitedRaceMenu()
+; sltargsmore ShowRaceMenu()
+; sltargsmore ShowTitleSequenceMenu()
+; sltargsmore UpdateTintMaskColors()
+; sltargsmore UpdateHairColor()
+; sltargsmore UpdateThirdPerson()
+; sltsamp game_doaction ShowLimitedRaceMenu ; change everything but race and gender
+function game_doaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        string _theAction = CmdPrimary.ResolveString(param[1])
+
+        if _theAction == "ClearPrison"
+            Game.ClearPrison()
+        elseif _theAction == "ClearTempEffects"
+            Game.ClearTempEffects()
+        elseif _theAction == "ForceFirstPerson"
+            Game.ForceFirstPerson()
+        elseif _theAction == "ForceThirdPerson"
+            Game.ForceThirdPerson()
+        elseif _theAction == "HideTitleSequenceMenu"
+            Game.HideTitleSequenceMenu()
+        elseif _theAction == "PrecacheCharGen"
+            Game.PrecacheCharGen()
+        elseif _theAction == "PrecacheCharGenClear"
+            Game.PrecacheCharGenClear()
+        elseif _theAction == "QuitToMainMenu"
+            Game.QuitToMainMenu()
+        elseif _theAction == "RequestAutoSave"
+            Game.RequestAutoSave()
+        elseif _theAction == "RequestSave"
+            Game.RequestSave()
+        elseif _theAction == "SendWereWolfTransformation"
+            Game.SendWereWolfTransformation()
+        elseif _theAction == "ServeTime"
+            Game.ServeTime()
+        elseif _theAction == "ShowLimitedRaceMenu"
+            Game.ShowLimitedRaceMenu()
+        elseif _theAction == "ShowRaceMenu"
+            Game.ShowRaceMenu()
+        elseif _theAction == "ShowTitleSequenceMenu"
+            Game.ShowTitleSequenceMenu()
+        elseif _theAction == "UpdateTintMaskColors"
+            Game.UpdateTintMaskColors()
+        elseif _theAction == "UpdateHairColor"
+            Game.UpdateHairColor()
+        elseif _theAction == "UpdateThirdPerson"
+            Game.UpdateThirdPerson()
+        else
+            CmdPrimary.SFE("game_doaction: invalid action name(" + _theAction + ") resolved from(" + param[1] + ")")
+        endif
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname game_dogetter
+; sltgrup Game
+; sltdesc Calls the specified global Game script getter.
+; sltdesc https://ck.uesp.net/wiki/Game_Script
+; sltargs string: getter name
+; sltargs remaining arguments vary by getter
+; sltargsmore Actor GetPlayer()
+; sltargsmore ObjectReference GetPlayerGrabbedRef()
+; sltargsmore Actor GetPlayersLastRiddenHorse()
+; sltargsmore Float GetRealHoursPassed()
+; sltargsmore Float GetSunPositionX()
+; sltargsmore Float GetSunPositionY()
+; sltargsmore Float GetSunPositionZ()
+; sltargsmore Bool IsActivateControlsEnabled()
+; sltargsmore Bool IsCamSwitchControlsEnabled()
+; sltargsmore Bool IsFastTravelEnabled()
+; sltargsmore Bool IsFastTravelControlsEnabled()
+; sltargsmore Bool IsFightingControlsEnabled()
+; sltargsmore Bool IsJournalControlsEnabled()
+; sltargsmore Bool IsLookingControlsEnabled()
+; sltargsmore Bool IsMenuControlsEnabled()
+; sltargsmore Bool IsMovementControlsEnabled()
+; sltargsmore Bool IsPlayerSungazing()
+; sltargsmore Bool IsSneakingControlsEnabled()
+; sltargsmore Bool UsingGamepad()
+; sltargsmore Int GetPerkPoints()
+; sltargsmore Int GetModCount()
+; sltargsmore Int GetLightModCount()
+; sltargsmore Int GetNumTintMasks()
+; sltargsmore Int GetCameraState()
+; sltargsmore Float GetPlayerExperience()
+; sltargsmore Bool GetPlayerMovementMode()
+; sltargsmore ObjectReference GetCurrentCrosshairRef()
+; sltargsmore ObjectReference GetCurrentConsoleRef()
+; sltsamp set $numPerkPoints resultfrom game_dogetter GetPerkPoints
+function game_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        string _theAction = CmdPrimary.ResolveString(param[1])
+
+        if _theAction == "GetPlayer"
+            CmdPrimary.MostRecentFormResult = Game.GetPlayer()
+        elseif _theAction == "GetPlayerGrabbedRef"
+            CmdPrimary.MostRecentFormResult = Game.GetPlayerGrabbedRef()
+        elseif _theAction == "GetPlayersLastRiddenHorse"
+            CmdPrimary.MostRecentFormResult = Game.GetPlayersLastRiddenHorse()
+        elseif _theAction == "GetRealHoursPassed"
+            CmdPrimary.MostRecentFloatResult = Game.GetRealHoursPassed()
+        elseif _theAction == "GetSunPositionX"
+            CmdPrimary.MostRecentFloatResult = Game.GetSunPositionX()
+        elseif _theAction == "GetSunPositionY"
+            CmdPrimary.MostRecentFloatResult = Game.GetSunPositionY()
+        elseif _theAction == "GetSunPositionZ"
+            CmdPrimary.MostRecentFloatResult = Game.GetSunPositionZ()
+        elseif _theAction == "IsActivateControlsEnabled"
+            CmdPrimary.MostRecentBoolResult = Game.IsActivateControlsEnabled()
+        elseif _theAction == "IsCamSwitchControlsEnabled"
+            CmdPrimary.MostRecentBoolResult = Game.IsCamSwitchControlsEnabled()
+        elseif _theAction == "IsFastTravelEnabled"
+            CmdPrimary.MostRecentBoolResult = Game.IsFastTravelEnabled()
+        elseif _theAction == "IsFastTravelControlsEnabled"
+            CmdPrimary.MostRecentBoolResult = Game.IsFastTravelControlsEnabled()
+        elseif _theAction == "IsFightingControlsEnabled"
+            CmdPrimary.MostRecentBoolResult = Game.IsFightingControlsEnabled()
+        elseif _theAction == "IsJournalControlsEnabled"
+            CmdPrimary.MostRecentBoolResult = Game.IsJournalControlsEnabled()
+        elseif _theAction == "IsLookingControlsEnabled"
+            CmdPrimary.MostRecentBoolResult = Game.IsLookingControlsEnabled()
+        elseif _theAction == "IsMenuControlsEnabled"
+            CmdPrimary.MostRecentBoolResult = Game.IsMenuControlsEnabled()
+        elseif _theAction == "IsMovementControlsEnabled"
+            CmdPrimary.MostRecentBoolResult = Game.IsMovementControlsEnabled()
+        elseif _theAction == "IsPlayerSungazing"
+            CmdPrimary.MostRecentBoolResult = Game.IsPlayerSungazing()
+        elseif _theAction == "IsSneakingControlsEnabled"
+            CmdPrimary.MostRecentBoolResult = Game.IsSneakingControlsEnabled()
+        elseif _theAction == "UsingGamepad"
+            CmdPrimary.MostRecentBoolResult = Game.UsingGamepad()
+        elseif _theAction == "GetPerkPoints"
+            CmdPrimary.MostRecentIntResult = Game.GetPerkPoints()
+        elseif _theAction == "GetModCount"
+            CmdPrimary.MostRecentIntResult = Game.GetModCount()
+        elseif _theAction == "GetLightModCount"
+            CmdPrimary.MostRecentIntResult = Game.GetLightModCount()
+        elseif _theAction == "GetNumTintMasks"
+            CmdPrimary.MostRecentIntResult = Game.GetNumTintMasks()
+        elseif _theAction == "GetCameraState"
+            CmdPrimary.MostRecentIntResult = Game.GetCameraState()
+        elseif _theAction == "GetPlayerExperience"
+            CmdPrimary.MostRecentFloatResult = Game.GetPlayerExperience()
+        elseif _theAction == "GetPlayerMovementMode"
+            CmdPrimary.MostRecentBoolResult = Game.GetPlayerMovementMode()
+        elseif _theAction == "GetCurrentCrosshairRef"
+            CmdPrimary.MostRecentFormResult = Game.GetCurrentCrosshairRef()
+        elseif _theAction == "GetCurrentConsoleRef"
+            CmdPrimary.MostRecentFormResult = Game.GetCurrentConsoleRef()
+        else
+            CmdPrimary.SFE("game_dogetter: invalid getter name(" + _theAction + ") resolved from(" + param[1] + ")")
+        endif
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname game_doconsumer
+; sltgrup Game
+; sltdesc Calls the specified global Game script consumer.
+; sltdesc https://ck.uesp.net/wiki/Game_Script
+; sltargs string: consumer name
+; sltargs remaining arguments vary by consumer
+; sltargsmore AddAchievement(Int aiAchievementID)
+; sltargsmore AddPerkPoints(Int aiPerkPoints)
+; sltargsmore AdvanceSkill(String asSkillName, Float afMagnitude)
+; sltargsmore DisablePlayerControls(Bool abMovement, Bool abFighting, Bool abCamSwitch, Bool abLooking, Bool abSneaking, Bool abMenu, Bool abActivate, Bool abJournalTabs, Int aiDisablePOVType)
+; sltargsmore EnableFastTravel(Bool abEnable)
+; sltargsmore EnablePlayerControls(Bool abMovement, Bool abFighting, Bool abCamSwitch, Bool abLooking, Bool abSneaking, Bool abMenu, Bool abActivate, Bool abJournalTabs, Int aiDisablePOVType)
+; sltargsmore FadeOutGame(Bool abFadingOut, Bool abBlackFade, Float afSecsBeforeFade, Float afFadeDuration)
+; sltargsmore FastTravel(ObjectReference akDestination)
+; sltargsmore IncrementSkill(String asSkillName)
+; sltargsmore IncrementSkillBy(String asSkillName, Int aiCount)
+; sltargsmore IncrementStat(String asStatName, Int aiModAmount)
+; sltargsmore PlayBink(String asFileName, Bool abInterruptible, Bool abMuteAudio, Bool abMuteMusic, Bool abLetterbox)
+; sltargsmore RequestModel(String asModelName)
+; sltargsmore SetAllowFlyingMountLandingRequests(Bool abAllow)
+; sltargsmore SetBeastForm(Bool abEntering)
+; sltargsmore SetCameraTarget(Actor arTarget)
+; sltargsmore SetHudCartMode(Bool abSetCartMode)
+; sltargsmore SetInChargen(Bool abDisableSaving, Bool abDisableWaiting, Bool abShowControlsDisabledMessage)
+; sltargsmore SetPlayerAIDriven(Bool abAIDriven)
+; sltargsmore SetPlayerReportCrime(Bool abReportCrime)
+; sltargsmore SetSittingRotation(Float afValue)
+; sltargsmore SetSunGazeImageSpaceModifier(ImageSpaceModifier apImod)
+; sltargsmore ShakeCamera(ObjectReference akSource, Float afStrength)
+; sltargsmore ShakeController(Float afLeftStrength, Float afRightStrength, Float afDuration)
+; sltargsmore ShowFirstPersonGeometry(Bool abShow)
+; sltargsmore ShowTrainingMenu(Actor aActor)
+; sltargsmore StartTitleSequence(String asSequenceName)
+; sltargsmore TeachWord(WordOfPower akWord)
+; sltargsmore TriggerScreenBlood(Int aiValue)
+; sltargsmore UnlockWord(WordOfPower akWord)
+; sltargsmore SetPerkPoints(Int perkPoints)
+; sltargsmore ModPerkPoints(Int perkPoints)
+; sltargsmore SetGameSettingFloat(String setting, Float value)
+; sltargsmore SetGameSettingInt(String setting, Int value)
+; sltargsmore SetGameSettingBool(String setting, Bool value)
+; sltargsmore SetGameSettingString(String setting, String value)
+; sltargsmore SaveGame(String name)
+; sltargsmore LoadGame(String name)
+; sltargsmore SetNthTintMaskTexturePath(String path, Int n)
+; sltargsmore SetTintMaskColor(Int color, Int type, Int index)
+; sltargsmore SetTintMaskTexturePath(String path, Int type, Int index)
+; sltargsmore SetMiscStat(String name, Int value)
+; sltargsmore SetPlayersLastRiddenHorse(Actor horse)
+; sltargsmore SetSkillLegendaryLevel(String actorValue, Int level)
+; sltargsmore SetPlayerExperience(Float exp)
+; sltargsmore UnbindObjectHotkey(Int hotkey)
+; sltargsmore SetPlayerLevel(Int Level)
+function game_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthGT(CmdPrimary, param.Length, 1)
+        string _theAction = CmdPrimary.ResolveString(param[1])
+
+        if _theAction == "AddAchievement"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                Game.AddAchievement(CmdPrimary.ResolveInt(param[2]))
+            endif
+        elseif _theAction == "AddPerkPoints"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                Game.AddPerkPoints(CmdPrimary.ResolveInt(param[2]))
+            endif
+        elseif _theAction == "AdvanceSkill"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Game.AdvanceSkill(CmdPrimary.ResolveString(param[2]), CmdPrimary.ResolveFloat(param[3]))
+            endif
+        elseif _theAction == "DisablePlayerControls"
+            bool abMovement = true
+            bool abFighting = true
+            bool abCamSwitch = true
+            bool abLooking = false
+            bool abSneaking = false
+            bool abMenu = true
+            bool abActivate = true
+            bool abJournalTabs = false
+            int aiDisablePOVType = 0
+
+            if param.Length > 2
+                abMovement = CmdPrimary.ResolveBool(param[2])
+                if param.Length > 3
+                    abFighting = CmdPrimary.ResolveBool(param[3])
+                    if param.Length > 4
+                        abCamSwitch = CmdPrimary.ResolveBool(param[4])
+                        if param.Length > 5
+                            abLooking = CmdPrimary.ResolveBool(param[5])
+                            if param.Length > 6
+                                abSneaking = CmdPrimary.ResolveBool(param[6])
+                                if param.Length > 7
+                                    abMenu = CmdPrimary.ResolveBool(param[7])
+                                    if param.Length > 8
+                                        abActivate = CmdPrimary.ResolveBool(param[8])
+                                        if param.Length > 9
+                                            abJournalTabs = CmdPrimary.ResolveBool(param[9])
+                                            if param.Length > 10
+                                                aiDisablePOVType = CmdPrimary.ResolveInt(param[10])
+                                            endif
+                                        endif
+                                    endif
+                                endif
+                            endif
+                        endif
+                    endif
+                endif
+            endif
+
+            Game.DisablePlayerControls(abMovement, abFighting, abCamSwitch, abLooking, abSneaking, abMenu, abActivate, abJournalTabs, aiDisablePOVType)
+        elseif _theAction == "EnableFastTravel"
+            bool abEnable = true
+            if param.Length > 2
+                abEnable = CmdPrimary.ResolveBool(param[2])
+            endif
+            Game.EnableFastTravel(abEnable)
+        elseif _theAction == "EnablePlayerControls"
+            bool abMovement = true
+            bool abFighting = true
+            bool abCamSwitch = true
+            bool abLooking = false
+            bool abSneaking = false
+            bool abMenu = true
+            bool abActivate = true
+            bool abJournalTabs = false
+            int aiDisablePOVType = 0
+
+            if param.Length > 2
+                abMovement = CmdPrimary.ResolveBool(param[2])
+                if param.Length > 3
+                    abFighting = CmdPrimary.ResolveBool(param[3])
+                    if param.Length > 4
+                        abCamSwitch = CmdPrimary.ResolveBool(param[4])
+                        if param.Length > 5
+                            abLooking = CmdPrimary.ResolveBool(param[5])
+                            if param.Length > 6
+                                abSneaking = CmdPrimary.ResolveBool(param[6])
+                                if param.Length > 7
+                                    abMenu = CmdPrimary.ResolveBool(param[7])
+                                    if param.Length > 8
+                                        abActivate = CmdPrimary.ResolveBool(param[8])
+                                        if param.Length > 9
+                                            abJournalTabs = CmdPrimary.ResolveBool(param[9])
+                                            if param.Length > 10
+                                                aiDisablePOVType = CmdPrimary.ResolveInt(param[10])
+                                            endif
+                                        endif
+                                    endif
+                                endif
+                            endif
+                        endif
+                    endif
+                endif
+            endif
+
+            Game.EnablePlayerControls(abMovement, abFighting, abCamSwitch, abLooking, abSneaking, abMenu, abActivate, abJournalTabs, aiDisablePOVType)
+        elseif _theAction == "FadeOutGame"
+            if ParamLengthEQ(CmdPrimary, param.Length, 6)
+                Game.FadeOutGame(CmdPrimary.ResolveBool(param[2]), CmdPrimary.ResolveBool(param[3]), CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]))
+            endif
+        elseif _theAction == "FastTravel"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                ObjectReference akDestination = CmdPrimary.ResolveForm(param[2]) as ObjectReference
+                if akDestination
+                    Game.FastTravel(akDestination)
+                else
+                    CmdPrimary.SFW("Game.FastTravel: Unable to resolve destination from (" + param[2] + ")")
+                endif
+            endif
+        elseif _theAction == "IncrementSkill"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                Game.IncrementSkill(CmdPrimary.ResolveString(param[2]))
+            endif
+        elseif _theAction == "IncrementSkillBy"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Game.IncrementSkillBy(CmdPrimary.ResolveString(param[2]), CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "IncrementStat"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Game.IncrementStat(CmdPrimary.ResolveString(param[2]), CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "PlayBink"
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abInterruptible = false
+                bool abMuteAudio = true
+                bool abMuteMusic = true
+                bool abLetterBox = true
+                if param.Length > 3
+                    abInterruptible = CmdPrimary.ResolveBool(param[3])
+                    if param.Length > 4
+                        abMuteAudio = CmdPrimary.ResolveBool(param[4])
+                        if param.Length > 5
+                            abMuteMusic = CmdPrimary.ResolveBool(param[5])
+                            if param.Length > 6
+                                abLetterBox = CmdPrimary.ResolveBool(param[6])
+                            endif
+                        endif
+                    endif
+                endif
+                Game.PlayBink(CmdPrimary.ResolveString(param[2]), abInterruptible, abMuteAudio, abMuteMusic, abLetterBox)
+            endif
+        elseif _theAction == "RequestModel"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                Game.RequestModel(CmdPrimary.ResolveString(param[2]))
+            endif
+        elseif _theAction == "SetAllowFlyingMountLandingRequests"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                Game.SetAllowFlyingMountLandingRequests(CmdPrimary.ResolveBool(param[2]))
+            endif
+        elseif _theAction == "SetBeastForm"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                Game.SetBeastForm(CmdPrimary.ResolveBool(param[2]))
+            endif
+        elseif _theAction == "SetCameraTarget"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                Actor arTarget = CmdPrimary.ResolveForm(param[2]) as Actor
+                if arTarget
+                    Game.SetCameraTarget(arTarget)
+                else
+                    CmdPrimary.SFE("Game.SetCameraTarget: Unable to resolve target from (" + param[2] + ")")
+                endif
+            endif
+        elseif _theAction == "SetHudCartMode"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                Game.SetHudCartMode(CmdPrimary.ResolveBool(param[2]))
+            endif
+        elseif _theAction == "SetInChargen"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                Game.SetInChargen(CmdPrimary.ResolveBool(param[2]), CmdPrimary.ResolveBool(param[3]), CmdPrimary.ResolveBool(param[4]))
+            endif
+        elseif _theAction == "SetPlayerAIDriven"
+            bool abAIDriven = true
+            if param.Length > 2
+                abAIDriven = CmdPrimary.ResolveBool(param[2])
+            endif
+            Game.SetPlayerAIDriven(abAIDriven)
+        elseif _theAction == "SetPlayerReportCrime"
+            bool abReportCrime = true
+            if param.Length > 2
+                abReportCrime = CmdPrimary.ResolveBool(param[2])
+            endif
+            Game.SetPlayerReportCrime(abReportCrime)
+        elseif _theAction == "SetSittingRotation"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                Game.SetSittingRotation(CmdPrimary.ResolveFloat(param[2]))
+            endif
+        elseif _theAction == "SetSunGazeImageSpaceModifier"
+            ImageSpaceModifier ism = none
+            if param.Length > 2
+                ism = CmdPrimary.ResolveForm(param[2]) as ImageSpaceModifier
+            endif
+            Game.SetSunGazeImageSpaceModifier(ism)
+        elseif _theAction == "ShakeCamera"
+            ObjectReference akSource = none
+            float afStrength = 0.5
+            float afDuration = 0.0
+            if param.Length > 2
+                akSource = CmdPrimary.ResolveForm(param[2]) as ObjectReference
+                if param.Length > 3
+                    afStrength = CmdPrimary.ResolveFloat(param[3])
+                    if param.Length > 4
+                        afDuration = CmdPrimary.ResolveFloat(param[4])
+                    endif
+                endif
+            endif
+            Game.ShakeCamera(akSource, afStrength, afDuration)
+        elseif _theAction == "ShakeController"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                Game.ShakeController(CmdPrimary.ResolveFloat(param[2]), CmdPrimary.ResolveFloat(param[3]), CmdPrimary.ResolveFloat(param[4]))
+            endif
+        elseif _theAction == "ShowFirstPersonGeometry"
+            bool abShow = true
+            if param.Length > 2
+                abShow = CmdPrimary.ResolveBool(param[2])
+            endif
+            Game.ShowFirstPersonGeometry(abShow)
+        elseif _theAction == "ShowTrainingMenu"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                Actor aTrainer = CmdPrimary.ResolveActor(param[2])
+                if aTrainer
+                    Game.ShowTrainingMenu(aTrainer)
+                else
+                    CmdPrimary.SFE("Game.ShowTrainingMenu: unable to resolve  (" + param[2] + ")")
+                endif
+            endif
+        elseif _theAction == "StartTitleSequence"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                Game.StartTitleSequence(CmdPrimary.ResolveString(param[2]))
+            endif
+        elseif _theAction == "TeachWord"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                WordOfPower akWord = CmdPrimary.ResolveForm(param[2]) as WordOfPower
+                if akWord
+                    Game.TeachWord(akWord)
+                else
+                    CmdPrimary.SFE("Game.TeachWord: unable to resolve (" + param[2] + ")")
+                endif
+            endif
+        elseif _theAction == "TriggerScreenBlood"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                Game.TriggerScreenBlood(CmdPrimary.ResolveInt(param[2]))
+            endif
+        elseif _theAction == "UnlockWord"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                WordOfPower akWord = CmdPrimary.ResolveForm(param[2]) as WordOfPower
+                if akWord
+                    Game.UnlockWord(akWord)
+                else
+                    CmdPrimary.SFE("Game.UnlockWord: unable to resolve (" + param[2] + ")")
+                endif
+            endif
+        elseif _theAction == "SetPerkPoints"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                Game.SetPerkPoints(CmdPrimary.ResolveInt(param[2]))
+            endif
+        elseif _theAction == "ModPerkPoints"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                Game.ModPerkPoints(CmdPrimary.ResolveInt(param[2]))
+            endif
+        elseif _theAction == "SetGameSettingFloat"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Game.SetGameSettingFloat(CmdPrimary.ResolveString(param[2]), CmdPrimary.ResolveFloat(param[3]))
+            endif
+        elseif _theAction == "SetGameSettingInt"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Game.SetGameSettingInt(CmdPrimary.ResolveString(param[2]), CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "SetGameSettingBool"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Game.SetGameSettingBool(CmdPrimary.ResolveString(param[2]), CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "SetGameSettingString"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Game.SetGameSettingString(CmdPrimary.ResolveString(param[2]), CmdPrimary.ResolveString(param[3]))
+            endif
+        elseif _theAction == "SaveGame"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                Game.SaveGame(CmdPrimary.ResolveString(param[2]))
+            endif
+        elseif _theAction == "LoadGame"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                Game.LoadGame(CmdPrimary.ResolveString(param[2]))
+            endif
+        elseif _theAction == "SetNthTintMaskTexturePath"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Game.SetNthTintMaskTexturePath(CmdPrimary.ResolveString(param[2]), CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "SetTintMaskColor"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                Game.SetTintMaskColor(CmdPrimary.ResolveInt(param[2]), CmdPrimary.ResolveInt(param[3]), CmdPrimary.ResolveInt(param[4]))
+            endif
+        elseif _theAction == "SetTintMaskTexturePath"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                Game.SetTintMaskTexturePath(CmdPrimary.ResolveString(param[2]), CmdPrimary.ResolveInt(param[3]), CmdPrimary.ResolveInt(param[4]))
+            endif
+        elseif _theAction == "SetMiscStat"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Game.SetMiscStat(CmdPrimary.ResolveString(param[2]), CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "SetPlayersLastRiddenHorse"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                Actor horse = CmdPrimary.ResolveActor(param[2])
+                if horse
+                    Game.SetPlayersLastRiddenHorse(horse)
+                else
+                    CmdPrimary.SFE("Game.SetPlayersLastRiddenHorse: unable to resolve  (" + param[2] + ")")
+                endif
+            endif
+        elseif _theAction == "SetSkillLegendaryLevel"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                Game.SetSkillLegendaryLevel(CmdPrimary.ResolveString(param[2]), CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "SetPlayerExperience"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                Game.SetPlayerExperience(CmdPrimary.ResolveFloat(param[2]))
+            endif
+        elseif _theAction == "UnbindObjectHotkey"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                Game.UnbindObjectHotkey(CmdPrimary.ResolveInt(param[2]))
+            endif
+        elseif _theAction == "SetPlayerLevel"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                Game.SetPlayerLevel(CmdPrimary.ResolveInt(param[2]))
+            endif
+        else
+            CmdPrimary.SFE("game_doconsumer: invalid consumer name(" + _theAction + ") resolved from(" + param[1] + ")")
+        endif
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname game_dofunction
+; sltgrup Game
+; sltdesc Calls the specified global Game script function.
+; sltdesc https://ck.uesp.net/wiki/Game_Script
+; sltargs string: function name
+; sltargs remaining arguments vary by function
+; sltargsmore Bool AddHavokBallAndSocketConstraint(ObjectReference arRefA, String arRefANode, ObjectReference arRefB, String arRefBNode, Float afRefALocalOffsetX, Float afRefALocalOffsetY, Float afRefALocalOffsetZ, Float afRefBLocalOffsetX, Float afRefBLocalOffsetY, Float afRefBLocalOffsetZ)
+; sltargsmore Int CalculateFavorCost(Int aiFavorPrice)
+; sltargsmore Actor FindClosestActor(Float afX, Float afY, Float afZ, Float afRadius)
+; sltargsmore Actor FindClosestActorFromRef(ObjectReference arCenter, Float afRadius)
+; sltargsmore ObjectReference FindClosestReferenceOfAnyTypeInList(FormList arBaseObjects, Float afX, Float afY, Float afZ, Float afRadius)
+; sltargsmore ObjectReference FindClosestReferenceOfAnyTypeInListFromRef(FormList arBaseObjects, ObjectReference arCenter, Float afRadius)
+; sltargsmore ObjectReference FindClosestReferenceOfType(Form arBaseObject, Float afX, Float afY, Float afZ, Float afRadius)
+; sltargsmore ObjectReference FindClosestReferenceOfTypeFromRef(Form arBaseObject, ObjectReference arCenter, Float afRadius)
+; sltargsmore Actor FindRandomActor(Float afX, Float afY, Float afZ, Float afRadius)
+; sltargsmore Actor FindRandomActorFromRef(ObjectReference arCenter, Float afRadius)
+; sltargsmore ObjectReference FindRandomReferenceOfAnyTypeInList(FormList arBaseObjects, Float afX, Float afY, Float afZ, Float afRadius)
+; sltargsmore ObjectReference FindRandomReferenceOfAnyTypeInListFromRef(FormList arBaseObjects, ObjectReference arCenter, Float afRadius)
+; sltargsmore ObjectReference FindRandomReferenceOfType(Form arBaseObject, Float afX, Float afY, Float afZ, Float afRadius)
+; sltargsmore ObjectReference FindRandomReferenceOfTypeFromRef(Form arBaseObject, ObjectReference arCenter, Float afRadius)
+; sltargsmore Form GetForm(Int aiFormID)
+; sltargsmore Form GetFormFromFile(Int aiFormID, String asFilename)
+; sltargsmore Float GetGameSettingFloat(String asGameSetting)
+; sltargsmore Float GetGameSettingInt(String asGameSetting)
+; sltargsmore Float GetGameSettingString(String asGameSetting)
+; sltargsmore Bool IsWordUnlocked(WordOfPower akWord)
+; sltargsmore Int QueryStat(String asStat)
+; sltargsmore Bool RemoveHavokConstraints(ObjectReference arFirstRef, String arFirstRefNodeName, ObjectReference arSecondRef, String arSecondRefNodeName)
+; sltargsmore Int GetModByName(String name)
+; sltargsmore String GetModName(Int modIndex)
+; sltargsmore String GetModAuthor(Int modIndex)
+; sltargsmore String GetModDescription(Int modIndex)
+; sltargsmore Int GetModDependencyCount(Int modIndex)
+; sltargsmore Int GetNthModDependency(Int modIndex, Int n)
+; sltargsmore Bool IsPluginInstalled(String name)
+; sltargsmore Int GetLightModByName(String name)
+; sltargsmore String GetLightModName(Int modIndex)
+; sltargsmore String GetLightModAuthor(Int modIndex)
+; sltargsmore String GetLightModDescription(Int modIndex)
+; sltargsmore Int GetLightModDependencyCount(Int modIndex)
+; sltargsmore Int GetNthLightModDependency(Int modIndex, Int n)
+; sltargsmore Int GetNthTintMaskColor(Int n)
+; sltargsmore Int GetNthTintMaskType(Int n)
+; sltargsmore Int SetNthTintMaskColor(Int n, Int color)
+; sltargsmore String GetNthTintMaskTexturePath(Int n)
+; sltargsmore Int GetNumTintsByType(Int type)
+; sltargsmore Int GetTintMaskColor(Int type, Int index)
+; sltargsmore String GetTintMaskTexturePath(Int type, Int index)
+; sltargsmore Int GetSkillLegendaryLevel(String actorValue)
+; sltargsmore Float GetExperienceForLevel(Int currentLevel)
+; sltargsmore Form GetHotkeyBoundObject(Int hotkey)
+; sltargsmore Bool IsObjectFavorited(Form form)
+; sltargsmore Form GetFormEx(Int formId)
+function game_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
+        string _theAction = CmdPrimary.ResolveString(param[1])
+
+        if _theAction == "AddHavokBallAndSocketConstraint"
+            if ParamLengthGT(CmdPrimary, param.Length, 5)
+                ObjectReference arRefA = CmdPrimary.ResolveForm(param[2]) as ObjectReference
+                string arRefANode = CmdPrimary.ResolveString(param[3])
+                ObjectReference arRefB = CmdPrimary.ResolveForm(param[4]) as ObjectReference
+                string arRefBNode = CmdPrimary.ResolveString(param[5])
+                float afRefALocalOffsetX
+                float afRefALocalOffsetY
+                float afRefALocalOffsetZ
+                float afRefBLocalOffsetX
+                float afRefBLocalOffsetY
+                float afRefBLocalOffsetZ
+                if param.Length > 6
+                    afRefALocalOffsetX = CmdPrimary.ResolveFloat(param[6])
+                    if param.Length > 7
+                        afRefALocalOffsetY = CmdPrimary.ResolveFloat(param[7])
+                        if param.Length > 8
+                            afRefALocalOffsetZ = CmdPrimary.ResolveFloat(param[8])
+                            if param.Length > 9
+                                afRefBLocalOffsetX = CmdPrimary.ResolveFloat(param[9])
+                                if param.Length > 10
+                                    afRefBLocalOffsetY = CmdPrimary.ResolveFloat(param[10])
+                                    if param.Length > 11
+                                        afRefBLocalOffsetZ = CmdPrimary.ResolveFloat(param[11])
+                                    endif
+                                endif
+                            endif
+                        endif
+                    endif
+                endif
+                Game.AddHavokBallAndSocketConstraint(arRefA, arRefANode, arRefB, arRefBNode, afRefALocalOffsetX, afRefALocalOffsetY, afRefALocalOffsetZ, afRefBLocalOffsetX, afRefBLocalOffsetY, afRefBLocalOffsetZ)
+            endif
+        elseif _theAction == "CalculateFavorCost"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentIntResult = Game.CalculateFavorCost(CmdPrimary.ResolveInt(param[2]))
+            endif
+        elseif _theAction == "FindClosestActor"
+            if ParamLengthEQ(CmdPrimary, param.Length, 6)
+                CmdPrimary.MostRecentFormResult = Game.FindClosestActor(CmdPrimary.ResolveFloat(param[2]), CmdPrimary.ResolveFloat(param[3]), CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]))
+            endif
+        elseif _theAction == "FindClosestActorFromRef"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentFormResult = Game.FindClosestActorFromRef(CmdPrimary.ResolveObjRef(param[2]), CmdPrimary.ResolveFloat(param[3]))
+            endif
+        elseif _theAction == "FindClosestReferenceOfAnyTypeInList"
+            if ParamLengthEQ(CmdPrimary, param.Length, 7)
+                CmdPrimary.MostRecentFormResult = Game.FindClosestReferenceOfAnyTypeInList(CmdPrimary.ResolveFormList(param[2]), CmdPrimary.ResolveFloat(param[3]), CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveFloat(param[6]))
+            endif
+        elseif _theAction == "FindClosestReferenceOfAnyTypeInListFromRef"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                CmdPrimary.MostRecentFormResult = Game.FindClosestReferenceOfAnyTypeInListFromRef(CmdPrimary.ResolveFormList(param[2]), CmdPrimary.ResolveObjRef(param[3]), CmdPrimary.ResolveFloat(param[4]))
+            endif
+        elseif _theAction == "FindClosestReferenceOfType"
+            if ParamLengthEQ(CmdPrimary, param.Length, 7)
+                CmdPrimary.MostRecentFormResult = Game.FindClosestReferenceOfType(CmdPrimary.ResolveForm(param[2]), CmdPrimary.ResolveFloat(param[3]), CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveFloat(param[6]))
+            endif
+        elseif _theAction == "FindClosestReferenceOfTypeFromRef"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                CmdPrimary.MostRecentFormResult = Game.FindClosestReferenceOfTypeFromRef(CmdPrimary.ResolveFormList(param[2]), CmdPrimary.ResolveObjRef(param[3]), CmdPrimary.ResolveFloat(param[4]))
+            endif
+        elseif _theAction == "FindRandomActor"
+            if ParamLengthEQ(CmdPrimary, param.Length, 6)
+                CmdPrimary.MostRecentFormResult = Game.FindRandomActor(CmdPrimary.ResolveFloat(param[2]), CmdPrimary.ResolveFloat(param[3]), CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]))
+            endif
+        elseif _theAction == "FindRandomActorFromRef"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentFormResult = Game.FindRandomActorFromRef(CmdPrimary.ResolveObjRef(param[2]), CmdPrimary.ResolveFloat(param[3]))
+            endif
+        elseif _theAction == "FindRandomReferenceOfAnyTypeInList"
+            if ParamLengthEQ(CmdPrimary, param.Length, 7)
+                CmdPrimary.MostRecentFormResult = Game.FindRandomReferenceOfAnyTypeInList(CmdPrimary.ResolveFormList(param[2]), CmdPrimary.ResolveFloat(param[3]), CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveFloat(param[6]))
+            endif
+        elseif _theAction == "FindRandomReferenceOfAnyTypeInListFromRef"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                CmdPrimary.MostRecentFormResult = Game.FindRandomReferenceOfAnyTypeInListFromRef(CmdPrimary.ResolveFormList(param[2]), CmdPrimary.ResolveObjRef(param[3]), CmdPrimary.ResolveFloat(param[4]))
+            endif
+        elseif _theAction == "FindRandomReferenceOfType"
+            if ParamLengthEQ(CmdPrimary, param.Length, 7)
+                CmdPrimary.MostRecentFormResult = Game.FindRandomReferenceOfType(CmdPrimary.ResolveForm(param[2]), CmdPrimary.ResolveFloat(param[3]), CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveFloat(param[6]))
+            endif
+        elseif _theAction == "FindRandomReferenceOfTypeFromRef"
+            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+                CmdPrimary.MostRecentFormResult = Game.FindRandomReferenceOfTypeFromRef(CmdPrimary.ResolveFormList(param[2]), CmdPrimary.ResolveObjRef(param[3]), CmdPrimary.ResolveFloat(param[4]))
+            endif
+        elseif _theAction == "GetForm"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentFormResult = Game.GetForm(CmdPrimary.ResolveInt(param[2]))
+            endif
+        elseif _theAction == "GetFormFromFile"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentFormResult = Game.GetFormFromFile(CmdPrimary.ResolveInt(param[2]), CmdPrimary.ResolveString(param[3]))
+            endif
+        elseif _theAction == "GetGameSettingFloat"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentFloatResult = Game.GetGameSettingFloat(CmdPrimary.ResolveString(param[2]))
+            endif
+        elseif _theAction == "GetGameSettingInt"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentIntResult = Game.GetGameSettingInt(CmdPrimary.ResolveString(param[2]))
+            endif
+        elseif _theAction == "GetGameSettingString"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentStringResult = Game.GetGameSettingString(CmdPrimary.ResolveString(param[2]))
+            endif
+        elseif _theAction == "IsWordUnlocked"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                WordOfPower akWord = CmdPrimary.ResolveForm(param[2]) as WordOfPower
+                if akWord
+                    CmdPrimary.MostRecentBoolResult = Game.IsWordUnlocked(akWord)
+                else
+                    CmdPrimary.SFE("Game.IsWordUnlocked: unable to resolve (" + param[2] + ")")
+                endif
+            endif
+        elseif _theAction == "QueryStat"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentIntResult = Game.QueryStat(CmdPrimary.ResolveString(param[2]))
+            endif
+        elseif _theAction == "RemoveHavokConstraints"
+            if ParamLengthEQ(CmdPrimary, param.Length, 6)
+                CmdPrimary.MostRecentBoolResult = Game.RemoveHavokConstraints(CmdPrimary.ResolveObjRef(param[2]), CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveObjRef(param[4]), CmdPrimary.ResolveString(param[5]))
+            endif
+        elseif _theAction == "GetModByName"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentStringResult = Game.GetModByName(CmdPrimary.ResolveString(param[2]))
+            endif
+        elseif _theAction == "GetModName"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentStringResult = Game.GetModName(CmdPrimary.ResolveInt(param[2]))
+            endif
+        elseif _theAction == "GetModAuthor"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentStringResult = Game.GetModAuthor(CmdPrimary.ResolveInt(param[2]))
+            endif
+        elseif _theAction == "GetModDescription"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentStringResult = Game.GetModDescription(CmdPrimary.ResolveInt(param[2]))
+            endif
+        elseif _theAction == "GetModDependencyCount"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentIntResult = Game.GetModDependencyCount(CmdPrimary.ResolveInt(param[2]))
+            endif
+        ;elseif _theAction == "GetNthModDependency"
+            ;if ParamLengthEQ(CmdPrimary, param.Length, 4)
+            ;    CmdPrimary.MostRecentIntResult = Game.GetNthModDependency(CmdPrimary.ResolveInt(param[2]), CmdPrimary.ResolveInt(param[3]))
+            ;endif
+        elseif _theAction == "IsPluginInstalled"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentBoolResult = Game.IsPluginInstalled(CmdPrimary.ResolveString(param[2]))
+            endif
+        elseif _theAction == "GetLightModByName"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentIntResult = Game.GetLightModByName(CmdPrimary.ResolveString(param[2]))
+            endif
+        elseif _theAction == "GetLightModName"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentStringResult = Game.GetLightModName(CmdPrimary.ResolveInt(param[2]))
+            endif
+        elseif _theAction == "GetLightModAuthor"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentStringResult = Game.GetLightModAuthor(CmdPrimary.ResolveInt(param[2]))
+            endif
+        elseif _theAction == "GetLightModDescription"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentStringResult = Game.GetLightModDescription(CmdPrimary.ResolveInt(param[2]))
+            endif
+        elseif _theAction == "GetLightModDependencyCount"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentIntResult = Game.GetLightModDependencyCount(CmdPrimary.ResolveInt(param[2]))
+            endif
+        elseif _theAction == "GetNthLightModDependency"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentIntResult = Game.GetNthLightModDependency(CmdPrimary.ResolveInt(param[2]), CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "GetNthTintMaskColor"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentIntResult = Game.GetNthTintMaskColor(CmdPrimary.ResolveInt(param[2]))
+            endif
+        elseif _theAction == "GetNthTintMaskType"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentIntResult = Game.GetNthTintMaskType(CmdPrimary.ResolveInt(param[2]))
+            endif
+        elseif _theAction == "SetNthTintMaskColor"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentBoolResult = Game.SetNthTintMaskColor(CmdPrimary.ResolveInt(param[2]), CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "GetNthTintMaskTexturePath"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentStringResult = Game.GetNthTintMaskTexturePath(CmdPrimary.ResolveInt(param[2]))
+            endif
+        elseif _theAction == "GetNumTintsByType"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentIntResult = Game.GetNumTintsByType(CmdPrimary.ResolveInt(param[2]))
+            endif
+        elseif _theAction == "GetTintMaskColor"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentBoolResult = Game.GetTintMaskColor(CmdPrimary.ResolveInt(param[2]), CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "GetTintMaskTexturePath"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                CmdPrimary.MostRecentBoolResult = Game.GetTintMaskTexturePath(CmdPrimary.ResolveInt(param[2]), CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "GetSkillLegendaryLevel"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentIntResult = Game.GetSkillLegendaryLevel(CmdPrimary.ResolveString(param[2]))
+            endif
+        elseif _theAction == "GetExperienceForLevel"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentFloatResult = Game.GetExperienceForLevel(CmdPrimary.ResolveInt(param[2]))
+            endif
+        elseif _theAction == "GetHotkeyBoundObject"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentFormResult = Game.GetHotkeyBoundObject(CmdPrimary.ResolveInt(param[2]))
+            endif
+        elseif _theAction == "IsObjectFavorited"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentBoolResult = Game.IsObjectFavorited(CmdPrimary.ResolveForm(param[2]))
+            endif
+        elseif _theAction == "GetFormEx"
+            if ParamLengthEQ(CmdPrimary, param.Length, 3)
+                CmdPrimary.MostRecentFormResult = Game.GetFormEx(CmdPrimary.ResolveInt(param[2]))
+            endif
+        else
+            CmdPrimary.SFE("game_dofunction: invalid function name(" + _theAction + ") resolved from(" + param[1] + ")")
+        endif
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction

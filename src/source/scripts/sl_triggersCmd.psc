@@ -1419,6 +1419,51 @@ string Function ResolveLabel(string token)
     return CRToLabel()
 EndFunction
 
+FormList Function ResolveFormList(string token)
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return none
+    endif
+    FormList _resolvedObj = none
+    if token
+        Form _localForm = ResolveForm(token)
+        if _localForm
+            _resolvedObj = _localForm as FormList
+            if !_resolvedObj
+                SFW("Cmd.ResolveFormList: ResolveForm() returned (" + _localForm + ") but was not an FormList; unable to convert")
+            endif
+        else
+            _resolvedObj = none
+        endif
+    endif
+    return _resolvedObj
+EndFunction
+
+; ResolveObjRef
+; string _code - a variable indicating an ObjectReference
+; returns: an ObjectReference representing the specified ObjectReference; none if unable to resolve
+ObjectReference Function ResolveObjRef(string token)
+    if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
+        SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")
+        CleanupAndRemove()
+        Return none
+    endif
+    ObjectReference _resolvedObj = none
+    if token
+        Form _localForm = ResolveForm(token)
+        if _localForm
+            _resolvedObj = _localForm as ObjectReference
+            if !_resolvedObj
+                SFW("Cmd.ResolveObjRef: ResolveForm() returned (" + _localForm + ") but was not an ObjectReference; unable to convert")
+            endif
+        else
+            _resolvedObj = none
+        endif
+    endif
+    return _resolvedObj
+EndFunction
+
 ; ResolveActor
 ; string _code - a variable indicating an Actor e.g. $self, $player
 ; returns: an Actor representing the specified Actor; none if unable to resolve
@@ -1428,7 +1473,7 @@ Actor Function ResolveActor(string token)
         CleanupAndRemove()
         Return none
     endif
-    Actor _resolvedActor = CmdTargetActor
+    Actor _resolvedActor = none
     if token
         Form _localForm = ResolveForm(token)
         if _localForm

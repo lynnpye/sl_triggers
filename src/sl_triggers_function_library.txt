@@ -862,6 +862,13 @@ IsClothingPoor
 
 -=-
 
+armor_getmaskforslot: Returns the slot mask (https://ck.uesp.net/wiki/Slot_Masks_-_Armor) for the specified armor slot.
+
+	Example
+		set $slotMask resultfrom armor_getmaskforslot 32 ; $slotMask should be 0x4
+
+-=-
+
 
 Core:
 ==============
@@ -984,6 +991,188 @@ Note that if multiple mods introduce an object with the same editorId, the looku
 		form_dogetter $$ GetName
 		msg_notify $$ "!! Yay!!"
 		; Ale!! Yay!!
+
+-=-
+
+
+Game:
+==============
+
+game_doaction: Calls the specified global Game script action.
+https://ck.uesp.net/wiki/Game_Script
+	- parameter 1: string: action name
+	- parameter 2: remaining arguments vary by action
+
+ClearPrison()
+ClearTempEffects()
+ForceFirstPerson()
+ForceThirdPerson()
+HideTitleSequenceMenu()
+PrecacheCharGen()
+PrecacheCharGenClear()
+QuitToMainMenu()
+RequestAutoSave()
+RequestSave()
+SendWereWolfTransformation()
+ServeTime()
+ShowLimitedRaceMenu()
+ShowRaceMenu()
+ShowTitleSequenceMenu()
+UpdateTintMaskColors()
+UpdateHairColor()
+UpdateThirdPerson()
+
+	Example
+		game_doaction ShowLimitedRaceMenu ; change everything but race and gender
+
+-=-
+
+game_doconsumer: Calls the specified global Game script consumer.
+https://ck.uesp.net/wiki/Game_Script
+	- parameter 1: string: consumer name
+	- parameter 2: remaining arguments vary by consumer
+
+AddAchievement(Int aiAchievementID)
+AddPerkPoints(Int aiPerkPoints)
+AdvanceSkill(String asSkillName, Float afMagnitude)
+DisablePlayerControls(Bool abMovement, Bool abFighting, Bool abCamSwitch, Bool abLooking, Bool abSneaking, Bool abMenu, Bool abActivate, Bool abJournalTabs, Int aiDisablePOVType)
+EnableFastTravel(Bool abEnable)
+EnablePlayerControls(Bool abMovement, Bool abFighting, Bool abCamSwitch, Bool abLooking, Bool abSneaking, Bool abMenu, Bool abActivate, Bool abJournalTabs, Int aiDisablePOVType)
+FadeOutGame(Bool abFadingOut, Bool abBlackFade, Float afSecsBeforeFade, Float afFadeDuration)
+FastTravel(ObjectReference akDestination)
+IncrementSkill(String asSkillName)
+IncrementSkillBy(String asSkillName, Int aiCount)
+IncrementStat(String asStatName, Int aiModAmount)
+PlayBink(String asFileName, Bool abInterruptible, Bool abMuteAudio, Bool abMuteMusic, Bool abLetterbox)
+RequestModel(String asModelName)
+SetAllowFlyingMountLandingRequests(Bool abAllow)
+SetBeastForm(Bool abEntering)
+SetCameraTarget(Actor arTarget)
+SetHudCartMode(Bool abSetCartMode)
+SetInChargen(Bool abDisableSaving, Bool abDisableWaiting, Bool abShowControlsDisabledMessage)
+SetPlayerAIDriven(Bool abAIDriven)
+SetPlayerReportCrime(Bool abReportCrime)
+SetSittingRotation(Float afValue)
+SetSunGazeImageSpaceModifier(ImageSpaceModifier apImod)
+ShakeCamera(ObjectReference akSource, Float afStrength)
+ShakeController(Float afLeftStrength, Float afRightStrength, Float afDuration)
+ShowFirstPersonGeometry(Bool abShow)
+ShowTrainingMenu(Actor aActor)
+StartTitleSequence(String asSequenceName)
+TeachWord(WordOfPower akWord)
+TriggerScreenBlood(Int aiValue)
+UnlockWord(WordOfPower akWord)
+SetPerkPoints(Int perkPoints)
+ModPerkPoints(Int perkPoints)
+SetGameSettingFloat(String setting, Float value)
+SetGameSettingInt(String setting, Int value)
+SetGameSettingBool(String setting, Bool value)
+SetGameSettingString(String setting, String value)
+SaveGame(String name)
+LoadGame(String name)
+SetNthTintMaskTexturePath(String path, Int n)
+SetTintMaskColor(Int color, Int type, Int index)
+SetTintMaskTexturePath(String path, Int type, Int index)
+SetMiscStat(String name, Int value)
+SetPlayersLastRiddenHorse(Actor horse)
+SetSkillLegendaryLevel(String actorValue, Int level)
+SetPlayerExperience(Float exp)
+UnbindObjectHotkey(Int hotkey)
+SetPlayerLevel(Int Level)
+
+-=-
+
+game_dofunction: Calls the specified global Game script function.
+https://ck.uesp.net/wiki/Game_Script
+	- parameter 1: string: function name
+	- parameter 2: remaining arguments vary by function
+
+Bool AddHavokBallAndSocketConstraint(ObjectReference arRefA, String arRefANode, ObjectReference arRefB, String arRefBNode, Float afRefALocalOffsetX, Float afRefALocalOffsetY, Float afRefALocalOffsetZ, Float afRefBLocalOffsetX, Float afRefBLocalOffsetY, Float afRefBLocalOffsetZ)
+Int CalculateFavorCost(Int aiFavorPrice)
+Actor FindClosestActor(Float afX, Float afY, Float afZ, Float afRadius)
+Actor FindClosestActorFromRef(ObjectReference arCenter, Float afRadius)
+ObjectReference FindClosestReferenceOfAnyTypeInList(FormList arBaseObjects, Float afX, Float afY, Float afZ, Float afRadius)
+ObjectReference FindClosestReferenceOfAnyTypeInListFromRef(FormList arBaseObjects, ObjectReference arCenter, Float afRadius)
+ObjectReference FindClosestReferenceOfType(Form arBaseObject, Float afX, Float afY, Float afZ, Float afRadius)
+ObjectReference FindClosestReferenceOfTypeFromRef(Form arBaseObject, ObjectReference arCenter, Float afRadius)
+Actor FindRandomActor(Float afX, Float afY, Float afZ, Float afRadius)
+Actor FindRandomActorFromRef(ObjectReference arCenter, Float afRadius)
+ObjectReference FindRandomReferenceOfAnyTypeInList(FormList arBaseObjects, Float afX, Float afY, Float afZ, Float afRadius)
+ObjectReference FindRandomReferenceOfAnyTypeInListFromRef(FormList arBaseObjects, ObjectReference arCenter, Float afRadius)
+ObjectReference FindRandomReferenceOfType(Form arBaseObject, Float afX, Float afY, Float afZ, Float afRadius)
+ObjectReference FindRandomReferenceOfTypeFromRef(Form arBaseObject, ObjectReference arCenter, Float afRadius)
+Form GetForm(Int aiFormID)
+Form GetFormFromFile(Int aiFormID, String asFilename)
+Float GetGameSettingFloat(String asGameSetting)
+Float GetGameSettingInt(String asGameSetting)
+Float GetGameSettingString(String asGameSetting)
+Bool IsWordUnlocked(WordOfPower akWord)
+Int QueryStat(String asStat)
+Bool RemoveHavokConstraints(ObjectReference arFirstRef, String arFirstRefNodeName, ObjectReference arSecondRef, String arSecondRefNodeName)
+Int GetModByName(String name)
+String GetModName(Int modIndex)
+String GetModAuthor(Int modIndex)
+String GetModDescription(Int modIndex)
+Int GetModDependencyCount(Int modIndex)
+Int GetNthModDependency(Int modIndex, Int n)
+Bool IsPluginInstalled(String name)
+Int GetLightModByName(String name)
+String GetLightModName(Int modIndex)
+String GetLightModAuthor(Int modIndex)
+String GetLightModDescription(Int modIndex)
+Int GetLightModDependencyCount(Int modIndex)
+Int GetNthLightModDependency(Int modIndex, Int n)
+Int GetNthTintMaskColor(Int n)
+Int GetNthTintMaskType(Int n)
+Int SetNthTintMaskColor(Int n, Int color)
+String GetNthTintMaskTexturePath(Int n)
+Int GetNumTintsByType(Int type)
+Int GetTintMaskColor(Int type, Int index)
+String GetTintMaskTexturePath(Int type, Int index)
+Int GetSkillLegendaryLevel(String actorValue)
+Float GetExperienceForLevel(Int currentLevel)
+Form GetHotkeyBoundObject(Int hotkey)
+Bool IsObjectFavorited(Form form)
+Form GetFormEx(Int formId)
+
+-=-
+
+game_dogetter: Calls the specified global Game script getter.
+https://ck.uesp.net/wiki/Game_Script
+	- parameter 1: string: getter name
+	- parameter 2: remaining arguments vary by getter
+
+Actor GetPlayer()
+ObjectReference GetPlayerGrabbedRef()
+Actor GetPlayersLastRiddenHorse()
+Float GetRealHoursPassed()
+Float GetSunPositionX()
+Float GetSunPositionY()
+Float GetSunPositionZ()
+Bool IsActivateControlsEnabled()
+Bool IsCamSwitchControlsEnabled()
+Bool IsFastTravelEnabled()
+Bool IsFastTravelControlsEnabled()
+Bool IsFightingControlsEnabled()
+Bool IsJournalControlsEnabled()
+Bool IsLookingControlsEnabled()
+Bool IsMenuControlsEnabled()
+Bool IsMovementControlsEnabled()
+Bool IsPlayerSungazing()
+Bool IsSneakingControlsEnabled()
+Bool UsingGamepad()
+Int GetPerkPoints()
+Int GetModCount()
+Int GetLightModCount()
+Int GetNumTintMasks()
+Int GetCameraState()
+Float GetPlayerExperience()
+Bool GetPlayerMovementMode()
+ObjectReference GetCurrentCrosshairRef()
+ObjectReference GetCurrentConsoleRef()
+
+	Example
+		set $numPerkPoints resultfrom game_dogetter GetPerkPoints
 
 -=-
 

@@ -320,7 +320,7 @@ endFunction
 ; sltgrup OStim
 ; sltdesc int: Returns the action index if the OStim scene metadata has the specified action, -1 otherwise
 ; sltargs string: action: action name e.g. "vaginalsex", "analsex", "blowjob"
-; sltargs actor: (optional; default:Player) target Actor
+; sltargs actor: (optional; default: $system.self) target Actor
 ; sltsamp ostim_findaction "blowjob" $system.self
 ; sltsamp if $$ = true [doORALthing]
 function ostim_findaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
@@ -351,7 +351,7 @@ endFunction
 ; sltgrup OStim
 ; sltdesc bool: Returns true if the OStim scene metadata has the specified action, false otherwise
 ; sltargs string: action: action name e.g. "vaginalsex", "analsex", "blowjob"
-; sltargs actor: (optional; default:Player) target Actor
+; sltargs actor: (optional; default: $system.self) target Actor
 ; sltsamp ostim_hasaction "blowjob" $system.self
 ; sltsamp if $$ = true [doORALthing]
 function ostim_hasaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
