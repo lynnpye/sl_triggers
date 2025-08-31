@@ -548,3 +548,35 @@ if $ifcheckcounter == 1
 else
     deb_msg $"FAIL: nested if/if/endif/withcode/endif ifcheckcounter({ifcheckcounter}); should be 1"
 endif
+
+inc $thread.testCount
+set $testTypeID -1
+set $testTypeID resultfrom typeid "42"
+if $testTypeID == 0
+    inc $thread.passCount
+    deb_msg $"PASS: typeid with literal; expected: 0 - INVALID; received: 0 - INVALID"
+else
+    deb_msg $"FAIL: typeid with literal; expected: 0 - INVALID; received testTypeID({$testTypeID})"
+endif
+
+inc $thread.testCount
+set $testTypeID -1
+set $typeTestVar 42
+set $testTypeID resultfrom typeid $typeTestVar
+if $testTypeID == 3
+    inc $thread.passCount
+    deb_msg $"PASS: typeid with int; expected: 3 - RT_INT; received: 1 - RT_INT"
+else
+    deb_msg $"FAIL: typeid with int; expected: 3 - RT_INT; received testTypeID({$testTypeID})"
+endif
+
+inc $thread.testCount
+set $testTypeID -1
+set $typeTestVarStr "42"
+set $testTypeID resultfrom typeid $typeTestVarStr
+if $testTypeID == 1
+    inc $thread.passCount
+    deb_msg $"PASS: typeid with string; expected: 1 - RT_STRING; received: 1 - RT_STRING"
+else
+    deb_msg $"FAIL: typeid with string; expected: 1 - RT_STRING; received testTypeID({$testTypeID})"
+endif

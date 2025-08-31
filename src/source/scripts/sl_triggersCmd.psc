@@ -368,6 +368,11 @@ String Function CRToString()
         return CustomResolveBoolResult as string
     elseif SLT.RT_LABEL == CustomResolveType
         return CustomResolveLabelResult
+    elseif SLT.RT_ALIAS == CustomResolveType
+        if CustomResolveAliasResult == none
+            return ""
+        endif
+        return AliasPortableStringFromAlias(CustomResolveAliasResult)
     endif
     return CustomResolveUnresolvedResult
 EndFunction
@@ -478,6 +483,8 @@ EndFunction
 Alias Function CRToAlias()
     if SLT.RT_ALIAS == CustomResolveType
         return CustomResolveAliasResult
+    elseif SLT.RT_STRING == CustomResolveType
+        return AliasFromAliasPortableString(CustomResolveStringResult)
     else
         SFE("No auto conversions to Alias")
     endif
@@ -1638,11 +1645,60 @@ Alias[] Function ResolveListAlias(string token)
     return none
 EndFunction
 
+bool Function IsEqualsVarscopes(string lhs_token, string rhs_token)
+    InternalResolve(lhs_token)
+    int lhs_type = CustomResolveType
+
+    if SLT.RT_FORM == lhs_type
+        Form lhsForm = CustomResolveFormResult
+        Form rhsForm = ResolveForm(rhs_token)
+        return lhsForm == rhsForm
+    elseif SLT.RT_ALIAS == lhs_type
+        Alias lhsAlias = CustomResolveAliasResult
+        Alias rhsAlias = ResolveAlias(rhs_token)
+        return lhsAlias == rhsAlias
+    elseif SLT.RT_IsList(lhs_type)
+        SFE("comparison invalid with list variables; always returns false; LHS list")
+        return false
+    elseif SLT.RT_MAP == lhs_type
+        SFE("comparison invalid with map variables; always returns false; LHS map")
+        return false
+    endif
+
+    string lhs_string = CRToString()
+
+    InternalResolve(rhs_token)
+    int rhs_type = CustomResolveType
+    if SLT.RT_FORM == rhs_type
+        Form rhsForm = CustomResolveFormResult
+        Form lhsForm = GetFormById(lhs_string)
+        return lhsForm == rhsForm
+    elseif SLT.RT_ALIAS == rhs_type
+        Alias rhsAlias = CustomResolveAliasResult
+        Alias lhsAlias = AliasFromAliasPortableString(lhs_string)
+        return lhsAlias == rhsAlias
+    elseif SLT.RT_IsList(rhs_type)
+        SFE("comparison invalid with list variables; always returns false; RHS list")
+        return false
+    elseif SLT.RT_MAP == rhs_type
+        SFE("comparison invalid with map variables; always returns false; RHS map")
+        return false
+    endif
+
+    string rhs_string = CRToString()
+
+    return sl_triggers.SmartEquals(ResolveString(lhs_string), ResolveString(rhs_string))
+EndFunction
+
 Function ResetBlockContext()
     while slt_PopGosubReturn() > -1
     endwhile
     while slt_PopWhileReturn() > -1
     endwhile
+EndFunction
+
+Function MessageNotValidSubcommand(string command)
+    SFE("'" + command + "' is not a valid subcommand")
 EndFunction
 
 bool __searchFoundBlockEnd = false
@@ -1753,7 +1809,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                 SFD("Cmd.RunScript: set")
             endif
             if subCommand
-                SFE("'set' is not a valid subcommand")
+                MessageNotValidSubcommand(command)
             elseif ParamLengthGT(self, cmdLine.Length, 2)
                 string[] varscopestringlist = GetVarScopeWithResolution(cmdLine[1], true)
                 ;GetVarScope2(cmdLine[1], varscopestringlist, true)
@@ -1871,7 +1927,8 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                             elseIf __operator == "||"
                                 SetVarBool(varscopestringlist, ResolveBool(cmdLine[2]) || ResolveBool(cmdLine[4]))
                             elseIf __operator == "=="
-                                SetVarBool(varscopestringlist, ResolveBool(cmdLine[2]) == ResolveBool(cmdLine[4]))
+                                ;SetVarBool(varscopestringlist, ResolveBool(cmdLine[2]) == ResolveBool(cmdLine[4]))
+                                SetVarBool(varscopestringlist, IsEqualsVarscopes(cmdLine[2], cmdLine[4]))
                             else
                                 SFE("unexpected operator for 'set' (" + __operator + ")")
                             endif
@@ -1893,7 +1950,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             ;currentLine += 1
         elseIf command == "endif"
             if subCommand
-                SFE("'endif' is not a valid subcommand")
+                MessageNotValidSubcommand(command)
             endif
             __searchFoundBlockEnd = false
             if !IfNestLevel
@@ -1905,7 +1962,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             ;currentLine += 1
         elseIf command == "else"
             if subCommand
-                SFE("'else' is not a valid subcommand")
+                MessageNotValidSubcommand(command)
             endif
             __searchFoundBlockEnd = false
             if !IfNestLevel
@@ -1920,7 +1977,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             ;currentLine += 1
         elseIf command == "endwhile"
             if subCommand
-                SFE("'endwhile' is not a valid subcommand")
+                MessageNotValidSubcommand(command)
             endif
             if __searchFoundBlockEnd
                 __searchFoundBlockEnd = false
@@ -1937,7 +1994,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             ;currentLine += 1
         elseIf command == "while"
             if subCommand
-                SFE("'while' is not a valid subcommand")
+                MessageNotValidSubcommand(command)
             else
                 if cmdLine.Length == 2
                     if ResolveBool(cmdLine[1])
@@ -1955,9 +2012,9 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                     if __operator
                         __bVal = false
                         if __operator == "=" || __operator == "==" || __operator == "&="
-                            __bVal = sl_triggers.SmartEquals(ResolveString(cmdLine[1]), ResolveString(cmdLine[3]))
+                            __bVal = IsEqualsVarscopes(cmdLine[1], cmdLine[3])
                         elseIf __operator == "!=" || __operator == "&!="
-                            __bVal = !sl_triggers.SmartEquals(ResolveString(cmdLine[1]), ResolveString(cmdLine[3]))
+                            __bVal = !IsEqualsVarscopes(cmdLine[1], cmdLine[3])
                         elseIf __operator == ">"
                             if ResolveFloat(cmdLine[1]) > ResolveFloat(cmdLine[3])
                                 __bVal = true
@@ -2010,11 +2067,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             endif
             __searchFoundBlockEnd = false
             if subCommand
-                if command == "if"
-                    SFE("'if' is not a valid subcommand")
-                else
-                    SFE("'elseif' is not a valid subcommand")
-                endif
+                MessageNotValidSubcommand(command)
             elseif IfNestLevel && IfBlockSatisfied && command == "elseif"
                 SetBlockEndTarget(BE_IF)
                 ; inside an if block but it's already been satisfied, keep going until we hit endif
@@ -2081,9 +2134,9 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                 __bVal = false
                 
                 if __operator == "=" || __operator == "==" || __operator == "&="
-                    __bVal = sl_triggers.SmartEquals(ResolveString(cmdLine[1]), ResolveString(cmdLine[3]))
+                    __bVal = IsEqualsVarscopes(cmdLine[1], cmdLine[3])
                 elseIf __operator == "!=" || __operator == "&!="
-                    __bVal = !sl_triggers.SmartEquals(ResolveString(cmdLine[1]), ResolveString(cmdLine[3]))
+                    __bVal = !IsEqualsVarscopes(cmdLine[1], cmdLine[3])
                 elseIf __operator == ">"
                     if ResolveFloat(cmdLine[1]) > ResolveFloat(cmdLine[3])
                         __bVal = true
@@ -2152,9 +2205,9 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
 
                         __bVal = false
                         if __operator == "=" || __operator == "==" || __operator == "&="
-                            __bVal = sl_triggers.SmartEquals(ResolveString(cmdLine[1]), ResolveString(cmdLine[3]))
+                            __bVal = IsEqualsVarscopes(cmdLine[1], cmdLine[3])
                         elseIf __operator == "!=" || __operator == "&!="
-                            __bVal = !sl_triggers.SmartEquals(ResolveString(cmdLine[1]), ResolveString(cmdLine[3]))
+                            __bVal = !IsEqualsVarscopes(cmdLine[1], cmdLine[3])
                         elseIf __operator == ">"
                             if ResolveFloat(cmdLine[1]) > ResolveFloat(cmdLine[3])
                                 __bVal = true
@@ -2204,7 +2257,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             ;currentLine += 1
         elseIf command == "mapunset"
             if subCommand
-                SFE("'mapunset' is not a valid subcommand")
+                MessageNotValidSubcommand(command)
             elseif ParamLengthEQ(self, cmdLine.Length, 3)
                 string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
                 if varscope[SLT.VS_SCOPE]
@@ -2248,7 +2301,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             ;currentLine += 1
         elseIf command == "mapcopy"
             if subCommand
-                SFE("'mapcopy' is not a valid subcommand")
+                MessageNotValidSubcommand(command)
             elseif ParamLengthEQ(self, cmdLine.Length, 3)
                 string[] sourceVarscope = GetVarScopeWithResolution(cmdLine[2], false)
                 if sourceVarscope[SLT.VS_SCOPE]
@@ -2308,7 +2361,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             ;currentLine += 1
         elseIf command == "mapclear"
             if subCommand
-                SFE("'mapclear' is not a valid subcommand")
+                MessageNotValidSubcommand(command)
             elseif ParamLengthEQ(self, cmdLine.Length, 2)
                 string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
                 if varscope[SLT.VS_SCOPE]
@@ -2364,7 +2417,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             ;currentLine += 1
         elseIf command == "listclear"
             if subCommand
-                SFE("'listclear' is not a valid subcommand")
+                MessageNotValidSubcommand(command)
             elseif ParamLengthEQ(self, cmdLine.Length, 2)
                 string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
                 if varscope[SLT.VS_SCOPE]
@@ -2381,7 +2434,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             ;currentLine += 1
         elseIf command == "listadd"
             if subCommand
-                SFE("'listadd' is not a valid subcommand")
+                MessageNotValidSubcommand(command)
             elseif ParamLengthGT(self, cmdLine.Length, 2)
                 string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
                 if varscope[SLT.VS_SCOPE]
@@ -2404,7 +2457,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             ;currentLine += 1
         elseIf command == "listresize"
             if subCommand
-                SFE("'listresize' is not a valid subcommand")
+                MessageNotValidSubcommand(command)
             elseif ParamLengthEQ(self, cmdLine.Length, 3)
                 string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
                 if varscope[SLT.VS_SCOPE]
@@ -2487,7 +2540,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             ;currentLine += 1
         elseIf command == "inc"
             if subCommand
-                SFE("'inc' is not a valid subcommand")
+                MessageNotValidSubcommand(command)
             elseif ParamLengthGT(self, cmdLine.Length, 1)
                 __intVal = 1
                 __floatVal = 1.0
@@ -2536,7 +2589,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                 SFD("Cmd.RunScript: goto")
             endif
             if subCommand
-                SFE("'goto' is not a valid subcommand")
+                MessageNotValidSubcommand(command)
             elseif ParamLengthEQ(self, cmdLine.Length, 2)
                 __strVal = ResolveLabel(cmdLine[1])
                 __intVal = slt_FindGoto(__strVal)
@@ -2551,7 +2604,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             ;currentLine += 1
         elseIf command == "cat"
             if subCommand
-                SFE("'cat' is not a valid subcommand")
+                MessageNotValidSubcommand(command)
             elseif ParamLengthGT(self, cmdLine.Length, 2)
                 __strVal = cmdLine[1]
                 
@@ -2573,7 +2626,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             ;currentLine += 1
         elseIf command == "gosub"
             if subCommand
-                SFE("'gosub' is not a valid subcommand")
+                MessageNotValidSubcommand(command)
             elseif ParamLengthEQ(self, cmdLine.Length, 2)
                 __strVal = ResolveString(cmdLine[1])
                 __intVal = slt_FindGosub(__strVal)
@@ -2587,7 +2640,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             ;currentLine += 1
         elseIf command == "call"
             if subCommand
-                SFE("'call' is not a valid subcommand")
+                MessageNotValidSubcommand(command)
             elseif ParamLengthGT(self, cmdLine.Length, 1)
                 __strVal = ResolveString(cmdLine[1])
 
@@ -2612,7 +2665,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             endif
         elseIf command == "endsub"
             if subCommand
-                SFE("'endsub' is not a valid subcommand")
+                MessageNotValidSubcommand(command)
             elseif ParamLengthEQ(self, cmdLine.Length, 1)
                 __intVal = slt_PopGosubReturn()
                 if __intVal > -1
@@ -2622,7 +2675,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             ;currentLine += 1
         elseIf command == "beginsub"
             if subCommand
-                SFE("set is not a valid subcommand")
+                MessageNotValidSubcommand(command)
             else
                 if ParamLengthEQ(self, cmdLine.Length, 2)
                     slt_AddGosub(ResolveString(cmdLine[1]), currentLine)
@@ -2633,7 +2686,7 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             ;currentLine += 1
         elseIf command == "callarg"
             if subCommand
-                SFE("'callarg' is not a valid subcommand")
+                MessageNotValidSubcommand(command)
             elseif ParamLengthEQ(self, cmdLine.Length, 3)
                 __intVal = ResolveInt(cmdLine[1])
                 string arg = cmdLine[2]
@@ -2658,7 +2711,9 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             endif
             ;currentLine += 1
         elseIf command == "string[]"
-            if ParamLengthEQ(self, cmdLine.Length, 2)
+            if subCommand
+                MessageNotValidSubcommand(command)
+            elseif ParamLengthEQ(self, cmdLine.Length, 2)
                 string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
                 if varscope[SLT.VS_SCOPE]
                     SetVarType(varscope, SLT.RT_LIST_STRING)
@@ -2668,7 +2723,9 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             endif
             ;currentLine += 1
         elseIf command == "bool[]"
-            if ParamLengthEQ(self, cmdLine.Length, 2)
+            if subCommand
+                MessageNotValidSubcommand(command)
+            elseif ParamLengthEQ(self, cmdLine.Length, 2)
                 string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
                 if varscope[SLT.VS_SCOPE]
                     SetVarType(varscope, SLT.RT_LIST_BOOL)
@@ -2678,7 +2735,9 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             endif
             ;currentLine += 1
         elseIf command == "int[]"
-            if ParamLengthEQ(self, cmdLine.Length, 2)
+            if subCommand
+                MessageNotValidSubcommand(command)
+            elseif ParamLengthEQ(self, cmdLine.Length, 2)
                 string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
                 if varscope[SLT.VS_SCOPE]
                     SetVarType(varscope, SLT.RT_LIST_INT)
@@ -2688,7 +2747,9 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             endif
             ;currentLine += 1
         elseIf command == "float[]"
-            if ParamLengthEQ(self, cmdLine.Length, 2)
+            if subCommand
+                MessageNotValidSubcommand(command)
+            elseif ParamLengthEQ(self, cmdLine.Length, 2)
                 string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
                 if varscope[SLT.VS_SCOPE]
                     SetVarType(varscope, SLT.RT_LIST_FLOAT)
@@ -2698,7 +2759,9 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             endif
             ;currentLine += 1
         elseIf command == "Form[]"
-            if ParamLengthEQ(self, cmdLine.Length, 2)
+            if subCommand
+                MessageNotValidSubcommand(command)
+            elseif ParamLengthEQ(self, cmdLine.Length, 2)
                 string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
                 if varscope[SLT.VS_SCOPE]
                     SetVarType(varscope, SLT.RT_LIST_FORM)
@@ -2708,7 +2771,9 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             endif
             ;currentLine += 1
         elseIf command == "label[]"
-            if ParamLengthEQ(self, cmdLine.Length, 2)
+            if subCommand
+                MessageNotValidSubcommand(command)
+            elseif ParamLengthEQ(self, cmdLine.Length, 2)
                 string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
                 if varscope[SLT.VS_SCOPE]
                     SetVarType(varscope, SLT.RT_LIST_LABEL)
@@ -2718,7 +2783,9 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             endif
             ;currentLine += 1
         elseIf command == "Alias[]"
-            if ParamLengthEQ(self, cmdLine.Length, 2)
+            if subCommand
+                MessageNotValidSubcommand(command)
+            elseif ParamLengthEQ(self, cmdLine.Length, 2)
                 string[] varscope = GetVarScopeWithResolution(cmdLine[1], true)
                 if varscope[SLT.VS_SCOPE]
                     SetVarType(varscope, SLT.RT_LIST_ALIAS)
@@ -2727,9 +2794,31 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                 endif
             endif
             ;currentLine += 1
+        elseIf command == "typeid"
+            if ParamLengthEQ(self, cmdLine.Length, 2)
+                string[] varscope = GetVarScopeWithResolution(cmdLine[1], false)
+                if varscope[SLT.VS_SCOPE]
+                    MostRecentIntResult = GetVarType(varscope)
+                else
+                    MostRecentIntResult = SLT.RT_INVALID
+                    SFE("typeid argument must be a valid scoped variable; received (" + cmdLine[1] + ")")
+                endif
+            endif
+            ;currentLine += 1
+        elseIf command == "typename"
+            if ParamLengthEQ(self, cmdLine.Length, 2)
+                string[] varscope = GetVarScopeWithResolution(cmdLine[1], false)
+                if varscope[SLT.VS_SCOPE]
+                    MostRecentStringResult = SLT.RT_ToString(GetVarType(varscope))
+                else
+                    MostRecentStringResult = SLT.RT_ToString(SLT.RT_INVALID)
+                    SFE("typename argument must be a valid scoped variable; received (" + cmdLine[1] + ")")
+                endif
+            endif
+            ;currentLine += 1
         elseIf command == "return"
             if subCommand
-                SFE("'return' is not a valid subcommand")
+                MessageNotValidSubcommand(command)
             elseif !slt_Frame_Pop()
                 __CLRR = CLRR_RETURN
             endif
