@@ -59,8 +59,8 @@
     ],
     "triggerattribute_gender" : [
         ["type", "int"],
-        ["widget", "menu", "Gender: ", "0", "Any", "Male", "Female"],
-        ["info", "The OStim gender of a scene participant."]
+        ["widget", "menu", "Sex: ", "0", "Any", "Male", "Female"],
+        ["info", "The OStim sex of a scene participant."]
     ],
     "triggerattribute_tag" : [
         ["type", "int"],
@@ -129,8 +129,8 @@
     ],
     "triggerattribute_partner_gender" : [
         ["type", "int"],
-        ["widget", "menu", "Partner Gender: ", "0", "Any", "Male", "Female"],
-        ["info", "Requires the script target's partner to be of the selected gender."]
+        ["widget", "menu", "Partner Sex: ", "0", "Any", "Male", "Female"],
+        ["info", "Requires the script target's partner to be of the selected sex."]
     ],
     "triggerlayout" : [
         ["event", "chance"],

@@ -36,6 +36,10 @@ string[]	triggerKeys_Start
 string[]	triggerKeys_Orgasm
 string[]	triggerKeys_Stop
 
+string[]	actions_vaginal
+string[]	actions_anal
+string[]	actions_oral
+
 bool Function IsMCMConfigurable()
 	if OStimForm != none
 		return true
@@ -54,6 +58,8 @@ Event OnInit()
 		return
 	endif
 
+	UpdateActionLists()
+
 	UpdateOStimStatus()
 	SLTInit()
 
@@ -62,10 +68,66 @@ Event OnInit()
 	RegisterForSingleUpdate(0.01)
 EndEvent
 
+string Function FN_OStimConfigurationJSON() global
+	return "../sl_triggers/ostim-configuration.json"
+EndFunction
+
+Function UpdateActionLists()
+	actions_vaginal = JsonUtil.StringListToArray(FN_OStimConfigurationJSON(), "actions_vaginal")
+	actions_anal = JsonUtil.StringListToArray(FN_OStimConfigurationJSON(), "actions_anal")
+	actions_oral = JsonUtil.StringListToArray(FN_OStimConfigurationJSON(), "actions_oral")
+
+	if actions_vaginal.Length < 1
+		SLTErrMsg("OStim.UpdateActionLists: actions_vaginal.Length == 0; this is wrong, correct 'ostim-configuration.json' or reinstall")
+	endif
+	if actions_anal.Length < 1
+		SLTErrMsg("OStim.UpdateActionLists: actions_anal.Length == 0; this is wrong, correct 'ostim-configuration.json' or reinstall")
+	endif
+	if actions_oral.Length < 1
+		SLTErrMsg("OStim.UpdateActionLists: actions_oral.Length == 0; this is wrong, correct 'ostim-configuration.json' or reinstall")
+	endif
+EndFunction
+
+bool Function SceneHasVaginalAction(string sceneId)
+	int i = actions_vaginal.Length
+	while i
+		i -= 1
+		if OMetadata.FindAction(sceneId, actions_vaginal[i]) != -1
+			return true
+		endif
+	endwhile
+	return false
+EndFunction
+
+bool Function SceneHasAnalAction(string sceneId)
+	int i = actions_anal.Length
+	while i
+		i -= 1
+		if OMetadata.FindAction(sceneId, actions_anal[i]) != -1
+			return true
+		endif
+	endwhile
+	return false
+EndFunction
+
+bool Function SceneHasOralAction(string sceneId)
+	int i = actions_oral.Length
+	while i
+		i -= 1
+		if OMetadata.FindAction(sceneId, actions_oral[i]) != -1
+			return true
+		endif
+	endwhile
+	return false
+EndFunction
+
 Function DoPlayerLoadGame()
 	If (SLT.Debug_Extension || SLT.Debug_Extension_OStim)
 		SLTDebugMsg("OStim.DoPlayerLoadGame")
 	EndIf
+
+	UpdateActionLists()
+
 	SLTInit()
 EndFunction
 
@@ -400,6 +462,16 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 
 	bool playerWasInInterior = PlayerRef.IsInInterior()
 	Keyword playerLocationKeyword = SLT.GetPlayerLocationKeyword()
+	
+	int z = actorCount
+	bool playerFound
+	while z > 0
+		z -= 1
+		if threadActors[z] == PlayerRef
+			playerFound = true
+			z = 0
+		endif
+	endwhile
 
 	while i < _eventTriggerKeys.Length
 		triggerKey = _eventTriggerKeys[i]
@@ -434,15 +506,57 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 			while actorIdx < actorCount
 				Actor theSelf = threadActors[actorIdx]
                 idx_Self = actorIdx
+
+				;/
 				Actor theOther = none
 				
 				if actorCount > 1
                     idx_Other = ActorPos(actorIdx + 1, actorCount)
 					theOther = threadActors[idx_Other]
 				endIf
+				/;
+	
+				z = actorCount
+				bool otherAggressors
+				bool otherVictims
+				int otherHumanoids
+				int otherCreatures
+				int otherUndead
+				int otherMales
+				int otherFemales
+				bool hasDominance
+				while z > 0
+					z -= 1
+					if theSelf != threadActors[z]
+						Actor aPartner = threadActors[z]
+						if !otherAggressors && OMetadata.HasActorTag(sceneId, z, "dominant")
+							otherAggressors = true
+						endif
+						if !otherVictims && !OMetadata.HasActorTag(sceneId, z, "dominant")
+							otherVictims = true
+						endif
+						int otherRaceType = ActorRaceType(aPartner)
+						if otherRaceType == 2
+							otherHumanoids += 1
+						elseif otherRaceType == 3
+							otherUndead += 1
+						elseif otherRaceType == 4
+							otherCreatures += 1
+						endif
+						if OStim.IsFemale(aPartner)
+							otherFemales += 1
+						else
+							otherMales += 1
+						endif
+					endif
+				endwhile
+				if !otherAggressors && otherVictims
+					otherVictims = false ; no aggressors => no victims
+				endif
 				
 				If (SLT.Debug_Extension_OStim)
-					SLTDebugMsg("OStim: actorCount(" + actorCount + ") / theSelf(" + theSelf + ") actorRaceType(theSelf)=>(" + ActorRaceType(theSelf) + ") / theOther(" + theOther + ") actorRaceType(theOther)=>(" + ActorRaceType(theOther) + ")")
+					;SLTDebugMsg("OStim: actorCount(" + actorCount + ") / theSelf(" + theSelf + ") actorRaceType(theSelf)=>(" + ActorRaceType(theSelf) + ") / theOther(" + theOther + ") actorRaceType(theOther)=>(" + ActorRaceType(theOther) + ")")
+					SLTDebugMsg("OStim: actorCount(" + actorCount + ") / theSelf(" + theSelf + ") actorRaceType(theSelf)=>(" + ActorRaceType(theSelf) + ") / playerFound(" + playerFound + ") / otherAggressors(" + otherAggressors + ") / otherVictims(" + otherVictims + ") / otherHumanoids(" + otherHumanoids + ") / otherCreatures(" + otherCreatures + ") / otherUndead(" + otherUndead + ") / otherMales(" + otherMales + ") / otherFemales(" + otherFemales + ")")
 				EndIf
 
 				doRun = true
@@ -531,6 +645,7 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 							doRun = false
 						elseIf ival == 3 && ActorRaceType(theSelf) != 3 ; should be undead
 							doRun = false
+							;/
 						else
 							;check other
 							if actorCount <= 1 ; is solo, Partner is auto-false
@@ -544,6 +659,7 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 									doRun = false
 								endIf
 							endIf
+							/;
 						endIf
 					endIf
 				endIf
@@ -555,11 +671,11 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PARTNER_RACE)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && ActorRaceType(theOther) != 2 ; should be humanoid
+						if ival == 1 && otherHumanoids == 0 ; should be humanoid
 							doRun = false
-						elseIf ival == 2 && ActorRaceType(theOther) != 4 ; should be creature
+						elseIf ival == 2 && otherCreatures == 0 ; should be creature
 							doRun = false
-						elseIf ival == 3 && ActorRaceType(theOther) != 3 ; should be undead
+						elseIf ival == 3 && otherUndead == 0 ; should be undead
 							doRun = false
 						endIf
 					endIf
@@ -582,9 +698,9 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 							if actorCount <= 1
 								doRun = false
 							else
-								if ival == 3 && ActorRaceType(theOther) != 1 ; should be player
+								if ival == 3 &&  (!playerFound || ActorRaceType(theSelf) == 1) ; should be player
 									doRun = false
-								elseIf ival == 4 && ActorRaceType(theOther) == 1 ; should be not-player
+								elseIf ival == 4 && playerFound ; should be not-player
 									doRun = false
 								endIf
 							endIf
@@ -601,29 +717,10 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 					if ival != 0 ; 0 is Any
 						if ival == 1 && !OMetadata.HasActorTag(sceneId, idx_Self, "dominant") ; aggresor
 							doRun = false
-						elseIf ival == 2
-                            int x = actorCount
-                            bool hasDominance
-                            while x && doRun
-                                x -= 1
-                                If (OMetadata.HasActorTag(sceneId, x, "dominant"))
-                                    If (x == idx_Self)
-                                        doRun = false
-                                    EndIf
-                                    hasDominance = true
-                                EndIf
-                            endwhile
-                            If (!hasDominance)
-                                doRun = false
-                            EndIf
-						elseIf ival == 3
-                            int x = actorCount
-                            while x && doRun
-                                x -= 1
-                                If (OMetadata.HasActorTag(sceneId, x, "dominant"))
-                                    doRun = false
-                                EndIf
-                            endwhile
+						elseIf ival == 2 && (!hasDominance || OMetadata.HasActorTag(sceneId, idx_Self, "dominant")) ; victim
+							doRun = false
+						elseIf ival == 3 && !hasDominance
+							doRun = false
 						endIf
 					endIf
 				endIf
@@ -635,31 +732,12 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PARTNER_ROLE)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && !OMetadata.HasActorTag(sceneId, idx_Other, "dominant") ; aggresor
+						if ival == 1 && !otherAggressors ; aggresor
 							doRun = false
-						elseIf ival == 2
-                            int x = actorCount
-                            bool hasDominance
-                            while x && doRun
-                                x -= 1
-                                If (OMetadata.HasActorTag(sceneId, x, "dominant"))
-                                    If (x == idx_Other)
-                                        doRun = false
-                                    EndIf
-                                    hasDominance = true
-                                EndIf
-                            endwhile
-                            If (!hasDominance)
-                                doRun = false
-                            EndIf
-						elseIf ival == 3
-                            int x = actorCount
-                            while x && doRun
-                                x -= 1
-                                If (OMetadata.HasActorTag(sceneId, x, "dominant"))
-                                    doRun = false
-                                EndIf
-                            endwhile
+						elseIf ival == 2 && !otherVictims
+							doRun = false
+						elseIf ival == 3 && hasDominance
+							doRun = false
 						endIf
 					endIf
 				endIf
@@ -686,9 +764,9 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PARTNER_GENDER)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && ostim.IsFemale(theOther)
+						if ival == 1 && otherMales == 0
 							doRun = false
-						elseIf ival == 2 && !ostim.IsFemale(theOther)
+						elseIf ival == 2 && !otherFemales == 0
 							doRun = false
 						endIf
 					endIf
@@ -701,11 +779,11 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_TAG)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && OMetadata.FindAction(sceneId, "vaginalsex") == -1
+						if ival == 1 && !SceneHasVaginalAction(sceneId)
 							doRun = false
-						elseIf ival == 2 && OMetadata.FindAction(sceneId, "analsex") == -1
+						elseIf ival == 2 && !SceneHasAnalAction(sceneId)
 							doRun = false
-						elseIf ival == 3 && OMetadata.FindAction(sceneId, "blowjob") == -1
+						elseIf ival == 3 && !SceneHasOralAction(sceneId)
 							doRun = false
 						endIf
 					endIf

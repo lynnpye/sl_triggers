@@ -1,3 +1,22 @@
+0.920
+    Savegame compatible
+    Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
+        (or whichever folder you have your SKSE logs directed to)
+    bugfix: SexLab/OStim event "Partner" handling failed on some group corner cases
+        - old method: "Partner" was simply "next Actor in the scene, wrapping around to first slot"
+            - worked perfectly fine in 1-on-1 scenes
+            - So in a scene where positions happen to be MFMM
+                - "Partner: Female" would only work for M#1
+                - M#2 "partner" calculates to M#3 and for M#3 it's M#1 (it wraps around)
+        - new method: "Partner" filters are true if true for any partner (i.e. other than $system.self)
+            - So in a scene where positions happen to be MFMM
+                - "Partner: Female" would work for M#1-3, but fail for F (i.e. script would be run once for each M as $system.self)
+                    - From the perspective of each M, there is at least one F that is not themselves; F does not see another F.
+                - "Partner: Male" would work for all actors in the scene (i.e. script would be run once for each M and also for F)
+                    - From the perspective of each actor, there is at least one other M in the scene that is not themselves
+    enhancement: (SexLab/SexLab P+) expanded "Sex:" and "Partner Sex:" filters to include all supported sexes for their respective frameworks
+    enhancement: (OStim) added ostim-configuration.json; includes three string lists to configure the OStim actions corresponding to "Vaginal", "Oral", or "Anal" activity
+
 0.901
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
         (or whichever folder you have your SKSE logs directed to)
