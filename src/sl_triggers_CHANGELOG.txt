@@ -14,6 +14,7 @@
                     - From the perspective of each M, there is at least one F that is not themselves; F does not see another F.
                 - "Partner: Male" would work for all actors in the scene (i.e. script would be run once for each M and also for F)
                     - From the perspective of each actor, there is at least one other M in the scene that is not themselves
+    bugfix: console command logic could fail utterly without any ConsoleUtil installed (even in fallback case)
     enhancement: (SexLab/SexLab P+) expanded "Sex:" and "Partner Sex:" filters to include all supported sexes for their respective frameworks
     enhancement: (OStim) added ostim-configuration.json; includes three string lists to configure the OStim actions corresponding to "Vaginal", "Oral", or "Anal" activity
 

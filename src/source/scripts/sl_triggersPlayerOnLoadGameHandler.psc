@@ -101,13 +101,20 @@ Function InitiateConsoleHook()
     if SKSE.GetPluginVersion("ConsoleUtilSSE") != -1
 		; Per ConsoleUtil Extended documentation:
 		; The scripts API version (will return 777 or greater for ConsoleUtil Extended)
-        if ConsoleUtil.GetVersion() < 777
+		int cuver = ConsoleUtil.GetVersion()
+        if cuver < 777
 			; So only do our pseudo hook if the far superior option of CUE is not available
+			SLTInfoMsg("ConsoleUtil found, version is " + cuver + ", using basic console support")
 			UnregisterForMenu("Console")
 			RegisterForMenu("Console")
 		else
+			SLTInfoMsg("ConsoleUtil Extended found, using that")
 			UnregisterForMenu("Console")
         endIf
+	else
+		SLTInfoMsg("ConsoleUtil not found, using basic console support")
+		UnregisterForMenu("Console")
+		RegisterForMenu("Console")
     endIf
 EndFunction
  
