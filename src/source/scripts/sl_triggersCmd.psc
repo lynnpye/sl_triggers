@@ -2455,6 +2455,42 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
                 endif
             endif
             ;currentLine += 1
+        elseif command == "listjoin"
+            if subCommand
+                MessageNotValidSubcommand(command)
+            elseif ParamLengthGT(self, cmdLine.Length, 2)
+                string[] targetList = GetVarScopeWithResolution(cmdLine[1], true)
+                if targetList[SLT.VS_SCOPE]
+                    int vt = GetVarType(targetList)
+                    if SLT.RT_IsList(vt)
+                        string targetVarListKey = GetVarListKey(targetList)
+                        string[] newValues = StorageUtil.StringListToArray(SLT, targetVarListKey)
+                        int cli = 2
+                        while cli < cmdLine.Length
+                            string[] sourceList = GetVarScopeWithResolution(cmdLine[cli], true)
+                            if sourceList[SLT.VS_SCOPE]
+                                int st = GetVarType(sourceList)
+                                if st == vt
+                                    string[] parmValues = StorageUtil.StringListToArray(SLT, GetVarListKey(sourceList))
+                                    newValues = PapyrusUtil.MergeStringArray(newValues, parmValues)
+                                else
+                                    SFE("listjoin: could not resolve sourceList (" + cmdLine[cli] + ") to a matching list type; " + SLT.RT_ToString(st))
+                                endif
+                            else
+                                SFE("listjoin: could not resolve sourceList (" + cmdLine[cli] + ") to a valid scope")
+                            endif
+
+                            cli += 1
+                        endwhile
+                        StorageUtil.StringListCopy(SLT, targetVarListKey, newValues)
+                    else
+                        SFE("listjoin: could not resolve targetList (" + cmdLine[1] + ") to a valid list type; " + SLT.RT_ToString(vt))
+                    endif
+                else
+                    SFE("listjoin: could not resolve targetList (" + cmdLine[1] + ") to a valid scope")
+                endif
+            endif
+            ;currentLine += 1
         elseIf command == "listresize"
             if subCommand
                 MessageNotValidSubcommand(command)
