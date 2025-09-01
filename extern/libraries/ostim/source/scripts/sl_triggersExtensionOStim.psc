@@ -360,9 +360,9 @@ Function RegisterEvents()
 EndFunction
 
 ; EXTERNAL EVENT HANDLERS
-Event OnSexStart(String _eventName, String _args, Float _argc, Form _sender)
+Event OnSexStart(String _eventName, String _args, Float threadID, Form _sender)
 	If (SLT.Debug_Extension || SLT.Debug_Extension_OStim)
-		SLTDebugMsg("OStim.OnSexStart: eventName(" + _eventName + ") args(" + _args + ") flt(" + _argc + ") sender(" + _sender + ")")
+		SLTDebugMsg("OStim.OnSexStart: eventName(" + _eventName + ") args(" + _args + ") threadID(" + threadID + ") sender(" + _sender + ")")
 	EndIf
 
 	if !Self || !OStimForm
@@ -373,14 +373,12 @@ Event OnSexStart(String _eventName, String _args, Float _argc, Form _sender)
 		Return
 	EndIf
 	
-    int tid = _args as int
-	
-	HandleCheckEvents(tid, none, triggerKeys_Start)
+	HandleCheckEvents(threadID as int, none, triggerKeys_Start, OThread.GetActors(threadID as int))
 EndEvent
 
-Event OnOrgasm(String _eventName, String _args, Float _argc, Form _sender)
+Event OnOrgasm(String _eventName, String sceneID, Float threadID, Form _sender)
 	If (SLT.Debug_Extension || SLT.Debug_Extension_OStim)
-		SLTDebugMsg("OStim.OnOrgasm: eventName(" + _eventName + ") args(" + _args + ") flt(" + _argc + ") sender(" + _sender + ")")
+		SLTDebugMsg("OStim.OnOrgasm: eventName(" + _eventName + ") sceneID(" + sceneID + ") threadID(" + threadID + ") sender(" + _sender + ")")
 	EndIf
 
 	if !Self || !OStimForm
@@ -391,14 +389,12 @@ Event OnOrgasm(String _eventName, String _args, Float _argc, Form _sender)
 		Return
 	EndIf
 	
-    int tid = _args as int
-    
-	HandleCheckEvents(tid, _sender as Actor, triggerKeys_Orgasm)
+	HandleCheckEvents(threadID as int, _sender as Actor, triggerKeys_Orgasm, OThread.GetActors(threadID as int))
 EndEvent
 
-Event OnSexEnd(String _eventName, String _args, Float _argc, Form _sender)
+Event OnSexEnd(String _eventName, String actorJSON, Float threadID, Form _sender)
 	If (SLT.Debug_Extension || SLT.Debug_Extension_OStim)
-		SLTDebugMsg("OStim.OnSexEnd: eventName(" + _eventName + ") args(" + _args + ") flt(" + _argc + ") sender(" + _sender + ")")
+		SLTDebugMsg("OStim.OnSexEnd: eventName(" + _eventName + ") actorJSON(" + actorJSON + ") threadID(" + threadID + ") sender(" + _sender + ")")
 	EndIf
 
 	if !Self || !OStimForm
@@ -409,15 +405,10 @@ Event OnSexEnd(String _eventName, String _args, Float _argc, Form _sender)
 		Return
 	EndIf
 	
-    int tid = _args as int
-
-	; extract the actors
-	Actor[] sceneActors = OJSON.GetActors(_args)
-    
-	HandleCheckEvents(tid, none, triggerKeys_Stop, sceneActors)
+	HandleCheckEvents(threadID as int, none, triggerKeys_Stop, OJSON.GetActors(actorJSON))
 EndEvent
 
-Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys, Actor[] sceneActorList = none)
+Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys, Actor[] threadActors)
     OSexIntegrationMain ostim = OStimForm as OSexIntegrationMain
     If (!ostim)
         SLTWarnMsg("OStim.HandleCheckEvents: unable to obtain OSexIntegrationMain; check your OStim installation")
@@ -426,12 +417,9 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 
     int actorCount = 0
 
-    Actor[] threadActors = sceneActorList
 	if !threadActors.Length
-		If (SLT.Debug_Extension_OStim)
-			SLTDebugMsg("OStim.HandleCheckEvents: threadActors.Length still zero, attempting fetch from OThread.GetActors(" + tid + ")")
-		EndIf
-		threadActors = OThread.GetActors(tid)
+		SLTErrMsg("OStim.HandleCheckEvents: threadActors.Length is zero; returning")
+		return
 	endif
 
 	actorCount = threadActors.Length
@@ -439,7 +427,7 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 
 	If (SLT.Debug_Extension_OStim)
 		SLTDebugMsg("\n====\n"\
-		+ "tid(" + tid + ") specActor(" + specActor + ") sceneActorList.Length(" + sceneActorList.Length + ") threadActors.Length(" + threadActors.Length + ") actorCount(" + actorCount + ") sceneId(" + sceneId + ")\n" \
+		+ "tid(" + tid + ") specActor(" + specActor + ") threadActors.Length(" + threadActors.Length + ") actorCount(" + actorCount + ") sceneId(" + sceneId + ")\n" \
 		+ "EndNPCSceneOnOrgasm (" + ostim.EndNPCSceneOnOrgasm as bool + ")\n" \
 		+ "EndOnPlayerOrgasm (" + ostim.EndOnPlayerOrgasm as bool + ")\n" \
 		+ "EndOnMaleOrgasm (" + ostim.EndOnMaleOrgasm as bool + ")\n" \
