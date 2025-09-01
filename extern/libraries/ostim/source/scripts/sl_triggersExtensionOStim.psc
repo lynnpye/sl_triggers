@@ -75,6 +75,10 @@ string Function FN_OStimConfigurationJSON() global
 EndFunction
 
 Function UpdateActionLists()
+	If (SLT.Debug_Extension || SLT.Debug_Extension_OStim)
+		SLTDebugMsg("OStim.UpdateActionLists")
+	EndIf
+
 	actions_vaginal = JsonUtil.StringListToArray(FN_OStimConfigurationJSON(), "actions_vaginal")
 	actions_anal = JsonUtil.StringListToArray(FN_OStimConfigurationJSON(), "actions_anal")
 	actions_oral = JsonUtil.StringListToArray(FN_OStimConfigurationJSON(), "actions_oral")
@@ -263,6 +267,71 @@ bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string scope, strin
 	return false
 EndFunction
 
+; EXTERNAL EVENT HANDLERS
+Event OnSexStart(String _eventName, String _args, Float threadID, Form _sender)
+	If (SLT.Debug_Extension || SLT.Debug_Extension_OStim)
+		SLTDebugMsg("OStim.OnSexStart: eventName(" + _eventName + ") args(" + _args + ") threadID(" + threadID + ") sender(" + _sender + ")")
+	EndIf
+
+	if !Self || !OStimForm
+		Return
+	EndIf
+	
+	If !IsEnabled
+		Return
+	EndIf
+	
+	HandleCheckEvents(threadID as int, none, triggerKeys_Start, OThread.GetActors(threadID as int))
+EndEvent
+
+Event OnOrgasm(String _eventName, String sceneID, Float threadID, Form _sender)
+	If (SLT.Debug_Extension || SLT.Debug_Extension_OStim)
+		SLTDebugMsg("OStim.OnOrgasm: eventName(" + _eventName + ") sceneID(" + sceneID + ") threadID(" + threadID + ") sender(" + _sender + ")")
+	EndIf
+
+	if !Self || !OStimForm
+		Return
+	EndIf
+	
+	If !IsEnabled
+		Return
+	EndIf
+	
+	HandleCheckEvents(threadID as int, _sender as Actor, triggerKeys_Orgasm, OThread.GetActors(threadID as int))
+EndEvent
+
+Event OnSexEnd(String _eventName, String actorJSON, Float threadID, Form _sender)
+	If (SLT.Debug_Extension || SLT.Debug_Extension_OStim)
+		SLTDebugMsg("OStim.OnSexEnd: eventName(" + _eventName + ") actorJSON(" + actorJSON + ") threadID(" + threadID + ") sender(" + _sender + ")")
+	EndIf
+
+	if !Self || !OStimForm
+		Return
+	EndIf
+	
+	If !IsEnabled
+		Return
+	EndIf
+	
+	HandleCheckEvents(threadID as int, none, triggerKeys_Stop, OJSON.GetActors(actorJSON))
+EndEvent
+
+Event OnSceneChanged(String _eventName, String sceneID, Float threadID, Form _sender)
+	If (SLT.Debug_Extension || SLT.Debug_Extension_OStim)
+		SLTDebugMsg("OStim.OnSceneChanged: eventName(" + _eventName + ") sceneID(" + sceneID + ") threadID(" + threadID + ") sender(" + _sender + ")")
+	EndIf
+
+	if !Self || !OStimForm
+		Return
+	EndIf
+	
+	If !IsEnabled
+		Return
+	EndIf
+	
+	HandleCheckEvents(threadID as int, _sender as Actor, triggerKeys_SceneChanged, OThread.GetActors(threadID as int))
+EndEvent
+
 Function RefreshTriggerCache()
 	If (SLT.Debug_Extension || SLT.Debug_Extension_OStim)
 		SLTDebugMsg("OStim.RefreshTriggerCache")
@@ -377,71 +446,6 @@ Function RegisterEvents()
 		SafeRegisterForModEvent_Quest(self, "ostim_thread_scenechanged", "OnSceneChanged")
 	endif
 EndFunction
-
-; EXTERNAL EVENT HANDLERS
-Event OnSexStart(String _eventName, String _args, Float threadID, Form _sender)
-	If (SLT.Debug_Extension || SLT.Debug_Extension_OStim)
-		SLTDebugMsg("OStim.OnSexStart: eventName(" + _eventName + ") args(" + _args + ") threadID(" + threadID + ") sender(" + _sender + ")")
-	EndIf
-
-	if !Self || !OStimForm
-		Return
-	EndIf
-	
-	If !IsEnabled
-		Return
-	EndIf
-	
-	HandleCheckEvents(threadID as int, none, triggerKeys_Start, OThread.GetActors(threadID as int))
-EndEvent
-
-Event OnOrgasm(String _eventName, String sceneID, Float threadID, Form _sender)
-	If (SLT.Debug_Extension || SLT.Debug_Extension_OStim)
-		SLTDebugMsg("OStim.OnOrgasm: eventName(" + _eventName + ") sceneID(" + sceneID + ") threadID(" + threadID + ") sender(" + _sender + ")")
-	EndIf
-
-	if !Self || !OStimForm
-		Return
-	EndIf
-	
-	If !IsEnabled
-		Return
-	EndIf
-	
-	HandleCheckEvents(threadID as int, _sender as Actor, triggerKeys_Orgasm, OThread.GetActors(threadID as int))
-EndEvent
-
-Event OnSexEnd(String _eventName, String actorJSON, Float threadID, Form _sender)
-	If (SLT.Debug_Extension || SLT.Debug_Extension_OStim)
-		SLTDebugMsg("OStim.OnSexEnd: eventName(" + _eventName + ") actorJSON(" + actorJSON + ") threadID(" + threadID + ") sender(" + _sender + ")")
-	EndIf
-
-	if !Self || !OStimForm
-		Return
-	EndIf
-	
-	If !IsEnabled
-		Return
-	EndIf
-	
-	HandleCheckEvents(threadID as int, none, triggerKeys_Stop, OJSON.GetActors(actorJSON))
-EndEvent
-
-Event OnSceneChanged(String _eventName, String sceneID, Float threadID, Form _sender)
-	If (SLT.Debug_Extension || SLT.Debug_Extension_OStim)
-		SLTDebugMsg("OStim.OnSceneChanged: eventName(" + _eventName + ") sceneID(" + sceneID + ") threadID(" + threadID + ") sender(" + _sender + ")")
-	EndIf
-
-	if !Self || !OStimForm
-		Return
-	EndIf
-	
-	If !IsEnabled
-		Return
-	EndIf
-	
-	HandleCheckEvents(threadID as int, _sender as Actor, triggerKeys_SceneChanged, OThread.GetActors(threadID as int))
-EndEvent
 
 Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys, Actor[] threadActors)
     OSexIntegrationMain ostim = OStimForm as OSexIntegrationMain

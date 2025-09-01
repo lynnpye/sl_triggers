@@ -20,6 +20,7 @@
     enhancement: (SexLab/SexLab P+) expanded "Sex:" and "Partner Sex:" filters to include all supported sexes for their respective frameworks
     enhancement: (OStim) added ostim-configuration.json; includes three string lists to configure the OStim actions corresponding to "Vaginal", "Oral", or "Anal" activity
     enhancement: (OStim) new trigger: Scene Changed
+    enhancement: (SexLab/SexLab P+) new triggers: Stage Start, Stage End
 
 0.901
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 

@@ -6,18 +6,12 @@ import sl_triggersStatics
 Form				Property SexLabForm					Auto Hidden
 Faction	            Property SexLabAnimatingFaction 	Auto Hidden
 
-string	EVENT_SEXLAB_START					= "AnimationStart"
-string	EVENT_SEXLAB_END					= "AnimationEnd"
-string	EVENT_SEXLAB_ORGASM					= "OrgasmStart"
-string	EVENT_SEXLAB_ORGASM_SLSO			= "SexLabOrgasmSeparate"
-string	EVENT_SEXLAB_START_HANDLER			= "OnSexLabStart"
-string	EVENT_SEXLAB_END_HANDLER			= "OnSexLabEnd"
-string	EVENT_SEXLAB_ORGASM_HANDLER			= "OnSexLabOrgasm"
-string	EVENT_SEXLAB_ORGASM_SLSO_HANDLER	= "OnSexLabOrgasmS"
 int		EVENT_ID_START 						= 1
 int		EVENT_ID_ORGASM						= 2
 int		EVENT_ID_STOP						= 3
 int		EVENT_ID_ORGASM_SLSO				= 4
+int		EVENT_ID_STAGE_START				= 5
+int		EVENT_ID_STAGE_END					= 6
 
 string ATTR_MOD_VERSION						= "__slt_mod_version__"
 string ATTR_EVENT							= "event"
@@ -47,6 +41,8 @@ string[]	triggerKeys_Start
 string[]	triggerKeys_Orgasm
 string[]	triggerKeys_Stop
 string[]	triggerKeys_Orgasm_S
+string[]	triggerKeys_Stage_Start
+string[]	triggerKeys_Stage_End
 
 bool Function IsMCMConfigurable()
 	if SexLabForm != none
@@ -210,6 +206,10 @@ EndFunction
 
 ; EXTERNAL EVENT HANDLERS
 Event OnSexLabStart(String _eventName, String _args, Float _argc, Form _sender)
+	If (SLT.Debug_Extension || SLT.Debug_Extension_SexLab)
+		SLTDebugMsg("SexLab.SexLabStart: _eventName(" + _eventName + ") _args(" + _args + ") _argc(" + _argc + ") _sender(" + _sender + ")")
+	EndIf
+
 	if !Self || !SexLabForm
 		Return
 	EndIf
@@ -224,6 +224,10 @@ Event OnSexLabStart(String _eventName, String _args, Float _argc, Form _sender)
 EndEvent
 
 Event OnSexLabOrgasm(String _eventName, String _args, Float _argc, Form _sender)
+	If (SLT.Debug_Extension || SLT.Debug_Extension_SexLab)
+		SLTDebugMsg("SexLab.SexLabOrgasm: _eventName(" + _eventName + ") _args(" + _args + ") _argc(" + _argc + ") _sender(" + _sender + ")")
+	EndIf
+
 	if !Self || !SexLabForm
 		Return
 	EndIf
@@ -238,6 +242,10 @@ Event OnSexLabOrgasm(String _eventName, String _args, Float _argc, Form _sender)
 EndEvent
 
 Event OnSexLabEnd(String _eventName, String _args, Float _argc, Form _sender)
+	If (SLT.Debug_Extension || SLT.Debug_Extension_SexLab)
+		SLTDebugMsg("SexLab.SexLabEnd: _eventName(" + _eventName + ") _args(" + _args + ") _argc(" + _argc + ") _sender(" + _sender + ")")
+	EndIf
+
 	if !Self || !SexLabForm
 		Return
 	EndIf
@@ -251,7 +259,11 @@ Event OnSexLabEnd(String _eventName, String _args, Float _argc, Form _sender)
 	HandleSexLabCheckEvents(tid, none, triggerKeys_Stop)
 EndEvent
 
-Event OnSexLabOrgasmS(Form ActorRef, Int Thread)
+Event OnSexLabOrgasmSeparate(Form ActorRef, Int Thread)
+	If (SLT.Debug_Extension || SLT.Debug_Extension_SexLab)
+		SLTDebugMsg("SexLab.SexLabOrgasmSeparate: ActorRef(" + ActorRef + ") Thread(" + Thread + ")")
+	EndIf
+
 	if !Self || !SexLabForm
 		Return
 	EndIf
@@ -265,6 +277,42 @@ Event OnSexLabOrgasmS(Form ActorRef, Int Thread)
 	HandleSexLabCheckEvents(tid, ActorRef as Actor, triggerKeys_Orgasm_S)
 EndEvent
 
+Event OnStageStart(String _eventName, String _args, Float _argc, Form _sender)
+	If (SLT.Debug_Extension || SLT.Debug_Extension_SexLab)
+		SLTDebugMsg("SexLab.StageStart: _eventName(" + _eventName + ") _args(" + _args + ") _argc(" + _argc + ") _sender(" + _sender + ")")
+	EndIf
+
+	if !Self || !SexLabForm
+		Return
+	EndIf
+	
+	If !IsEnabled
+		Return
+	EndIf
+	
+    int tid = _args as int
+    
+	HandleSexLabCheckEvents(tid, none, triggerKeys_Stage_Start)
+EndEvent
+
+Event OnStageEnd(String _eventName, String _args, Float _argc, Form _sender)
+	If (SLT.Debug_Extension || SLT.Debug_Extension_SexLab)
+		SLTDebugMsg("SexLab.StageEnded: _eventName(" + _eventName + ") _args(" + _args + ") _argc(" + _argc + ") _sender(" + _sender + ")")
+	EndIf
+
+	if !Self || !SexLabForm
+		Return
+	EndIf
+	
+	If !IsEnabled
+		Return
+	EndIf
+	
+    int tid = _args as int
+    
+	HandleSexLabCheckEvents(tid, none, triggerKeys_Stage_End)
+EndEvent
+
 Function RefreshTriggerCache()
 	if SLT.Debug_Extension || SLT.Debug_Extension_SexLab
 		SLTDebugMsg("SexLab.RefreshTriggerCache")
@@ -273,6 +321,8 @@ Function RefreshTriggerCache()
 	triggerKeys_Orgasm = PapyrusUtil.StringArray(0)
 	triggerKeys_Stop = PapyrusUtil.StringArray(0)
 	triggerKeys_Orgasm_S = PapyrusUtil.StringArray(0)
+	triggerKeys_Stage_Start = PapyrusUtil.StringArray(0)
+	triggerKeys_Stage_End = PapyrusUtil.StringArray(0)
 	int i = 0
 	while i < TriggerKeys.Length
 		string _triggerFile = FN_T(TriggerKeys[i])
@@ -289,6 +339,10 @@ Function RefreshTriggerCache()
 				triggerKeys_Stop = PapyrusUtil.PushString(triggerKeys_Stop, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_ORGASM_SLSO
 				triggerKeys_Orgasm_S = PapyrusUtil.PushString(triggerKeys_Orgasm_S, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_STAGE_START
+				triggerKeys_Stage_Start = PapyrusUtil.PushString(triggerKeys_Stage_Start, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_STAGE_END
+				triggerKeys_Stage_End = PapyrusUtil.PushString(triggerKeys_Stage_End, TriggerKeys[i])
 			else
 				If (SLT.Debug_Extension_SexLab)
 					SLTDebugMsg("SexLab.RefreshTriggerCache: _triggerFile(" + _triggerFile + ") has unknown eventCode(" + eventCode + "); skipping")
@@ -304,17 +358,66 @@ Function RefreshTriggerCache()
 	endwhile
 	
 	If (SLT.Debug_Extension_SexLab)
-		string inmsg = "\n\n===========\ntriggerKeys_Start:\n"
+		string inmsg
 		int inside = 0
 		string t_key
 		string t_file
-		while inside < triggerKeys_Start.Length
+
+		inmsg = "\n\n===========\ntriggerKeys_Start:\n"
+		inside = triggerKeys_Start.Length
+		while inside
+			inside -= 1
 			t_key = triggerKeys_Start[inside]
 			t_file = FN_T(t_key)
 			inmsg += "key(" + t_key + ") file(" + t_file +")\n"
-			inside += 1
 		endwhile
 		inmsg += "===========\n\n"
+
+		inmsg = "\n\n===========\ntriggerKeys_Orgasm:\n"
+		inside = triggerKeys_Orgasm.Length
+		while inside
+			inside -= 1
+			t_key = triggerKeys_Orgasm[inside]
+			t_file = FN_T(t_key)
+			inmsg += "key(" + t_key + ") file(" + t_file +")\n"
+		endwhile
+
+		inmsg = "\n\n===========\ntriggerKeys_Stop:\n"
+		inside = triggerKeys_Stop.Length
+		while inside
+			inside -= 1
+			t_key = triggerKeys_Stop[inside]
+			t_file = FN_T(t_key)
+			inmsg += "key(" + t_key + ") file(" + t_file +")\n"
+		endwhile
+
+		inmsg = "\n\n===========\ntriggerKeys_Orgasm_S(eparate):\n"
+		inside = triggerKeys_Orgasm_S.Length
+		while inside
+			inside -= 1
+			t_key = triggerKeys_Orgasm_S[inside]
+			t_file = FN_T(t_key)
+			inmsg += "key(" + t_key + ") file(" + t_file +")\n"
+		endwhile
+
+		inmsg = "\n\n===========\ntriggerKeys_Stage_Start:\n"
+		inside = triggerKeys_Stage_Start.Length
+		while inside
+			inside -= 1
+			t_key = triggerKeys_Stage_Start[inside]
+			t_file = FN_T(t_key)
+			inmsg += "key(" + t_key + ") file(" + t_file +")\n"
+		endwhile
+
+		inmsg = "\n\n===========\ntriggerKeys_Stage_End:\n"
+		inside = triggerKeys_Stage_End.Length
+		while inside
+			inside -= 1
+			t_key = triggerKeys_Stage_End[inside]
+			t_file = FN_T(t_key)
+			inmsg += "key(" + t_key + ") file(" + t_file +")\n"
+		endwhile
+
 		SLTDebugMsg(inmsg)
 	EndIf
 EndFunction
@@ -337,25 +440,36 @@ Function RegisterEvents()
 	if SLT.Debug_Extension || SLT.Debug_Extension_SexLab
 		SLTDebugMsg("SexLab.RegisterEvents")
 	endif
-	UnregisterForModEvent(EVENT_SEXLAB_START)
+	UnregisterForModEvent("AnimationStart")
 	if IsEnabled && triggerKeys_Start.Length > 0 && SexLabForm
-		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_START, EVENT_SEXLAB_START_HANDLER)
+		SafeRegisterForModEvent_Quest(self, "AnimationStart", 		"OnSexLabStart")
 	endif
 	
-	UnregisterForModEvent(EVENT_SEXLAB_END)
+	UnregisterForModEvent("AnimationEnd")
 	if IsEnabled && triggerKeys_Stop.Length > 0 && SexLabForm
-		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_END, EVENT_SEXLAB_END_HANDLER)
+		SafeRegisterForModEvent_Quest(self, "AnimationEnd", 		"OnSexLabEnd")
 	endif
 	
-	UnregisterForModEvent(EVENT_SEXLAB_ORGASM)
+	UnregisterForModEvent("OrgasmStart")
 	if IsEnabled && triggerKeys_Orgasm.Length > 0 && SexLabForm
-		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_ORGASM, EVENT_SEXLAB_ORGASM_HANDLER)
+		SafeRegisterForModEvent_Quest(self, "OrgasmStart", 			"OnSexLabOrgasm")
 	endif
     
-	UnregisterForModEvent(EVENT_SEXLAB_ORGASM_SLSO)
+	UnregisterForModEvent("SexLabOrgasmSeparate")
 	if IsEnabled && triggerKeys_Orgasm_S.Length > 0 && SexLabForm
-		SafeRegisterForModEvent_Quest(self, EVENT_SEXLAB_ORGASM_SLSO, EVENT_SEXLAB_ORGASM_SLSO_HANDLER)
+		SafeRegisterForModEvent_Quest(self, "SexLabOrgasmSeparate",	"OnSexLabOrgasmSeparate")
 	endif
+
+	UnregisterForModEvent("StageStart")
+	if IsEnabled && triggerKeys_Stage_Start.Length > 0 && SexLabForm
+		SafeRegisterForModEvent_Quest(self, "StageStart", 			"OnStageStart")
+	endif
+
+	UnregisterForModEvent("StageEnd")
+	if IsEnabled && triggerKeys_Stage_End.Length > 0 && SexLabForm
+		SafeRegisterForModEvent_Quest(self, "StageEnd", 			"OnStageEnd")
+	endif
+
 EndFunction
 
 
