@@ -530,6 +530,14 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 				SLTDebugMsg("OStim: starting actor loop; actorCount(" + actorCount + ")")
 			EndIf
 
+			int otherAggressors
+			int otherVictims
+			int otherHumanoids
+			int otherCreatures
+			int otherUndead
+			int otherMales
+			int otherFemales
+			bool hasDominance
 			while actorIdx < actorCount
 				Actor theSelf = threadActors[actorIdx]
                 idx_Self = actorIdx
@@ -543,42 +551,63 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 				endIf
 				/;
 	
+				otherAggressors = 0
+				otherVictims = 0
+				otherHumanoids = 0
+				otherCreatures = 0
+				otherUndead = 0
+				otherMales = 0
+				otherFemales = 0
+				hasDominance = false
 				z = actorCount
-				bool otherAggressors
-				bool otherVictims
-				int otherHumanoids
-				int otherCreatures
-				int otherUndead
-				int otherMales
-				int otherFemales
-				bool hasDominance
 				while z > 0
 					z -= 1
-					if theSelf != threadActors[z]
+					if z != actorIdx
 						Actor aPartner = threadActors[z]
-						if !otherAggressors && OMetadata.HasActorTag(sceneId, z, "dominant")
-							otherAggressors = true
+						if OMetadata.HasActorTag(sceneId, z, "dominant")
+							If (SLT.Debug_Extension_OStim)
+								SLTDebugMsg("OStim: for self(" + theSelf + "): aggressor(" + aPartner + ")")
+							EndIf
+							otherAggressors += 1
 						endif
-						if !otherVictims && !OMetadata.HasActorTag(sceneId, z, "dominant")
-							otherVictims = true
+						if !OMetadata.HasActorTag(sceneId, z, "dominant")
+							If (SLT.Debug_Extension_OStim)
+								SLTDebugMsg("OStim: for self(" + theSelf + "): victim(" + aPartner + ")")
+							EndIf
+							otherVictims += 1
 						endif
 						int otherRaceType = ActorRaceType(aPartner)
 						if otherRaceType == 2
+							If (SLT.Debug_Extension_OStim)
+								SLTDebugMsg("OStim: for self(" + theSelf + "): humanoid(" + aPartner + ")")
+							EndIf
 							otherHumanoids += 1
 						elseif otherRaceType == 3
+							If (SLT.Debug_Extension_OStim)
+								SLTDebugMsg("OStim: for self(" + theSelf + "): undead(" + aPartner + ")")
+							EndIf
 							otherUndead += 1
 						elseif otherRaceType == 4
+							If (SLT.Debug_Extension_OStim)
+								SLTDebugMsg("OStim: for self(" + theSelf + "): creature(" + aPartner + ")")
+							EndIf
 							otherCreatures += 1
 						endif
 						if OStim.IsFemale(aPartner)
+							If (SLT.Debug_Extension_OStim)
+								SLTDebugMsg("OStim: for self(" + theSelf + "): female(" + aPartner + ")")
+							EndIf
 							otherFemales += 1
 						else
+							If (SLT.Debug_Extension_OStim)
+								SLTDebugMsg("OStim: for self(" + theSelf + "): male(" + aPartner + ")")
+							EndIf
 							otherMales += 1
 						endif
 					endif
 				endwhile
-				if !otherAggressors && otherVictims
-					otherVictims = false ; no aggressors => no victims
+				if otherAggressors == 0 && otherVictims > 0
+					otherVictims = 0 ; no aggressors => no victims
 				endif
 				
 				If (SLT.Debug_Extension_OStim)
@@ -759,9 +788,9 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PARTNER_ROLE)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && !otherAggressors ; aggresor
+						if ival == 1 && otherAggressors == 0 ; aggresor
 							doRun = false
-						elseIf ival == 2 && !otherVictims
+						elseIf ival == 2 && otherVictims == 0
 							doRun = false
 						elseIf ival == 3 && hasDominance
 							doRun = false
