@@ -17,6 +17,19 @@
                     - From the perspective of each actor, there is at least one other M in the scene that is not themselves
     bugfix: console command logic could fail utterly without any ConsoleUtil installed (even in fallback case)
     bugfix: comparison logic was failing between primarily forms and direct numeric ID comparisons; comparison logic is more robust now
+    enhancement: new intrinsic function: listjoin
+        example: if you have Nether's Followers Framework and want to have a list containing yourself, and all of your followers:
+        Form[] $theCrew
+        set $theCrew $system.player
+        set $theFollowers resultfrom nff_getfollowers
+        listjoin $theCrew $theFollowers
+        ; $theCrew now contains the original list plus everything in the targeted list
+        listjoin $theCrew $groupOne $groupTwo
+        ; accepts multiple lists in one call
+        int[] $theNumbers
+        set $theNumber[0] 42
+        listjoin $theCrew $theNumbers
+        ; this will fail to do anything, and will log an error; appended list types must match the target list
     enhancement: (SexLab/SexLab P+) expanded "Sex:" and "Partner Sex:" filters to include all supported sexes for their respective frameworks
         SexLab: adds 'Creature, Male', 'Creature, Female'
         SexLab P+: adds 'Futa', 'Creature, Male', 'Creature, Female'
