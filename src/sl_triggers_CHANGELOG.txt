@@ -18,6 +18,8 @@
     bugfix: console command logic could fail utterly without any ConsoleUtil installed (even in fallback case)
     bugfix: comparison logic was failing between primarily forms and direct numeric ID comparisons; comparison logic is more robust now
     enhancement: (SexLab/SexLab P+) expanded "Sex:" and "Partner Sex:" filters to include all supported sexes for their respective frameworks
+        SexLab: adds 'Creature, Male', 'Creature, Female'
+        SexLab P+: adds 'Futa', 'Creature, Male', 'Creature, Female'
     enhancement: (OStim) added ostim-configuration.json; includes three string lists to configure the OStim actions corresponding to "Vaginal", "Oral", or "Anal" activity
     enhancement: (OStim) new trigger: Scene Changed
     enhancement: (SexLab/SexLab P+) new triggers: Stage Start, Stage End
