@@ -2,6 +2,7 @@
     Savegame compatible
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
         (or whichever folder you have your SKSE logs directed to)
+    bugfix: OStim threadID was not being handled correctly
     bugfix: SexLab/OStim event "Partner" handling failed on some group corner cases
         - old method: "Partner" was simply "next Actor in the scene, wrapping around to first slot"
             - worked perfectly fine in 1-on-1 scenes
