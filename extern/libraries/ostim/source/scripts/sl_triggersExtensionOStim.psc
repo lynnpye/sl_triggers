@@ -7,6 +7,7 @@ Form				Property OStimForm					Auto Hidden
 int		EVENT_ID_START 						= 1
 int		EVENT_ID_ORGASM						= 2
 int		EVENT_ID_STOP						= 3
+int		EVENT_ID_SCENE_CHANGED				= 4
 
 string ATTR_MOD_VERSION						= "__slt_mod_version__"
 string ATTR_EVENT							= "event"
@@ -35,6 +36,7 @@ string ATTR_PARTNER_GENDER					= "partner_gender"
 string[]	triggerKeys_Start
 string[]	triggerKeys_Orgasm
 string[]	triggerKeys_Stop
+string[]	triggerKeys_SceneChanged
 
 string[]	actions_vaginal
 string[]	actions_anal
@@ -268,6 +270,7 @@ Function RefreshTriggerCache()
 	triggerKeys_Start = PapyrusUtil.StringArray(0)
 	triggerKeys_Orgasm = PapyrusUtil.StringArray(0)
 	triggerKeys_Stop = PapyrusUtil.StringArray(0)
+	triggerKeys_SceneChanged = PapyrusUtil.StringArray(0)
 	int i = 0
 	while i < TriggerKeys.Length
 		string _triggerFile = FN_T(TriggerKeys[i])
@@ -282,6 +285,8 @@ Function RefreshTriggerCache()
 				triggerKeys_Orgasm = PapyrusUtil.PushString(triggerKeys_Orgasm, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_STOP
 				triggerKeys_Stop = PapyrusUtil.PushString(triggerKeys_Stop, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_SCENE_CHANGED
+				triggerKeys_SceneChanged = PapyrusUtil.PushString(triggerKeys_SceneChanged, TriggerKeys[i])
 			else
 				If (SLT.Debug_Extension_OStim)
 					SLTDebugMsg("OStim.RefreshTriggerCache: _triggerFile(" + _triggerFile + ") has unknown eventCode(" + eventCode + "); skipping")
@@ -329,6 +334,15 @@ Function RefreshTriggerCache()
 			inmsg += "key(" + t_key + ") file(" + t_file +")\n"
 		endwhile
 
+		inmsg = "\n\n===========\ntriggerKeys_SceneChanged:\n"
+		inside = triggerKeys_SceneChanged.Length
+		while inside
+			inside -= 1
+			t_key = triggerKeys_SceneChanged[inside]
+			t_file = FN_T(t_key)
+			inmsg += "key(" + t_key + ") file(" + t_file +")\n"
+		endwhile
+
 		inmsg += "===========\n\n"
 		SLTDebugMsg(inmsg)
 	EndIf
@@ -356,6 +370,11 @@ Function RegisterEvents()
 	UnregisterForModEvent("ostim_actor_orgasm")
 	if IsEnabled && triggerKeys_Orgasm.Length > 0 && OStimForm
 		SafeRegisterForModEvent_Quest(self, "ostim_actor_orgasm", "OnOrgasm")
+	endif
+	
+	UnregisterForModEvent("ostim_thread_scenechanged")
+	if IsEnabled && triggerKeys_SceneChanged.Length > 0 && OStimForm
+		SafeRegisterForModEvent_Quest(self, "ostim_thread_scenechanged", "OnSceneChanged")
 	endif
 EndFunction
 
@@ -406,6 +425,22 @@ Event OnSexEnd(String _eventName, String actorJSON, Float threadID, Form _sender
 	EndIf
 	
 	HandleCheckEvents(threadID as int, none, triggerKeys_Stop, OJSON.GetActors(actorJSON))
+EndEvent
+
+Event OnSceneChanged(String _eventName, String sceneID, Float threadID, Form _sender)
+	If (SLT.Debug_Extension || SLT.Debug_Extension_OStim)
+		SLTDebugMsg("OStim.OnSceneChanged: eventName(" + _eventName + ") sceneID(" + sceneID + ") threadID(" + threadID + ") sender(" + _sender + ")")
+	EndIf
+
+	if !Self || !OStimForm
+		Return
+	EndIf
+	
+	If !IsEnabled
+		Return
+	EndIf
+	
+	HandleCheckEvents(threadID as int, _sender as Actor, triggerKeys_SceneChanged, OThread.GetActors(threadID as int))
 EndEvent
 
 Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys, Actor[] threadActors)

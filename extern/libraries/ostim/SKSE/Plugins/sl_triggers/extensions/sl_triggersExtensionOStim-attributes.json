@@ -34,7 +34,7 @@
     "triggerattribute_event" : [
         ["# here is where you define aspects of the attribute"],
         ["type", "int"],
-        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Begin", "Orgasm", "End"],
+        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Begin", "Orgasm", "End", "Scene Changed"],
         ["info", "Choose which type of event this trigger will use."]
     ],
     "triggerattribute_chance" : [
