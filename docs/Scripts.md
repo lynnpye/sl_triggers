@@ -413,6 +413,20 @@ set $stringslice resultfrom listslice $listvar 2 1
 ; $stringslice is a list comprised of [ "second", "third" ]
 ```
 
+#### `listjoin` - Appends to targetList the data from each sourceList, provided the data types match
+The usage: listjoin $targetList $sourceList1 $sourceList2 ...
+
+targetList: required
+
+sourceList: 1 or more, must be list variables of the same type as the targetList
+```sltscript
+Form[] $theCrew
+set $theCrew[0] = $system.player
+set $theFollowers resultfrom nff_followers
+listjoin $theCrew $theFollowers
+; $theCrew contains the player and all NFF followers
+```
+
 #### `inc` - Increment
 Increments the numeric value of a variable by the specified amount (default: 1; float values like 2.3 are allowed).
 ```sltscript
