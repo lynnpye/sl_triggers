@@ -525,6 +525,16 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 		int    actorIdx = 0
 
 		if doRun
+			int otherAggressors
+			int otherVictims
+			int otherHumanoids
+			int otherCreatures
+			int otherUndead
+			int otherMales
+			int otherFemales
+			int otherFuta
+			int otherCreatureMale
+			int otherCreatureFemale
 			while actorIdx < actorCount
 				Actor theSelf = thread.Positions[actorIdx]
 				;/
@@ -535,45 +545,76 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 				endIf
 				/;
 	
+				otherAggressors = 0
+				otherVictims = 0
+				otherHumanoids = 0
+				otherCreatures = 0
+				otherUndead = 0
+				otherMales = 0
+				otherFemales = 0
+				otherFuta = 0
+				otherCreatureMale = 0
+				otherCreatureFemale = 0
+
 				z = actorCount
-				bool otherAggressors
-				bool otherVictims
-				int otherHumanoids
-				int otherCreatures
-				int otherUndead
-				int otherMales
-				int otherFemales
-				int otherFuta
-				int otherCreatureMale
-				int otherCreatureFemale
 				while z > 0
 					z -= 1
-					if theSelf != thread.positions[z]
+					if z != actorIdx
 						Actor aPartner = thread.positions[z]
-						if !otherAggressors && thread.IsAggressor(aPartner)
-							otherAggressors = true
+						if thread.IsAggressor(aPartner)
+							If (SLT.Debug_Extension_SexLab)
+								SLTDebugMsg("SexLab: for self(" + theSelf + "): aggressor(" + aPartner + ")")
+							EndIf
+							otherAggressors += 1
 						endif
-						if !otherVictims && thread.IsVictim(aPartner)
-							otherVictims = true
+						if thread.IsVictim(aPartner)
+							If (SLT.Debug_Extension_SexLab)
+								SLTDebugMsg("SexLab: for self(" + theSelf + "): victim(" + aPartner + ")")
+							EndIf
+							otherVictims += 1
 						endif
 						int otherRaceType = ActorRaceType(aPartner)
 						if otherRaceType == 2
+							If (SLT.Debug_Extension_SexLab)
+								SLTDebugMsg("SexLab: for self(" + theSelf + "): humanoid(" + aPartner + ")")
+							EndIf
 							otherHumanoids += 1
 						elseif otherRaceType == 3
+							If (SLT.Debug_Extension_SexLab)
+								SLTDebugMsg("SexLab: for self(" + theSelf + "): undead(" + aPartner + ")")
+							EndIf
 							otherUndead += 1
 						elseif otherRaceType == 4
+							If (SLT.Debug_Extension_SexLab)
+								SLTDebugMsg("SexLab: for self(" + theSelf + "): creature(" + aPartner + ")")
+							EndIf
 							otherCreatures += 1
 						endif
 						int otherGender = (SexLabForm as SexLabFramework).GetGender(aPartner)
 						if otherGender == 0
+							If (SLT.Debug_Extension_SexLab)
+								SLTDebugMsg("SexLab: for self(" + theSelf + "): male(" + aPartner + ")")
+							EndIf
 							otherMales += 1
 						elseif otherGender == 1
+							If (SLT.Debug_Extension_SexLab)
+								SLTDebugMsg("SexLab: for self(" + theSelf + "): female(" + aPartner + ")")
+							EndIf
 							otherFemales += 1
 						elseif otherGender == 2
+							If (SLT.Debug_Extension_SexLab)
+								SLTDebugMsg("SexLab: for self(" + theSelf + "): futa(" + aPartner + ")")
+							EndIf
 							otherFuta += 1
 						elseif otherGender == 3
+							If (SLT.Debug_Extension_SexLab)
+								SLTDebugMsg("SexLab: for self(" + theSelf + "): creature male(" + aPartner + ")")
+							EndIf
 							otherCreatureMale += 1
 						elseif otherGender == 4
+							If (SLT.Debug_Extension_SexLab)
+								SLTDebugMsg("SexLab: for self(" + theSelf + "): creature female(" + aPartner + ")")
+							EndIf
 							otherCreatureFemale += 1
 						endif
 					endif
@@ -757,9 +798,9 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PARTNER_ROLE)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && !otherAggressors ; aggresor
+						if ival == 1 && otherAggressors == 0 ; aggresor
 							doRun = false
-						elseIf ival == 2 && !otherVictims ; victim
+						elseIf ival == 2 && otherVictims == 0 ; victim
 							doRun = false
 						elseIf ival == 3 && thread.IsAggressive ; not
 							doRun = false
