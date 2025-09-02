@@ -28,11 +28,42 @@ SL Triggers Redux (SLTR, though you may still see references to SLT) is two thin
 
 These scripts are simple text files with the .sltscript extension, with an easy to understand syntax and a number of examples available to work from. Scripts are comprised of commands. Commands can be functions like "av_set" (to set an Actor Value) or syntactic commands like "goto" (to script execution to a different line). 
 
-SLT comes with a base library of functions available for scripting that is growing. That said, it features an extension architecture through which mod authors can implement additional functions that would be available to other users of SLT that also install the extension. This allows the ability to expand the function library without needing it to be added to the core library.
+SLTR comes with a base [library of functions available for scripting](https://github.com/lynnpye/sl_triggers/wiki/Function-Libraries) that is growing. That said, it features an extension architecture through which mod authors can implement additional functions that would be available to other users of SLT that also install the extension. This allows the ability to expand the function library without needing it to be added to the core library.
 
 You don't have to program the scripts to use them. A selection is available for you to work with from the get-go, plus any you want to copy and modify, and of course you can also share scripts with other SLTR users. (I hold no copyright over any SLTScripts anyone creates, just so you know.)
 
 Visit the [SLT wiki](https://github.com/lynnpye/sl_triggers/wiki) for complete details, including script examples and SLT API documentation for your SLTScripts, as well as integration features.
+
+# Supported Events
+Events that occur in game (SexLab orgasm, Key press, Fast Travel) can be configured to fire triggers, which in turn can result in running scripts if the filters match. Currently, you can run SLTScripts in response to the following events:
+- Core
+  - Keymapping (triggers in response to your choice of hotkey mapping, with optional modifier and DAK support)
+  - Top of the Hour (triggers on the in-game hour (or on the next such hour after sleep or travel))
+  - New Session (triggers on each new game load)
+  - Player Cell Change (triggers on each Cell change; this happens more frequently than you might think, so be careful about heavy scripts with this, and protect against spamming i.e. player running back and forth across cell boundaries could generate spammed script executions)
+  - Player Closed Container (triggers after a Player closes a container)
+  - Player Location Change (triggers on each Location change; typically much less frequent than Cell change)
+  - Player Equipment Change (triggers when the player swaps equipment)
+  - Player Combat State Changed (triggers when the Player's combat status changes)
+  - Player Hit Or Is Hit (triggers when the Player is hit; this can result in a lot of executions so be careful with filter selection and heavy scripts)
+  - Timer (triggers on a per-minute timer, delayed anywhere from 1 to 60 minutes)
+  - Harvesting (triggers when harvesting typical harvestables; e.g. plants, mushrooms, butterflies)
+  - Fast Travel Arrival (triggers when you arrive after fast travel)
+  - Vampirism Transitions (triggers when: you become a Vampire, you are cured, you transform to a Vampire Lord, and you end the Vampire Lord transformation)
+  - Werewolf Transitions (triggers when: you are cursed, you are cured, you transform into a Werewolf, and you end the Werewolf transofmration)
+  - Vampire Feeding (triggers when you begin vampiric feeding)
+- SexLab (optional)
+  - Start
+  - Stop
+  - Orgasm
+  - Orgasm, Separate
+  - Stage Start
+  - Stage End
+- OStim (optional)
+  - Start
+  - Stop
+  - Orgasm
+  - SceneChange
 
 # Speaking of Copyright and Licensing / Attribution
 All work associated with "SL Triggers Redux" aka "SLTR" aka "SLT" (in relation to it's origin) is derived from [the original, SL Triggers, by Fotogen](https://www.loverslab.com/files/file/8760-sl-triggersv12-2022-06-05/). I received approval to continue development. More info available on the [SLT Wiki](https://github.com/lynnpye/sl_triggers/wiki).
