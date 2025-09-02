@@ -4,9 +4,9 @@ import sl_triggersStatics
 
 ; sltname osla_get_arousal
 ; sltgrup OSLAroused
-; sltdesc Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
-; sltargs actor: target Actor
-; sltsamp osla_get_arousal $self
+; sltdesc Returns: float: the result of OSLAroused_ModInterface.GetArousal()
+; sltargs Form: actor: target Actor
+; sltsamp osla_get_arousal $system.self
 ; sltsamp msg_console "Arousal is: " $$
 function osla_get_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -27,9 +27,9 @@ endFunction
 
 ; sltname osla_get_arousal_multiplier
 ; sltgrup OSLAroused
-; sltdesc Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
-; sltargs actor: target Actor
-; sltsamp osla_get_arousal_multiplier $self
+; sltdesc Returns: float: the result of OSLAroused_ModInterface.GetArousal()
+; sltargs Form: actor: target Actor
+; sltsamp osla_get_arousal_multiplier $system.self
 ; sltsamp msg_console "Arousal multiplier is: " $$
 function osla_get_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -50,9 +50,9 @@ endFunction
 
 ; sltname osla_get_exposure
 ; sltgrup OSLAroused
-; sltdesc Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
-; sltargs actor: target Actor
-; sltsamp osla_get_exposure $self
+; sltdesc Returns: float: the result of OSLAroused_ModInterface.GetArousal()
+; sltargs Form: actor: target Actor
+; sltsamp osla_get_exposure $system.self
 ; sltsamp msg_console "Exposure is: " $$
 function osla_get_exposure(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -73,8 +73,8 @@ endFunction
 
 ; sltname osla_get_actor_days_since_last_orgasm
 ; sltgrup OSLAroused
-; sltdesc Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
-; sltargs actor: target Actor
+; sltdesc Returns: float: the result of OSLAroused_ModInterface.GetArousal()
+; sltargs Form: actor: target Actor
 ; sltsamp osla_get_actor_days_since_last_orgasm $self
 ; sltsamp msg_console "Arousal is: " $$
 function osla_get_actor_days_since_last_orgasm(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
@@ -96,11 +96,11 @@ endFunction
 
 ; sltname osla_modify_arousal
 ; sltgrup OSLAroused
-; sltdesc Sets $$ to the result of OSLAroused_ModInterface.ModifyArousal(Actor, float, string)
-; sltargs actor: target Actor
-; sltargs value: float value
-; sltargs reason: string, optional (default "unknown")
-; sltsamp osla_modify_arousal $self 20.0 "for reasons"
+; sltdesc Returns: float: the result of OSLAroused_ModInterface.ModifyArousal(Actor, float, string)
+; sltargs Form: actor: target Actor
+; sltargs float: value: value
+; sltargs string: reason: optional (default "unknown")
+; sltsamp osla_modify_arousal $system.self 20.0 "for reasons"
 function osla_modify_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -125,11 +125,11 @@ endFunction
 
 ; sltname osla_set_arousal
 ; sltgrup OSLAroused
-; sltdesc Sets $$ to the result of OSLAroused_ModInterface.SetArousal(Actor, float, string)
-; sltargs actor: target Actor
-; sltargs value: float value
-; sltargs reason: string, optional (default "unknown")
-; sltsamp osla_set_arousal $self 50.0 "for reasons"
+; sltdesc Returns: float: the result of OSLAroused_ModInterface.SetArousal(Actor, float, string)
+; sltargs Form: actor: target Actor
+; sltargs float: value: value
+; sltargs string: reason: optional (default "unknown")
+; sltsamp osla_set_arousal $system.self 50.0 "for reasons"
 function osla_set_arousal(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -154,11 +154,11 @@ endFunction
 
 ; sltname osla_modify_arousal_multiplier
 ; sltgrup OSLAroused
-; sltdesc Sets $$ to the result of OSLAroused_ModInterface.ModifyArousalMultiplier(Actor, float, string)
-; sltargs actor: target Actor
-; sltargs value: float value
-; sltargs reason: string, optional (default "unknown")
-; sltsamp osla_modify_arousal_multiplier $self 0.5 "for reasons"
+; sltdesc Returns: float: the result of OSLAroused_ModInterface.ModifyArousalMultiplier(Actor, float, string)
+; sltargs Form: actor: target Actor
+; sltargs float: value: value
+; sltargs string: reason: optional (default "unknown")
+; sltsamp osla_modify_arousal_multiplier $system.self 0.5 "for reasons"
 function osla_modify_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -183,11 +183,11 @@ endFunction
 
 ; sltname osla_set_arousal_multiplier
 ; sltgrup OSLAroused
-; sltdesc Sets $$ to the result of OSLAroused_ModInterface.SetArousalMultiplier(Actor, float, string)
-; sltargs actor: target Actor
-; sltargs value: float value
-; sltargs reason: string, optional (default "unknown")
-; sltsamp osla_set_arousal_multiplier $self 2.0 "for reasons"
+; sltdesc Returns: float: the result of OSLAroused_ModInterface.SetArousalMultiplier(Actor, float, string)
+; sltargs Form: actor: target Actor
+; sltargs float: value: value
+; sltargs string: reason: optional (default "unknown")
+; sltsamp osla_set_arousal_multiplier $system.self 2.0 "for reasons"
 function osla_set_arousal_multiplier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 

@@ -4,7 +4,7 @@ Adult General Function Library
 OSLAroused:
 ==============
 
-osla_get_actor_days_since_last_orgasm: Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
+osla_get_actor_days_since_last_orgasm: Returns: float: the result of OSLAroused_ModInterface.GetArousal()
 
 	Example
 		osla_get_actor_days_since_last_orgasm $self
@@ -12,67 +12,67 @@ osla_get_actor_days_since_last_orgasm: Sets $$ to the result of OSLAroused_ModIn
 
 -=-
 
-osla_get_arousal: Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
+osla_get_arousal: Returns: float: the result of OSLAroused_ModInterface.GetArousal()
 
 	Example
-		osla_get_arousal $self
+		osla_get_arousal $system.self
 		msg_console "Arousal is: " $$
 
 -=-
 
-osla_get_arousal_multiplier: Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
+osla_get_arousal_multiplier: Returns: float: the result of OSLAroused_ModInterface.GetArousal()
 
 	Example
-		osla_get_arousal_multiplier $self
+		osla_get_arousal_multiplier $system.self
 		msg_console "Arousal multiplier is: " $$
 
 -=-
 
-osla_get_exposure: Sets $$ to the result of OSLAroused_ModInterface.GetArousal()
+osla_get_exposure: Returns: float: the result of OSLAroused_ModInterface.GetArousal()
 
 	Example
-		osla_get_exposure $self
+		osla_get_exposure $system.self
 		msg_console "Exposure is: " $$
 
 -=-
 
-osla_modify_arousal: Sets $$ to the result of OSLAroused_ModInterface.ModifyArousal(Actor, float, string)
-	- parameter 1: actor: target Actor
-	- parameter 2: value: float value
-	- parameter 3: reason: string, optional (default "unknown")
+osla_modify_arousal: Returns: float: the result of OSLAroused_ModInterface.ModifyArousal(Actor, float, string)
+	- parameter 1: Form: actor: target Actor
+	- parameter 2: float: value: value
+	- parameter 3: string: reason: optional (default "unknown")
 
 	Example
-		osla_modify_arousal $self 20.0 "for reasons"
+		osla_modify_arousal $system.self 20.0 "for reasons"
 
 -=-
 
-osla_modify_arousal_multiplier: Sets $$ to the result of OSLAroused_ModInterface.ModifyArousalMultiplier(Actor, float, string)
-	- parameter 1: actor: target Actor
-	- parameter 2: value: float value
-	- parameter 3: reason: string, optional (default "unknown")
+osla_modify_arousal_multiplier: Returns: float: the result of OSLAroused_ModInterface.ModifyArousalMultiplier(Actor, float, string)
+	- parameter 1: Form: actor: target Actor
+	- parameter 2: float: value: value
+	- parameter 3: string: reason: optional (default "unknown")
 
 	Example
-		osla_modify_arousal_multiplier $self 0.5 "for reasons"
+		osla_modify_arousal_multiplier $system.self 0.5 "for reasons"
 
 -=-
 
-osla_set_arousal: Sets $$ to the result of OSLAroused_ModInterface.SetArousal(Actor, float, string)
-	- parameter 1: actor: target Actor
-	- parameter 2: value: float value
-	- parameter 3: reason: string, optional (default "unknown")
+osla_set_arousal: Returns: float: the result of OSLAroused_ModInterface.SetArousal(Actor, float, string)
+	- parameter 1: Form: actor: target Actor
+	- parameter 2: float: value: value
+	- parameter 3: string: reason: optional (default "unknown")
 
 	Example
-		osla_set_arousal $self 50.0 "for reasons"
+		osla_set_arousal $system.self 50.0 "for reasons"
 
 -=-
 
-osla_set_arousal_multiplier: Sets $$ to the result of OSLAroused_ModInterface.SetArousalMultiplier(Actor, float, string)
-	- parameter 1: actor: target Actor
-	- parameter 2: value: float value
-	- parameter 3: reason: string, optional (default "unknown")
+osla_set_arousal_multiplier: Returns: float: the result of OSLAroused_ModInterface.SetArousalMultiplier(Actor, float, string)
+	- parameter 1: Form: actor: target Actor
+	- parameter 2: float: value: value
+	- parameter 3: string: reason: optional (default "unknown")
 
 	Example
-		osla_set_arousal_multiplier $self 2.0 "for reasons"
+		osla_set_arousal_multiplier $system.self 2.0 "for reasons"
 
 -=-
 
