@@ -5,9 +5,8 @@ import sl_triggersStatics
 
 ; sltname nff_getfollowers
 ; sltgrup NFF (Nether's Follower Framework)
-; sltdesc Returns a Form[] containing the followers as Actors
-; sltsamp nff_getfollowers
-; sltsamp set $nffFollowers $$ ; store the result so it's not lost immediately
+; sltdesc Returns: Form[]: a list containing the followers
+; sltsamp set $nffFollowers resultfrom nff_getfollowers
 ; sltsamp set $count resultfrom listcount $nffFollowers
 ; sltsamp ; counting backwards
 ; sltsamp while $count > 0

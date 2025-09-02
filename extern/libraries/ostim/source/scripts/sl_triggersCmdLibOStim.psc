@@ -9,7 +9,7 @@ EndFunction
 ; sltname ostim_waitforend
 ; sltgrup OStim
 ; sltdesc Wait until specified actor is not in OStim scene
-; sltargs actor: target Actor
+; sltargs Form: actor: target Actor
 ; sltsamp ostim_waitforend $self
 ; sltrslt Wait until the scene ends
 function ostim_waitforend(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
@@ -30,13 +30,13 @@ endFunction
 
 ; sltname ostim_getrndactor
 ; sltgrup OStim
-; sltdesc Return a random actor within specified range of self
-; sltargs range: (0 - all | >0 - range in Skyrim units)
-; sltargs option: (0 - all | 1 - not in OStim scene | 2 - must be in OStim scene) (optional: default 0 - all)
+; sltdesc Returns: Form: a random actor within specified range of self
+; sltargs float: range: (0 - all | >0 - range in Skyrim units)
+; sltargs int: option: (0 - all | 1 - not in OStim scene | 2 - must be in OStim scene) (optional: default 0 - all)
 ; sltsamp ostim_getrndactor 500 2
 ; sltsamp actor_isvalid $actor
-; sltsamp if $$ = 0 end
-; sltsamp msg_notify "Someone is watching you!"
+; sltsamp if $$ = false [end]
+; sltsamp msg_notify "Someone is nearby!"
 ; sltsamp [end]
 function ostim_getrndactor(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -100,12 +100,16 @@ endfunction
 
 ; sltname ostim_waitforkbd
 ; sltgrup OStim
-; sltdesc Returns the keycode pressed after waiting for user to press any of the specified keys or for the end of the OStim scene
+; sltdesc Returns: int: the keycode pressed after waiting for user to press any of the specified keys or for the end of the OStim scene
 ; sltdesc (See https://ck.uesp.net/wiki/Input_Script for the DXScanCodes)
-; sltargs actor: target Actor
-; sltargs dxscancode: DXScanCode of key [<DXScanCode of key> ...]
-; sltargs arguments: ALTERNATIVE: <int list>
+; sltdesc Usage 1: ostim_waitforkbd <dxscancode> [<dxscancode> ...]
+; sltargs int: dxscancode: <DXScanCode of key>
+; sltdesc Usage 2: ostim_waitforkbd $keylist ; where $keylist is a int[]
+; sltargs int[]: keylist: a list of dxscancode
+; sltrslt ; These do the same thing
 ; sltsamp ostim_waitforkbd 74 78 181 55
+; sltsamp listadd $keystowaitfor 74 78 181 55
+; sltsamp ostim_waitforkbd $keystowaitfor
 ; sltsamp if $$ = 74 MINUS
 ; sltsamp ...
 ; sltsamp if $$ < 0 END
@@ -177,8 +181,8 @@ endFunction
 
 ; stlname ostim_getexcitement
 ; sltgrup OStim
-; sltdesc float: Returns current actor excitement
-; sltargs actor: target Actor
+; sltdesc Returns: float: Returns current actor excitement
+; sltargs Form: actor: target Actor
 ; sltsamp ostim_getexcitement $system.player
 function ostim_getexcitement(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -201,9 +205,9 @@ endFunction
 
 ; stlname ostim_setexcitement
 ; sltgrup OStim
-; sltdesc float: Sets current actor excitement
-; sltargs actor: target Actor
-; sltargs value: new excitement value (float)
+; sltdesc Sets current actor excitement
+; sltargs Form: actor: target Actor
+; sltargs float: value: new excitement value
 ; sltsamp ostim_setexcitement $system.player 20.0
 function ostim_setexcitement(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -222,8 +226,8 @@ endFunction
 
 ; stlname ostim_getexcitementmultiplier
 ; sltgrup OStim
-; sltdesc float: Returns current actor excitementmultiplier
-; sltargs actor: target Actor
+; sltdesc Returns: float: Returns current actor excitementmultiplier
+; sltargs Form: actor: target Actor
 ; sltsamp ostim_getexcitementmultiplier $system.player
 function ostim_getexcitementmultiplier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -246,9 +250,9 @@ endFunction
 
 ; stlname ostim_setexcitementmultiplier
 ; sltgrup OStim
-; sltdesc float: Sets current actor excitementmultiplier
-; sltargs actor: target Actor
-; sltargs value: new excitementmultiplier value (float)
+; sltdesc Sets current actor excitementmultiplier
+; sltargs Form: actor: target Actor
+; sltargs float: value: new excitementmultiplier value
 ; sltsamp ostim_setexcitementmultiplier $system.player 20.0
 function ostim_setexcitementmultiplier(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -267,10 +271,10 @@ endFunction
 
 ; stlname ostim_modifyexcitement
 ; sltgrup OStim
-; sltdesc float: Modifies current actor excitement by the given amount
-; sltargs Actor actor: target Actor
-; sltargs float modvalue: excitement value (float) to apply to excitement
-; sltargs bool respectMultiplier: (optional; default:false) will the modvalue have the OStim ExcitementMultiplier applied
+; sltdesc Modifies current actor excitement by the given amount
+; sltargs Form: actor: target Actor
+; sltargs float: modvalue: excitement value to apply to excitement
+; sltargs bool: respectMultiplier: (optional; default:false) will the modvalue have the OStim ExcitementMultiplier applied
 ; sltsamp ostim_modifyexcitement $system.player 20.0 true
 ; sltsamp ; this call will have the multiplier applied
 function ostim_modifyexcitement(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
@@ -294,8 +298,8 @@ endFunction
 
 ; sltname ostim_isin
 ; sltgrup OStim
-; sltdesc Sets $$ to true if the specified actor is in a OStim scene, false otherwise
-; sltargs actor: target Actor
+; sltdesc Returns: bool: true if the specified actor is in a OStim scene, false otherwise
+; sltargs Form: actor: target Actor
 ; sltsamp ostim_isin $system.self
 function ostim_isin(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -318,9 +322,9 @@ endFunction
 
 ; sltname ostim_findaction
 ; sltgrup OStim
-; sltdesc int: Returns the action index if the OStim scene metadata has the specified action, -1 otherwise
+; sltdesc Returns: int: the action index if the OStim scene metadata has the specified action, -1 otherwise
 ; sltargs string: action: action name e.g. "vaginalsex", "analsex", "blowjob"
-; sltargs actor: (optional; default: $system.self) target Actor
+; sltargs Form: actor: (optional; default: $system.self) target Actor
 ; sltsamp ostim_findaction "blowjob" $system.self
 ; sltsamp if $$ = true [doORALthing]
 function ostim_findaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
@@ -349,9 +353,9 @@ endFunction
 
 ; sltname ostim_hasaction
 ; sltgrup OStim
-; sltdesc bool: Returns true if the OStim scene metadata has the specified action, false otherwise
+; sltdesc Returns: bool: true if the OStim scene metadata has the specified action, false otherwise
 ; sltargs string: action: action name e.g. "vaginalsex", "analsex", "blowjob"
-; sltargs actor: (optional; default: $system.self) target Actor
+; sltargs Form: actor: (optional; default: $system.self) target Actor
 ; sltsamp ostim_hasaction "blowjob" $system.self
 ; sltsamp if $$ = true [doORALthing]
 function ostim_hasaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
@@ -380,9 +384,9 @@ endFunction
 
 ; sltname ostim_stallclimax
 ; sltgrup OStim
-; sltdesc prevents this actor from climaxing, including the prevention of auto climax animations
-; sltdesc does not prevent the climaxes of auto climax animations that already started
-; sltargs actor: target Actor
+; sltdesc Prevents this actor from climaxing, including the prevention of auto climax animations
+; sltdesc Does not prevent the climaxes of auto climax animations that already started
+; sltargs Form actor: target Actor
 ; sltsamp ostim_stallclimax $system.player
 function ostim_stallclimax(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -401,8 +405,8 @@ endFunction
 
 ; sltname ostim_permitclimax
 ; sltgrup OStim
-; sltdesc permits this actor to climax again (as in it undoes ostim_stallclimax)
-; sltargs actor: target Actor
+; sltdesc Permits this actor to climax again (as in it undoes ostim_stallclimax)
+; sltargs Form actor: target Actor
 ; sltsamp ostim_permitclimax $system.player
 function ostim_permitclimax(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -421,8 +425,8 @@ endFunction
 
 ; sltname ostim_isclimaxstalled
 ; sltgrup OStim
-; sltdesc returns whether the actor is prevented from climaxing
-; sltargs actor: target Actor
+; sltdesc Returns: bool: whether the actor is prevented from climaxing
+; sltargs Form: actor: target Actor
 ; sltsamp ostim_isclimaxstalled $system.player
 function ostim_isclimaxstalled(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -445,7 +449,8 @@ endFunction
 
 ; sltname ostim_getthreadid
 ; sltgrup OStim
-; sltdesc int: returns the ThreadID for the OStim thread the target actor is in; -1 if not in a thread
+; sltdesc Returns: int: the ThreadID for the OStim thread the target actor is in; -1 if not in a thread
+; sltargs Form: actor: target Actor
 ; sltsamp ostim_getthreadid $system.self
 function ostim_getthreadid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -469,7 +474,8 @@ endFunction
 
 ; sltname ostim_getsceneid
 ; sltgrup OStim
-; sltdesc string: returns the SceneID the targetActor is in; "" if not in a scene
+; sltdesc Returns: string: the SceneID the targetActor is in; "" if not in a scene
+; sltargs Form: actor: target Actor
 ; sltsamp ostim_getsceneid $system.self
 ; sltsamp msg_notify "SceneID: " $$
 function ostim_getsceneid(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
@@ -494,7 +500,8 @@ endFunction
 
 ; sltname ostim_animname
 ; sltgrup OStim
-; sltdesc Sets $$ to the current OStim animation name
+; sltdesc Returns: string: the current OStim animation name
+; sltargs Form: actor: target Actor
 ; sltsamp ostim_animname $system.self
 ; sltsamp msg_notify "Playing: " $$
 function ostim_animname(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
@@ -519,8 +526,8 @@ endFunction
 
 ; sltname ostim_actorcount
 ; sltgrup OStim
-; sltdesc Returns the actorcount of the OStim scene the targetActor is in; 0 if not in a scene
-; sltargs Actor: targetActor: the actor whose scene you want the actor count from
+; sltdesc Returns: int: the actorcount of the OStim scene the targetActor is in; 0 if not in a scene
+; sltargs Form: targetActor: the actor whose scene you want the actor count from
 ; sltsamp ostim_actorcount $system.self
 function ostim_actorcount(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -544,9 +551,9 @@ endFunction
 
 ; sltname ostim_isinslot
 ; sltgrup OStim
-; sltdesc Sets $$ to true if the specified actor is in the specified OStim scene slot, false otherwise
-; sltargs actor: target Actor
-; sltargs slotnumber: 1-based OStim actor position number
+; sltdesc Returns: bool: true if the specified actor is in the specified OStim scene slot, false otherwise
+; sltargs Form: actor: target Actor
+; sltargs int: slotnumber: 1-based OStim actor position number
 ; sltsamp ostim_isinslot $system.player 1
 function ostim_isinslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -574,7 +581,7 @@ endFunction
 ; sltgrup OStim
 ; sltdesc Immediately forces the specified actor to have a OStim orgasm.
 ; sltdesc May only work during OStim scenes
-; sltargs actor: target Actor
+; sltargs Form: actor: target Actor
 ; sltargs bool: ignoreStall: (optional; default:false) should the ClimaxStalled setting be ignored
 ; sltsamp ostim_climax $system.self
 ; sltsamp ostim_climax $system.partner

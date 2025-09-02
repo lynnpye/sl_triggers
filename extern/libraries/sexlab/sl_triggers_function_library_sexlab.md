@@ -6,12 +6,12 @@
 
 **Description**
 
-Returns the race name based on sub-function. Blank, empty sub-function returns Vanilla racenames. e.g. "SL" can return SexLab race keynames.
+Returns: string: the race name based on sub-function. Blank, empty sub-function returns Vanilla racenames. e.g. "SL" can return SexLab race keynames.
 
 **Parameters**
 
-    actor: target Actor  
-    sub-function: sub-function  
+    Form: actor: target Actor  
+    string: sub-function: sub-function  
 
     if parameter 2 is "": return actors race name. Skyrims, original name. Like: "Nord", "Breton"  
     if parameter 2 is "SL": return actors Sexlab frameworks race key name. Like: "dogs", "bears", etc. Note: will return "" if actor is humanoid  
@@ -30,11 +30,11 @@ Returns the race name based on sub-function. Blank, empty sub-function returns V
 
 **Description**
 
-Returns the actor's SexLab gender, 0 - male, 1 - female, 2 - creature
+Returns: int: the actor's SexLab gender, 0 - male, 1 - female, 2 - male creature, 3 - female creature
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -51,8 +51,8 @@ Changes the stage of the current SexLab scene, for the target Actor; advances a 
 
 **Parameters**
 
-    direction: integer, <negative - backwards / non-negative (including zero) - forwards>  
-    actor: target Actor  
+    int: direction: <negative - backwards / non-negative (including zero) - forwards>  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -70,7 +70,7 @@ Allows the Actor to join SexLab scenes. Reverses forbiddance.
 
 **Parameters**
 
-    Form actor: the Actor to allow to join SexLab scenes  
+    Form: actor: the Actor to allow to join SexLab scenes  
 
 
 **Example**
@@ -83,7 +83,11 @@ Allows the Actor to join SexLab scenes. Reverses forbiddance.
 
 **Description**
 
-Returns to the current SexLab animation name
+Returns: string: to the current SexLab animation name
+
+**Parameters**
+
+    Form: actor: target Actor  
 
 
 **Example**
@@ -102,8 +106,8 @@ Only works if called during a scene, when the SexLab thread is still available
 
 **Parameters**
 
-    actor: target Actor  
-    disable: bool: true to disable, false to enable  
+    Form: actor: target Actor  
+    bool: disable: true to disable, false to enable  
 
 
 **Example**
@@ -119,17 +123,17 @@ Only works if called during a scene, when the SexLab thread is still available
 
 **Description**
 
-Returns a list of Actors (Form[]) that are available for a SexLab scene based on the parameters provided.
+Returns: Form[]: a list of Actors that are available for a SexLab scene based on the parameters provided.
 Note: Actors you specify in 'requiredActors' are not guaranteed to be valid SexLab actors.
 If no matches can be found or if totalRequired is less than requiredActors.Length, requiredActors is returned, even if it is none or an empty list.
 
 **Parameters**
 
-    Form[] requiredActors: list of Actors you require to be in the scene, limited to 5; size applies to totalRequired; specify none or an empty list if you have no required actors  
-    int totalRequired: the total number of actors desired for the scene (including any in the 'actors' list); should be at least as large as requiredActors.Length and should not be greater than 5  
-    int malesRequired: (optional: default: -1) minimum number of males desired for the scene, out of totalRequired; specify -1 to ignore the requirement  
-    int femalesRequired: (optional: default: -1) minimum number of females desired for the scene, out of totalRequired; specify -1 to ignore the requirement  
-    float radius: (optional: default: 10000.0) distance in Skyrim distance units to search for actors  
+    Form[]: requiredActors: list of Actors you require to be in the scene, limited to 5; size applies to totalRequired; specify none or an empty list if you have no required actors  
+    int: totalRequired: the total number of actors desired for the scene (including any in the 'actors' list); should be at least as large as requiredActors.Length and should not be greater than 5  
+    int: malesRequired: (optional: default: -1) minimum number of males desired for the scene, out of totalRequired; specify -1 to ignore the requirement  
+    int: femalesRequired: (optional: default: -1) minimum number of females desired for the scene, out of totalRequired; specify -1 to ignore the requirement  
+    float: radius: (optional: default: 10000.0) distance in Skyrim distance units to search for actors  
 
 
 **Example**
@@ -161,7 +165,7 @@ Forbids the Actor from joining SexLab scenes.
 
 **Parameters**
 
-    Form actor: the Actor to forbid from joining SexLab scenes  
+    Form: actor: the Actor to forbid from joining SexLab scenes  
 
 
 **Example**
@@ -174,12 +178,12 @@ Forbids the Actor from joining SexLab scenes.
 
 **Description**
 
-Returns the float value of the specificed SexLab skill
+Returns: float: the float value of the specificed SexLab skill
 
 **Parameters**
 
-    Form actor: the Actor to query the skill of  
-    string skillId: the SexLab skill ID  
+    Form: actor: the Actor to query the skill of  
+    string: skillId: the SexLab skill ID  
     * Foreplay  
     * Vaginal  
     * Anal  
@@ -213,7 +217,7 @@ Returns the float value of the specificed SexLab skill
 
 **Description**
 
-Returns the SexLabFramework API object (from SexLabUtil.GetAPI())
+Returns: Form: the SexLabFramework API object (from SexLabUtil.GetAPI())
 
 
 **Example**
@@ -226,12 +230,12 @@ Returns the SexLabFramework API object (from SexLabUtil.GetAPI())
 
 **Description**
 
-Returns the value of the requested SexLab thread property
+Returns: string: the value of the requested SexLab thread property
 
 **Parameters**
 
-    property:  Stage | ActorCount  
-    actor: target Actor  
+    string: property:  Stage | ActorCount  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -245,19 +249,19 @@ Returns the value of the requested SexLab thread property
 
 **Description**
 
-Return a random actor within specified range of self
+Returns: Form: a random actor within specified range of self
 
 **Parameters**
 
-    range: (0 - all | >0 - range in Skyrim units)  
-    option: (0 - all | 1 - not in SexLab scene | 2 - must be in SexLab scene) (optional: default 0 - all)  
+    float: range: (0 - all | >0 - range in Skyrim units)  
+    int: option: (0 - all | 1 - not in SexLab scene | 2 - must be in SexLab scene) (optional: default 0 - all)  
 
 
 **Example**
 
     sl_getrndactor 500 2  
     actor_isvalid $actor  
-    if $$ = 0 end  
+    if $$ = false [end]  
     msg_notify "Someone is watching you!"  
     [end]  
 
@@ -267,7 +271,7 @@ Return a random actor within specified range of self
 
 **Description**
 
-Returns the SexLab version as an int (from SexLabUtil.GetVersion())
+Returns: int: the SexLab version as an int (from SexLabUtil.GetVersion())
 
 
 **Example**
@@ -280,7 +284,7 @@ Returns the SexLab version as an int (from SexLabUtil.GetVersion())
 
 **Description**
 
-Returns the SexLab version as a string (from SexLabUtil.GetStringVer())
+Returns: string: the SexLab version as a string (from SexLabUtil.GetStringVer())
 
 
 **Example**
@@ -293,12 +297,12 @@ Returns the SexLab version as a string (from SexLabUtil.GetStringVer())
 
 **Description**
 
-Returns true if the SexLab scene has the specified tag, false otherwise
+Returns: bool: true if the SexLab scene has the specified tag, false otherwise
 
 **Parameters**
 
-    tag: tag name e.g. "Oral", "Anal", "Vaginal"  
-    actor: target Actor  
+    string: tag: tag name e.g. "Oral", "Anal", "Vaginal"  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -312,11 +316,11 @@ Returns true if the SexLab scene has the specified tag, false otherwise
 
 **Description**
 
-Returns true if the actor is forbidden from SexLab scenes, false otherwise
+Returns: bool: true if the actor is forbidden from SexLab scenes, false otherwise
 
 **Parameters**
 
-    Form actor: the Actor to query about being forbidden from SexLab scenes  
+    Form: actor: the Actor to query about being forbidden from SexLab scenes  
 
 
 **Example**
@@ -329,11 +333,11 @@ Returns true if the actor is forbidden from SexLab scenes, false otherwise
 
 **Description**
 
-Returns true if the actor is valid for SexLab scenes, false otherwise
+Returns: bool: true if the actor is valid for SexLab scenes, false otherwise
 
 **Parameters**
 
-    Form actor: the Actor to determine SexLab scene validity for  
+    Form: actor: the Actor to determine SexLab scene validity for  
 
 
 **Example**
@@ -346,7 +350,7 @@ Returns true if the actor is valid for SexLab scenes, false otherwise
 
 **Description**
 
-Returns active status of SexLab (from SexLabUtil.SexLabIsActive()): true if active, false otherwise
+Returns: bool: active status of SexLab (from SexLabUtil.SexLabIsActive()): true if active, false otherwise
 
 
 **Example**
@@ -359,11 +363,11 @@ Returns active status of SexLab (from SexLabUtil.SexLabIsActive()): true if acti
 
 **Description**
 
-Returns true if the specified actor is in a SexLab scene, false otherwise
+Returns: bool: true if the specified actor is in a SexLab scene, false otherwise
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -376,12 +380,12 @@ Returns true if the specified actor is in a SexLab scene, false otherwise
 
 **Description**
 
-Returns true if the specified actor is in the specified SexLab scene slot, false otherwise
+Returns: bool: true if the specified actor is in the specified SexLab scene slot, false otherwise
 
 **Parameters**
 
-    actor: target Actor  
-    slotnumber: 1-based SexLab thread slot number  
+    Form: actor: target Actor  
+    int: slotnumber: 1-based SexLab thread slot number  
 
 
 **Example**
@@ -394,7 +398,7 @@ Returns true if the specified actor is in the specified SexLab scene slot, false
 
 **Description**
 
-Returns ready status of SexLab (from SexLabUtil.SexLabIsReady()): true if ready, false otherwise
+Returns: bool: ready status of SexLab (from SexLabUtil.SexLabIsReady()): true if ready, false otherwise
 
 
 **Example**
@@ -411,7 +415,7 @@ Immediately forces the specified actor to have a SexLab orgasm.
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -426,11 +430,11 @@ Simultaneous orgasms
 
 **Description**
 
-Starts a SexLab scene and returns the threadid
+Returns: int: Starts a SexLab scene and returns the threadid
 
 **Parameters**
 
-    Form[] list: actors: Form[] list containing the Actors to be in the scene, limited to 5  
+    Form[]: actors: list containing the Actors to be in the scene, limited to 5  
     Form: submissive: Form (Actor) to be the submissive in the scene; specify 'none' if no submissive to be set; must also be in the actors list  
     string: tags: (From the SexLabFramework source) AnimationTags [OPTIONAL], is the list of tags the animation has to have. You can add more than one tag by separating them by commas "," (Example: "Oral, Aggressive, FemDom"), the animations will be collected if they have at least one of the specified tags.  
     bool: allowBed: true to allow bed use, false otherwise  
@@ -449,51 +453,56 @@ Starts a SexLab scene and returns the threadid
 
 **Description**
 
-Returns an int value; 1 - if valid, negative values with respective meanings for non-validity
-* -1 = The Actor does not exists (it is None)
-* -10 = The Actor is already part of a SexLab animation
-* -11 = The Actor is forbidden form SexLab animations
-* -12 = The Actor does not have the 3D loaded
-* -13 = The Actor is dead (He's dead Jim.)
-* -14 = The Actor is disabled
-* -15 = The Actor is flying (so it cannot be SexLab animated)
-* -16 = The Actor is on mount (so it cannot be SexLab animated)
-* -17 = The Actor is a creature but creature animations are disabled
-* -18 = The Actor is a creature that is not supported by SexLab
-* -19 = The Actor is a creature but there are no valid animations for this type of creature
+Returns an int value
 
 **Parameters**
 
-    Form actor: the Actor to determine SexLab scene validity for  
+    Form: actor: the Actor to determine SexLab scene validity for  
 
 
 **Example**
 
     sl_validate_actor $targetActor  
 
+1 - if valid, negative values with respective meanings for non-validity  
+-1 = The Actor does not exists (it is None)  
+-10 = The Actor is already part of a SexLab animation  
+-11 = The Actor is forbidden form SexLab animations  
+-12 = The Actor does not have the 3D loaded  
+-13 = The Actor is dead (He's dead Jim.)  
+-14 = The Actor is disabled  
+-15 = The Actor is flying (so it cannot be SexLab animated)  
+-16 = The Actor is on mount (so it cannot be SexLab animated)  
+-17 = The Actor is a creature but creature animations are disabled  
+-18 = The Actor is a creature that is not supported by SexLab  
+-19 = The Actor is a creature but there are no valid animations for this type of creature  
 
 
 ### sl_waitforkbd
 
 **Description**
 
-Returns the keycode pressed after waiting for user to press any of the specified keys or for the end of the SexLab scene
+Returns: int: the keycode pressed after waiting for user to press any of the specified keys or for the end of the SexLab scene
 (See https://ck.uesp.net/wiki/Input_Script for the DXScanCodes)
+Usage 1: sl_waitforkbd <dxscancode> [<dxscancode> ...]
+Usage 2: sl_waitforkbd $keylist ; where $keylist is a int[]
 
 **Parameters**
 
-    actor: target Actor  
-    dxscancode: DXScanCode of key [<DXScanCode of key> ...]  
-    arguments: ALTERNATIVE: <int list>  
+    int: dxscancode: <DXScanCode of key>  
+    int[]: keylist: a list of dxscancode  
 
 
 **Example**
 
     sl_waitforkbd 74 78 181 55  
+    listadd $keystowaitfor 74 78 181 55  
+    sl_waitforkbd $keystowaitfor  
     if $$ = 74 MINUS  
     ...  
     if $$ < 0 END  
 
+; These do the same thing  
 Wait for Num-, Num+, Num/, or Num*, or animation expired, and then do something based on the result.  
 
 
@@ -505,7 +514,7 @@ Wait until specified actor is not in SexLab scene
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -525,8 +534,8 @@ Applies BonusEnjoyment to the specified actor
 
 **Parameters**
 
-    actor: target Actor  
-    enjoyment: int, 1-100?  
+    Form: actor: target Actor  
+    int: enjoyment: bonus enjoyment to apply  
 
 
 **Example**

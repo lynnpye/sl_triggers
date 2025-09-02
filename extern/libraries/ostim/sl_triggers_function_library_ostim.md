@@ -6,11 +6,11 @@
 
 **Description**
 
-Returns the actorcount of the OStim scene the targetActor is in; 0 if not in a scene
+Returns: int: the actorcount of the OStim scene the targetActor is in; 0 if not in a scene
 
 **Parameters**
 
-    Actor: targetActor: the actor whose scene you want the actor count from  
+    Form: targetActor: the actor whose scene you want the actor count from  
 
 
 **Example**
@@ -23,7 +23,11 @@ Returns the actorcount of the OStim scene the targetActor is in; 0 if not in a s
 
 **Description**
 
-Sets $$ to the current OStim animation name
+Returns: string: the current OStim animation name
+
+**Parameters**
+
+    Form: actor: target Actor  
 
 
 **Example**
@@ -42,7 +46,7 @@ May only work during OStim scenes
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
     bool: ignoreStall: (optional; default:false) should the ClimaxStalled setting be ignored  
 
 
@@ -58,12 +62,12 @@ Simultaneous orgasms
 
 **Description**
 
-int: Returns the action index if the OStim scene metadata has the specified action, -1 otherwise
+Returns: int: the action index if the OStim scene metadata has the specified action, -1 otherwise
 
 **Parameters**
 
     string: action: action name e.g. "vaginalsex", "analsex", "blowjob"  
-    actor: (optional; default:Player) target Actor  
+    Form: actor: (optional; default: $system.self) target Actor  
 
 
 **Example**
@@ -77,20 +81,20 @@ int: Returns the action index if the OStim scene metadata has the specified acti
 
 **Description**
 
-Return a random actor within specified range of self
+Returns: Form: a random actor within specified range of self
 
 **Parameters**
 
-    range: (0 - all | >0 - range in Skyrim units)  
-    option: (0 - all | 1 - not in OStim scene | 2 - must be in OStim scene) (optional: default 0 - all)  
+    float: range: (0 - all | >0 - range in Skyrim units)  
+    int: option: (0 - all | 1 - not in OStim scene | 2 - must be in OStim scene) (optional: default 0 - all)  
 
 
 **Example**
 
     ostim_getrndactor 500 2  
     actor_isvalid $actor  
-    if $$ = 0 end  
-    msg_notify "Someone is watching you!"  
+    if $$ = false [end]  
+    msg_notify "Someone is nearby!"  
     [end]  
 
 
@@ -99,7 +103,11 @@ Return a random actor within specified range of self
 
 **Description**
 
-string: returns the SceneID the targetActor is in; "" if not in a scene
+Returns: string: the SceneID the targetActor is in; "" if not in a scene
+
+**Parameters**
+
+    Form: actor: target Actor  
 
 
 **Example**
@@ -113,7 +121,11 @@ string: returns the SceneID the targetActor is in; "" if not in a scene
 
 **Description**
 
-int: returns the ThreadID for the OStim thread the target actor is in; -1 if not in a thread
+Returns: int: the ThreadID for the OStim thread the target actor is in; -1 if not in a thread
+
+**Parameters**
+
+    Form: actor: target Actor  
 
 
 **Example**
@@ -126,12 +138,12 @@ int: returns the ThreadID for the OStim thread the target actor is in; -1 if not
 
 **Description**
 
-bool: Returns true if the OStim scene metadata has the specified action, false otherwise
+Returns: bool: true if the OStim scene metadata has the specified action, false otherwise
 
 **Parameters**
 
     string: action: action name e.g. "vaginalsex", "analsex", "blowjob"  
-    actor: (optional; default:Player) target Actor  
+    Form: actor: (optional; default: $system.self) target Actor  
 
 
 **Example**
@@ -145,11 +157,11 @@ bool: Returns true if the OStim scene metadata has the specified action, false o
 
 **Description**
 
-returns whether the actor is prevented from climaxing
+Returns: bool: whether the actor is prevented from climaxing
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -162,11 +174,11 @@ returns whether the actor is prevented from climaxing
 
 **Description**
 
-Sets $$ to true if the specified actor is in a OStim scene, false otherwise
+Returns: bool: true if the specified actor is in a OStim scene, false otherwise
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -179,12 +191,12 @@ Sets $$ to true if the specified actor is in a OStim scene, false otherwise
 
 **Description**
 
-Sets $$ to true if the specified actor is in the specified OStim scene slot, false otherwise
+Returns: bool: true if the specified actor is in the specified OStim scene slot, false otherwise
 
 **Parameters**
 
-    actor: target Actor  
-    slotnumber: 1-based OStim actor position number  
+    Form: actor: target Actor  
+    int: slotnumber: 1-based OStim actor position number  
 
 
 **Example**
@@ -197,11 +209,11 @@ Sets $$ to true if the specified actor is in the specified OStim scene slot, fal
 
 **Description**
 
-permits this actor to climax again (as in it undoes ostim_stallclimax)
+Permits this actor to climax again (as in it undoes ostim_stallclimax)
 
 **Parameters**
 
-    actor: target Actor  
+    Form actor: target Actor  
 
 
 **Example**
@@ -214,12 +226,12 @@ permits this actor to climax again (as in it undoes ostim_stallclimax)
 
 **Description**
 
-prevents this actor from climaxing, including the prevention of auto climax animations
-does not prevent the climaxes of auto climax animations that already started
+Prevents this actor from climaxing, including the prevention of auto climax animations
+Does not prevent the climaxes of auto climax animations that already started
 
 **Parameters**
 
-    actor: target Actor  
+    Form actor: target Actor  
 
 
 **Example**
@@ -236,7 +248,7 @@ Wait until specified actor is not in OStim scene
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -250,23 +262,27 @@ Wait until the scene ends
 
 **Description**
 
-Returns the keycode pressed after waiting for user to press any of the specified keys or for the end of the OStim scene
+Returns: int: the keycode pressed after waiting for user to press any of the specified keys or for the end of the OStim scene
 (See https://ck.uesp.net/wiki/Input_Script for the DXScanCodes)
+Usage 1: ostim_waitforkbd <dxscancode> [<dxscancode> ...]
+Usage 2: ostim_waitforkbd $keylist ; where $keylist is a int[]
 
 **Parameters**
 
-    actor: target Actor  
-    dxscancode: DXScanCode of key [<DXScanCode of key> ...]  
-    arguments: ALTERNATIVE: <int list>  
+    int: dxscancode: <DXScanCode of key>  
+    int[]: keylist: a list of dxscancode  
 
 
 **Example**
 
     ostim_waitforkbd 74 78 181 55  
+    listadd $keystowaitfor 74 78 181 55  
+    ostim_waitforkbd $keystowaitfor  
     if $$ = 74 MINUS  
     ...  
     if $$ < 0 END  
 
+; These do the same thing  
 Wait for Num-, Num+, Num/, or Num*, or animation expired, and then do something based on the result.  
 
 

@@ -4,10 +4,10 @@ import sl_triggersStatics
 
 ; sltname getoverlay_slot
 ; sltgrup NiOverride
-; sltdesc Returns a string, representing a free overlay slot
-; sltargs actor: target Actor
-; sltargs isFemale : bool
-; sltargs node (body, face, etc...) : string
+; sltdesc Returns: string: returns a free overlay slot
+; sltargs Form: actor: target Actor
+; sltargs bool: isFemale: true if a female target, false otherwise
+; sltargs string: nodeName: (body, face, etc...)
 ; sltsamp set $nodeName resultfrom getvoverlay_slot $system.player true "Body"
 function getoverlay_slot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -78,11 +78,11 @@ endFunction
 ; sltname param_overlay
 ; sltgrup NiOverride
 ; sltdesc Adds a tattoo overlay to the node with the given transparency
-; sltargs actor: target Actor
-; sltargs isFemale : bool
-; sltargs nodeName (see getoverlay_slot function) : string
-; sltargs tattoo : string
-; sltargs transparency : float
+; sltargs Form: actor: target Actor
+; sltargs bool: isFemale: true if a female target, false otherwise
+; sltargs string: nodeName: (body, face, etc...)
+; sltargs string: tattoo
+; sltargs float: transparency
 ; sltsamp param_overlay $system.player true $nodeName $tattooName 1.0
 function param_overlay(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -111,10 +111,10 @@ endFunction
 ; sltname changeoverlay_transparency
 ; sltgrup NiOverride
 ; sltdesc Modifies the transparency of a given overlay
-; sltargs actor: target Actor
-; sltargs isFemale : bool
-; sltargs nodeName (see getoverlay_slot function) : string
-; sltargs transparency : float
+; sltargs Form: actor: target Actor
+; sltargs bool: isFemale: true if a female target, false otherwise
+; sltargs string: nodeName: (body, face, etc...)
+; sltargs float: transparency
 ; sltsamp changeoverlay_transparency $system.player true $nodeName 1.0
 function changeoverlay_transparency(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -146,9 +146,9 @@ endFunction
 ; sltname remove_overlay
 ; sltgrup NiOverride
 ; sltdesc Removes the overlay indicated by nodeName
-; sltargs actor: target Actor
-; sltargs isFemale : bool
-; sltargs nodeName (see getoverlay_slot function) : string
+; sltargs Form: actor: target Actor
+; sltargs bool: isFemale: true if a female target, false otherwise
+; sltargs string: nodeName: (body, face, etc...)
 ; sltsamp remove_overlay $system.player true $nodeName
 function remove_overlay(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -177,7 +177,7 @@ endFunction
 ; sltname apply_overlay
 ; sltgrup NiOverride
 ; sltdesc Tells NIO to apply pending changes. Not typically required.
-; sltargs actor: target Actor
+; sltargs Form: actor: target Actor
 ; sltsamp apply_overlay $system.player
 function apply_overlay(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -198,12 +198,12 @@ endFunction
 
 ; sltname nio_hasnodeoverride
 ; sltgrup NiOverride
-; sltdesc Returns true if the target has the node override, false otherwise
-; sltargs Form ref: target of function (e.g. $system.player)
-; sltargs bool isFemale: true if a female target, false otherwise
-; sltargs string node: NIO node you are working with
-; sltargs int _key: NIO key
-; sltargs int index: NIO index
+; sltdesc Returns: bool: true if the target has the node override; false otherwise
+; sltargs Form: target of function (e.g. $system.player)
+; sltargs bool: isFemale: true if a female target, false otherwise
+; sltargs string: nodeName: (body, face, etc...)
+; sltargs int: _key: NIO key
+; sltargs int: index: NIO index
 function nio_hasnodeoverride(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -222,12 +222,12 @@ endFunction
 
 ; sltname nio_getnodeoverride_float
 ; sltgrup NiOverride
-; sltdesc Returns the float override for the node on the target
-; sltargs Form ref: target of function (e.g. $system.player)
-; sltargs bool isFemale: true if a female target, false otherwise
-; sltargs string node: NIO node you are working with
-; sltargs int _key: NIO key
-; sltargs int index: NIO index
+; sltdesc Returns: float: the float override for the node on the target
+; sltargs Form: ref: target of function (e.g. $system.player)
+; sltargs bool: isFemale: true if a female target, false otherwise
+; sltargs string: node: NIO node you are working with
+; sltargs int: _key: NIO key
+; sltargs int: index: NIO index
 function nio_getnodeoverride_float(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -245,12 +245,12 @@ endFunction
 
 ; sltname nio_getnodeoverride_int
 ; sltgrup NiOverride
-; sltdesc Returns the int override for the node on the target
-; sltargs Form ref: target of function (e.g. $system.player)
-; sltargs bool isFemale: true if a female target, false otherwise
-; sltargs string node: NIO node you are working with
-; sltargs int _key: NIO key
-; sltargs int index: NIO index
+; sltdesc Returns: int: the int override for the node on the target
+; sltargs Form: ref: target of function (e.g. $system.player)
+; sltargs bool: isFemale: true if a female target, false otherwise
+; sltargs string: node: NIO node you are working with
+; sltargs int: _key: NIO key
+; sltargs int: index: NIO index
 function nio_getnodeoverride_int(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -268,12 +268,12 @@ endFunction
 
 ; sltname nio_getnodeoverride_bool
 ; sltgrup NiOverride
-; sltdesc Returns the bool override for the node on the target
-; sltargs Form ref: target of function (e.g. $system.player)
-; sltargs bool isFemale: true if a female target, false otherwise
-; sltargs string node: NIO node you are working with
-; sltargs int _key: NIO key
-; sltargs int index: NIO index
+; sltdesc Returns: bool: the bool override for the node on the target
+; sltargs Form: ref: target of function (e.g. $system.player)
+; sltargs bool: isFemale: true if a female target, false otherwise
+; sltargs string: node: NIO node you are working with
+; sltargs int: _key: NIO key
+; sltargs int: index: NIO index
 function nio_getnodeoverride_bool(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -291,12 +291,12 @@ endFunction
 
 ; sltname nio_getnodeoverride_string
 ; sltgrup NiOverride
-; sltdesc Returns the string override for the node on the target
-; sltargs Form ref: target of function (e.g. $system.player)
-; sltargs bool isFemale: true if a female target, false otherwise
-; sltargs string node: NIO node you are working with
-; sltargs int _key: NIO key
-; sltargs int index: NIO index
+; sltdesc Returns: string: the string override for the node on the target
+; sltargs Form: ref: target of function (e.g. $system.player)
+; sltargs bool: isFemale: true if a female target, false otherwise
+; sltargs string: node: NIO node you are working with
+; sltargs int: _key: NIO key
+; sltargs int: index: NIO index
 function nio_getnodeoverride_string(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -314,12 +314,12 @@ endFunction
 
 ; sltname nio_getnodeoverride_textureset
 ; sltgrup NiOverride
-; sltdesc Returns the TextureSet override for the node on the target
-; sltargs Form ref: target of function (e.g. $system.player)
-; sltargs bool isFemale: true if a female target, false otherwise
-; sltargs string node: NIO node you are working with
-; sltargs int _key: NIO key
-; sltargs int index: NIO index
+; sltdesc Returns: Form: the TextureSet override for the node on the target
+; sltargs Form: ref: target of function (e.g. $system.player)
+; sltargs bool: isFemale: true if a female target, false otherwise
+; sltargs string: node: NIO node you are working with
+; sltargs int: _key: NIO key
+; sltargs int: index: NIO index
 function nio_getnodeoverride_textureset(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -339,13 +339,13 @@ endFunction
 ; sltname nio_addnodeoverride_float
 ; sltgrup NiOverride
 ; sltdesc Calls NiOveride.AddNodeOverride for float
-; sltargs Form ref: target of function (e.g. $system.player)
-; sltargs bool isFemale: true if a female target, false otherwise
-; sltargs string node: NIO node you are working with
-; sltargs int _key: NIO key
-; sltargs int index: NIO index
-; sltargs float value: value to apply
-; sltargs bool persist: persist the override?
+; sltargs Form: ref: target of function (e.g. $system.player)
+; sltargs bool: isFemale: true if a female target, false otherwise
+; sltargs string: node: NIO node you are working with
+; sltargs int: _key: NIO key
+; sltargs int: index: NIO index
+; sltargs float: value: value to apply
+; sltargs bool: persist: persist the override?
 function nio_addnodeoverride_float(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -366,13 +366,13 @@ endFunction
 ; sltname nio_addnodeoverride_int
 ; sltgrup NiOverride
 ; sltdesc Calls NiOveride.AddNodeOverride for int
-; sltargs Form ref: target of function (e.g. $system.player)
-; sltargs bool isFemale: true if a female target, false otherwise
-; sltargs string node: NIO node you are working with
-; sltargs int _key: NIO key
-; sltargs int index: NIO index
-; sltargs int value: value to apply
-; sltargs bool persist: persist the override?
+; sltargs Form: ref: target of function (e.g. $system.player)
+; sltargs bool: isFemale: true if a female target, false otherwise
+; sltargs string: node: NIO node you are working with
+; sltargs int: _key: NIO key
+; sltargs int: index: NIO index
+; sltargs int: value: value to apply
+; sltargs bool: persist: persist the override?
 function nio_addnodeoverride_int(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -393,13 +393,13 @@ endFunction
 ; sltname nio_addnodeoverride_bool
 ; sltgrup NiOverride
 ; sltdesc Calls NiOveride.AddNodeOverride for bool
-; sltargs Form ref: target of function (e.g. $system.player)
-; sltargs bool isFemale: true if a female target, false otherwise
-; sltargs string node: NIO node you are working with
-; sltargs int _key: NIO key
-; sltargs int index: NIO index
-; sltargs bool value: value to apply
-; sltargs bool persist: persist the override?
+; sltargs Form: ref: target of function (e.g. $system.player)
+; sltargs bool: isFemale: true if a female target, false otherwise
+; sltargs string: node: NIO node you are working with
+; sltargs int: _key: NIO key
+; sltargs int: index: NIO index
+; sltargs bool: value: value to apply
+; sltargs bool: persist: persist the override?
 function nio_addnodeoverride_bool(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -420,13 +420,13 @@ endFunction
 ; sltname nio_addnodeoverride_string
 ; sltgrup NiOverride
 ; sltdesc Calls NiOveride.AddNodeOverride for string
-; sltargs Form ref: target of function (e.g. $system.player)
-; sltargs bool isFemale: true if a female target, false otherwise
-; sltargs string node: NIO node you are working with
-; sltargs int _key: NIO key
-; sltargs int index: NIO index
-; sltargs string value: value to apply
-; sltargs bool persist: persist the override?
+; sltargs Form: ref: target of function (e.g. $system.player)
+; sltargs bool: isFemale: true if a female target, false otherwise
+; sltargs string: node: NIO node you are working with
+; sltargs int: _key: NIO key
+; sltargs int: index: NIO index
+; sltargs string: value: value to apply
+; sltargs bool: persist: persist the override?
 function nio_addnodeoverride_string(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -447,13 +447,13 @@ endFunction
 ; sltname nio_addnodeoverride_textureset
 ; sltgrup NiOverride
 ; sltdesc Calls NiOveride.AddNodeOverride for TextureSet
-; sltargs Form ref: target of function (e.g. $system.player)
-; sltargs bool isFemale: true if a female target, false otherwise
-; sltargs string node: NIO node you are working with
-; sltargs int _key: NIO key
-; sltargs int index: NIO index
-; sltargs Form (TextureSet) value: value to apply
-; sltargs bool persist: persist the override?
+; sltargs Form: ref: target of function (e.g. $system.player)
+; sltargs bool: isFemale: true if a female target, false otherwise
+; sltargs string: node: NIO node you are working with
+; sltargs int: _key: NIO key
+; sltargs int: index: NIO index
+; sltargs Form: value: TextureSet value to apply
+; sltargs bool: persist: persist the override?
 function nio_addnodeoverride_textureset(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -474,10 +474,10 @@ endFunction
 
 ; sltname nio_hasbodymorph
 ; sltgrup NiOverride
-; sltdesc Returns true if the target has the body morph, false otherwise
-; sltargs Form ref: target of function (e.g. $system.player)
-; sltargs string morphName: name of the morph you are working with
-; sltargs string keyName: NIO key you are working with
+; sltdesc Returns: bool: true if the target has the body morph; false otherwise
+; sltargs Form: ref: target of function (e.g. $system.player)
+; sltargs string: morphName: name of the morph you are working with
+; sltargs string: keyName: NIO key you are working with
 function nio_hasbodymorph(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -494,10 +494,10 @@ endFunction
 ; sltname nio_setbodymorph
 ; sltgrup NiOverride
 ; sltdesc Sets the bodymorph of the target
-; sltargs Form ref: target of function (e.g. $system.player)
-; sltargs string morphName: name of the morph you are working with
-; sltargs string keyName: NIO key you are working with
-; sltargs float value: value to apply
+; sltargs Form: ref: target of function (e.g. $system.player)
+; sltargs string: morphName: name of the morph you are working with
+; sltargs string: keyName: NIO key you are working with
+; sltargs float: value: value to apply
 function nio_setbodymorph(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -514,10 +514,10 @@ endFunction
 
 ; sltname nio_getbodymorph
 ; sltgrup NiOverride
-; sltdesc Returns the current morph value for the target
-; sltargs Form ref: target of function (e.g. $system.player)
-; sltargs string morphName: name of the morph you are working with
-; sltargs string keyName: NIO key you are working with
+; sltdesc Returns: float: the current morph value for the target
+; sltargs Form: ref: target of function (e.g. $system.player)
+; sltargs string: morphName: name of the morph you are working with
+; sltargs string: keyName: NIO key you are working with
 function nio_getbodymorph(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -534,9 +534,9 @@ endFunction
 ; sltname nio_clearbodymorph
 ; sltgrup NiOverride
 ; sltdesc Clears the morph value of the target
-; sltargs Form ref: target of function (e.g. $system.player)
-; sltargs string morphName: name of the morph you are working with
-; sltargs string keyName: NIO key you are working with
+; sltargs Form: ref: target of function (e.g. $system.player)
+; sltargs string: morphName: name of the morph you are working with
+; sltargs string: keyName: NIO key you are working with
 function nio_clearbodymorph(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -553,7 +553,7 @@ endFunction
 ; sltname nio_updatemodelweight
 ; sltgrup NiOverride
 ; sltdesc Updates the weight data post morph value. Only to be used on actors who have morph values set.
-; sltargs Form ref: target of function (e.g. $system.player)
+; sltargs Form: ref: target of function (e.g. $system.player)
 function nio_updatemodelweight(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -567,8 +567,8 @@ endFunction
 
 ; sltname nio_get_morphnames
 ; sltgrup NiOverride
-; sltdesc Returns a string[] the morphNames applied to the target actor.
-; sltargs Form ref: target of function (e.g. $system.player)
+; sltdesc Returns: string[]: a list of the morphNames applied to the target actor.
+; sltargs Form: ref: target of function (e.g. $system.player)
 function nio_get_morphnames(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -582,9 +582,9 @@ endFunction
 
 ; sltname nio_get_morphkeys
 ; sltgrup NiOverride
-; sltdesc Returns a string[] the keys applied to the target actor for the specified morph.
-; sltargs Form ref: target of function (e.g. $system.player)
-; sltargs string morphName: name of the morph you are working with
+; sltdesc Returns: string[]: a list of the keys applied to the target actor for the specified morph.
+; sltargs Form: ref: target of function (e.g. $system.player)
+; sltargs string: morphName: name of the morph you are working with
 function nio_get_morphkeys(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 

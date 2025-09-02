@@ -80,166 +80,167 @@ osla_set_arousal_multiplier: Sets $$ to the result of OSLAroused_ModInterface.Se
 SLIF (SexLab Inflation Framework):
 ==============
 
-slif_get_gender: Returns the integer value representing gender as SLIF knows it.
-* Per SLIF documentation:
-* male            = 0
-* female          = 1
-* shemale         = 2
-* futanari        = 3
-* genderless      = 4
-* male_creature   = 5
-* female_creature = 6
-	- parameter 1: Form actor: the Actor target for the SLIF call
-	- parameter 2: int gender: (optional: default: -1) default gender if not already set; use -1 to let SLIF determine the default
+slif_get_gender: Returns: int: the integer value representing gender as SLIF knows it.
+	- parameter 1: Form: actor: the Actor target for the SLIF call
+	- parameter 2: int: gender: (optional: default: -1) default gender if not already set; use -1 to let SLIF determine the default
+
+	Per SLIF documentation:
+	male            = 0
+	female          = 1
+	shemale         = 2
+	futanari        = 3
+	genderless      = 4
+	male_creature   = 5
+	female_creature = 6
 
 -=-
 
-slif_get_incrvalue: Returns the increment value from SLIF for the node on the actor
-	- parameter 1: Form actor: the Actor target for the SLIF call
-	- parameter 2: string modName: your modname for SLIF purposes (you could use your script name)
-	- parameter 3: string node: the SLIF node to work with
-	- parameter 4: float default: (optional: default: 0.1) default value to assume if one is not already set
+slif_get_incrvalue: Returns: float: the increment value from SLIF for the node on the actor
+	- parameter 1: Form: actor: the Actor target for the SLIF call
+	- parameter 2: string: modName: your modname for SLIF purposes (you could use your script name)
+	- parameter 3: string: node: the SLIF node to work with
+	- parameter 4: float: default: (optional: default: 0.1) default value to assume if one is not already set
 
 -=-
 
-slif_get_maxvalue: Returns the max value from SLIF for the node on the actor
-	- parameter 1: Form actor: the Actor target for the SLIF call
-	- parameter 2: string modName: your modname for SLIF purposes (you could use your script name)
-	- parameter 3: string node: the SLIF node to work with
-	- parameter 4: float default: (optional: default: 100.0) default value to assume if one is not already set
+slif_get_maxvalue: Returns: float: the max value from SLIF for the node on the actor
+	- parameter 1: Form: actor: the Actor target for the SLIF call
+	- parameter 2: string: modName: your modname for SLIF purposes (you could use your script name)
+	- parameter 3: string: node: the SLIF node to work with
+	- parameter 4: float: default: (optional: default: 100.0) default value to assume if one is not already set
 
 -=-
 
-slif_get_minvalue: Returns the min value from SLIF for the node on the actor
-	- parameter 1: Form actor: the Actor target for the SLIF call
-	- parameter 2: string modName: your modname for SLIF purposes (you could use your script name)
-	- parameter 3: string node: the SLIF node to work with
-	- parameter 4: float default: (optional: default: 0.0) default value to assume if one is not already set
+slif_get_minvalue: Returns: float: the min value from SLIF for the node on the actor
+	- parameter 1: Form: actor: the Actor target for the SLIF call
+	- parameter 2: string: modName: your modname for SLIF purposes (you could use your script name)
+	- parameter 3: string: node: the SLIF node to work with
+	- parameter 4: float: default: (optional: default: 0.0) default value to assume if one is not already set
 
 -=-
 
-slif_get_multvalue: Returns the multiplier value from SLIF for the node on the actor
-	- parameter 1: Form actor: the Actor target for the SLIF call
-	- parameter 2: string modName: your modname for SLIF purposes (you could use your script name)
-	- parameter 3: string node: the SLIF node to work with
-	- parameter 4: float default: (optional: default: 1.0) default value to assume if one is not already set
+slif_get_multvalue: Returns: float: the multiplier value from SLIF for the node on the actor
+	- parameter 1: Form: actor: the Actor target for the SLIF call
+	- parameter 2: string: modName: your modname for SLIF purposes (you could use your script name)
+	- parameter 3: string: node: the SLIF node to work with
+	- parameter 4: float: default: (optional: default: 1.0) default value to assume if one is not already set
 
 -=-
 
-slif_get_value: Returns the current value from SLIF for the node on the actor
-	- parameter 1: Form actor: the Actor target for the SLIF call
-	- parameter 2: string modName: your modname for SLIF purposes (you could use your script name)
-	- parameter 3: string node: the SLIF node to work with
-	- parameter 4: float default: (optional: default: 0.0) default value to assume if one is not already set
+slif_get_value: Returns: float: the current value from SLIF for the node on the actor
+	- parameter 1: Form: actor: the Actor target for the SLIF call
+	- parameter 2: string: modName: your modname for SLIF purposes (you could use your script name)
+	- parameter 3: string: node: the SLIF node to work with
+	- parameter 4: float: default: (optional: default: 0.0) default value to assume if one is not already set
 
 -=-
 
-slif_get_version: Returns a numeric version value, reported by SLIF
+slif_get_version: Returns: int: a numeric version value, reported by SLIF
 
 -=-
 
-slif_get_versionstring: Returns the version as a string, reported by SLIF
+slif_get_versionstring: Returns: string: the version as a string, reported by SLIF
 
 -=-
 
 slif_hide_node: Tells SLIF to hide the node, with an optional hide value to set the scale to
-	- parameter 1: Form actor: the Actor target for the SLIF call
-	- parameter 2: string modName: your modname for SLIF purposes (you could use your script name)
-	- parameter 3: string node: the SLIF node to work with
-	- parameter 4: float value: (optional: default: 0.0000001) the value to apply for hiding
-	- parameter 5: string oldModName: (optional: default: "") see SLIF documentation; probably should use ""
+	- parameter 1: Form: actor: the Actor target for the SLIF call
+	- parameter 2: string: modName: your modname for SLIF purposes (you could use your script name)
+	- parameter 3: string: node: the SLIF node to work with
+	- parameter 4: float: value: (optional: default: 0.0000001) the value to apply for hiding
+	- parameter 5: string: oldModName: (optional: default: "") see SLIF documentation; probably should use ""
 
 -=-
 
 slif_inflate: Tells SLIF to inflate the actor, on the given node, for the given amount.
-	- parameter 1: Form actor: the Actor target for the SLIF call
-	- parameter 2: string modName: your modname for SLIF purposes (you could use your script name)
-	- parameter 3: string node: the SLIF node to work with
-	- parameter 4: float value: the value to apply
-	- parameter 5: string oldModName: (optional: default: "") see SLIF documentation; probably should use ""
+	- parameter 1: Form: actor: the Actor target for the SLIF call
+	- parameter 2: string: modName: your modname for SLIF purposes (you could use your script name)
+	- parameter 3: string: node: the SLIF node to work with
+	- parameter 4: float: value: the value to apply
+	- parameter 5: string: oldModName: (optional: default: "") see SLIF documentation; probably should use ""
 
 -=-
 
-slif_is_inmaintenance: Returns true if SLIF is in maintenance mode, false otherwise
+slif_is_inmaintenance: Returns: bool: true if SLIF is in maintenance mode, false otherwise
 
 -=-
 
-slif_is_installed: Returns true if SLIF is installed, false otherwise
+slif_is_installed: Returns: bool: true if SLIF is installed, false otherwise
 
 -=-
 
-slif_is_node_hidden: Returns true if the SLIF node is hidden on the actor, false otherwise
-	- parameter 1: Form actor: the Actor target for the SLIF call
-	- parameter 2: string node: the SLIF node to work with
+slif_is_node_hidden: Returns: bool: true if the SLIF node is hidden on the actor, false otherwise
+	- parameter 1: Form: actor: the Actor target for the SLIF call
+	- parameter 2: string: node: the SLIF node to work with
 
 -=-
 
-slif_is_updating: Returns true if SLIF is updating, false otherwise
+slif_is_updating: Returns: bool: true if SLIF is updating, false otherwise
 
 -=-
 
-slif_is_working: Returns true if SLIF is working, false otherwise
+slif_is_working: Returns: bool: true if SLIF is working, false otherwise
 
 -=-
 
 slif_register_actor: Tells SLIF to register the actor. SLIF automatically registers on first inflate call, so this is not always required.
-	- parameter 1: Form actor: the Actor target for the SLIF call
-	- parameter 2: string modName: your modname for SLIF purposes (you could use your script name)
-	- parameter 3: string node: (optional: default: "") the SLIF node to work with
-	- parameter 4: string oldModName: (optional: default: "") see SLIF documentation; probably should use ""
-	- parameter 5: float min: (optional: default: -1.0) min value
-	- parameter 6: float max: (optional: default: -1.0) max value
-	- parameter 7: float multiplier: (optional: default: -1.0) multiplier value
-	- parameter 8: float increment: (optional: default: -1.0) increment value
+	- parameter 1: Form: actor: the Actor target for the SLIF call
+	- parameter 2: string: modName: your modname for SLIF purposes (you could use your script name)
+	- parameter 3: string: node: (optional: default: "") the SLIF node to work with
+	- parameter 4: string: oldModName: (optional: default: "") see SLIF documentation; probably should use ""
+	- parameter 5: float: min: (optional: default: -1.0) min value
+	- parameter 6: float: max: (optional: default: -1.0) max value
+	- parameter 7: float: multiplier: (optional: default: -1.0) multiplier value
+	- parameter 8: float: increment: (optional: default: -1.0) increment value
 
 -=-
 
 slif_reset_actor: Resets the SLIF actor, with optional overrides for various settings
-	- parameter 1: Form actor: the Actor target for the SLIF call
-	- parameter 2: string modName: your modname for SLIF purposes (you could use your script name)
-	- parameter 3: string node: (optional: default: "") the SLIF node to reset
-	- parameter 4: float value: (optional: default: 1.0) the value to apply to reset to
-	- parameter 5: string oldModName: (optional: default: "") see SLIF documentation; probably should use ""
-	- parameter 6: float min: (optional: default: -1.0) min value
-	- parameter 7: float max: (optional: default: -1.0) max value
-	- parameter 8: float multiplier: (optional: default: -1.0) multiplier value
-	- parameter 9: float increment: (optional: default: -1.0) increment value
+	- parameter 1: Form: actor: the Actor target for the SLIF call
+	- parameter 2: string: modName: your modname for SLIF purposes (you could use your script name)
+	- parameter 3: string: node: (optional: default: "") the SLIF node to reset
+	- parameter 4: float: value: (optional: default: 1.0) the value to apply to reset to
+	- parameter 5: string: oldModName: (optional: default: "") see SLIF documentation; probably should use ""
+	- parameter 6: float: min: (optional: default: -1.0) min value
+	- parameter 7: float: max: (optional: default: -1.0) max value
+	- parameter 8: float: multiplier: (optional: default: -1.0) multiplier value
+	- parameter 9: float: increment: (optional: default: -1.0) increment value
 
 -=-
 
 slif_set_default_values: Sets the default values for SLIF for the node on the actor
-	- parameter 1: Form actor: the Actor target for the SLIF call
-	- parameter 2: string modName: your modname for SLIF purposes (you could use your script name)
-	- parameter 3: string node: the SLIF node to work with
-	- parameter 4: float min: (optional: default: 0.0) default min value if one is not specified
-	- parameter 5: float max: (optional: default: 100.0) default max value if one is not specified
-	- parameter 6: float multiplier: (optional: default: 1.0) default multiplier value if one is not specified
-	- parameter 7: float increment: (optional: default: 0.1) default increment value if one is not specified
+	- parameter 1: Form: actor: the Actor target for the SLIF call
+	- parameter 2: string: modName: your modname for SLIF purposes (you could use your script name)
+	- parameter 3: string: node: the SLIF node to work with
+	- parameter 4: float: min: (optional: default: 0.0) default min value if one is not specified
+	- parameter 5: float: max: (optional: default: 100.0) default max value if one is not specified
+	- parameter 6: float: multiplier: (optional: default: 1.0) default multiplier value if one is not specified
+	- parameter 7: float: increment: (optional: default: 0.1) default increment value if one is not specified
 
 -=-
 
 slif_show_node: Tells SLIF to show the node if it was previously hidden
-	- parameter 1: Form actor: the Actor target for the SLIF call
-	- parameter 2: string modName: your modname for SLIF purposes (you could use your script name)
-	- parameter 3: string node: the SLIF node to work with
+	- parameter 1: Form: actor: the Actor target for the SLIF call
+	- parameter 2: string: modName: your modname for SLIF purposes (you could use your script name)
+	- parameter 3: string: node: the SLIF node to work with
 
 -=-
 
 slif_unregister_actor: Tells SLIF to unregister the actor
-	- parameter 1: Form actor: the Actor target for the SLIF call
-	- parameter 2: string modName: your modname for SLIF purposes (you could use your script name)
+	- parameter 1: Form: actor: the Actor target for the SLIF call
+	- parameter 2: string: modName: your modname for SLIF purposes (you could use your script name)
 
 -=-
 
 slif_update_actor: Tells SLIF to update the actor
-	- parameter 1: Form actor: the Actor target for the SLIF call
-	- parameter 2: string modName: your modname for SLIF purposes (you could use your script name)
-	- parameter 3: string node: (optional: default: "") the SLIF node to update
-	- parameter 4: string oldModName: (optional: default: "") see SLIF documentation; probably should use ""
-	- parameter 5: float min: (optional: default: -1.0) min value
-	- parameter 6: float max: (optional: default: -1.0) max value
-	- parameter 7: float multiplier: (optional: default: -1.0) multiplier value
-	- parameter 8: float increment: (optional: default: -1.0) increment value
+	- parameter 1: Form: actor: the Actor target for the SLIF call
+	- parameter 2: string: modName: your modname for SLIF purposes (you could use your script name)
+	- parameter 3: string: node: (optional: default: "") the SLIF node to update
+	- parameter 4: string: oldModName: (optional: default: "") see SLIF documentation; probably should use ""
+	- parameter 5: float: min: (optional: default: -1.0) min value
+	- parameter 6: float: max: (optional: default: -1.0) max value
+	- parameter 7: float: multiplier: (optional: default: -1.0) multiplier value
+	- parameter 8: float: increment: (optional: default: -1.0) increment value
 
 -=-
 

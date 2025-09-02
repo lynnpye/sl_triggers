@@ -39,6 +39,6 @@ Function SignalContainerActivation(Actor _akActor, ObjectReference _containerRef
             SLTRCore.SLTR_Internal_PlayerActivatedContainer(_containerRef, is_origin_corpse, is_target_empty)
         endif
     else
-        sl_triggersStatics.SLTErrMsg("Perk.SignalContainerActivation: SLTRCore is not available; this is bad")
+        sl_triggersStatics.SLTErrMsg("Perk.SignalContainerActivation: SLTRCore is not available; may need to reinstall")
     endif
 EndFunction

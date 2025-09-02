@@ -10,8 +10,8 @@ Attempts to unlock all devices locked on the actor
 
 **Parameters**
 
-    actor: target Actor  
-    force: "force" to force an unlock, anything else otherwise  
+    Form: actor: target Actor  
+    string: force: "force" to force an unlock, anything else otherwise  
 
 
 **Example**
@@ -29,9 +29,9 @@ Attempts to unlock any device in the specified slot
 
 **Parameters**
 
-    actor: target Actor  
-    armorslot: int value armor slot e.g. 32 is body armor  
-    force: "force" to force an unlock, anything else otherwise  
+    Form: actor: target Actor  
+    int: armorslot: int value armor slot e.g. 32 is body armor  
+    string: force: "force" to force an unlock, anything else otherwise  
 
 
 **Example**
@@ -66,7 +66,7 @@ Sets current debt to the specified amount
 
 **Parameters**
 
-    newdebt: new debt value  
+    int: newdebt: new debt value  
 
 
 **Example**
@@ -82,11 +82,11 @@ We all know what you are going to use it for
 
 **Description**
 
-Returns the days since the actor last had an orgasm as a float
+Returns: float: the days since the actor last had an orgasm as a float
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -99,7 +99,7 @@ Returns the days since the actor last had an orgasm as a float
 
 **Description**
 
-Returns the current arousal of the actor as an int
+Returns: int: the current arousal of the actor as an int
 
 **Parameters**
 
@@ -116,7 +116,7 @@ Returns the current arousal of the actor as an int
 
 **Description**
 
-Returns the current exposure level of the actor as an int
+Returns: int: the current exposure level of the actor as an int
 
 **Parameters**
 
@@ -133,7 +133,7 @@ Returns the current exposure level of the actor as an int
 
 **Description**
 
-Returns the version of SexLabAroused or OSLAroused
+Returns: int: the version of SexLabAroused or OSLAroused
 
 
 **Example**
@@ -151,8 +151,8 @@ Sends the "slaUpdateExposure" modevent. No return value.
 
 **Parameters**
 
-    actor: target Actor  
-    exposureAmount: float; amount of exposure update to send  
+    Form: actor: target Actor  
+    float: exposureAmount: amount of exposure update to send  
 
 
 **Example**
@@ -169,8 +169,8 @@ Sets the exposure for the target actor and returns the new amount as an int
 
 **Parameters**
 
-    actor: target Actor  
-    exposureAmount: int; amount of exposure update to set  
+    Form: actor: target Actor  
+    int: exposureAmount: amount of exposure update to set  
 
 
 **Example**
@@ -188,8 +188,8 @@ This uses the API, not a modevent directly (though the API may still be sending 
 
 **Parameters**
 
-    actor: target Actor  
-    exposureAmount: int; amount of exposure update to apply  
+    Form: actor: target Actor  
+    int: exposureAmount: amount of exposure update to apply  
 
 
 **Example**

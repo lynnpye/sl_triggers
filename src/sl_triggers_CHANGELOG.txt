@@ -2,6 +2,13 @@
     Savegame compatible
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
         (or whichever folder you have your SKSE logs directed to)
+    enhancement: added weapon_doaction/weapon_dogetter/weapon_doconsumer/weapon_dofunction to implement Weapon related functions
+    documentation: numerous documentation improvements and standardizations
+
+0.920
+    Savegame compatible
+    Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
+        (or whichever folder you have your SKSE logs directed to)
     bugfix: OStim threadID was not being handled correctly
     bugfix: SexLab/OStim event "Partner" handling failed on some group corner cases
         - old method: "Partner" was simply "next Actor in the scene, wrapping around to first slot"

@@ -2,8 +2,27 @@ scriptname sl_triggersCmdLibBase
 
 import sl_triggersStatics
 
-;;;;;;;;;;
-;; 
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;
+;;  Actions: Arguments:No ReturnValue:No
+
+
+
+
+
 
 
 bool function _slt_form_doaction(sl_triggersCmd CmdPrimary, Form _target, string _theAction) global
@@ -171,7 +190,6 @@ endFunction
 ; sltdesc https://ck.uesp.net/wiki/Form_Script
 ; sltargs form: target Form (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
 ; sltargs action: action name
-; sltargsmore ;;;; These are from Form
 ; sltargsmore RegisterForSleep
 ; sltargsmore RegisterForTrackedStatsEvent
 ; sltargsmore StartObjectProfiling
@@ -180,7 +198,6 @@ endFunction
 ; sltargsmore UnregisterForTrackedStatsEvent
 ; sltargsmore UnregisterForUpdate
 ; sltargsmore UnregisterForUpdateGameTime
-; sltargsmore ;;;; These are from SKSE
 ; sltargsmore UnregisterForAllKeys
 ; sltargsmore UnregisterForAllControls
 ; sltargsmore UnregisterForAllMenus
@@ -190,6 +207,7 @@ endFunction
 ; sltargsmore UnregisterForCrosshairRef
 ; sltargsmore RegisterForNiNodeUpdate
 ; sltargsmore UnregisterForNiNodeUpdate
+; sltsamp ; $system.self is an Actor, which is an ObjectReference, which is a Form
 ; sltsamp form_doaction $system.self StopCombat
 function form_doaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -215,7 +233,6 @@ EndFunction
 ; sltdesc https://ck.uesp.net/wiki/ObjectReference_Script
 ; sltargs objectreference: target ObjectReference  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
 ; sltargs action: action name
-; sltargsmore ;;;; These are from ObjectReference
 ; sltargsmore ClearDestruction
 ; sltargsmore Delete
 ; sltargsmore DeleteWhenAble
@@ -225,9 +242,10 @@ EndFunction
 ; sltargsmore MoveToMyEditorLocation
 ; sltargsmore RemoveAllInventoryEventFilters
 ; sltargsmore StopTranslation
-; sltargsmore ;;;; These are from SKSE
 ; sltargsmore ResetInventory
 ; sltargsmore ;;;; will call form_doaction if no matches are found
+; sltsamp ; $system.self is an Actor, which is an ObjectReference, which is a Form
+; sltsamp ; StopCombat is a Form action, so the call to ObjectReference falls through to the parent
 ; sltsamp objectreference_doaction $system.self StopCombat
 function objectreference_doaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -259,7 +277,10 @@ EndFunction
 ; sltargsmore Reset
 ; sltargsmore Stop
 ; sltargsmore ;;;; will call form_doaction if no matches are found
-; sltsamp quest_doaction $system.self CompleteQuest
+; sltsamp ; suppose you want to reset a mod's quest form
+; sltsamp ; and can obtain the editorID via xedit, or construct one from formid and modname
+; sltsamp set $modQuest resultfrom form_getbyid $questFormID
+; sltsamp quest_doaction $modQuest Reset
 function quest_doaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -284,7 +305,6 @@ EndFunction
 ; sltdesc https://ck.uesp.net/wiki/Actor_Script
 ; sltargs actor: target Actor
 ; sltargs action: action name
-; sltargsmore ;;;; These are from Actor
 ; sltargsmore ClearArrested
 ; sltargsmore ClearExpressionOverride
 ; sltargsmore ClearExtraArrows
@@ -329,6 +349,27 @@ function actor_doaction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;
+;;  Getters - Arguments:No ReturnValue:Yes
+
+
+
+
+
 
 
 bool function _slt_form_dogetter(sl_triggersCmd CmdPrimary, Form _target, string _theAction) global
@@ -538,6 +579,75 @@ bool function _slt_armor_dogetter(sl_triggersCmd CmdPrimary, Armor _target, stri
             CmdPrimary.MostRecentBoolResult = _target.IsClothingRich()
         elseif _theAction == "IsClothingPoor"
             CmdPrimary.MostRecentBoolResult = _target.IsClothingPoor()
+        else
+            return _slt_form_dogetter(CmdPrimary, _target, _theAction)
+        endif
+        return true
+    endIf
+
+    return false
+endFunction
+
+bool function _slt_weapon_dogetter(sl_triggersCmd CmdPrimary, Weapon _target, string _theAction) global
+    if _target && _theAction
+        if _theAction == "GetBaseDamage"
+            CmdPrimary.MostRecentIntResult = _target.GetBaseDamage()
+        elseif _theAction == "GetCritDamage"
+            CmdPrimary.MostRecentIntResult = _target.GetCritDamage()
+        elseif _theAction == "GetReach"
+            CmdPrimary.MostRecentFloatResult = _target.GetReach()
+        elseif _theAction == "GetMinRange"
+            CmdPrimary.MostRecentFloatResult = _target.GetMinRange()
+        elseif _theAction == "GetMaxRange"
+            CmdPrimary.MostRecentFloatResult = _target.GetMaxRange()
+        elseif _theAction == "GetSpeed"
+            CmdPrimary.MostRecentFloatResult = _target.GetSpeed()
+        elseif _theAction == "GetStagger"
+            CmdPrimary.MostRecentFloatResult = _target.GetStagger()
+        elseif _theAction == "GetWeaponType"
+            CmdPrimary.MostRecentIntResult = _target.GetWeaponType()
+        elseif _theAction == "GetModelPath"
+            CmdPrimary.MostRecentStringResult = _target.GetModelPath()
+        elseif _theAction == "GetIconPath"
+            CmdPrimary.MostRecentStringResult = _target.GetIconPath()
+        elseif _theAction == "GetMessageIconPath"
+            CmdPrimary.MostRecentStringResult = _target.GetMessageIconPath()
+        elseif _theAction == "GetEnchantment"
+            CmdPrimary.MostRecentFormResult = _target.GetEnchantment()
+        elseif _theAction == "GetEnchantmentValue"
+            CmdPrimary.MostRecentIntResult = _target.GetEnchantmentValue()
+        elseif _theAction == "GetEquippedModel"
+            CmdPrimary.MostRecentFormResult = _target.GetEquippedModel()
+        elseif _theAction == "GetEquipType"
+            CmdPrimary.MostRecentFormResult = _target.GetEquipType()
+        elseif _theAction == "GetSkill"
+            CmdPrimary.MostRecentStringResult = _target.GetSkill()
+        elseif _theAction == "GetResist"
+            CmdPrimary.MostRecentStringResult = _target.GetResist()
+        elseif _theAction == "GetCritEffect"
+            CmdPrimary.MostRecentFormResult = _target.GetCritEffect()
+        elseif _theAction == "GetCritEffectOnDeath"
+            CmdPrimary.MostRecentBoolResult = _target.GetCritEffectOnDeath()
+        elseif _theAction == "GetCritMultiplier"
+            CmdPrimary.MostRecentFloatResult = _target.GetCritMultiplier()
+        elseif _theAction == "IsBattleAxe"
+            CmdPrimary.MostRecentBoolResult = _target.IsBattleAxe()
+        elseif _theAction == "IsBow"
+            CmdPrimary.MostRecentBoolResult = _target.IsBow()
+        elseif _theAction == "IsDagger"
+            CmdPrimary.MostRecentBoolResult = _target.IsDagger()
+        elseif _theAction == "IsGreatsword"
+            CmdPrimary.MostRecentBoolResult = _target.IsGreatsword()
+        elseif _theAction == "IsMace"
+            CmdPrimary.MostRecentBoolResult = _target.IsMace()
+        elseif _theAction == "IsStaff"
+            CmdPrimary.MostRecentBoolResult = _target.IsStaff()
+        elseif _theAction == "IsSword"
+            CmdPrimary.MostRecentBoolResult = _target.IsSword()
+        elseif _theAction == "IsWarhammer"
+            CmdPrimary.MostRecentBoolResult = _target.IsWarhammer()
+        elseif _theAction == "IsWarAxe"
+            CmdPrimary.MostRecentBoolResult = _target.IsWarAxe()
         else
             return _slt_form_dogetter(CmdPrimary, _target, _theAction)
         endif
@@ -772,11 +882,9 @@ endFunction
 ; sltdesc https://ck.uesp.net/wiki/Form_Script
 ; sltargs form: target Form (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
 ; sltargs getter: getter name
-; sltargsmore ;;;; T79686hese are from Form
 ; sltargsmore GetFormID
 ; sltargsmore GetGoldValue
 ; sltargsmore PlayerKnows
-; sltargsmore ;;;; These are from SKSE
 ; sltargsmore GetType
 ; sltargsmore GetName
 ; sltargsmore GetWeight
@@ -786,8 +894,8 @@ endFunction
 ; sltargsmore GetWorldModelPath
 ; sltargsmore GetWorldModelNumTextureSets
 ; sltargsmore TempClone
-; sltsamp form_dogetter $system.self IsPlayable
-; sltsamp if $$ = 1 itwasplayable
+; sltsamp set $selfName resultfrom form_dogetter $system.self GetName
+; sltsamp msg_console $"Name of $system.self, an Actor, as a Form, via GetName(), is '{$selfName}'"
 function form_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -815,7 +923,6 @@ endFunction
 ; sltdesc https://ck.uesp.net/wiki/ObjectReference_Script
 ; sltargs objectreference: target ObjectReference  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
 ; sltargs getter: getter name
-; sltargsmore ;;;; These are from ObjectReference
 ; sltargsmore CanFastTravelToMarker
 ; sltargsmore GetActorOwner
 ; sltargsmore GetAngleX
@@ -854,7 +961,6 @@ endFunction
 ; sltargsmore IsLocked
 ; sltargsmore IsMapMarkerVisible
 ; sltargsmore IsNearPlayer
-; sltargsmore ;;;; These are from SKSE
 ; sltargsmore GetNumItems
 ; sltargsmore GetTotalItemWeight
 ; sltargsmore GetTotalArmorWeight
@@ -866,9 +972,20 @@ endFunction
 ; sltargsmore GetEnableParent
 ; sltargsmore GetEnchantment
 ; sltargsmore GetNumReferenceAliases
-; sltsamp objectreference_dogetter $system.self CanFlyHere
-; sltsamp if $$ = 1 ICanFlyAroundHere
-; sltsamp if $$ = 0 IAmGroundedLikeAlways
+; sltargsmore ;;;; will call form_dogetter if no matches are found
+; sltsamp ; inside/outside
+; sltsamp set $isInside resultfrom objectreference_dogetter $system.self IsInInterior
+; sltsamp if $isInside == true [IsInside]
+; sltsamp if $isInside == false [IsNotInside]
+; sltsamp ; working with containers, (including actors, chests, barrels, etc.) which all derive from ObjectReference
+; sltsamp ; this would be valid, to check the inventory contents of whomever the script is running on
+; sltsamp set $theContainer $system.self
+; sltsamp ; this would be valid, to check the inventory contents of the player, regardless of whomever the script is running on
+; sltsamp set $theContainer $system.player
+; sltsamp ; this would be valid, to check the inventory contents of a container, in response to the container activation event
+; sltsamp set $theContainer $request.core.activatedContainer
+; sltsamp ; for all of the settings of $theContainer above, the following would validly obtain the count of contained items
+; sltsamp set $inventoryCount resultfrom objectreference_dogetter $theContainer GetNumItems
 function objectreference_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -898,6 +1015,11 @@ endFunction
 ; sltargs getter: getter name
 ; sltargsmore GetValue
 ; sltargsmore GetValueInt
+; sltargsmore ;;;; will call form_dogetter if no matches are found
+; sltsamp ; to get the current GLOB TimeScale
+; sltsamp set $GLOB_timescale resultfrom form_getbyid "TimeScale"
+; sltsamp set $timeScale resultfrom globalvariable_dogetter $GLOB_timescale GetValue 
+; sltsamp ; $timeScale should be 20.0 by default
 function globalvariable_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -910,6 +1032,65 @@ function globalvariable_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPri
             if _theAction
                 if !_slt_globalvariable_dogetter(CmdPrimary, _target, _theAction)
                     SquawkFunctionError(CmdPrimary, "globalvariable_dogetter: action returned empty string result, possibly a problem(" + _theAction + ")")
+                endif
+            endif
+        endIf
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname weapon_dogetter
+; sltgrup Weapon
+; sltdesc For the targeted Weapon, set $$ to the result of the specified getter
+; sltdesc 'Getter' in this case specifically refers to functions that take no parameters but return a value
+; sltdesc https://ck.uesp.net/wiki/Weapon_Script
+; sltargs Form: target Weapon  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs getter: getter name
+; sltargsmore GetBaseDamage
+; sltargsmore GetCritDamage
+; sltargsmore GetReach
+; sltargsmore GetMinRange
+; sltargsmore GetMaxRange
+; sltargsmore GetSpeed
+; sltargsmore GetStagger
+; sltargsmore GetWeaponType
+; sltargsmore GetModelPath
+; sltargsmore GetIconPath
+; sltargsmore GetMessageIconPath
+; sltargsmore GetEnchantment
+; sltargsmore GetEnchantmentValue
+; sltargsmore GetEquippedModel
+; sltargsmore GetEquipType
+; sltargsmore GetSkill
+; sltargsmore GetResist
+; sltargsmore GetCritEffect
+; sltargsmore GetCritEffectOnDeath
+; sltargsmore GetCritMultiplier
+; sltargsmore IsBattleAxe
+; sltargsmore IsBow
+; sltargsmore IsDagger
+; sltargsmore IsGreatsword
+; sltargsmore IsMace
+; sltargsmore IsStaff
+; sltargsmore IsSword
+; sltargsmore IsWarhammer
+; sltargsmore IsWarAxe
+; sltargsmore ;;;; will call form_dogetter if no matches are found
+; sltsamp set $someWeapon resultfrom form_getbyid $weaponFormID
+; sltsamp weapon_dogetter $someWeapon GetBaseDamage
+function weapon_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Weapon _target = CmdPrimary.ResolveForm(param[1]) as Weapon
+        
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_weapon_dogetter(CmdPrimary, _target, _theAction)
+                    SquawkFunctionError(CmdPrimary, "weapon_dogetter: action returned empty string result, possibly a problem(" + _theAction + ")")
                 endif
             endif
         endIf
@@ -948,7 +1129,9 @@ endFunction
 ; sltargsmore IsClothingRing
 ; sltargsmore IsClothingRich
 ; sltargsmore IsClothingPoor
-; sltsamp armor_dogetter $system.self GetStage
+; sltargsmore ;;;; will call form_dogetter if no matches are found
+; sltsamp set $selfShield resultfrom actor_dogetter $system.self GetEquippedShield
+; sltsamp set $selfShieldArmorRating resultfrom armor_dogetter $selfShield GetArmorRating
 function armor_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -988,7 +1171,11 @@ endFunction
 ; sltargsmore GetID
 ; sltargsmore GetPriority
 ; sltargsmore GetNumAliases
-; sltsamp quest_dogetter $system.self GetStage
+; sltargsmore ;;;; will call form_dogetter if no matches are found
+; sltsamp ; suppose you want to obtain a mod's quest stage
+; sltsamp ; and can obtain the editorID via xedit, or construct one from formid and modname
+; sltsamp set $modQuest resultfrom form_getbyid $questFormID
+; sltsamp set $modQuestStage resultfrom quest_dogetter $modQuest GetStage
 function quest_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -1016,7 +1203,6 @@ endFunction
 ; sltdesc https://ck.uesp.net/wiki/ActorBase_Script
 ; sltargs actor: target ActorBase  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0xf" and absolute "0xf" values)
 ; sltargs getter: getter name
-; sltargsmore ;;;; These are from ActorBase
 ; sltargsmore GetClass
 ; sltargsmore GetDeadCount
 ; sltargsmore GetGiftFilter
@@ -1026,7 +1212,6 @@ endFunction
 ; sltargsmore IsInvulnerable
 ; sltargsmore IsProtected
 ; sltargsmore IsUnique
-; sltargsmore ;;;; These are from SKSE
 ; sltargsmore GetCombatStyle
 ; sltargsmore GetHeight
 ; sltargsmore GetWeight
@@ -1039,6 +1224,10 @@ endFunction
 ; sltargsmore GetSkin
 ; sltargsmore GetSkinFar
 ; sltargsmore GetTemplate
+; sltargsmore ;;;; will call form_dogetter if no matches are found
+; sltsamp set $selfBase resultfrom actor_dogetter $system.self GetActorBase
+; sltsamp set $isUnique resultfrom actorbase_dogetter $selfBase IsUnique
+; sltsamp set $raceName resultfrom actorbase_dogetter $selfBase GetRace ; i.e. "Breton", "Nord", "Argonian"
 function actorbase_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -1066,7 +1255,6 @@ endFunction
 ; sltdesc https://ck.uesp.net/wiki/Actor_Script
 ; sltargs actor: target Actor  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0xf" and absolute "0xf" values)
 ; sltargs getter: getter name
-; sltargsmore ;;;; These are from Actor
 ; sltargsmore CanFlyHere
 ; sltargsmore Dismount
 ; sltargsmore GetActorBase
@@ -1098,7 +1286,7 @@ endFunction
 ; sltargsmore IsAllowedToFly
 ; sltargsmore IsArrested
 ; sltargsmore IsArrestingTarget
-; sltargsmore IsBeingRidden - not a SexLab setting
+; sltargsmore IsBeingRidden
 ; sltargsmore IsBleedingOut
 ; sltargsmore IsBribed
 ; sltargsmore IsChild
@@ -1112,8 +1300,8 @@ endFunction
 ; sltargsmore IsInCombat
 ; sltargsmore IsInKillMove
 ; sltargsmore IsIntimidated
-; sltargsmore IsOnMount - see IsBeingRidden
-; sltargsmore IsPlayersLastRiddenHorse - I don't even need to comment now, do I?
+; sltargsmore IsOnMount
+; sltargsmore IsPlayersLastRiddenHorse
 ; sltargsmore IsPlayerTeammate
 ; sltargsmore IsRunning
 ; sltargsmore IsSneaking
@@ -1121,17 +1309,21 @@ endFunction
 ; sltargsmore IsTrespassing
 ; sltargsmore IsUnconscious
 ; sltargsmore IsWeaponDrawn
-; sltargsmore ;;;; These are from SKSE
 ; sltargsmore GetSpellCount
 ; sltargsmore IsAIEnabled
 ; sltargsmore IsSwimming
-; sltargsmore ;;;; These are Special Edition exclusive
 ; sltargsmore WillIntimidateSucceed
 ; sltargsmore IsOverEncumbered
 ; sltargsmore GetWarmthRating
-; sltsamp actor_dogetter $system.self CanFlyHere
-; sltsamp if $$ = 1 ICanFlyAroundHere
-; sltsamp if $$ = 0 IAmGroundedLikeAlways
+; sltargsmore ;;;; will call objectreference_dogetter if no matches are found
+; sltsamp ; respond to combat status
+; sltsamp set $isFighting resultfrom actor_dogetter $system.self IsInCombat
+; sltsamp if $isFighting [IsFighting]
+; sltsamp ; do non-fighting things
+; sltsamp ; respond to whether they are sneaking (perhaps bypassing traps you were going to script in?)
+; sltsamp set $isSneaking resultfrom actor_dogetter $system.self IsSneaking
+; sltsamp if $isSneaking [DoNothingAndExit]
+; sltsamp ; now do whatever you were planning to do, since the target is not sneaking
 function actor_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -1151,6 +1343,29 @@ function actor_dogetter(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;
+;;  Consumers - Arguments:Yes ReturnValue:No
+
+
+
+
+
+
+
 
 
 bool function _slt_form_doconsumer(sl_triggersCmd CmdPrimary, Form _target, string _theAction, string[] param) global
@@ -1537,6 +1752,100 @@ bool function _slt_globalvariable_doconsumer(sl_triggersCmd CmdPrimary, GlobalVa
         endif
         return true
     endif
+    return false
+endFunction
+
+bool function _slt_weapon_doconsumer(sl_triggersCmd CmdPrimary, Weapon _target, string _theAction, string[] param) global
+    if _target && _theAction
+        if _theAction == "Fire"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.Fire(CmdPrimary.ResolveObjRef(param[3]))
+            endif
+        elseif _theAction == "SetBaseDamage"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetBaseDamage(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "SetCritDamage"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetCritDamage(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "SetReach"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetReach(CmdPrimary.ResolveFloat(param[3]))
+            endif
+        elseif _theAction == "SetMinRange"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetMinRange(CmdPrimary.ResolveFloat(param[3]))
+            endif
+        elseif _theAction == "SetMaxRange"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetMaxRange(CmdPrimary.ResolveFloat(param[3]))
+            endif
+        elseif _theAction == "SetSpeed"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetSpeed(CmdPrimary.ResolveFloat(param[3]))
+            endif
+        elseif _theAction == "SetStagger"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetStagger(CmdPrimary.ResolveFloat(param[3]))
+            endif
+        elseif _theAction == "SetWeaponType"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetWeaponType(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "SetModelPath"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetModelPath(CmdPrimary.ResolveString(param[3]))
+            endif
+        elseif _theAction == "SetIconPath"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetIconPath(CmdPrimary.ResolveString(param[3]))
+            endif
+        elseif _theAction == "SetMessageIconPath"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetMessageIconPath(CmdPrimary.ResolveString(param[3]))
+            endif
+        elseif _theAction == "SetEnchantment"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetEnchantment(CmdPrimary.ResolveForm(param[3]) as Enchantment)
+            endif
+        elseif _theAction == "SetEnchantmentValue"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetEnchantmentValue(CmdPrimary.ResolveInt(param[3]))
+            endif
+        elseif _theAction == "SetEquippedModel"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetEquippedModel(CmdPrimary.ResolveForm(param[3]) as Static)
+            endif
+        elseif _theAction == "SetEquipType"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetEquipType(CmdPrimary.ResolveForm(param[3]) as EquipSlot)
+            endif
+        elseif _theAction == "SetSkill"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetSkill(CmdPrimary.ResolveString(param[3]))
+            endif
+        elseif _theAction == "SetResist"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetResist(CmdPrimary.ResolveString(param[3]))
+            endif
+        elseif _theAction == "SetCritEffect"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetCritEffect(CmdPrimary.ResolveForm(param[3]) as Spell)
+            endif
+        elseif _theAction == "SetCritEffectOnDeath"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetCritEffectOnDeath(CmdPrimary.ResolveBool(param[3]))
+            endif
+        elseif _theAction == "SetCritMultiplier"
+            if ParamLengthEQ(CmdPrimary, param.Length, 4)
+                _target.SetCritMultiplier(CmdPrimary.ResolveFloat(param[3]))
+            endif
+        else
+            return _slt_form_doconsumer(CmdPrimary, _target, _theAction, param)
+        endif
+        return true
+    endif    
     return false
 endFunction
 
@@ -2252,9 +2561,9 @@ endFunction
 ; sltargsmore SetWeight
 ; sltargsmore SetGoldValue
 ; sltargsmore SendModEvent
-; sltsamp actor_dogetter $system.player GetEquippedShield
-; sltsamp set $shieldFormID $$
-; sltsamp form_doconsumer $shieldFormID SetWeight 0.1 ; featherweight shield
+; sltsamp ; intended to make the player's shield 0.1 weight units
+; sltsamp set $playerShield resultfrom actor_dogetter $system.player GetEquippedShield
+; sltsamp form_doconsumer $playerShield SetWeight 0.1 ; featherweight shield
 function form_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -2340,9 +2649,12 @@ endFunction
 ; sltargsmore SetItemCharge
 ; sltargsmore SetEnchantment
 ; sltargsmore CreateEnchantment
-; sltsamp actor_dogetter $system.player GetEquippedShield
-; sltsamp set $shieldFormID $$
-; sltsamp objectreference_doconsumer $shieldFormID CreateEnchantment 200.0 "Skyrim.esm:form-id-for-MGEF" 20.0 0.0 30.0
+; sltargsmore ;;;; will call form_doconsumer if no matches are found
+; sltsamp ; give the player's shield 'Fortify Block +20', with 200.0 charge (and technically duration 30.0, but I don't think that actually matters)
+; sltsamp set $playerShield resultfrom actor_dogetter $system.player GetEquippedShield
+; sltsamp objectreference_doconsumer $playerShield CreateEnchantment 200.0 "AlchFortifyBlock" 20.0 0.0 30.0
+; sltsamp ; or give both 'Fortify Block +20' as above, as well as 'Fortify Restoration +20'
+; sltsamp objectreference_doconsumer $playerShield CreateEnchantment 200.0 "AlchFortifyBlock" 20.0 0.0 30.0 "AlchFortifyRestoration" 20.0 0.0 30.0
 function objectreference_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -2372,6 +2684,12 @@ endFunction
 ; sltargs consumer: consumer name
 ; sltargsmore SetValue
 ; sltargsmore SetValueInt
+; sltargsmore ;;;; will call form_doconsumer if no matches are found
+; sltsamp ; to set the current GLOB TimeScale to 10.0 (half of the default of 20.0, thus slowing the passage of time)
+; sltsamp set $GLOB_timescale resultfrom form_getbyid "TimeScale"
+; sltsamp globalvariable_doconsumer $GLOB_timescale SetValue 10.0
+; sltsamp set $timeScale resultfrom globalvariable_dogetter $GLOB_timescale GetValue
+; sltsamp ; $timeScale should be 10.0 now (default is 20.0)
 function globalvariable_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -2392,6 +2710,57 @@ function globalvariable_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdP
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
+; sltname weapon_doconsumer
+; sltgrup Weapon
+; sltdesc For the specified Weapon, perform the requested consumer, provided the appropriate additional parameters
+; sltdesc 'Consumer' in this case specifically refers to functions that take parameters but return no result
+; sltdesc https://ck.uesp.net/wiki/Weapon_Script
+; sltargs Form: target Weapon (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
+; sltargs consumer: consumer name
+; sltargsmore Fire
+; sltargsmore SetBaseDamage
+; sltargsmore SetCritDamage
+; sltargsmore SetReach
+; sltargsmore SetMinRange
+; sltargsmore SetMaxRange
+; sltargsmore SetSpeed
+; sltargsmore SetStagger
+; sltargsmore SetWeaponType
+; sltargsmore SetModelPath
+; sltargsmore SetIconPath
+; sltargsmore SetMessageIconPath
+; sltargsmore SetEnchantment
+; sltargsmore SetEnchantmentValue
+; sltargsmore SetEquippedModel
+; sltargsmore SetEquipType
+; sltargsmore SetSkill
+; sltargsmore SetResist
+; sltargsmore SetCritEffect
+; sltargsmore SetCritEffectOnDeath
+; sltargsmore SetCritMultiplier
+; sltargsmore ;;;; will call form_doconsumer if no matches are found
+; sltsamp set $someWeapon resultfrom form_getbyid $weaponFormID
+; sltsamp weapon_doconsumer $someWeapon SetStagger 5.0 ; huge stagger value
+function weapon_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthGT(CmdPrimary, param.Length, 3)
+        Weapon _target = CmdPrimary.ResolveForm(param[1]) as Weapon
+        
+        if _target
+            string _theAction = CmdPrimary.ResolveString(param[2])
+
+            if _theAction
+                if !_slt_weapon_doconsumer(CmdPrimary, _target, _theAction, param)
+                    SquawkFunctionError(CmdPrimary, "weapon_doconsumer: unrecognized action(" + _theAction + ")")
+                endif
+            endif
+        endIf
+    endif
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
 ; sltname armor_doconsumer
 ; sltgrup Armor
 ; sltdesc For the specified Armor, perform the requested consumer, provided the appropriate additional parameters
@@ -2399,11 +2768,18 @@ endFunction
 ; sltdesc https://ck.uesp.net/wiki/Armor_Script
 ; sltargs Form: target Armor (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
 ; sltargs consumer: consumer name
-; sltargsmore SetActive
-; sltargsmore SetObjectiveCompleted
-; sltargsmore SetObjectiveDisplayed
-; sltargsmore SetObjectiveFailed
-; sltsamp armor_doconsumer $someQuest SetActive true
+; sltargsmore SetArmorRating
+; sltargsmore SetAR
+; sltargsmore ModArmorRating
+; sltargsmore SetModelPath
+; sltargsmore SetIconPath
+; sltargsmore SetMessageIconPath
+; sltargsmore SetWeightClass
+; sltargsmore SetEnchantment
+; sltargsmore SetSlotMask
+; sltargsmore ;;;; will call form_doconsumer if no matches are found
+; sltsamp set $selfShield resultfrom actor_dogetter $system.self GetEquippedShield
+; sltsamp armor_doconsumer $selfShield ModArmorRating 100.0 ; big bonus to target's shield armor rating
 function armor_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -2435,7 +2811,11 @@ endFunction
 ; sltargsmore SetObjectiveCompleted
 ; sltargsmore SetObjectiveDisplayed
 ; sltargsmore SetObjectiveFailed
-; sltsamp quest_doconsumer $someQuest SetActive true
+; sltargsmore ;;;; will call form_doconsumer if no matches are found
+; sltsamp ; suppose you want to deactivate a quest mod
+; sltsamp ; and can obtain the editorID via xedit, or construct one from formid and modname
+; sltsamp set $modQuest resultfrom form_getbyid $questFormID
+; sltsamp quest_doconsumer $modQuest SetActive false
 function quest_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -2479,7 +2859,10 @@ endFunction
 ; sltargsmore SetVoiceType
 ; sltargsmore SetSkin
 ; sltargsmore SetSkinFar
-; sltsamp actorbase_doconsumer $actorBase SetInvulnerable true
+; sltargsmore ;;;; will call form_doconsumer if no matches are found
+; sltsamp ; make the target invulnerable
+; sltsamp set $selfBase resultfrom actor_dogetter $system.self GetActorBase
+; sltsamp actorbase_doconsumer $selfBase SetInvulnerable true
 function actorbase_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -2582,8 +2965,9 @@ endFunction
 ; sltargsmore ChangeHeadPart
 ; sltargsmore ReplaceHeadPart
 ; sltargsmore UpdateWeight
-; sltsamp set $newGhostStatus 1
-; sltsamp actor_doconsumer $system.self SetGhost $newGhostStatus
+; sltargsmore ;;;; will call objectreference_doconsumer if no matches are found
+; sltsamp ; make the script target an ally of the player's
+; sltsamp actor_doconsumer $system.self SetRelationshipRank $system.player 3
 function actor_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -2603,6 +2987,29 @@ function actor_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, s
 
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;
+;;  Functions - Arguments:Yes ReturnValue:Yes
+
+
+
+
+
+
+
 
 bool Function _slt_form_dofunction(sl_triggersCmd CmdPrimary, Form _target, string _theAction, string[] param) global
     if _target && _theAction
@@ -3330,8 +3737,8 @@ endFunction
 ; sltargsmore HasKeyword
 ; sltargsmore GetNthKeyword
 ; sltargsmore GetWorldModelNthTextureSet
-; sltsamp form_dofunction $system.self HasKeywordString "ActorTypeNPC"
-; sltsamp ; $$ should contain true/false based on whether self has the indicated keyword
+; sltsamp ; determine whether a given Form is pointing to an Actor NPC
+; sltsamp set $isNPC resultfrom form_dofunction $system.self HasKeywordString "ActorTypeNPC"
 function form_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -3388,9 +3795,14 @@ endFunction
 ; sltargsmore PlaceAtMe
 ; sltargsmore GetLinkedRef
 ; sltargsmore GetNthLinkedRef
-; sltsamp set $containerFormID "AContainerEditorIDForExample"
-; sltsamp objectreference_dofunction $system.self GetItemCount $containerFormID
-; sltsamp ; $$ should contain an int value with the number of items in the container
+; sltargsmore ;;;; will call form_dofunction if no matches are found
+; sltsamp ; in response to a containeractivate trigger, to quickly determine whether the container had
+; sltsamp ; something that you might want to force into the player's inventory
+; sltsamp set $theContainer $request.core.activatedContainer"
+; sltsamp set $lookingFor $system.forms.gold ; shorthand for gold i.e. septims
+; sltsamp set $foundCount resultfrom objectreference_dofunction $theContainer GetItemCount $lookingFor
+; sltsamp ; or determine how much gold the target of the script has on them
+; sltsamp set $selfGold resultfrom objectreference_dofunction $system.self GetItemCount $lookingFor
 function objectreference_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -3417,7 +3829,12 @@ endFunction
 ; sltdesc https://ck.uesp.net/wiki/GlobalVariable_Script
 ; sltargs Form: target GlobalVariable  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)
 ; sltargs function: function name
-; sltargsmore Mod
+; sltargsmore Mod - more thread-safe than get/set
+; sltargsmore ;;;; will call form_dofunction if no matches are found
+; sltsamp ; to apply a modifier to the GLOB TimeScale of -10.0, reducing it from the default of 20.0 down to 10.0
+; sltsamp set $GLOB_timescale resultfrom form_getbyid "TimeScale"
+; sltsamp set $timeScale resultfrom globalvariable_dofunction $GLOB_timescale Mod -10.0
+; sltsamp ; $timeScale should be 10.0 now (default is 20.0)
 function globalvariable_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -3451,6 +3868,7 @@ endFunction
 ; sltargsmore AddSlotToMask
 ; sltargsmore RemoveSlotFromMask
 ; sltargsmore GetNthArmorAddon
+; sltargsmore ;;;; will call form_dofunction if no matches are found
 function armor_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -3490,7 +3908,12 @@ endFunction
 ; sltargsmore GetQuest
 ; sltargsmore GetNthAlias
 ; sltargsmore GetAliasByName
-; sltsamp set $success resultfrom quest_dofunction $questForm SetCurrentStageID 0
+; sltargsmore ;;;; will call form_dofunction if no matches are found
+; sltsamp ; suppose you want to determine for a quest mod whether a given stage is done (maybe that impacts mod state or activity)
+; sltsamp ; and can obtain the editorID via xedit, or construct one from formid and modname
+; sltsamp set $modQuest resultfrom form_getbyid $questFormID
+; sltsamp set $stageIsDone resultfrom quest_dofunction $modQuest IsStageDone 100
+; sltsamp if $stageIsDone == true [AsIfTheStageWereDone]
 function quest_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -3525,6 +3948,7 @@ endFunction
 ; sltargsmore GetFaceMorph
 ; sltargsmore GetFacePreset
 ; sltargsmore GetNthSpell
+; sltargsmore ;;;; will call form_dofunction if no matches are found
 ; sltsamp set $spell resultfrom actorbase_dofunction $anActorBase GetNthSpell 0
 function actorbase_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
@@ -3593,8 +4017,9 @@ endFunction
 ; sltargsmore GetWornForm
 ; sltargsmore GetEquippedObject
 ; sltargsmore GetNthSpell
-; sltsamp actor_dofunction $system.self GetBaseAV "Health"
-; sltsamp ; $$ should contain a float value with the base "Health" Actor Value
+; sltargsmore ;;;; will call objectreference_dofunction if no matches are found
+; sltsamp ; to get the target's base health
+; sltsamp set $selfBaseHealth resultfrom actor_dofunction $system.self GetBaseAV "Health"
 function actor_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -3872,6 +4297,8 @@ endFunction
 ; sltargsmore SetPlayerExperience(Float exp)
 ; sltargsmore UnbindObjectHotkey(Int hotkey)
 ; sltargsmore SetPlayerLevel(Int Level)
+; sltsamp ; turn off fall damage
+; sltsamp game_doconsumer SetGameSettingFloat "fjumpfallheightmult" 0.0
 function game_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
@@ -4265,6 +4692,11 @@ endFunction
 ; sltargsmore Form GetHotkeyBoundObject(Int hotkey)
 ; sltargsmore Bool IsObjectFavorited(Form form)
 ; sltargsmore Form GetFormEx(Int formId)
+; sltsamp ; find a random actor, within 500.0 distance units from the player
+; sltsamp set $randomActor resultfrom game_dofunction FindRandomActorFromRef $system.player 500.0
+; sltsamp ; check for existence of the "sl_triggers.esp" mod
+; sltsamp set $sltrModIndex resultfrom game_dofunction GetModByName "sl_triggers.esp"; result of 255 means not installed, but how?
+; sltsamp if $sltrModIndex == 255 [HowIsThisScriptRunningIfSLTRIsNotInstalled]
 function game_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 

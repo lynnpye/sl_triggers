@@ -10,9 +10,9 @@ Advance targeted actor's skill by specified amount. Only works on Player.
 
 **Parameters**
 
-    actor: target Actor  
-    skill: skillname e.g. Alteration, Destruction  
-    value: number  
+    Form: actor: target Actor  
+    string: skill: skillname e.g. Alteration, Destruction  
+    float: value: number  
 
 
 **Example**
@@ -27,7 +27,7 @@ Note: Currently only works on PC/Player
 
 **Description**
 
-Alters or queries information about the actor's body, based on sub-function
+Returns: (varies): Alters or queries information about the actor's body, based on sub-function
 
 **Parameters**
 
@@ -51,11 +51,11 @@ Alters or queries information about the actor's body, based on sub-function
 
 **Description**
 
-Set $$ to the actor displayName
+Returns: string: the actor displayName
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -77,7 +77,6 @@ https://ck.uesp.net/wiki/Actor_Script
     actor: target Actor  
     action: action name  
 
-    ;;;; These are from Actor  
     ClearArrested  
     ClearExpressionOverride  
     ClearExtraArrows  
@@ -199,12 +198,13 @@ https://ck.uesp.net/wiki/Actor_Script
     ChangeHeadPart  
     ReplaceHeadPart  
     UpdateWeight  
+    ;;;; will call objectreference_doconsumer if no matches are found  
 
 
 **Example**
 
-    set $newGhostStatus 1  
-    actor_doconsumer $system.self SetGhost $newGhostStatus  
+    ; make the script target an ally of the player's  
+    actor_doconsumer $system.self SetRelationshipRank $system.player 3  
 
 
 
@@ -262,12 +262,13 @@ https://ck.uesp.net/wiki/Actor_Script
     GetWornForm  
     GetEquippedObject  
     GetNthSpell  
+    ;;;; will call objectreference_dofunction if no matches are found  
 
 
 **Example**
 
-    actor_dofunction $system.self GetBaseAV "Health"  
-    ; $$ should contain a float value with the base "Health" Actor Value  
+    ; to get the target's base health  
+    set $selfBaseHealth resultfrom actor_dofunction $system.self GetBaseAV "Health"  
 
 
 
@@ -284,7 +285,6 @@ https://ck.uesp.net/wiki/Actor_Script
     actor: target Actor  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     getter: getter name  
 
-    ;;;; These are from Actor  
     CanFlyHere  
     Dismount  
     GetActorBase  
@@ -316,7 +316,7 @@ https://ck.uesp.net/wiki/Actor_Script
     IsAllowedToFly  
     IsArrested  
     IsArrestingTarget  
-    IsBeingRidden - not a SexLab setting  
+    IsBeingRidden  
     IsBleedingOut  
     IsBribed  
     IsChild  
@@ -330,8 +330,8 @@ https://ck.uesp.net/wiki/Actor_Script
     IsInCombat  
     IsInKillMove  
     IsIntimidated  
-    IsOnMount - see IsBeingRidden  
-    IsPlayersLastRiddenHorse - I don't even need to comment now, do I?  
+    IsOnMount  
+    IsPlayersLastRiddenHorse  
     IsPlayerTeammate  
     IsRunning  
     IsSneaking  
@@ -339,21 +339,25 @@ https://ck.uesp.net/wiki/Actor_Script
     IsTrespassing  
     IsUnconscious  
     IsWeaponDrawn  
-    ;;;; These are from SKSE  
     GetSpellCount  
     IsAIEnabled  
     IsSwimming  
-    ;;;; These are Special Edition exclusive  
     WillIntimidateSucceed  
     IsOverEncumbered  
     GetWarmthRating  
+    ;;;; will call objectreference_dogetter if no matches are found  
 
 
 **Example**
 
-    actor_dogetter $system.self CanFlyHere  
-    if $$ = 1 ICanFlyAroundHere  
-    if $$ = 0 IAmGroundedLikeAlways  
+    ; respond to combat status  
+    set $isFighting resultfrom actor_dogetter $system.self IsInCombat  
+    if $isFighting [IsFighting]  
+    ; do non-fighting things  
+    ; respond to whether they are sneaking (perhaps bypassing traps you were going to script in?)  
+    set $isSneaking resultfrom actor_dogetter $system.self IsSneaking  
+    if $isSneaking [DoNothingAndExit]  
+    ; now do whatever you were planning to do, since the target is not sneaking  
 
 
 
@@ -361,12 +365,12 @@ https://ck.uesp.net/wiki/Actor_Script
 
 **Description**
 
-Sets $$ to the actor's rank in the faction indicated by the FormId
+Returns: int: the actor's rank in the faction indicated by the FormId
 
 **Parameters**
 
-    actor: target Actor  
-    faction: FACTION FormID  
+    Form: actor: target Actor  
+    Form: faction: the Faction  
 
 
 **Example**
@@ -379,11 +383,11 @@ Sets $$ to the actor's rank in the faction indicated by the FormId
 
 **Description**
 
-Sets $$ to the actor's gender, 0 - male, 1 - female, 2 - creature, "" otherwise
+Returns: int: the actor's gender, 0 - male, 1 - female, -1 - None
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -396,12 +400,12 @@ Sets $$ to the actor's gender, 0 - male, 1 - female, 2 - creature, "" otherwise
 
 **Description**
 
-Set $$ to the relationship rank between the two actors
+Returns: int: the relationship rank between the two actors
 
 **Parameters**
 
-    first actor: target Actor  
-    second actor: target Actor  
+    Form: first actor: target Actor  
+    Form: second actor: target Actor  
 
 
 **Example**
@@ -423,12 +427,12 @@ Set $$ to the relationship rank between the two actors
 
 **Description**
 
-Sets $$ to the 'scale' value of the specified Actor
+Returns: float: the 'scale' value of the specified Actor
 Note: this is properly a function of ObjectReference, so may get pushed to a different group at some point
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -442,12 +446,12 @@ Note: this is properly a function of ObjectReference, so may get pushed to a dif
 
 **Description**
 
-Sets $$ to 1 if actor has the keyword, 0 otherwise.
+Returns: bool: true if actor has the keyword, false otherwise.
 
 **Parameters**
 
-    actor: target Actor  
-    keyword: string, keyword name  
+    Form: actor: target Actor  
+    string: keyword: keyword name  
 
 
 **Example**
@@ -460,18 +464,18 @@ Sets $$ to 1 if actor has the keyword, 0 otherwise.
 
 **Description**
 
-Set $$ to 1 if first actor can see second actor, 0 if not.
+Returns: bool: true if first actor can see second actor, false if not.
 
 **Parameters**
 
-    first actor: target Actor  
-    second actor: target Actor  
+    Form: first actor: target Actor  
+    Form: second actor: target Actor  
 
 
 **Example**
 
     actor_haslos $actor $system.self  
-    if $$ = 0 cannotseeme  
+    if $$ = false cannotseeme  
 
 
 
@@ -479,13 +483,15 @@ Set $$ to 1 if first actor can see second actor, 0 if not.
 
 **Description**
 
-Increase targeted actor's skill by specified amount
+Increase targeted actor's skill by specified amount.
+For the Player, this uses Game.IncrementSkillBy()
+For all other Actors, this uses Actor.ModActorValue()
 
 **Parameters**
 
-    actor: target Actor  
-    skill: skillname e.g. Alteration, Destruction  
-    value: number  
+    Form: actor: target Actor  
+    string: skill: skillname e.g. Alteration, Destruction  
+    float: value: number  
 
 
 **Example**
@@ -499,39 +505,37 @@ Boost Alteration by 1 point
 
 **Description**
 
-Sets $$ to 1 if actor is in the faction indicated by the FormId, 0 otherwise
+Returns: bool: true if actor is in the faction indicated by the FormId, false otherwise
 
 **Parameters**
 
-    actor: target Actor  
-    faction: FACTION FormID  
+    Form: actor: target Actor  
+    Form: faction: the Faction  
 
 
 **Example**
 
     actor_infaction $actor "skyrim.esm:378958"  
 
-$$ will be 1 if $actor is a follower (CurrentFollowerFaction)  
+$$ will be true if $actor is a follower (CurrentFollowerFaction)  
 
 
 ### actor_isaffectedby
 
 **Description**
 
-Sets $$ to 1 if the specified actor is currently affected by the MGEF or SPEL indicated by FormID (accepts either)
+Returns: bool: true if the specified actor is currently affected by the MGEF or SPEL indicated by FormID (accepts either); false otherwise
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
     (optional) "ALL": if specified, all following MGEF or SPEL FormIDs must be found on the target Actor  
-    magic effect or spell: MGEF or SPEL FormID [<MGEF or SPEL FormID> <MGEF or SPEL FormID> ...]  
+    Form: mgef: MGEF (Magic Effect) or SPEL (Spell) to check for  
+    ; are they affected by all of the effectts (AND)  
+    Usage 1: actor_isaffectedby $system.self ALL "skyrim.esm:1030541" "skyrim.esm:1030542" "skyrim.esm:1030543"  
+    ; are they affected by any of the effectts (OR)  
+    Usage 2: actor_isaffectedby $system.self "skyrim.esm:1030541" "skyrim.esm:1030542" "skyrim.esm:1030543"  
 
-
-**Example**
-
-    actor_isaffectedby $actor "skyrim.esm:1030541"  
-    actor_isaffectedby $actor "skyrim.esm:1030541" "skyrim.esm:1030542" "skyrim.esm:1030543"  
-    actor_isaffectedby $actor ALL "skyrim.esm:1030541" "skyrim.esm:1030542" "skyrim.esm:1030543"  
 
 
 
@@ -539,7 +543,7 @@ Sets $$ to 1 if the specified actor is currently affected by the MGEF or SPEL in
 
 **Description**
 
-Sets $$ to 1 if actor is guard, 0 otherwise.
+Returns: bool: true if actor is guard, 1 otherwise.
 
 **Parameters**
 
@@ -556,11 +560,11 @@ Sets $$ to 1 if actor is guard, 0 otherwise.
 
 **Description**
 
-Sets $$ to 1 if actor is the player, 0 otherwise.
+Returns: bool: true if actor is the player, false otherwise.
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -573,17 +577,17 @@ Sets $$ to 1 if actor is the player, 0 otherwise.
 
 **Description**
 
-Set $$ to 1 if actor is valid, 0 if not.
+Returns: bool: true if actor is valid, false if not.
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
 
     actor_isvalid $actor  
-    if $$ = 0 end  
+    if $$ = false end  
     ...  
     [end]  
 
@@ -594,7 +598,7 @@ Jump to the end if actor is not valid
 
 **Description**
 
-Sets $$ to 1 if actor is wearing the armor indicated by the FormId, 0 otherwise.
+Returns: bool: true if actor is wearing the armor indicated by the FormId, false otherwise.
 
 **Parameters**
 
@@ -612,12 +616,12 @@ Sets $$ to 1 if actor is wearing the armor indicated by the FormId, 0 otherwise.
 
 **Description**
 
-Sets $$ to 1 if actor's current location has the indicated keyword, 0 otherwise.
+Returns: bool: true if actor's current location has the indicated keyword, false otherwise.
 
 **Parameters**
 
-    actor: target Actor  
-    keyword: string, keyword name  
+    Form: actor: target Actor  
+    string: keyword: keyword name  
 
 
 **Example**
@@ -635,8 +639,8 @@ Specified actor reports player, increasing bounty by specified amount.
 
 **Parameters**
 
-    actor: target Actor  
-    bounty: number  
+    Form: actor: target Actor  
+    int: bountyMod: amount to modify bounty by  
 
 
 **Example**
@@ -649,11 +653,11 @@ Specified actor reports player, increasing bounty by specified amount.
 
 **Description**
 
-Set $$ to the actor name
+Returns: string: the actor name
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -670,8 +674,8 @@ Causes the actor to play the specified animation
 
 **Parameters**
 
-    actor: target Actor  
-    animation: animation name  
+    Form: actor: target Actor  
+    string: animation: animation name  
 
 
 **Example**
@@ -688,7 +692,7 @@ Repaints actor (calls QueueNiNodeUpdate)
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -702,12 +706,12 @@ Note: Do not call this too frequently as the rapid refreshes can causes crashes 
 
 **Description**
 
-Sets $$ to the race name based on sub-function. Blank, empty sub-function returns Vanilla racenames. e.g. "SL" can return SexLab race keynames.
+Returns: string: the race name based on sub-function. Blank, empty sub-function returns Vanilla racenames. e.g. "SL" can return SexLab race keynames.
 
 **Parameters**
 
-    actor: target Actor  
-    sub-function: sub-function  
+    Form: actor: target Actor  
+    string: sub-function: sub-function  
 
     if parameter 2 is "": return actors race name. Skyrims, original name. Like: "Nord", "Breton"  
 
@@ -722,22 +726,22 @@ Sets $$ to the race name based on sub-function. Blank, empty sub-function return
 
 **Description**
 
-Returns the "race type". This is what the "Race" filter uses for filtering.
-0 - error occurred
-1 - Player
-2 - Humanoid - Actor.HasKeyword(ActorTypeNPC)
-3 - Undead - Actor.HasKeyword(ActorTypeUndead)
-4 - Creature - presumed, default if nothing else matches
+Returns: int: the "race type". This is what the "Race" filter uses for filtering.
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
 
     actor_race_type $system.self  
 
+0 - error occurred  
+1 - Player  
+2 - Humanoid - Actor.HasKeyword(ActorTypeNPC)  
+3 - Undead - Actor.HasKeyword(ActorTypeUndead)  
+4 - Creature - presumed, default if nothing else matches  
 
 
 ### actor_removefaction
@@ -748,8 +752,8 @@ Removes the actor from the specified faction
 
 **Parameters**
 
-    actor: target Actor  
-    faction: FACTION FormID  
+    Form: actor: target Actor  
+    Form: faction: target Faction  
 
 
 **Example**
@@ -766,8 +770,8 @@ Causes the actor to 'say' the topic indicated by FormId; not usable on the Playe
 
 **Parameters**
 
-    actor: target Actor  
-    topic: TOPIC FormID  
+    Form: actor: target Actor  
+    Form topic: the TopicInfo to say  
 
 
 **Example**
@@ -784,10 +788,10 @@ Causes the actor to send the mod event with the provided arguments
 
 **Parameters**
 
-    actor: target Actor  
-    event: name of the event  
-    string arg: string argument (meaning varies by event sent) (optional: default "")  
-    float arg: float argument (meaning varies by event sent) (optional: default 0.0)  
+    Form: actor: target Actor  
+    string: event: name of the event  
+    string: args: string argument (meaning varies by event sent) (optional: default "")  
+    float: argf: float argument (meaning varies by event sent) (optional: default 0.0)  
 
 
 **Example**
@@ -804,14 +808,14 @@ Set the Actor's alpha value (inverse of transparency, 1.0 is fully visible) (has
 
 **Parameters**
 
-    actor: target Actor  
-    alpha: 0.0 to 1.0 (higher is more visible)  
-    fade: 0 - instance | 1 - fade to the new alpha gradually (optional: default 1 - fade)  
+    Form: actor: target Actor  
+    float: alpha: 0.0 to 1.0 (higher is more visible)  
+    bool: fade: false - instant | true - fade to the new alpha gradually (optional: default true - fade)  
 
 
 **Example**
 
-    actor_setalpha $system.self 0.5 1  
+    actor_setalpha $system.self 0.5 true  
 
 $system.self will fade to new alpha of 0.5, not instantly  
 
@@ -824,9 +828,9 @@ Sets the actor's rank in the faction indicated by the FormId to the indicated ra
 
 **Parameters**
 
-    actor: target Actor  
-    faction: FACTION FormID  
-    rank: number  
+    Form: actor: target Actor  
+    Form: faction: target Faction  
+    int: rank: new faction rank  
 
 
 **Example**
@@ -843,9 +847,9 @@ Set relationship rank between the two actors to the indicated value
 
 **Parameters**
 
-    first actor: target Actor  
-    second actor: target Actor  
-    rank: number  
+    Form: first actor: target Actor  
+    Form: second actor: target Actor  
+    int: rank: new rank  
 
 
 **Example**
@@ -864,7 +868,7 @@ Note: this is properly a function of ObjectReference, so may get pushed to a dif
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
     scale: float, new scale value to replace the old  
 
 
@@ -878,7 +882,7 @@ Note: this is properly a function of ObjectReference, so may get pushed to a dif
 
 **Description**
 
-Returns the state of the actor for a given sub-function
+Returns: (varies): the state of the actor for a given sub-function
 
 **Parameters**
 
@@ -906,12 +910,12 @@ Returns the state of the actor for a given sub-function
 
 **Description**
 
-Sets $$ to 1 if actor is wearing any armor with indicated keyword, 0 otherwise.
+Returns: bool: true if actor is wearing any armor with indicated keyword, false otherwise.
 
 **Parameters**
 
-    actor: target Actor  
-    keyword: string, keyword name  
+    Form: actor: target Actor  
+    string: keyword: keyword name  
 
 
 **Example**
@@ -924,12 +928,12 @@ Sets $$ to 1 if actor is wearing any armor with indicated keyword, 0 otherwise.
 
 **Description**
 
-Sets $$ to 1 if actor is wearing armor in the indicated slotId, 0 otherwise.
+Returns: bool: true if actor is wearing armor in the indicated slotId, false otherwise.
 
 **Parameters**
 
-    actor: target Actor  
-    armorslot: number, e.g. 32 for body slot  
+    Form: actor: target Actor  
+    int: armorslot: number, e.g. 32 for body slot  
 
 
 **Example**
@@ -948,9 +952,9 @@ Damage actor value
 
 **Parameters**
 
-    actor: target Actor  
-    av name: Actor Value name e.g. Health  
-    amount: amount to damage  
+    Form: actor: target Actor  
+    string: av name: Actor Value name e.g. Health  
+    float: amount: amount to damage  
 
 
 **Example**
@@ -958,19 +962,19 @@ Damage actor value
     av_damage $system.self Health 100  
     av_damage $system.self   $3   100 ;where $3 might be "Health"  
 
-Damages Health by 100. This can result in death.  
+; both of these damage Health by 100. This can result in death.  
 
 
 ### av_get
 
 **Description**
 
-Set $$ to the actor's current value for the specified Actor Value
+Returns: float: the actor's current value for the specified Actor Value
 
 **Parameters**
 
-    actor: target Actor  
-    av name: Actor Value name e.g. Health  
+    Form: actor: target Actor  
+    string: av name: Actor Value name e.g. Health  
 
 
 **Example**
@@ -984,17 +988,17 @@ Sets the actor's current Health into $$
 
 **Description**
 
-Sets $$ to the actor's base value for the specified Actor Value
+Returns: float: the actor's base value for the specified Actor Value
 
 **Parameters**
 
-    actor: target Actor  
-    av name: Actor Value name e.g. Health  
+    Form: actor: target Actor  
+    string: av name: Actor Value name e.g. Health  
 
 
 **Example**
 
-    av_getbase $system.self Health  
+    float: av_getbase $system.self Health  
 
 Sets the actor's base Health into $$  
 
@@ -1003,12 +1007,12 @@ Sets the actor's base Health into $$
 
 **Description**
 
-Set $$ to the actor's max value for the specified Actor Value
+Returns: float: the actor's max value for the specified Actor Value
 
 **Parameters**
 
-    actor: target Actor  
-    av name: Actor Value name e.g. Health  
+    Form: actor: target Actor  
+    string: av name: Actor Value name e.g. Health  
 
 
 **Example**
@@ -1022,12 +1026,12 @@ Sets the actor's max Health into $$
 
 **Description**
 
-Set $$ to the actor's value as a percentage of max for the specified Actor Value
+Returns: float: the actor's value as a percentage of max for the specified Actor Value
 
 **Parameters**
 
-    actor: target Actor  
-    av name: Actor Value name e.g. Health  
+    Form: actor: target Actor  
+    string: av name: Actor Value name e.g. Health  
 
 
 **Example**
@@ -1045,9 +1049,9 @@ Modify actor value
 
 **Parameters**
 
-    actor: target Actor  
-    av name: Actor Value name e.g. Health  
-    amount: amount to modify by  
+    Form: actor: target Actor  
+    string: av name: Actor Value name e.g. Health  
+    float: amount: amount to modify by  
 
 
 **Example**
@@ -1055,7 +1059,7 @@ Modify actor value
     av_mod $system.self Health 100  
     av_mod $system.self   $3   100 ;where $3 might be "Health"  
 
-Changes the max value of the actor value. Not the same as restore/damage.  
+; Changes the max value of the actor value. Not the same as restore/damage.  
 
 
 ### av_restore
@@ -1066,9 +1070,9 @@ Restore actor value
 
 **Parameters**
 
-    actor: target Actor  
-    av name: Actor Value name e.g. Health  
-    amount: amount to restore  
+    Form: actor: target Actor  
+    string: av name: Actor Value name e.g. Health  
+    float: amount: amount to restore  
 
 
 **Example**
@@ -1076,7 +1080,7 @@ Restore actor value
     av_restore $system.self Health 100  
     av_restore $system.self   $3   100 ;where $3 might be "Health"  
 
-Restores Health by 100 e.g. healing  
+; both of these restore Health by 100 e.g. healing  
 
 
 ### av_set
@@ -1087,9 +1091,9 @@ Set actor value
 
 **Parameters**
 
-    actor: target Actor  
-    av name: Actor Value name e.g. Health  
-    amount: amount to modify by  
+    Form: actor: target Actor  
+    string: av name: Actor Value name e.g. Health  
+    float: amount: amount to modify by  
 
 
 **Example**
@@ -1131,11 +1135,14 @@ https://ck.uesp.net/wiki/ActorBase_Script
     SetVoiceType  
     SetSkin  
     SetSkinFar  
+    ;;;; will call form_doconsumer if no matches are found  
 
 
 **Example**
 
-    actorbase_doconsumer $actorBase SetInvulnerable true  
+    ; make the target invulnerable  
+    set $selfBase resultfrom actor_dogetter $system.self GetActorBase  
+    actorbase_doconsumer $selfBase SetInvulnerable true  
 
 
 
@@ -1160,6 +1167,7 @@ https://ck.uesp.net/wiki/ActorBase_Script
     GetFaceMorph  
     GetFacePreset  
     GetNthSpell  
+    ;;;; will call form_dofunction if no matches are found  
 
 
 **Example**
@@ -1181,7 +1189,6 @@ https://ck.uesp.net/wiki/ActorBase_Script
     actor: target ActorBase  (accepts special variable names ($system.self, $system.player) and both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     getter: getter name  
 
-    ;;;; These are from ActorBase  
     GetClass  
     GetDeadCount  
     GetGiftFilter  
@@ -1191,7 +1198,6 @@ https://ck.uesp.net/wiki/ActorBase_Script
     IsInvulnerable  
     IsProtected  
     IsUnique  
-    ;;;; These are from SKSE  
     GetCombatStyle  
     GetHeight  
     GetWeight  
@@ -1204,7 +1210,14 @@ https://ck.uesp.net/wiki/ActorBase_Script
     GetSkin  
     GetSkinFar  
     GetTemplate  
+    ;;;; will call form_dogetter if no matches are found  
 
+
+**Example**
+
+    set $selfBase resultfrom actor_dogetter $system.self GetActorBase  
+    set $isUnique resultfrom actorbase_dogetter $selfBase IsUnique  
+    set $raceName resultfrom actorbase_dogetter $selfBase GetRace ; i.e. "Breton", "Nord", "Argonian"  
 
 
 
@@ -1223,15 +1236,22 @@ https://ck.uesp.net/wiki/Armor_Script
     Form: target Armor (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     consumer: consumer name  
 
-    SetActive  
-    SetObjectiveCompleted  
-    SetObjectiveDisplayed  
-    SetObjectiveFailed  
+    SetArmorRating  
+    SetAR  
+    ModArmorRating  
+    SetModelPath  
+    SetIconPath  
+    SetMessageIconPath  
+    SetWeightClass  
+    SetEnchantment  
+    SetSlotMask  
+    ;;;; will call form_doconsumer if no matches are found  
 
 
 **Example**
 
-    armor_doconsumer $someQuest SetActive true  
+    set $selfShield resultfrom actor_dogetter $system.self GetEquippedShield  
+    armor_doconsumer $selfShield ModArmorRating 100.0 ; big bonus to target's shield armor rating  
 
 
 
@@ -1255,6 +1275,7 @@ https://ck.uesp.net/wiki/Armor_Script
     AddSlotToMask  
     RemoveSlotFromMask  
     GetNthArmorAddon  
+    ;;;; will call form_dofunction if no matches are found  
 
 
 
@@ -1295,11 +1316,13 @@ https://ck.uesp.net/wiki/Armor_Script
     IsClothingRing  
     IsClothingRich  
     IsClothingPoor  
+    ;;;; will call form_dogetter if no matches are found  
 
 
 **Example**
 
-    armor_dogetter $system.self GetStage  
+    set $selfShield resultfrom actor_dogetter $system.self GetEquippedShield  
+    set $selfShieldArmorRating resultfrom armor_dogetter $selfShield GetArmorRating  
 
 
 
@@ -1326,15 +1349,16 @@ Returns the slot mask (https://ck.uesp.net/wiki/Slot_Masks_-_Armor) for the spec
 
 **Description**
 
-Returns the actual game time passed at the time of the last "Top of the Hour"
+Returns: float: the actual game time passed at the time of the last "Top of the Hour"
 For example, if you slept from 1:30 to 4:00, you would get a Top of the Hour event at 4 with a value of 2.5
 
 
 **Example**
 
-    toh_elapsed_time  
+    ; to get the actual elapsed game time from the previous "Top of the Hour" event  
+    set $timeSinceLastTOHEvent resultfrom toh_elapsed_time  
+    ; this can happen, for example, due to fast travel and sleep events, where multiple hours may pass  
 
-$$ would contain the actual elapsed game time from the previous "Top of the Hour" event  
 
 
 ## Form
@@ -1352,7 +1376,6 @@ https://ck.uesp.net/wiki/Form_Script
     form: target Form (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     action: action name  
 
-    ;;;; These are from Form  
     RegisterForSleep  
     RegisterForTrackedStatsEvent  
     StartObjectProfiling  
@@ -1361,7 +1384,6 @@ https://ck.uesp.net/wiki/Form_Script
     UnregisterForTrackedStatsEvent  
     UnregisterForUpdate  
     UnregisterForUpdateGameTime  
-    ;;;; These are from SKSE  
     UnregisterForAllKeys  
     UnregisterForAllControls  
     UnregisterForAllMenus  
@@ -1375,6 +1397,7 @@ https://ck.uesp.net/wiki/Form_Script
 
 **Example**
 
+    ; $system.self is an Actor, which is an ObjectReference, which is a Form  
     form_doaction $system.self StopCombat  
 
 
@@ -1402,9 +1425,9 @@ https://ck.uesp.net/wiki/Form_Script
 
 **Example**
 
-    actor_dogetter $system.player GetEquippedShield  
-    set $shieldFormID $$  
-    form_doconsumer $shieldFormID SetWeight 0.1 ; featherweight shield  
+    ; intended to make the player's shield 0.1 weight units  
+    set $playerShield resultfrom actor_dogetter $system.player GetEquippedShield  
+    form_doconsumer $playerShield SetWeight 0.1 ; featherweight shield  
 
 
 
@@ -1429,8 +1452,8 @@ https://ck.uesp.net/wiki/Form_Script
 
 **Example**
 
-    form_dofunction $system.self HasKeywordString "ActorTypeNPC"  
-    ; $$ should contain true/false based on whether self has the indicated keyword  
+    ; determine whether a given Form is pointing to an Actor NPC  
+    set $isNPC resultfrom form_dofunction $system.self HasKeywordString "ActorTypeNPC"  
 
 
 
@@ -1447,11 +1470,9 @@ https://ck.uesp.net/wiki/Form_Script
     form: target Form (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     getter: getter name  
 
-    ;;;; T79686hese are from Form  
     GetFormID  
     GetGoldValue  
     PlayerKnows  
-    ;;;; These are from SKSE  
     GetType  
     GetName  
     GetWeight  
@@ -1465,8 +1486,8 @@ https://ck.uesp.net/wiki/Form_Script
 
 **Example**
 
-    form_dogetter $system.self IsPlayable  
-    if $$ = 1 itwasplayable  
+    set $selfName resultfrom form_dogetter $system.self GetName  
+    msg_console $"Name of $system.self, an Actor, as a Form, via GetName(), is '{$selfName}'"  
 
 
 
@@ -1474,21 +1495,22 @@ https://ck.uesp.net/wiki/Form_Script
 
 **Description**
 
-Performs a lookup for a Form and returns it if found; returns none otherwise
-Accepts FormID as: "modfile.esp:012345", "012345" (absolute ID), "anEditorId" (will attempt an editorId lookup)
+Returns: Form: Performs a lookup for a Form and returns it if found; returns none otherwise
 Note that if multiple mods introduce an object with the same editorId, the lookup would only return whichever one won
+Anywhere a Form is called for in other functions, one of these formIDs can be substituted.
 
 **Parameters**
 
-    formID: FormID as: "modfile.esp:012345", "012345" (absolute ID), "anEditorId" (will attempt an editorId lookup)  
+    string: formID: FormID as: "modfile.esp:<relative int or hex formID>" (mod-colon-id), "<relative int or hex formID>|modfile.esp" (id-pipe-mod), "<absolute int or hex formID>" (id), "anEditorId" (will attempt an editorId lookup)  
 
 
 **Example**
 
-    form_getbyid "Ale"  
-    form_dogetter $$ GetName  
-    msg_notify $$ "!! Yay!!"  
+    set $aleForm resultfrom form_getbyid "Ale"  
+    set $aleName resultfrom form_dogetter $aleForm GetName  
+    msg_notify $"{$aleName}!! Yay!!"  
     ; Ale!! Yay!!  
+    ; anything that derives from Form can be retrieved with this, including Armor, Weapon, Quest, Spell, MagicEffect, Actor, and other types of objects  
 
 
 
@@ -1593,6 +1615,11 @@ https://ck.uesp.net/wiki/Game_Script
     SetPlayerLevel(Int Level)  
 
 
+**Example**
+
+    ; turn off fall damage  
+    game_doconsumer SetGameSettingFloat "fjumpfallheightmult" 0.0  
+
 
 
 ### game_dofunction
@@ -1656,6 +1683,14 @@ https://ck.uesp.net/wiki/Game_Script
     Form GetFormEx(Int formId)  
 
 
+**Example**
+
+    ; find a random actor, within 500.0 distance units from the player  
+    set $randomActor resultfrom game_dofunction FindRandomActorFromRef $system.player 500.0  
+    ; check for existence of the "sl_triggers.esp" mod  
+    set $sltrModIndex resultfrom game_dofunction GetModByName "sl_triggers.esp"; result of 255 means not installed, but how?  
+    if $sltrModIndex == 255 [HowIsThisScriptRunningIfSLTRIsNotInstalled]  
+
 
 
 ### game_dogetter
@@ -1712,17 +1747,17 @@ https://ck.uesp.net/wiki/Game_Script
 
 **Description**
 
-Finds the indicated GlobalVariable and returns its current value as a float.
+Returns: float: Finds the indicated GlobalVariable and returns its current value as a float.
 
 **Parameters**
 
-    formID: FormID as: "modfile.esp:012345", "012345" (absolute ID), "anEditorId" (will attempt an editorId lookup)  
+    Form: globalVariable: the GLOB record targeted  
 
 
 **Example**
 
-    global_getvalue "GameDaysPassed"  
-    $$ will contain the number of in-game days passed as a float  
+    ; retrieve the GLOB via the editorID 'GameDaysPassed', and get it's current value  
+    set $gameDaysPassed resultfrom global_getvalue "GameDaysPassed"  
 
 
 
@@ -1734,14 +1769,15 @@ Finds the indicated GlobalVariable and sets its current value.
 
 **Parameters**
 
-    formID: FormID as: "modfile.esp:012345", "012345" (absolute ID), "anEditorId" (will attempt an editorId lookup)  
+    Form: globalVariable: the GLOB record targeted  
     newValue: float  
 
 
 **Example**
 
+    ; retrieve the GLOB via the editorID 'GameDaysPassed', and set it's current value  
+    ; Sets the Devious Followers willpower global to 20.0  
     global_setvalue "_Dwill" 20.0  
-    Sets the Devious Followers willpower global to 20.0  
 
 
 
@@ -1760,7 +1796,16 @@ https://ck.uesp.net/wiki/GlobalVariable_Script
 
     SetValue  
     SetValueInt  
+    ;;;; will call form_doconsumer if no matches are found  
 
+
+**Example**
+
+    ; to set the current GLOB TimeScale to 10.0 (half of the default of 20.0, thus slowing the passage of time)  
+    set $GLOB_timescale resultfrom form_getbyid "TimeScale"  
+    globalvariable_doconsumer $GLOB_timescale SetValue 10.0  
+    set $timeScale resultfrom globalvariable_dogetter $GLOB_timescale GetValue  
+    ; $timeScale should be 10.0 now (default is 20.0)  
 
 
 
@@ -1777,8 +1822,16 @@ https://ck.uesp.net/wiki/GlobalVariable_Script
     Form: target GlobalVariable  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     function: function name  
 
-    Mod  
+    Mod - more thread-safe than get/set  
+    ;;;; will call form_dofunction if no matches are found  
 
+
+**Example**
+
+    ; to apply a modifier to the GLOB TimeScale of -10.0, reducing it from the default of 20.0 down to 10.0  
+    set $GLOB_timescale resultfrom form_getbyid "TimeScale"  
+    set $timeScale resultfrom globalvariable_dofunction $GLOB_timescale Mod -10.0  
+    ; $timeScale should be 10.0 now (default is 20.0)  
 
 
 
@@ -1797,7 +1850,15 @@ https://ck.uesp.net/wiki/GlobalVariable_Script
 
     GetValue  
     GetValueInt  
+    ;;;; will call form_dogetter if no matches are found  
 
+
+**Example**
+
+    ; to get the current GLOB TimeScale  
+    set $GLOB_timescale resultfrom form_getbyid "TimeScale"  
+    set $timeScale resultfrom globalvariable_dogetter $GLOB_timescale GetValue  
+    ; $timeScale should be 20.0 by default  
 
 
 
@@ -1811,8 +1872,8 @@ Apply imagespace modifier - per original author, check CreationKit, SpecialEffec
 
 **Parameters**
 
-    item: ITEM FormID  
-    duration: fade duration in seconds  
+    Form: item: ImageSpaceModifier to apply  
+    float: duration: cross-fade duration in seconds  
 
 
 **Example**
@@ -1829,13 +1890,12 @@ Remove imagespace modifier - per original author, check CreationKit, SpecialEffe
 
 **Parameters**
 
-    item: ITEM FormID  
-    duration: fade duration in seconds  
+    float: duration: cross-fade removal duration in seconds  
 
 
 **Example**
 
-    ism_removefade $1 2  
+    ism_removefade 2  
 
 
 
@@ -1845,19 +1905,19 @@ Remove imagespace modifier - per original author, check CreationKit, SpecialEffe
 
 **Description**
 
-Adds the item to the actor's inventory.
+Adds the item to the actor's inventory. If you are struggling with NPC's, try item_addex.
 
 **Parameters**
 
-    actor: target Actor  
-    item: ITEM FormId  
-    count: number (optional: default 1)  
-    displaymessage: 0 - show message | 1 - silent (optional: default 0 - show message)  
+    Form: actor: target Actor  
+    Form: item: the item to add (e.g. Weapon, Armor, Misc. Item)  
+    int: count: number (optional: default 1)  
+    bool: isSilent: false - show message | true - silent (optional: default: false - show message)  
 
 
 **Example**
 
-    item_add $system.self "skyrim.esm:15" 10 0  
+    item_add $system.self "skyrim.esm:15" 10 false  
 
 Adds 10 gold to the actor, displaying the notification  
 
@@ -1870,15 +1930,15 @@ Adds the item to the actor's inventory, but check if some armor was re-equipped 
 
 **Parameters**
 
-    actor: target Actor  
-    item: ITEM FormId  
-    count: number (optional: default 1)  
-    displaymessage: 0 - show message | 1 - silent (optional: default 0 - show message)  
+    Form: actor: target Actor  
+    Form: item: ITEM FormId  
+    int: count: number (optional: default 1)  
+    bool: isSilent: false - show message | true - silent (optional: default false - show message)  
 
 
 **Example**
 
-    item_addex $system.self "skyrim.esm:15" 10 0  
+    item_addex $system.self "skyrim.esm:15" 10 false  
 
 
 
@@ -1886,19 +1946,19 @@ Adds the item to the actor's inventory, but check if some armor was re-equipped 
 
 **Description**
 
-Add item (like item_add) and then use the added item. Useful for potions, food, and other consumables.
+Add item (like item_add) and then use the added item (like item_equip). Useful for potions, food, and other consumables.
 
 **Parameters**
 
-    actor: target Actor  
-    item: ITEM FormId  
-    count: number (optional: default 1)  
-    displaymessage: 0 - show message | 1 - silent (optional: default 0 - show message)  
+    Form: actor: target Actor  
+    Form: item: the item to add and equip  
+    int: count: number (optional: default 1)  
+    bool: isSilent: false - show message | true - silent (optional: default false - show message)  
 
 
 **Example**
 
-    item_adduse $system.self "skyrim.esm:216158" 1 0  
+    item_adduse $system.self "skyrim.esm:216158" 1 false  
 
 Add and drink some booze  
 
@@ -1907,15 +1967,14 @@ Add and drink some booze
 
 **Description**
 
-Equip item ("vanilla" version)
+Equip item ("vanilla" version). Note that the documentation suggests adding the item first in most cases if it does not exist.
 
 **Parameters**
 
-    actor: target Actor  
-    item: ITEM FormId  
-    preventRemoval: false - removal allowed | true - removal not allowed  
-    sound: false - no sound | true - with sound  
-    <actor variable> <ITEM FormId> <false - removal allowed | true - removal not allowed> <false - no sound | true - with sound>  
+    Form: actor: target Actor  
+    Form: item: the item to equip  
+    bool: preventRemoval: false - removal allowed | true - removal not allowed  
+    bool: sound: false - no sound | true - with sound  
 
 
 **Example**
@@ -1933,11 +1992,11 @@ Equip item (SKSE version)
 
 **Parameters**
 
-    actor: target Actor  
-    item: ITEM FormId  
-    armorslot: number e.g. 32 for body slot  
-    sound: 0 - no sound | 1 - with sound  
-    removalallowed: 0 - removal allowed | 1 - removal not allowed  
+    Form: actor: target Actor  
+    Form: item: the item to equip  
+    int: armorslot: number e.g. 32 for body slot  
+    bool: sound: false - no sound | true - with sound  
+    bool: removalPrevented: false - removal allowed | true - removal not allowed  
 
 
 **Example**
@@ -1952,12 +2011,12 @@ Equips item directly, Workaround for "NPCs re-equip all armor, if they get an it
 
 **Description**
 
-Set $$ to how many of a specified item an actor has
+Returns: int: how many of a specified item an ObjectReference (typically an actor) has
 
 **Parameters**
 
-    actor: target Actor  
-    item: ITEM FormId  
+    Form: actor: target ObjectReference  
+    Form: item: item to count  
 
 
 **Example**
@@ -1970,22 +2029,22 @@ Set $$ to how many of a specified item an actor has
 
 **Description**
 
-Remove the item from the actor's inventory
+Remove the item from the source's inventory
 
 **Parameters**
 
-    ObjectReference container: container (typically an Actor) to remove an item from  
-    item: ITEM FormId  
+    Form: container: the ObjectReference container (e.g. an Actor, Chest, Barrel, corpse) to remove an item from  
+    Form: item: the Form of the item to remove  
     count: number  
-    silent: false - show message | true - silent (optional: default false - show message)  
-    ObjectReference targetContainer: other container to move the item to (optional: default none)  
+    bool: silent: false - show message | true - silent (optional: default false - show message)  
+    Form: targetContainer: other container (ObjectReference) to move the item to (optional: default none)  
 
 
 **Example**
 
-    item_remove $system.self "skyrim.esm:15" 10 0 $system.player  
+    item_remove $system.self "skyrim.esm:15" 10 false $system.player  
 
-Removes up to 10 gold from the actor, looting it to the player  
+Removes up to 10 gold from the source, looting it to the player (target)  
 
 
 ### item_unequipex
@@ -1996,9 +2055,9 @@ Unequip item
 
 **Parameters**
 
-    actor: target Actor  
-    item: ITEM FormId  
-    armorslot: number e.g. 32 for body slot  
+    Form: actor: target Actor  
+    Form: item: the item to unequip  
+    int: armorslot: number e.g. 32 for body slot  
 
 
 **Example**
@@ -2014,14 +2073,14 @@ Unequips the ZaZ armor from slot 32 on $system.self
 
 **Description**
 
-Sets $$ to value from JSON file (uses PapyrusUtil/JsonUtil)
+Returns: (varies): value from JSON file (uses PapyrusUtil/JsonUtil)
 
 **Parameters**
 
-    filename: name of file, rooted from 'Data/SKSE/Plugins/StorageUtilData'  
-    datatype: int, float, string  
-    key: the key  
-    default: default value in case it isn't present (optional: default for type)  
+    string: filename: name of file, rooted from 'Data/SKSE/Plugins/StorageUtilData'  
+    string: datatype: int, float, string  
+    string: key: the key  
+    (varies): default: default value in case it isn't present (optional: default for type)  
 
 
 **Example**
@@ -2039,7 +2098,7 @@ Tells JsonUtil to immediately save the specified file from cache
 
 **Parameters**
 
-    filename: name of file, rooted from 'Data/SKSE/Plugins/StorageUtilData'  
+    string: filename: name of file, rooted from 'Data/SKSE/Plugins/StorageUtilData'  
 
 
 **Example**
@@ -2056,10 +2115,10 @@ Sets a value in a JSON file (uses PapyrusUtil/JsonUtil)
 
 **Parameters**
 
-    filename: name of file, rooted from 'Data/SKSE/Plugins/StorageUtilData'  
-    datatype: int, float, string  
-    key: the key  
-    new value: value to set  
+    string: filename: name of file, rooted from 'Data/SKSE/Plugins/StorageUtilData'  
+    string: datatype: int, float, string  
+    string: key: the key  
+    (varies): new value: value to set  
 
 
 **Example**
@@ -2075,13 +2134,13 @@ JsonUtil automatically appends .json when not given a file extension
 
 **Description**
 
-Return facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecialedition/mods/11669)
+Returns: int: facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecialedition/mods/11669)
 
 **Parameters**
 
-    actor: target Actor  
-    mode: number, 0 - set phoneme | 1 - set modifier  
-    id: an id (I'm not familiar with MfgFix :/)  
+    Form: actor: target Actor  
+    int: mode: number, 0 - set phoneme | 1 - set modifier  
+    int: id: an id (I'm not familiar with MfgFix :/)  
 
 
 **Example**
@@ -2098,7 +2157,7 @@ Resets facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecia
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -2115,10 +2174,10 @@ Set facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecialed
 
 **Parameters**
 
-    actor: target Actor  
-    mode: number, 0 - set phoneme | 1 - set modifier  
-    id: an id  (I'm not familiar with MfgFix :/)  
-    value: int  
+    Form: actor: target Actor  
+    int: mode: number, 0 - set phoneme | 1 - set modifier  
+    int: id: an id  (I'm not familiar with MfgFix :/)  
+    int: value: new value  
     <actor variable> <mode> <id> <value>  
 
 
@@ -2134,13 +2193,12 @@ Set facial expression (requires MfgFix https://www.nexusmods.com/skyrimspecialed
 
 **Description**
 
-Returns a Form[] containing the followers as Actors
+Returns: Form[]: a list containing the followers
 
 
 **Example**
 
-    nff_getfollowers  
-    set $nffFollowers $$ ; store the result so it's not lost immediately  
+    set $nffFollowers resultfrom nff_getfollowers  
     set $count resultfrom listcount $nffFollowers  
     ; counting backwards  
     while $count > 0  
@@ -2163,7 +2221,7 @@ Tells NIO to apply pending changes. Not typically required.
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -2180,10 +2238,10 @@ Modifies the transparency of a given overlay
 
 **Parameters**
 
-    actor: target Actor  
-    isFemale : bool  
-    nodeName (see getoverlay_slot function) : string  
-    transparency : float  
+    Form: actor: target Actor  
+    bool: isFemale: true if a female target, false otherwise  
+    string: nodeName: (body, face, etc...)  
+    float: transparency  
 
 
 **Example**
@@ -2196,13 +2254,13 @@ Modifies the transparency of a given overlay
 
 **Description**
 
-Returns a string, representing a free overlay slot
+Returns: string: returns a free overlay slot
 
 **Parameters**
 
-    actor: target Actor  
-    isFemale : bool  
-    node (body, face, etc...) : string  
+    Form: actor: target Actor  
+    bool: isFemale: true if a female target, false otherwise  
+    string: nodeName: (body, face, etc...)  
 
 
 **Example**
@@ -2219,13 +2277,13 @@ Calls NiOveride.AddNodeOverride for bool
 
 **Parameters**
 
-    Form ref: target of function (e.g. $system.player)  
-    bool isFemale: true if a female target, false otherwise  
-    string node: NIO node you are working with  
-    int _key: NIO key  
-    int index: NIO index  
-    bool value: value to apply  
-    bool persist: persist the override?  
+    Form: ref: target of function (e.g. $system.player)  
+    bool: isFemale: true if a female target, false otherwise  
+    string: node: NIO node you are working with  
+    int: _key: NIO key  
+    int: index: NIO index  
+    bool: value: value to apply  
+    bool: persist: persist the override?  
 
 
 
@@ -2238,13 +2296,13 @@ Calls NiOveride.AddNodeOverride for float
 
 **Parameters**
 
-    Form ref: target of function (e.g. $system.player)  
-    bool isFemale: true if a female target, false otherwise  
-    string node: NIO node you are working with  
-    int _key: NIO key  
-    int index: NIO index  
-    float value: value to apply  
-    bool persist: persist the override?  
+    Form: ref: target of function (e.g. $system.player)  
+    bool: isFemale: true if a female target, false otherwise  
+    string: node: NIO node you are working with  
+    int: _key: NIO key  
+    int: index: NIO index  
+    float: value: value to apply  
+    bool: persist: persist the override?  
 
 
 
@@ -2257,13 +2315,13 @@ Calls NiOveride.AddNodeOverride for int
 
 **Parameters**
 
-    Form ref: target of function (e.g. $system.player)  
-    bool isFemale: true if a female target, false otherwise  
-    string node: NIO node you are working with  
-    int _key: NIO key  
-    int index: NIO index  
-    int value: value to apply  
-    bool persist: persist the override?  
+    Form: ref: target of function (e.g. $system.player)  
+    bool: isFemale: true if a female target, false otherwise  
+    string: node: NIO node you are working with  
+    int: _key: NIO key  
+    int: index: NIO index  
+    int: value: value to apply  
+    bool: persist: persist the override?  
 
 
 
@@ -2276,13 +2334,13 @@ Calls NiOveride.AddNodeOverride for string
 
 **Parameters**
 
-    Form ref: target of function (e.g. $system.player)  
-    bool isFemale: true if a female target, false otherwise  
-    string node: NIO node you are working with  
-    int _key: NIO key  
-    int index: NIO index  
-    string value: value to apply  
-    bool persist: persist the override?  
+    Form: ref: target of function (e.g. $system.player)  
+    bool: isFemale: true if a female target, false otherwise  
+    string: node: NIO node you are working with  
+    int: _key: NIO key  
+    int: index: NIO index  
+    string: value: value to apply  
+    bool: persist: persist the override?  
 
 
 
@@ -2295,13 +2353,13 @@ Calls NiOveride.AddNodeOverride for TextureSet
 
 **Parameters**
 
-    Form ref: target of function (e.g. $system.player)  
-    bool isFemale: true if a female target, false otherwise  
-    string node: NIO node you are working with  
-    int _key: NIO key  
-    int index: NIO index  
-    Form (TextureSet) value: value to apply  
-    bool persist: persist the override?  
+    Form: ref: target of function (e.g. $system.player)  
+    bool: isFemale: true if a female target, false otherwise  
+    string: node: NIO node you are working with  
+    int: _key: NIO key  
+    int: index: NIO index  
+    Form: value: TextureSet value to apply  
+    bool: persist: persist the override?  
 
 
 
@@ -2314,9 +2372,9 @@ Clears the morph value of the target
 
 **Parameters**
 
-    Form ref: target of function (e.g. $system.player)  
-    string morphName: name of the morph you are working with  
-    string keyName: NIO key you are working with  
+    Form: ref: target of function (e.g. $system.player)  
+    string: morphName: name of the morph you are working with  
+    string: keyName: NIO key you are working with  
 
 
 
@@ -2325,12 +2383,12 @@ Clears the morph value of the target
 
 **Description**
 
-Returns a string[] the keys applied to the target actor for the specified morph.
+Returns: string[]: a list of the keys applied to the target actor for the specified morph.
 
 **Parameters**
 
-    Form ref: target of function (e.g. $system.player)  
-    string morphName: name of the morph you are working with  
+    Form: ref: target of function (e.g. $system.player)  
+    string: morphName: name of the morph you are working with  
 
 
 
@@ -2339,11 +2397,11 @@ Returns a string[] the keys applied to the target actor for the specified morph.
 
 **Description**
 
-Returns a string[] the morphNames applied to the target actor.
+Returns: string[]: a list of the morphNames applied to the target actor.
 
 **Parameters**
 
-    Form ref: target of function (e.g. $system.player)  
+    Form: ref: target of function (e.g. $system.player)  
 
 
 
@@ -2352,13 +2410,13 @@ Returns a string[] the morphNames applied to the target actor.
 
 **Description**
 
-Returns the current morph value for the target
+Returns: float: the current morph value for the target
 
 **Parameters**
 
-    Form ref: target of function (e.g. $system.player)  
-    string morphName: name of the morph you are working with  
-    string keyName: NIO key you are working with  
+    Form: ref: target of function (e.g. $system.player)  
+    string: morphName: name of the morph you are working with  
+    string: keyName: NIO key you are working with  
 
 
 
@@ -2367,15 +2425,15 @@ Returns the current morph value for the target
 
 **Description**
 
-Returns the bool override for the node on the target
+Returns: bool: the bool override for the node on the target
 
 **Parameters**
 
-    Form ref: target of function (e.g. $system.player)  
-    bool isFemale: true if a female target, false otherwise  
-    string node: NIO node you are working with  
-    int _key: NIO key  
-    int index: NIO index  
+    Form: ref: target of function (e.g. $system.player)  
+    bool: isFemale: true if a female target, false otherwise  
+    string: node: NIO node you are working with  
+    int: _key: NIO key  
+    int: index: NIO index  
 
 
 
@@ -2384,15 +2442,15 @@ Returns the bool override for the node on the target
 
 **Description**
 
-Returns the float override for the node on the target
+Returns: float: the float override for the node on the target
 
 **Parameters**
 
-    Form ref: target of function (e.g. $system.player)  
-    bool isFemale: true if a female target, false otherwise  
-    string node: NIO node you are working with  
-    int _key: NIO key  
-    int index: NIO index  
+    Form: ref: target of function (e.g. $system.player)  
+    bool: isFemale: true if a female target, false otherwise  
+    string: node: NIO node you are working with  
+    int: _key: NIO key  
+    int: index: NIO index  
 
 
 
@@ -2401,15 +2459,15 @@ Returns the float override for the node on the target
 
 **Description**
 
-Returns the int override for the node on the target
+Returns: int: the int override for the node on the target
 
 **Parameters**
 
-    Form ref: target of function (e.g. $system.player)  
-    bool isFemale: true if a female target, false otherwise  
-    string node: NIO node you are working with  
-    int _key: NIO key  
-    int index: NIO index  
+    Form: ref: target of function (e.g. $system.player)  
+    bool: isFemale: true if a female target, false otherwise  
+    string: node: NIO node you are working with  
+    int: _key: NIO key  
+    int: index: NIO index  
 
 
 
@@ -2418,15 +2476,15 @@ Returns the int override for the node on the target
 
 **Description**
 
-Returns the string override for the node on the target
+Returns: string: the string override for the node on the target
 
 **Parameters**
 
-    Form ref: target of function (e.g. $system.player)  
-    bool isFemale: true if a female target, false otherwise  
-    string node: NIO node you are working with  
-    int _key: NIO key  
-    int index: NIO index  
+    Form: ref: target of function (e.g. $system.player)  
+    bool: isFemale: true if a female target, false otherwise  
+    string: node: NIO node you are working with  
+    int: _key: NIO key  
+    int: index: NIO index  
 
 
 
@@ -2435,15 +2493,15 @@ Returns the string override for the node on the target
 
 **Description**
 
-Returns the TextureSet override for the node on the target
+Returns: Form: the TextureSet override for the node on the target
 
 **Parameters**
 
-    Form ref: target of function (e.g. $system.player)  
-    bool isFemale: true if a female target, false otherwise  
-    string node: NIO node you are working with  
-    int _key: NIO key  
-    int index: NIO index  
+    Form: ref: target of function (e.g. $system.player)  
+    bool: isFemale: true if a female target, false otherwise  
+    string: node: NIO node you are working with  
+    int: _key: NIO key  
+    int: index: NIO index  
 
 
 
@@ -2452,13 +2510,13 @@ Returns the TextureSet override for the node on the target
 
 **Description**
 
-Returns true if the target has the body morph, false otherwise
+Returns: bool: true if the target has the body morph; false otherwise
 
 **Parameters**
 
-    Form ref: target of function (e.g. $system.player)  
-    string morphName: name of the morph you are working with  
-    string keyName: NIO key you are working with  
+    Form: ref: target of function (e.g. $system.player)  
+    string: morphName: name of the morph you are working with  
+    string: keyName: NIO key you are working with  
 
 
 
@@ -2467,15 +2525,15 @@ Returns true if the target has the body morph, false otherwise
 
 **Description**
 
-Returns true if the target has the node override, false otherwise
+Returns: bool: true if the target has the node override; false otherwise
 
 **Parameters**
 
-    Form ref: target of function (e.g. $system.player)  
-    bool isFemale: true if a female target, false otherwise  
-    string node: NIO node you are working with  
-    int _key: NIO key  
-    int index: NIO index  
+    Form: target of function (e.g. $system.player)  
+    bool: isFemale: true if a female target, false otherwise  
+    string: nodeName: (body, face, etc...)  
+    int: _key: NIO key  
+    int: index: NIO index  
 
 
 
@@ -2488,10 +2546,10 @@ Sets the bodymorph of the target
 
 **Parameters**
 
-    Form ref: target of function (e.g. $system.player)  
-    string morphName: name of the morph you are working with  
-    string keyName: NIO key you are working with  
-    float value: value to apply  
+    Form: ref: target of function (e.g. $system.player)  
+    string: morphName: name of the morph you are working with  
+    string: keyName: NIO key you are working with  
+    float: value: value to apply  
 
 
 
@@ -2504,7 +2562,7 @@ Updates the weight data post morph value. Only to be used on actors who have mor
 
 **Parameters**
 
-    Form ref: target of function (e.g. $system.player)  
+    Form: ref: target of function (e.g. $system.player)  
 
 
 
@@ -2517,11 +2575,11 @@ Adds a tattoo overlay to the node with the given transparency
 
 **Parameters**
 
-    actor: target Actor  
-    isFemale : bool  
-    nodeName (see getoverlay_slot function) : string  
-    tattoo : string  
-    transparency : float  
+    Form: actor: target Actor  
+    bool: isFemale: true if a female target, false otherwise  
+    string: nodeName: (body, face, etc...)  
+    string: tattoo  
+    float: transparency  
 
 
 **Example**
@@ -2538,9 +2596,9 @@ Removes the overlay indicated by nodeName
 
 **Parameters**
 
-    actor: target Actor  
-    isFemale : bool  
-    nodeName (see getoverlay_slot function) : string  
+    Form: actor: target Actor  
+    bool: isFemale: true if a female target, false otherwise  
+    string: nodeName: (body, face, etc...)  
 
 
 **Example**
@@ -2564,7 +2622,6 @@ https://ck.uesp.net/wiki/ObjectReference_Script
     objectreference: target ObjectReference  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     action: action name  
 
-    ;;;; These are from ObjectReference  
     ClearDestruction  
     Delete  
     DeleteWhenAble  
@@ -2574,13 +2631,14 @@ https://ck.uesp.net/wiki/ObjectReference_Script
     MoveToMyEditorLocation  
     RemoveAllInventoryEventFilters  
     StopTranslation  
-    ;;;; These are from SKSE  
     ResetInventory  
     ;;;; will call form_doaction if no matches are found  
 
 
 **Example**
 
+    ; $system.self is an Actor, which is an ObjectReference, which is a Form  
+    ; StopCombat is a Form action, so the call to ObjectReference falls through to the parent  
     objectreference_doaction $system.self StopCombat  
 
 
@@ -2656,13 +2714,16 @@ https://ck.uesp.net/wiki/ObjectReference_Script
     SetItemCharge  
     SetEnchantment  
     CreateEnchantment  
+    ;;;; will call form_doconsumer if no matches are found  
 
 
 **Example**
 
-    actor_dogetter $system.player GetEquippedShield  
-    set $shieldFormID $$  
-    objectreference_doconsumer $shieldFormID CreateEnchantment 200.0 "Skyrim.esm:form-id-for-MGEF" 20.0 0.0 30.0  
+    ; give the player's shield 'Fortify Block +20', with 200.0 charge (and technically duration 30.0, but I don't think that actually matters)  
+    set $playerShield resultfrom actor_dogetter $system.player GetEquippedShield  
+    objectreference_doconsumer $playerShield CreateEnchantment 200.0 "AlchFortifyBlock" 20.0 0.0 30.0  
+    ; or give both 'Fortify Block +20' as above, as well as 'Fortify Restoration +20'  
+    objectreference_doconsumer $playerShield CreateEnchantment 200.0 "AlchFortifyBlock" 20.0 0.0 30.0 "AlchFortifyRestoration" 20.0 0.0 30.0  
 
 
 
@@ -2709,13 +2770,18 @@ https://ck.uesp.net/wiki/ObjectReference_Script
     PlaceAtMe  
     GetLinkedRef  
     GetNthLinkedRef  
+    ;;;; will call form_dofunction if no matches are found  
 
 
 **Example**
 
-    set $containerFormID "AContainerEditorIDForExample"  
-    objectreference_dofunction $system.self GetItemCount $containerFormID  
-    ; $$ should contain an int value with the number of items in the container  
+    ; in response to a containeractivate trigger, to quickly determine whether the container had  
+    ; something that you might want to force into the player's inventory  
+    set $theContainer $request.core.activatedContainer"  
+    set $lookingFor $system.forms.gold ; shorthand for gold i.e. septims  
+    set $foundCount resultfrom objectreference_dofunction $theContainer GetItemCount $lookingFor  
+    ; or determine how much gold the target of the script has on them  
+    set $selfGold resultfrom objectreference_dofunction $system.self GetItemCount $lookingFor  
 
 
 
@@ -2732,7 +2798,6 @@ https://ck.uesp.net/wiki/ObjectReference_Script
     objectreference: target ObjectReference  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
     getter: getter name  
 
-    ;;;; These are from ObjectReference  
     CanFastTravelToMarker  
     GetActorOwner  
     GetAngleX  
@@ -2771,7 +2836,6 @@ https://ck.uesp.net/wiki/ObjectReference_Script
     IsLocked  
     IsMapMarkerVisible  
     IsNearPlayer  
-    ;;;; These are from SKSE  
     GetNumItems  
     GetTotalItemWeight  
     GetTotalArmorWeight  
@@ -2783,13 +2847,24 @@ https://ck.uesp.net/wiki/ObjectReference_Script
     GetEnableParent  
     GetEnchantment  
     GetNumReferenceAliases  
+    ;;;; will call form_dogetter if no matches are found  
 
 
 **Example**
 
-    objectreference_dogetter $system.self CanFlyHere  
-    if $$ = 1 ICanFlyAroundHere  
-    if $$ = 0 IAmGroundedLikeAlways  
+    ; inside/outside  
+    set $isInside resultfrom objectreference_dogetter $system.self IsInInterior  
+    if $isInside == true [IsInside]  
+    if $isInside == false [IsNotInside]  
+    ; working with containers, (including actors, chests, barrels, etc.) which all derive from ObjectReference  
+    ; this would be valid, to check the inventory contents of whomever the script is running on  
+    set $theContainer $system.self  
+    ; this would be valid, to check the inventory contents of the player, regardless of whomever the script is running on  
+    set $theContainer $system.player  
+    ; this would be valid, to check the inventory contents of a container, in response to the container activation event  
+    set $theContainer $request.core.activatedContainer  
+    ; for all of the settings of $theContainer above, the following would validly obtain the count of contained items  
+    set $inventoryCount resultfrom objectreference_dogetter $theContainer GetNumItems  
 
 
 
@@ -3057,8 +3132,8 @@ Add specified perk to the targeted actor
 
 **Parameters**
 
-    perk: PERK FormID  
-    actor: target Actor  
+    Form: perk: the Perk to add  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -3075,7 +3150,7 @@ Add specified number of perk points to player
 
 **Parameters**
 
-    perkpointcount: number of perk points to add  
+    int: perkpointcount: number of perk points to add  
 
 
 **Example**
@@ -3092,8 +3167,8 @@ Remove specified perk from the targeted actor
 
 **Parameters**
 
-    perk: PERK FormID  
-    actor: target Actor  
+    Form: perk: the Perk to remove  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -3127,7 +3202,10 @@ https://ck.uesp.net/wiki/Quest_Script
 
 **Example**
 
-    quest_doaction $system.self CompleteQuest  
+    ; suppose you want to reset a mod's quest form  
+    ; and can obtain the editorID via xedit, or construct one from formid and modname  
+    set $modQuest resultfrom form_getbyid $questFormID  
+    quest_doaction $modQuest Reset  
 
 
 
@@ -3148,11 +3226,15 @@ https://ck.uesp.net/wiki/Quest_Script
     SetObjectiveCompleted  
     SetObjectiveDisplayed  
     SetObjectiveFailed  
+    ;;;; will call form_doconsumer if no matches are found  
 
 
 **Example**
 
-    quest_doconsumer $someQuest SetActive true  
+    ; suppose you want to deactivate a quest mod  
+    ; and can obtain the editorID via xedit, or construct one from formid and modname  
+    set $modQuest resultfrom form_getbyid $questFormID  
+    quest_doconsumer $modQuest SetActive false  
 
 
 
@@ -3182,11 +3264,16 @@ https://ck.uesp.net/wiki/Quest_Script
     GetQuest  
     GetNthAlias  
     GetAliasByName  
+    ;;;; will call form_dofunction if no matches are found  
 
 
 **Example**
 
-    set $success resultfrom quest_dofunction $questForm SetCurrentStageID 0  
+    ; suppose you want to determine for a quest mod whether a given stage is done (maybe that impacts mod state or activity)  
+    ; and can obtain the editorID via xedit, or construct one from formid and modname  
+    set $modQuest resultfrom form_getbyid $questFormID  
+    set $stageIsDone resultfrom quest_dofunction $modQuest IsStageDone 100  
+    if $stageIsDone == true [AsIfTheStageWereDone]  
 
 
 
@@ -3215,11 +3302,15 @@ https://ck.uesp.net/wiki/Quest_Script
     GetID  
     GetPriority  
     GetNumAliases  
+    ;;;; will call form_dogetter if no matches are found  
 
 
 **Example**
 
-    quest_dogetter $system.self GetStage  
+    ; suppose you want to obtain a mod's quest stage  
+    ; and can obtain the editorID via xedit, or construct one from formid and modname  
+    set $modQuest resultfrom form_getbyid $questFormID  
+    set $modQuestStage resultfrom quest_dogetter $modQuest GetStage  
 
 
 
@@ -3229,12 +3320,12 @@ https://ck.uesp.net/wiki/Quest_Script
 
 **Description**
 
-Return the sound instance handle from playing the specified audio from the specified actor
+Returns: int: the sound instance handle from playing the specified audio from the specified actor
 
 **Parameters**
 
-    audio: AUDIO FormID  
-    actor: target Actor  
+    Form: audio: the Audio Form to play  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -3251,9 +3342,9 @@ Set the sound volume using the specified sound instance handle (from snd_play)
 
 **Parameters**
 
-    handle: sound instance handle from snd_play  
-    actor: target Actor  
-    volume: 0.0 - 1.0  
+    int: handle: sound instance handle from snd_play  
+    Form: actor: target Actor  
+    float; volume: 0.0 - 1.0  
 
 
 **Example**
@@ -3271,7 +3362,7 @@ Stops the audio specified by the sound instance handle (from snd_play)
 
 **Parameters**
 
-    handle: sound instance handle from snd_play  
+    int: handle: sound instance handle from snd_play  
 
 
 **Example**
@@ -3290,8 +3381,8 @@ Adds the specified SPEL by FormId to the targeted Actor, usually to add as an av
 
 **Parameters**
 
-    spell: SPEL FormId  
-    actor: target Actor  
+    Form: spell: the Spell to add  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -3309,8 +3400,8 @@ Cast spell at target
 
 **Parameters**
 
-    spell: SPEL FormID  
-    actor: target Actor  
+    Form: spell: the Spell to cast  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -3329,8 +3420,8 @@ are part of a melee attack (like animals that also carry poison or disease).
 
 **Parameters**
 
-    spell: SPEL FormId  
-    actor: target Actor  
+    Form: spell: the Spell  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -3347,8 +3438,8 @@ Dispels specified SPEL by FormId from targeted Actor
 
 **Parameters**
 
-    spell: SPEL FormId  
-    actor: target Actor  
+    Form: spell: the Spell to dispel  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -3366,8 +3457,8 @@ Removes the specified SPEL by FormId from the targeted Actor, usually to remove 
 
 **Parameters**
 
-    spell: SPEL FormId  
-    actor: target Actor  
+    Form: spell: the Spell to remove  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -3383,12 +3474,12 @@ The light spell should no longer be in the actor's spellbook
 
 **Description**
 
-Attempts to return a single response text associated with the provided TopicInfo (by editorID or FormID)
+Returns: string: Attempts to return a single response text associated with the provided TopicInfo (by editorID or FormID)
 Note: This is more beta than normal; it isn't obvious whether in some cases multiple strings should actually be returned.
 
 **Parameters**
 
-    topicinfo: <formID> or <editorID> for the desired TopicInfo (not Topic)  
+    Form: topicinfo: <formID> or <editorID> for the desired TopicInfo (not Topic)  
 
 
 **Example**
@@ -3410,8 +3501,8 @@ Recommend ConsoleUtil-Extended https://www.nexusmods.com/skyrimspecialedition/mo
 
 **Parameters**
 
-    actor: target Actor  
-    command: <command fragment> [<command fragment> ...] ; all <command fragments> will be concatenated  
+    Form: actor: target Actor  
+    string: command: <command fragment> [<command fragment> ...] ; all <command fragments> will be concatenated  
 
 
 **Example**
@@ -3426,28 +3517,35 @@ Both are the same
 
 **Description**
 
-Joins all <msg> arguments together and logs to "<Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log"
+Joins all arguments together into a single string and logs to "<Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log"
 This file is truncated on game start.
+Usage 1: deb_msg <msg> [<msg> ...]
+Usage 2: deb_msg $msglist ; where $msglist is a string[]
 
 **Parameters**
 
-    message: <msg> [<msg> <msg> ...]  
-    arguments: ALTERNATIVE: <string list>  
+    string: message: any string or interpolated string  
+    string[]: msglist: a list of strings to concatenate for a message  
 
 
 **Example**
 
-    deb_msg "Hello" "world!"  
+    deb_msg "Hello " "world!"  
     deb_msg "Hello world!"  
+    set $whom "world"  
+    deb_msg "Hello {$whom}!"  
+    set $msg[0] "Hello "  
+    set $msg[1] "world!"  
+    deb_msg $msg  
 
-Both do the same thing  
+; These all print the same thing  
 
 
 ### math
 
 **Description**
 
-Return values from math operations based on sub-function
+Returns: (varies): values from math operations based on sub-function
 
 **Parameters**
 
@@ -3471,52 +3569,66 @@ Return values from math operations based on sub-function
 
 **Description**
 
-Display the message in the console
+Joins all arguments together into a single string and displays the message in the console
+Usage 1: msg_console <msg> [<msg> ...]
+Usage 2: msg_console $msglist ; where $msglist is a string[]
 
 **Parameters**
 
-    message: <msg> [<msg> <msg> ...]  
-    arguments: ALTERNATIVE: <string list>  
+    string: message: any string or interpolated string  
+    string[]: msglist: a list of strings to concatenate for a message  
 
 
 **Example**
 
-    msg_console "Hello" "world!"  
+    msg_console "Hello " "world!"  
     msg_console "Hello world!"  
+    set $whom "world"  
+    msg_console "Hello {$whom}!"  
+    set $msg[0] "Hello "  
+    set $msg[1] "world!"  
+    msg_console $msg  
 
-Both are the same  
+; These all print the same thing  
 
 
 ### msg_notify
 
 **Description**
 
-Display the message in the standard notification area (top left of your screen by default)
+Joins all arguments together into a single string and displays the message in the standard notification area (top left of your screen by default)
+Usage 1: msg_notify <msg> [<msg> ...]
+Usage 2: msg_notify $msglist ; where $msglist is a string[]
 
 **Parameters**
 
-    message: <msg> [<msg> <msg> ...]  
-    arguments: ALTERNATIVE: <string list>  
+    string: message: any string or interpolated string  
+    string[]: msglist: a list of strings to concatenate for a message  
 
 
 **Example**
 
-    msg_notify "Hello" "world!"  
+    msg_notify "Hello " "world!"  
     msg_notify "Hello world!"  
+    set $whom "world"  
+    msg_notify "Hello {$whom}!"  
+    set $msg[0] "Hello "  
+    set $msg[1] "world!"  
+    msg_notify $msg  
 
-Both are the same  
+; These all print the same thing  
 
 
 ### rnd_float
 
 **Description**
 
-Sets $$ to a random integer between min and max inclusive
+Returns: float: a random integer between min and max inclusive
 
 **Parameters**
 
-    min: number  
-    max: number  
+    float: min: number  
+    float: max: number  
 
 
 **Example**
@@ -3529,12 +3641,12 @@ Sets $$ to a random integer between min and max inclusive
 
 **Description**
 
-Sets $$ to a random integer between min and max inclusive
+Returns: int: a random integer between min and max inclusive
 
 **Parameters**
 
-    min: number  
-    max: number  
+    int: min: number  
+    int: max: number  
 
 
 **Example**
@@ -3547,26 +3659,30 @@ Sets $$ to a random integer between min and max inclusive
 
 **Description**
 
-Sets $$ to one of the arguments at random
+Returns: string: one of the arguments at random
+Usage 1: rnd_list <argument> [<argument> ...]
+Usage 2: rnd_list $arglist ; where $arglist is a string[]
 
 **Parameters**
 
-    arguments: <argument> <argument> [<argument> <argument> ...]  
-    arguments: ALTERNATIVE: <string list>  
+    string: argument: any string or interpolated string  
+    string[]: arglist: a list of strings to pick from  
 
 
 **Example**
 
-    rnd_list "Hello" $2 "Yo"  
+    rnd_list "One" "Two" "Three"  
+    listadd $picklist "One" "Two" "Three"  
+    rnd_list $picklist  
 
-$$ will be one of the values. $2 will be resolved to it's value before populating $$  
+; These do the same thing  
 
 
 ### util_game
 
 **Description**
 
-Perform game related functions based on sub-function
+Returns: (varies): Perform game related functions based on sub-function
 
 **Parameters**
 
@@ -3587,7 +3703,7 @@ Perform game related functions based on sub-function
 
 **Description**
 
-Sets $$ to the value of Utility.GetCurrentGameTime() (a float value representing the number of days in game time; mid-day day 2 is 1.5)
+Returns: float: the value of Utility.GetCurrentGameTime() (a float value representing the number of days in game time; mid-day day 2 is 1.5)
 
 
 **Example**
@@ -3600,7 +3716,7 @@ Sets $$ to the value of Utility.GetCurrentGameTime() (a float value representing
 
 **Description**
 
-Sets $$ to the in-game hour (i.e. 2:30 AM returns 2)
+Returns: int: the in-game hour (i.e. 2:30 AM returns 2)
 
 
 **Example**
@@ -3613,11 +3729,11 @@ Sets $$ to the in-game hour (i.e. 2:30 AM returns 2)
 
 **Description**
 
-Sets $iterActor to a random actor within specified range of self
+Returns: Form: a random actor within specified range of self
 
 **Parameters**
 
-    range: 0 - all | >0 skyrim units  
+    float: range: 0 - all | >0 skyrim units  
 
 
 **Example**
@@ -3630,7 +3746,7 @@ Sets $iterActor to a random actor within specified range of self
 
 **Description**
 
-Sets $$ to the value of Utility.GetCurrentRealTime() (a float value representing the number of seconds since Skyrim.exe was launched this session)
+Returns: float: the value of Utility.GetCurrentRealTime() (a float value representing the number of seconds since Skyrim.exe was launched this session)
 
 
 **Example**
@@ -3643,20 +3759,19 @@ Sets $$ to the value of Utility.GetCurrentRealTime() (a float value representing
 
 **Description**
 
-Return a random actor within specified range of self
+Returns: Form: a random actor within specified range of self
 
 **Parameters**
 
-    range: (0 - all | >0 - range in Skyrim units)  
-    option: (0 - all | 1 - not in SexLab scene | 2 - must be in SexLab scene) (optional: default 0 - all)  
+    float: range: (0 - all | >0 - range in Skyrim units)  
 
 
 **Example**
 
-    util_getrndactor 500 2  
-    actor_isvalid $actor  
-    if $$ = 0 end  
-    msg_notify "Someone is watching you!"  
+    util_getrndactor 500  
+    set $isvalid resultfrom actor_isvalid $actor  
+    if $isvalid == false [end]  
+    msg_notify "Someone is nearby!"  
     [end]  
 
 
@@ -3669,10 +3784,10 @@ Send SKSE custom event, with each type/value pair being an argument to the custo
 
 **Parameters**
 
-    event: name of the event  
+    string: event: name of the event  
     (type/value pairs are optional; this devolves to util_sendmodevent <eventname>, though with such a call the event signature would require having no arguments)  
-    param type: type of parameter e.g. "bool", "int", etc.  
-    param value: value of parameter  
+    string: param type: type of parameter e.g. "bool", "int", etc.  
+    string: param value: value of parameter  
     [type/value, type/value ...]  
 
     <type> can be any of [bool, int, float, string, form]  
@@ -3693,9 +3808,9 @@ Shorthand for actor_sendmodevent $system.player <event name> <string argument> <
 
 **Parameters**
 
-    event: name of the event  
-    string arg: string argument (meaning varies by event sent) (optional: default "")  
-    float arg: float argument (meaning varies by event sent) (optional: default 0.0)  
+    string: event: name of the event  
+    string: arg: string argument (meaning varies by event sent) (optional: default "")  
+    float: arg: float argument (meaning varies by event sent) (optional: default 0.0)  
 
 
 **Example**
@@ -3712,7 +3827,7 @@ Wait specified number of seconds i.e. Utility.Wait()
 
 **Parameters**
 
-    duration: float, seconds  
+    float: duration: time to wait, in seconds  
 
 
 **Example**
@@ -3726,26 +3841,31 @@ The script will pause processing for 2.5 seconds
 
 **Description**
 
-Sets $$ to the keycode pressed after waiting for user to press any of the specified keys.
+Returns: int: the keycode pressed after waiting for user to press any of the specified keys.
 (See https://ck.uesp.net/wiki/Input_Script for the DXScanCodes)
+Usage 1: util_waitforkbd <dxscancode> [<dxscancode> ...]
+Usage 2: util_waitforkbd $keylist ; where $keylist is a int[]
 
 **Parameters**
 
-    dxscancode: <DXScanCode of key> [<DXScanCode of key> ...]  
-    arguments: ALTERNATIVE: <int list>  
+    int: dxscancode: <DXScanCode of key>  
+    int[]: keylist: a list of dxscancode  
 
 
 **Example**
 
     util_waitforkbd 74 78 181 55  
+    listadd $keystowaitfor 74 78 181 55  
+    util_waitforkbd $keystowaitfor  
 
+; These do the same thing  
 
 
 ### weather_state
 
 **Description**
 
-Weather related functions based on sub-function
+Returns: (varies): Weather related functions based on sub-function
 
 **Parameters**
 
@@ -3758,6 +3878,104 @@ Weather related functions based on sub-function
 
 
 
+## Weapon
+
+### weapon_doconsumer
+
+**Description**
+
+For the specified Weapon, perform the requested consumer, provided the appropriate additional parameters
+'Consumer' in this case specifically refers to functions that take parameters but return no result
+https://ck.uesp.net/wiki/Weapon_Script
+
+**Parameters**
+
+    Form: target Weapon (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
+    consumer: consumer name  
+
+    Fire  
+    SetBaseDamage  
+    SetCritDamage  
+    SetReach  
+    SetMinRange  
+    SetMaxRange  
+    SetSpeed  
+    SetStagger  
+    SetWeaponType  
+    SetModelPath  
+    SetIconPath  
+    SetMessageIconPath  
+    SetEnchantment  
+    SetEnchantmentValue  
+    SetEquippedModel  
+    SetEquipType  
+    SetSkill  
+    SetResist  
+    SetCritEffect  
+    SetCritEffectOnDeath  
+    SetCritMultiplier  
+    ;;;; will call form_doconsumer if no matches are found  
+
+
+**Example**
+
+    set $someWeapon resultfrom form_getbyid $weaponFormID  
+    weapon_doconsumer $someWeapon SetStagger 5.0 ; huge stagger value  
+
+
+
+### weapon_dogetter
+
+**Description**
+
+For the targeted Weapon, set $$ to the result of the specified getter
+'Getter' in this case specifically refers to functions that take no parameters but return a value
+https://ck.uesp.net/wiki/Weapon_Script
+
+**Parameters**
+
+    Form: target Weapon  (accepts both relative "Skyrim.esm:0xf" and absolute "0xf" values)  
+    getter: getter name  
+
+    GetBaseDamage  
+    GetCritDamage  
+    GetReach  
+    GetMinRange  
+    GetMaxRange  
+    GetSpeed  
+    GetStagger  
+    GetWeaponType  
+    GetModelPath  
+    GetIconPath  
+    GetMessageIconPath  
+    GetEnchantment  
+    GetEnchantmentValue  
+    GetEquippedModel  
+    GetEquipType  
+    GetSkill  
+    GetResist  
+    GetCritEffect  
+    GetCritEffectOnDeath  
+    GetCritMultiplier  
+    IsBattleAxe  
+    IsBow  
+    IsDagger  
+    IsGreatsword  
+    IsMace  
+    IsStaff  
+    IsSword  
+    IsWarhammer  
+    IsWarAxe  
+    ;;;; will call form_dogetter if no matches are found  
+
+
+**Example**
+
+    set $someWeapon resultfrom form_getbyid $weaponFormID  
+    weapon_dogetter $someWeapon GetBaseDamage  
+
+
+
 # SexLab P+ Function Library 
 
 ## Actor
@@ -3766,7 +3984,7 @@ Weather related functions based on sub-function
 
 **Description**
 
-Returns the race name based on sub-function. Blank, empty sub-function returns Vanilla racenames. e.g. "SL" can return SexLab race keynames.
+Returns: string: the race name based on sub-function. Blank, empty sub-function returns Vanilla racenames. e.g. "SL" can return SexLab race keynames.
 
 **Parameters**
 
@@ -3790,11 +4008,11 @@ Returns the race name based on sub-function. Blank, empty sub-function returns V
 
 **Description**
 
-Returns the actor's SexLab gender, 0 - male, 1 - female, 2 - futa, 3 - male creature, 4 - female creature
+Returns: int: the actor's SexLab gender, 0 - male, 1 - female, 2 - futa, 3 - male creature, 4 - female creature
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -3812,8 +4030,8 @@ WARNING: This uses a deprecated API until/unless an up to date alternative can b
 
 **Parameters**
 
-    direction: integer, <negative - backwards / non-negative (including zero) - forwards>  
-    actor: target Actor  
+    int: direction: <negative - backwards / non-negative (including zero) - forwards>  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -3831,7 +4049,7 @@ Allows the Actor to join SexLab scenes. Reverses forbiddance.
 
 **Parameters**
 
-    Form actor: the Actor to allow to join SexLab scenes  
+    Form: actor: the Actor to allow to join SexLab scenes  
 
 
 **Example**
@@ -3844,8 +4062,12 @@ Allows the Actor to join SexLab scenes. Reverses forbiddance.
 
 **Description**
 
-Returns the current SexLab animation name
+Returns: string: the current SexLab animation name
 WARNING: This uses a deprecated API until/unless an up to date alternative can be found.
+
+**Parameters**
+
+    Form: actor: target Actor  
 
 
 **Example**
@@ -3864,8 +4086,8 @@ Only works if called during a scene, when the SexLab thread is still available
 
 **Parameters**
 
-    actor: target Actor  
-    disable: bool: true to disable, false to enable  
+    Form: actor: target Actor  
+    bool: disable: true to disable, false to enable  
 
 
 **Example**
@@ -3881,18 +4103,18 @@ Only works if called during a scene, when the SexLab thread is still available
 
 **Description**
 
-Returns a list of Actors (Form[]) that are available for a SexLab scene based on the parameters provided.
+Returns: Form[]: a list of Actors that are available for a SexLab scene based on the parameters provided.
 Note: This currently relies on deprecated API calls.
 Note: Actors you specify in 'requiredActors' are not guaranteed to be valid SexLab actors.
 If no matches can be found or if totalRequired is less than requiredActors.Length, requiredActors is returned, even if it is none or an empty list.
 
 **Parameters**
 
-    Form[] requiredActors: list of Actors you require to be in the scene, limited to 5; size applies to totalRequired; specify none or an empty list if you have no required actors  
-    int totalRequired: the total number of actors desired for the scene (including any in the 'actors' list); should be at least as large as requiredActors.Length and should not be greater than 5  
-    int malesRequired: (optional: default: -1) minimum number of males desired for the scene, out of totalRequired; specify -1 to ignore the requirement  
-    int femalesRequired: (optional: default: -1) minimum number of females desired for the scene, out of totalRequired; specify -1 to ignore the requirement  
-    float radius: (optional: default: 10000.0) distance in Skyrim distance units to search for actors  
+    Form[]: requiredActors: list of Actors you require to be in the scene, limited to 5; size applies to totalRequired; specify none or an empty list if you have no required actors  
+    int: totalRequired: the total number of actors desired for the scene (including any in the 'actors' list); should be at least as large as requiredActors.Length and should not be greater than 5  
+    int: malesRequired: (optional: default: -1) minimum number of males desired for the scene, out of totalRequired; specify -1 to ignore the requirement  
+    int: femalesRequired: (optional: default: -1) minimum number of females desired for the scene, out of totalRequired; specify -1 to ignore the requirement  
+    float: radius: (optional: default: 10000.0) distance in Skyrim distance units to search for actors  
 
 
 **Example**
@@ -3924,7 +4146,7 @@ Forbids the Actor from joining SexLab scenes.
 
 **Parameters**
 
-    Form actor: the Actor to forbid from joining SexLab scenes  
+    Form: actor: the Actor to forbid from joining SexLab scenes  
 
 
 **Example**
@@ -3937,12 +4159,12 @@ Forbids the Actor from joining SexLab scenes.
 
 **Description**
 
-Returns the float value of the specificed SexLab statistic
+Returns: float: the value of the specificed SexLab statistic
 
 **Parameters**
 
-    Form actor: the Actor to query the statistic of  
-    int statisticID: the SexLab statistic ID  
+    Form: actor: the Actor to query the statistic of  
+    int: statisticID: the SexLab statistic ID  
     * 0 - LastUpdate_GameTime  
     * 1 - SecondsInScene  
     * 2 - XP_Vaginal  
@@ -3973,7 +4195,7 @@ Returns the float value of the specificed SexLab statistic
 
 **Description**
 
-Returns the SexLabFramework API object (from SexLabUtil.GetAPI())
+Returns: Form: the SexLabFramework API object (from SexLabUtil.GetAPI())
 
 
 **Example**
@@ -3986,12 +4208,12 @@ Returns the SexLabFramework API object (from SexLabUtil.GetAPI())
 
 **Description**
 
-Returns the value of the requested SexLab thread property
+Returns: string: the value of the requested SexLab thread property
 
 **Parameters**
 
-    property:  Stage | ActorCount  
-    actor: target Actor  
+    string: property:  Stage | ActorCount  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -4005,20 +4227,20 @@ Returns the value of the requested SexLab thread property
 
 **Description**
 
-Return a random actor within specified range of self
+Returns: Form: a random actor within specified range of self
 
 **Parameters**
 
-    range: (0 - all | >0 - range in Skyrim units)  
-    option: (0 - all | 1 - not in SexLab scene | 2 - must be in SexLab scene) (optional: default 0 - all)  
+    float: range: (0 - all | >0 - range in Skyrim units)  
+    int: option: (0 - all | 1 - not in SexLab scene | 2 - must be in SexLab scene) (optional: default 0 - all)  
 
 
 **Example**
 
     sl_getrndactor 500 2  
     actor_isvalid $actor  
-    if $$ = 0 end  
-    msg_notify "Someone is watching you!"  
+    if $$ = false [end]  
+    msg_notify "Someone is nearby!"  
     [end]  
 
 
@@ -4027,7 +4249,7 @@ Return a random actor within specified range of self
 
 **Description**
 
-Returns the SexLab version as an int (from SexLabUtil.GetVersion())
+Returns: int: the SexLab version as an int (from SexLabUtil.GetVersion())
 
 
 **Example**
@@ -4040,7 +4262,7 @@ Returns the SexLab version as an int (from SexLabUtil.GetVersion())
 
 **Description**
 
-Returns the SexLab version as a string (from SexLabUtil.GetStringVer())
+Returns: string: the SexLab version as a string (from SexLabUtil.GetStringVer())
 
 
 **Example**
@@ -4053,12 +4275,12 @@ Returns the SexLab version as a string (from SexLabUtil.GetStringVer())
 
 **Description**
 
-Returns true if the SexLab scene has the specified tag, false otherwise
+Returns: bool: true if the SexLab scene has the specified tag, false otherwise
 
 **Parameters**
 
-    tag: tag name e.g. "Oral", "Anal", "Vaginal"  
-    actor: target Actor  
+    string: tag: tag name e.g. "Oral", "Anal", "Vaginal"  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -4072,11 +4294,11 @@ Returns true if the SexLab scene has the specified tag, false otherwise
 
 **Description**
 
-Returns true if the actor is forbidden from SexLab scenes, false otherwise
+Returns: bool: true if the actor is forbidden from SexLab scenes, false otherwise
 
 **Parameters**
 
-    Form actor: the Actor to query about being forbidden from SexLab scenes  
+    Form: actor: the Actor to query about being forbidden from SexLab scenes  
 
 
 **Example**
@@ -4089,11 +4311,11 @@ Returns true if the actor is forbidden from SexLab scenes, false otherwise
 
 **Description**
 
-Returns true if the actor is valid for SexLab scenes, false otherwise
+Returns: bool: true if the actor is valid for SexLab scenes, false otherwise
 
 **Parameters**
 
-    Form actor: the Actor to determine SexLab scene validity for  
+    Form: actor: the Actor to determine SexLab scene validity for  
 
 
 **Example**
@@ -4106,7 +4328,7 @@ Returns true if the actor is valid for SexLab scenes, false otherwise
 
 **Description**
 
-Returns active status of SexLab (from SexLabUtil.SexLabIsActive()): true if active, false otherwise
+Returns: bool: active status of SexLab (from SexLabUtil.SexLabIsActive()): true if active, false otherwise
 
 
 **Example**
@@ -4119,11 +4341,11 @@ Returns active status of SexLab (from SexLabUtil.SexLabIsActive()): true if acti
 
 **Description**
 
-Returns true if the specified actor is in a SexLab scene, false otherwise
+Returns: bool: true if the specified actor is in a SexLab scene, false otherwise
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -4136,12 +4358,12 @@ Returns true if the specified actor is in a SexLab scene, false otherwise
 
 **Description**
 
-Sets $$ to 1 if the specified actor is in the specified SexLab scene slot, 0 otherwise
+Returns: bool: true if the specified actor is in the specified SexLab scene slot, false otherwise
 
 **Parameters**
 
-    actor: target Actor  
-    slotnumber: 1-based SexLab thread slot number  
+    Form: actor: target Actor  
+    int: slotnumber: 1-based SexLab thread slot number  
 
 
 **Example**
@@ -4154,7 +4376,7 @@ Sets $$ to 1 if the specified actor is in the specified SexLab scene slot, 0 oth
 
 **Description**
 
-Returns ready status of SexLab (from SexLabUtil.SexLabIsReady()): true if ready, false otherwise
+Returns: bool: ready status of SexLab (from SexLabUtil.SexLabIsReady()): true if ready, false otherwise
 
 
 **Example**
@@ -4171,7 +4393,7 @@ Immediately forces the specified actor to have a SexLab orgasm.
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -4186,11 +4408,11 @@ Simultaneous orgasms
 
 **Description**
 
-Starts a SexLab scene and returns the threadid
+Returns: int: Starts a SexLab scene and returns the threadid
 
 **Parameters**
 
-    Form[] list: actors: Form[] list containing the Actors to be in the scene, limited to 5  
+    Form[]: actors: list containing the Actors to be in the scene, limited to 5  
     Form: submissive: Form (Actor) to be the submissive in the scene; specify 'none' if no submissive to be set; must also be in the actors list  
     string: tags: (From the SexLabFramework source) Requested animation tags (may be empty). Supported prefixes: '-' to disable a tag, '~' for OR-conjunctions  
     Example: "~A, B, ~C, -D" <=> Animation has tag B, does NOT have tag D and has EITHER tag A or C  
@@ -4210,18 +4432,7 @@ Starts a SexLab scene and returns the threadid
 
 **Description**
 
-Returns an int value; 1 - if valid, negative values with respective meanings for non-validity
-* -1 = The Actor does not exists (it is None)
-* -10 = The Actor is already part of a SexLab animation
-* -11 = The Actor is forbidden form SexLab animations
-* -12 = The Actor does not have the 3D loaded
-* -13 = The Actor is dead (He's dead Jim.)
-* -14 = The Actor is disabled
-* -15 = The Actor is flying (so it cannot be SexLab animated)
-* -16 = The Actor is on mount (so it cannot be SexLab animated)
-* -17 = The Actor is a creature but creature animations are disabled
-* -18 = The Actor is a creature that is not supported by SexLab
-* -19 = The Actor is a creature but there are no valid animations for this type of creature
+Returns: int:
 
 **Parameters**
 
@@ -4232,29 +4443,45 @@ Returns an int value; 1 - if valid, negative values with respective meanings for
 
     sl_validate_actor $targetActor  
 
+1 - if valid, negative values with respective meanings for non-validity  
+-1 = The Actor does not exists (it is None)  
+-10 = The Actor is already part of a SexLab animation  
+-11 = The Actor is forbidden form SexLab animations  
+-12 = The Actor does not have the 3D loaded  
+-13 = The Actor is dead (He's dead Jim.)  
+-14 = The Actor is disabled  
+-15 = The Actor is flying (so it cannot be SexLab animated)  
+-16 = The Actor is on mount (so it cannot be SexLab animated)  
+-17 = The Actor is a creature but creature animations are disabled  
+-18 = The Actor is a creature that is not supported by SexLab  
+-19 = The Actor is a creature but there are no valid animations for this type of creature  
 
 
 ### sl_waitforkbd
 
 **Description**
 
-Returns the keycode pressed after waiting for user to press any of the specified keys or for the end of the SexLab scene
+Returns: int: the keycode pressed after waiting for user to press any of the specified keys or for the end of the SexLab scene
 (See https://ck.uesp.net/wiki/Input_Script for the DXScanCodes)
+Usage 1: sl_waitforkbd <dxscancode> [<dxscancode> ...]
+Usage 2: sl_waitforkbd $keylist ; where $keylist is a int[]
 
 **Parameters**
 
-    actor: target Actor  
-    dxscancode: DXScanCode of key [<DXScanCode of key> ...]  
-    arguments: ALTERNATIVE: <int list>  
+    int: dxscancode: <DXScanCode of key>  
+    int[]: keylist: a list of dxscancode  
 
 
 **Example**
 
     sl_waitforkbd 74 78 181 55  
+    listadd $keystowaitfor 74 78 181 55  
+    sl_waitforkbd $keystowaitfor  
     if $$ = 74 MINUS  
     ...  
     if $$ < 0 END  
 
+; These do the same thing  
 Wait for Num-, Num+, Num/, or Num*, or animation expired, and then do something based on the result.  
 
 
@@ -4266,7 +4493,7 @@ Wait until specified actor is not in SexLab scene
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -4284,12 +4511,12 @@ Wait until the scene ends
 
 **Description**
 
-Returns the race name based on sub-function. Blank, empty sub-function returns Vanilla racenames. e.g. "SL" can return SexLab race keynames.
+Returns: string: the race name based on sub-function. Blank, empty sub-function returns Vanilla racenames. e.g. "SL" can return SexLab race keynames.
 
 **Parameters**
 
-    actor: target Actor  
-    sub-function: sub-function  
+    Form: actor: target Actor  
+    string: sub-function: sub-function  
 
     if parameter 2 is "": return actors race name. Skyrims, original name. Like: "Nord", "Breton"  
     if parameter 2 is "SL": return actors Sexlab frameworks race key name. Like: "dogs", "bears", etc. Note: will return "" if actor is humanoid  
@@ -4308,11 +4535,11 @@ Returns the race name based on sub-function. Blank, empty sub-function returns V
 
 **Description**
 
-Returns the actor's SexLab gender, 0 - male, 1 - female, 2 - creature
+Returns: int: the actor's SexLab gender, 0 - male, 1 - female, 2 - male creature, 3 - female creature
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -4329,8 +4556,8 @@ Changes the stage of the current SexLab scene, for the target Actor; advances a 
 
 **Parameters**
 
-    direction: integer, <negative - backwards / non-negative (including zero) - forwards>  
-    actor: target Actor  
+    int: direction: <negative - backwards / non-negative (including zero) - forwards>  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -4348,7 +4575,7 @@ Allows the Actor to join SexLab scenes. Reverses forbiddance.
 
 **Parameters**
 
-    Form actor: the Actor to allow to join SexLab scenes  
+    Form: actor: the Actor to allow to join SexLab scenes  
 
 
 **Example**
@@ -4361,7 +4588,11 @@ Allows the Actor to join SexLab scenes. Reverses forbiddance.
 
 **Description**
 
-Returns to the current SexLab animation name
+Returns: string: to the current SexLab animation name
+
+**Parameters**
+
+    Form: actor: target Actor  
 
 
 **Example**
@@ -4380,8 +4611,8 @@ Only works if called during a scene, when the SexLab thread is still available
 
 **Parameters**
 
-    actor: target Actor  
-    disable: bool: true to disable, false to enable  
+    Form: actor: target Actor  
+    bool: disable: true to disable, false to enable  
 
 
 **Example**
@@ -4397,17 +4628,17 @@ Only works if called during a scene, when the SexLab thread is still available
 
 **Description**
 
-Returns a list of Actors (Form[]) that are available for a SexLab scene based on the parameters provided.
+Returns: Form[]: a list of Actors that are available for a SexLab scene based on the parameters provided.
 Note: Actors you specify in 'requiredActors' are not guaranteed to be valid SexLab actors.
 If no matches can be found or if totalRequired is less than requiredActors.Length, requiredActors is returned, even if it is none or an empty list.
 
 **Parameters**
 
-    Form[] requiredActors: list of Actors you require to be in the scene, limited to 5; size applies to totalRequired; specify none or an empty list if you have no required actors  
-    int totalRequired: the total number of actors desired for the scene (including any in the 'actors' list); should be at least as large as requiredActors.Length and should not be greater than 5  
-    int malesRequired: (optional: default: -1) minimum number of males desired for the scene, out of totalRequired; specify -1 to ignore the requirement  
-    int femalesRequired: (optional: default: -1) minimum number of females desired for the scene, out of totalRequired; specify -1 to ignore the requirement  
-    float radius: (optional: default: 10000.0) distance in Skyrim distance units to search for actors  
+    Form[]: requiredActors: list of Actors you require to be in the scene, limited to 5; size applies to totalRequired; specify none or an empty list if you have no required actors  
+    int: totalRequired: the total number of actors desired for the scene (including any in the 'actors' list); should be at least as large as requiredActors.Length and should not be greater than 5  
+    int: malesRequired: (optional: default: -1) minimum number of males desired for the scene, out of totalRequired; specify -1 to ignore the requirement  
+    int: femalesRequired: (optional: default: -1) minimum number of females desired for the scene, out of totalRequired; specify -1 to ignore the requirement  
+    float: radius: (optional: default: 10000.0) distance in Skyrim distance units to search for actors  
 
 
 **Example**
@@ -4439,7 +4670,7 @@ Forbids the Actor from joining SexLab scenes.
 
 **Parameters**
 
-    Form actor: the Actor to forbid from joining SexLab scenes  
+    Form: actor: the Actor to forbid from joining SexLab scenes  
 
 
 **Example**
@@ -4452,12 +4683,12 @@ Forbids the Actor from joining SexLab scenes.
 
 **Description**
 
-Returns the float value of the specificed SexLab skill
+Returns: float: the float value of the specificed SexLab skill
 
 **Parameters**
 
-    Form actor: the Actor to query the skill of  
-    string skillId: the SexLab skill ID  
+    Form: actor: the Actor to query the skill of  
+    string: skillId: the SexLab skill ID  
     * Foreplay  
     * Vaginal  
     * Anal  
@@ -4491,7 +4722,7 @@ Returns the float value of the specificed SexLab skill
 
 **Description**
 
-Returns the SexLabFramework API object (from SexLabUtil.GetAPI())
+Returns: Form: the SexLabFramework API object (from SexLabUtil.GetAPI())
 
 
 **Example**
@@ -4504,12 +4735,12 @@ Returns the SexLabFramework API object (from SexLabUtil.GetAPI())
 
 **Description**
 
-Returns the value of the requested SexLab thread property
+Returns: string: the value of the requested SexLab thread property
 
 **Parameters**
 
-    property:  Stage | ActorCount  
-    actor: target Actor  
+    string: property:  Stage | ActorCount  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -4523,19 +4754,19 @@ Returns the value of the requested SexLab thread property
 
 **Description**
 
-Return a random actor within specified range of self
+Returns: Form: a random actor within specified range of self
 
 **Parameters**
 
-    range: (0 - all | >0 - range in Skyrim units)  
-    option: (0 - all | 1 - not in SexLab scene | 2 - must be in SexLab scene) (optional: default 0 - all)  
+    float: range: (0 - all | >0 - range in Skyrim units)  
+    int: option: (0 - all | 1 - not in SexLab scene | 2 - must be in SexLab scene) (optional: default 0 - all)  
 
 
 **Example**
 
     sl_getrndactor 500 2  
     actor_isvalid $actor  
-    if $$ = 0 end  
+    if $$ = false [end]  
     msg_notify "Someone is watching you!"  
     [end]  
 
@@ -4545,7 +4776,7 @@ Return a random actor within specified range of self
 
 **Description**
 
-Returns the SexLab version as an int (from SexLabUtil.GetVersion())
+Returns: int: the SexLab version as an int (from SexLabUtil.GetVersion())
 
 
 **Example**
@@ -4558,7 +4789,7 @@ Returns the SexLab version as an int (from SexLabUtil.GetVersion())
 
 **Description**
 
-Returns the SexLab version as a string (from SexLabUtil.GetStringVer())
+Returns: string: the SexLab version as a string (from SexLabUtil.GetStringVer())
 
 
 **Example**
@@ -4571,12 +4802,12 @@ Returns the SexLab version as a string (from SexLabUtil.GetStringVer())
 
 **Description**
 
-Returns true if the SexLab scene has the specified tag, false otherwise
+Returns: bool: true if the SexLab scene has the specified tag, false otherwise
 
 **Parameters**
 
-    tag: tag name e.g. "Oral", "Anal", "Vaginal"  
-    actor: target Actor  
+    string: tag: tag name e.g. "Oral", "Anal", "Vaginal"  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -4590,11 +4821,11 @@ Returns true if the SexLab scene has the specified tag, false otherwise
 
 **Description**
 
-Returns true if the actor is forbidden from SexLab scenes, false otherwise
+Returns: bool: true if the actor is forbidden from SexLab scenes, false otherwise
 
 **Parameters**
 
-    Form actor: the Actor to query about being forbidden from SexLab scenes  
+    Form: actor: the Actor to query about being forbidden from SexLab scenes  
 
 
 **Example**
@@ -4607,11 +4838,11 @@ Returns true if the actor is forbidden from SexLab scenes, false otherwise
 
 **Description**
 
-Returns true if the actor is valid for SexLab scenes, false otherwise
+Returns: bool: true if the actor is valid for SexLab scenes, false otherwise
 
 **Parameters**
 
-    Form actor: the Actor to determine SexLab scene validity for  
+    Form: actor: the Actor to determine SexLab scene validity for  
 
 
 **Example**
@@ -4624,7 +4855,7 @@ Returns true if the actor is valid for SexLab scenes, false otherwise
 
 **Description**
 
-Returns active status of SexLab (from SexLabUtil.SexLabIsActive()): true if active, false otherwise
+Returns: bool: active status of SexLab (from SexLabUtil.SexLabIsActive()): true if active, false otherwise
 
 
 **Example**
@@ -4637,11 +4868,11 @@ Returns active status of SexLab (from SexLabUtil.SexLabIsActive()): true if acti
 
 **Description**
 
-Returns true if the specified actor is in a SexLab scene, false otherwise
+Returns: bool: true if the specified actor is in a SexLab scene, false otherwise
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -4654,12 +4885,12 @@ Returns true if the specified actor is in a SexLab scene, false otherwise
 
 **Description**
 
-Returns true if the specified actor is in the specified SexLab scene slot, false otherwise
+Returns: bool: true if the specified actor is in the specified SexLab scene slot, false otherwise
 
 **Parameters**
 
-    actor: target Actor  
-    slotnumber: 1-based SexLab thread slot number  
+    Form: actor: target Actor  
+    int: slotnumber: 1-based SexLab thread slot number  
 
 
 **Example**
@@ -4672,7 +4903,7 @@ Returns true if the specified actor is in the specified SexLab scene slot, false
 
 **Description**
 
-Returns ready status of SexLab (from SexLabUtil.SexLabIsReady()): true if ready, false otherwise
+Returns: bool: ready status of SexLab (from SexLabUtil.SexLabIsReady()): true if ready, false otherwise
 
 
 **Example**
@@ -4689,7 +4920,7 @@ Immediately forces the specified actor to have a SexLab orgasm.
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -4704,11 +4935,11 @@ Simultaneous orgasms
 
 **Description**
 
-Starts a SexLab scene and returns the threadid
+Returns: int: Starts a SexLab scene and returns the threadid
 
 **Parameters**
 
-    Form[] list: actors: Form[] list containing the Actors to be in the scene, limited to 5  
+    Form[]: actors: list containing the Actors to be in the scene, limited to 5  
     Form: submissive: Form (Actor) to be the submissive in the scene; specify 'none' if no submissive to be set; must also be in the actors list  
     string: tags: (From the SexLabFramework source) AnimationTags [OPTIONAL], is the list of tags the animation has to have. You can add more than one tag by separating them by commas "," (Example: "Oral, Aggressive, FemDom"), the animations will be collected if they have at least one of the specified tags.  
     bool: allowBed: true to allow bed use, false otherwise  
@@ -4727,51 +4958,56 @@ Starts a SexLab scene and returns the threadid
 
 **Description**
 
-Returns an int value; 1 - if valid, negative values with respective meanings for non-validity
-* -1 = The Actor does not exists (it is None)
-* -10 = The Actor is already part of a SexLab animation
-* -11 = The Actor is forbidden form SexLab animations
-* -12 = The Actor does not have the 3D loaded
-* -13 = The Actor is dead (He's dead Jim.)
-* -14 = The Actor is disabled
-* -15 = The Actor is flying (so it cannot be SexLab animated)
-* -16 = The Actor is on mount (so it cannot be SexLab animated)
-* -17 = The Actor is a creature but creature animations are disabled
-* -18 = The Actor is a creature that is not supported by SexLab
-* -19 = The Actor is a creature but there are no valid animations for this type of creature
+Returns an int value
 
 **Parameters**
 
-    Form actor: the Actor to determine SexLab scene validity for  
+    Form: actor: the Actor to determine SexLab scene validity for  
 
 
 **Example**
 
     sl_validate_actor $targetActor  
 
+1 - if valid, negative values with respective meanings for non-validity  
+-1 = The Actor does not exists (it is None)  
+-10 = The Actor is already part of a SexLab animation  
+-11 = The Actor is forbidden form SexLab animations  
+-12 = The Actor does not have the 3D loaded  
+-13 = The Actor is dead (He's dead Jim.)  
+-14 = The Actor is disabled  
+-15 = The Actor is flying (so it cannot be SexLab animated)  
+-16 = The Actor is on mount (so it cannot be SexLab animated)  
+-17 = The Actor is a creature but creature animations are disabled  
+-18 = The Actor is a creature that is not supported by SexLab  
+-19 = The Actor is a creature but there are no valid animations for this type of creature  
 
 
 ### sl_waitforkbd
 
 **Description**
 
-Returns the keycode pressed after waiting for user to press any of the specified keys or for the end of the SexLab scene
+Returns: int: the keycode pressed after waiting for user to press any of the specified keys or for the end of the SexLab scene
 (See https://ck.uesp.net/wiki/Input_Script for the DXScanCodes)
+Usage 1: sl_waitforkbd <dxscancode> [<dxscancode> ...]
+Usage 2: sl_waitforkbd $keylist ; where $keylist is a int[]
 
 **Parameters**
 
-    actor: target Actor  
-    dxscancode: DXScanCode of key [<DXScanCode of key> ...]  
-    arguments: ALTERNATIVE: <int list>  
+    int: dxscancode: <DXScanCode of key>  
+    int[]: keylist: a list of dxscancode  
 
 
 **Example**
 
     sl_waitforkbd 74 78 181 55  
+    listadd $keystowaitfor 74 78 181 55  
+    sl_waitforkbd $keystowaitfor  
     if $$ = 74 MINUS  
     ...  
     if $$ < 0 END  
 
+; These do the same thing  
 Wait for Num-, Num+, Num/, or Num*, or animation expired, and then do something based on the result.  
 
 
@@ -4783,7 +5019,7 @@ Wait until specified actor is not in SexLab scene
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -4803,8 +5039,8 @@ Applies BonusEnjoyment to the specified actor
 
 **Parameters**
 
-    actor: target Actor  
-    enjoyment: int, 1-100?  
+    Form: actor: target Actor  
+    int: enjoyment: bonus enjoyment to apply  
 
 
 **Example**
@@ -4825,8 +5061,8 @@ Attempts to unlock all devices locked on the actor
 
 **Parameters**
 
-    actor: target Actor  
-    force: "force" to force an unlock, anything else otherwise  
+    Form: actor: target Actor  
+    string: force: "force" to force an unlock, anything else otherwise  
 
 
 **Example**
@@ -4844,9 +5080,9 @@ Attempts to unlock any device in the specified slot
 
 **Parameters**
 
-    actor: target Actor  
-    armorslot: int value armor slot e.g. 32 is body armor  
-    force: "force" to force an unlock, anything else otherwise  
+    Form: actor: target Actor  
+    int: armorslot: int value armor slot e.g. 32 is body armor  
+    string: force: "force" to force an unlock, anything else otherwise  
 
 
 **Example**
@@ -4881,7 +5117,7 @@ Sets current debt to the specified amount
 
 **Parameters**
 
-    newdebt: new debt value  
+    int: newdebt: new debt value  
 
 
 **Example**
@@ -4897,11 +5133,11 @@ We all know what you are going to use it for
 
 **Description**
 
-Returns the days since the actor last had an orgasm as a float
+Returns: float: the days since the actor last had an orgasm as a float
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -4914,7 +5150,7 @@ Returns the days since the actor last had an orgasm as a float
 
 **Description**
 
-Returns the current arousal of the actor as an int
+Returns: int: the current arousal of the actor as an int
 
 **Parameters**
 
@@ -4931,7 +5167,7 @@ Returns the current arousal of the actor as an int
 
 **Description**
 
-Returns the current exposure level of the actor as an int
+Returns: int: the current exposure level of the actor as an int
 
 **Parameters**
 
@@ -4948,7 +5184,7 @@ Returns the current exposure level of the actor as an int
 
 **Description**
 
-Returns the version of SexLabAroused or OSLAroused
+Returns: int: the version of SexLabAroused or OSLAroused
 
 
 **Example**
@@ -4966,8 +5202,8 @@ Sends the "slaUpdateExposure" modevent. No return value.
 
 **Parameters**
 
-    actor: target Actor  
-    exposureAmount: float; amount of exposure update to send  
+    Form: actor: target Actor  
+    float: exposureAmount: amount of exposure update to send  
 
 
 **Example**
@@ -4984,8 +5220,8 @@ Sets the exposure for the target actor and returns the new amount as an int
 
 **Parameters**
 
-    actor: target Actor  
-    exposureAmount: int; amount of exposure update to set  
+    Form: actor: target Actor  
+    int: exposureAmount: amount of exposure update to set  
 
 
 **Example**
@@ -5003,8 +5239,8 @@ This uses the API, not a modevent directly (though the API may still be sending 
 
 **Parameters**
 
-    actor: target Actor  
-    exposureAmount: int; amount of exposure update to apply  
+    Form: actor: target Actor  
+    int: exposureAmount: amount of exposure update to apply  
 
 
 **Example**
@@ -5021,11 +5257,11 @@ This uses the API, not a modevent directly (though the API may still be sending 
 
 **Description**
 
-Returns the actorcount of the OStim scene the targetActor is in; 0 if not in a scene
+Returns: int: the actorcount of the OStim scene the targetActor is in; 0 if not in a scene
 
 **Parameters**
 
-    Actor: targetActor: the actor whose scene you want the actor count from  
+    Form: targetActor: the actor whose scene you want the actor count from  
 
 
 **Example**
@@ -5038,7 +5274,11 @@ Returns the actorcount of the OStim scene the targetActor is in; 0 if not in a s
 
 **Description**
 
-Sets $$ to the current OStim animation name
+Returns: string: the current OStim animation name
+
+**Parameters**
+
+    Form: actor: target Actor  
 
 
 **Example**
@@ -5057,7 +5297,7 @@ May only work during OStim scenes
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
     bool: ignoreStall: (optional; default:false) should the ClimaxStalled setting be ignored  
 
 
@@ -5073,12 +5313,12 @@ Simultaneous orgasms
 
 **Description**
 
-int: Returns the action index if the OStim scene metadata has the specified action, -1 otherwise
+Returns: int: the action index if the OStim scene metadata has the specified action, -1 otherwise
 
 **Parameters**
 
     string: action: action name e.g. "vaginalsex", "analsex", "blowjob"  
-    actor: (optional; default:Player) target Actor  
+    Form: actor: (optional; default: $system.self) target Actor  
 
 
 **Example**
@@ -5092,20 +5332,20 @@ int: Returns the action index if the OStim scene metadata has the specified acti
 
 **Description**
 
-Return a random actor within specified range of self
+Returns: Form: a random actor within specified range of self
 
 **Parameters**
 
-    range: (0 - all | >0 - range in Skyrim units)  
-    option: (0 - all | 1 - not in OStim scene | 2 - must be in OStim scene) (optional: default 0 - all)  
+    float: range: (0 - all | >0 - range in Skyrim units)  
+    int: option: (0 - all | 1 - not in OStim scene | 2 - must be in OStim scene) (optional: default 0 - all)  
 
 
 **Example**
 
     ostim_getrndactor 500 2  
     actor_isvalid $actor  
-    if $$ = 0 end  
-    msg_notify "Someone is watching you!"  
+    if $$ = false [end]  
+    msg_notify "Someone is nearby!"  
     [end]  
 
 
@@ -5114,7 +5354,11 @@ Return a random actor within specified range of self
 
 **Description**
 
-string: returns the SceneID the targetActor is in; "" if not in a scene
+Returns: string: the SceneID the targetActor is in; "" if not in a scene
+
+**Parameters**
+
+    Form: actor: target Actor  
 
 
 **Example**
@@ -5128,7 +5372,11 @@ string: returns the SceneID the targetActor is in; "" if not in a scene
 
 **Description**
 
-int: returns the ThreadID for the OStim thread the target actor is in; -1 if not in a thread
+Returns: int: the ThreadID for the OStim thread the target actor is in; -1 if not in a thread
+
+**Parameters**
+
+    Form: actor: target Actor  
 
 
 **Example**
@@ -5141,12 +5389,12 @@ int: returns the ThreadID for the OStim thread the target actor is in; -1 if not
 
 **Description**
 
-bool: Returns true if the OStim scene metadata has the specified action, false otherwise
+Returns: bool: true if the OStim scene metadata has the specified action, false otherwise
 
 **Parameters**
 
     string: action: action name e.g. "vaginalsex", "analsex", "blowjob"  
-    actor: (optional; default:Player) target Actor  
+    Form: actor: (optional; default: $system.self) target Actor  
 
 
 **Example**
@@ -5160,11 +5408,11 @@ bool: Returns true if the OStim scene metadata has the specified action, false o
 
 **Description**
 
-returns whether the actor is prevented from climaxing
+Returns: bool: whether the actor is prevented from climaxing
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -5177,11 +5425,11 @@ returns whether the actor is prevented from climaxing
 
 **Description**
 
-Sets $$ to true if the specified actor is in a OStim scene, false otherwise
+Returns: bool: true if the specified actor is in a OStim scene, false otherwise
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -5194,12 +5442,12 @@ Sets $$ to true if the specified actor is in a OStim scene, false otherwise
 
 **Description**
 
-Sets $$ to true if the specified actor is in the specified OStim scene slot, false otherwise
+Returns: bool: true if the specified actor is in the specified OStim scene slot, false otherwise
 
 **Parameters**
 
-    actor: target Actor  
-    slotnumber: 1-based OStim actor position number  
+    Form: actor: target Actor  
+    int: slotnumber: 1-based OStim actor position number  
 
 
 **Example**
@@ -5212,11 +5460,11 @@ Sets $$ to true if the specified actor is in the specified OStim scene slot, fal
 
 **Description**
 
-permits this actor to climax again (as in it undoes ostim_stallclimax)
+Permits this actor to climax again (as in it undoes ostim_stallclimax)
 
 **Parameters**
 
-    actor: target Actor  
+    Form actor: target Actor  
 
 
 **Example**
@@ -5229,12 +5477,12 @@ permits this actor to climax again (as in it undoes ostim_stallclimax)
 
 **Description**
 
-prevents this actor from climaxing, including the prevention of auto climax animations
-does not prevent the climaxes of auto climax animations that already started
+Prevents this actor from climaxing, including the prevention of auto climax animations
+Does not prevent the climaxes of auto climax animations that already started
 
 **Parameters**
 
-    actor: target Actor  
+    Form actor: target Actor  
 
 
 **Example**
@@ -5251,7 +5499,7 @@ Wait until specified actor is not in OStim scene
 
 **Parameters**
 
-    actor: target Actor  
+    Form: actor: target Actor  
 
 
 **Example**
@@ -5265,23 +5513,27 @@ Wait until the scene ends
 
 **Description**
 
-Returns the keycode pressed after waiting for user to press any of the specified keys or for the end of the OStim scene
+Returns: int: the keycode pressed after waiting for user to press any of the specified keys or for the end of the OStim scene
 (See https://ck.uesp.net/wiki/Input_Script for the DXScanCodes)
+Usage 1: ostim_waitforkbd <dxscancode> [<dxscancode> ...]
+Usage 2: ostim_waitforkbd $keylist ; where $keylist is a int[]
 
 **Parameters**
 
-    actor: target Actor  
-    dxscancode: DXScanCode of key [<DXScanCode of key> ...]  
-    arguments: ALTERNATIVE: <int list>  
+    int: dxscancode: <DXScanCode of key>  
+    int[]: keylist: a list of dxscancode  
 
 
 **Example**
 
     ostim_waitforkbd 74 78 181 55  
+    listadd $keystowaitfor 74 78 181 55  
+    ostim_waitforkbd $keystowaitfor  
     if $$ = 74 MINUS  
     ...  
     if $$ < 0 END  
 
+; These do the same thing  
 Wait for Num-, Num+, Num/, or Num*, or animation expired, and then do something based on the result.  
 
 
@@ -5443,36 +5695,36 @@ Sets $$ to the result of OSLAroused_ModInterface.SetArousalMultiplier(Actor, flo
 
 **Description**
 
-Returns the integer value representing gender as SLIF knows it.
-* Per SLIF documentation:
-* male            = 0
-* female          = 1
-* shemale         = 2
-* futanari        = 3
-* genderless      = 4
-* male_creature   = 5
-* female_creature = 6
+Returns: int: the integer value representing gender as SLIF knows it.
 
 **Parameters**
 
-    Form actor: the Actor target for the SLIF call  
-    int gender: (optional: default: -1) default gender if not already set; use -1 to let SLIF determine the default  
+    Form: actor: the Actor target for the SLIF call  
+    int: gender: (optional: default: -1) default gender if not already set; use -1 to let SLIF determine the default  
 
 
+Per SLIF documentation:  
+male            = 0  
+female          = 1  
+shemale         = 2  
+futanari        = 3  
+genderless      = 4  
+male_creature   = 5  
+female_creature = 6  
 
 
 ### slif_get_incrvalue
 
 **Description**
 
-Returns the increment value from SLIF for the node on the actor
+Returns: float: the increment value from SLIF for the node on the actor
 
 **Parameters**
 
-    Form actor: the Actor target for the SLIF call  
-    string modName: your modname for SLIF purposes (you could use your script name)  
-    string node: the SLIF node to work with  
-    float default: (optional: default: 0.1) default value to assume if one is not already set  
+    Form: actor: the Actor target for the SLIF call  
+    string: modName: your modname for SLIF purposes (you could use your script name)  
+    string: node: the SLIF node to work with  
+    float: default: (optional: default: 0.1) default value to assume if one is not already set  
 
 
 
@@ -5481,14 +5733,14 @@ Returns the increment value from SLIF for the node on the actor
 
 **Description**
 
-Returns the max value from SLIF for the node on the actor
+Returns: float: the max value from SLIF for the node on the actor
 
 **Parameters**
 
-    Form actor: the Actor target for the SLIF call  
-    string modName: your modname for SLIF purposes (you could use your script name)  
-    string node: the SLIF node to work with  
-    float default: (optional: default: 100.0) default value to assume if one is not already set  
+    Form: actor: the Actor target for the SLIF call  
+    string: modName: your modname for SLIF purposes (you could use your script name)  
+    string: node: the SLIF node to work with  
+    float: default: (optional: default: 100.0) default value to assume if one is not already set  
 
 
 
@@ -5497,14 +5749,14 @@ Returns the max value from SLIF for the node on the actor
 
 **Description**
 
-Returns the min value from SLIF for the node on the actor
+Returns: float: the min value from SLIF for the node on the actor
 
 **Parameters**
 
-    Form actor: the Actor target for the SLIF call  
-    string modName: your modname for SLIF purposes (you could use your script name)  
-    string node: the SLIF node to work with  
-    float default: (optional: default: 0.0) default value to assume if one is not already set  
+    Form: actor: the Actor target for the SLIF call  
+    string: modName: your modname for SLIF purposes (you could use your script name)  
+    string: node: the SLIF node to work with  
+    float: default: (optional: default: 0.0) default value to assume if one is not already set  
 
 
 
@@ -5513,14 +5765,14 @@ Returns the min value from SLIF for the node on the actor
 
 **Description**
 
-Returns the multiplier value from SLIF for the node on the actor
+Returns: float: the multiplier value from SLIF for the node on the actor
 
 **Parameters**
 
-    Form actor: the Actor target for the SLIF call  
-    string modName: your modname for SLIF purposes (you could use your script name)  
-    string node: the SLIF node to work with  
-    float default: (optional: default: 1.0) default value to assume if one is not already set  
+    Form: actor: the Actor target for the SLIF call  
+    string: modName: your modname for SLIF purposes (you could use your script name)  
+    string: node: the SLIF node to work with  
+    float: default: (optional: default: 1.0) default value to assume if one is not already set  
 
 
 
@@ -5529,14 +5781,14 @@ Returns the multiplier value from SLIF for the node on the actor
 
 **Description**
 
-Returns the current value from SLIF for the node on the actor
+Returns: float: the current value from SLIF for the node on the actor
 
 **Parameters**
 
-    Form actor: the Actor target for the SLIF call  
-    string modName: your modname for SLIF purposes (you could use your script name)  
-    string node: the SLIF node to work with  
-    float default: (optional: default: 0.0) default value to assume if one is not already set  
+    Form: actor: the Actor target for the SLIF call  
+    string: modName: your modname for SLIF purposes (you could use your script name)  
+    string: node: the SLIF node to work with  
+    float: default: (optional: default: 0.0) default value to assume if one is not already set  
 
 
 
@@ -5545,7 +5797,7 @@ Returns the current value from SLIF for the node on the actor
 
 **Description**
 
-Returns a numeric version value, reported by SLIF
+Returns: int: a numeric version value, reported by SLIF
 
 
 
@@ -5554,7 +5806,7 @@ Returns a numeric version value, reported by SLIF
 
 **Description**
 
-Returns the version as a string, reported by SLIF
+Returns: string: the version as a string, reported by SLIF
 
 
 
@@ -5567,11 +5819,11 @@ Tells SLIF to hide the node, with an optional hide value to set the scale to
 
 **Parameters**
 
-    Form actor: the Actor target for the SLIF call  
-    string modName: your modname for SLIF purposes (you could use your script name)  
-    string node: the SLIF node to work with  
-    float value: (optional: default: 0.0000001) the value to apply for hiding  
-    string oldModName: (optional: default: "") see SLIF documentation; probably should use ""  
+    Form: actor: the Actor target for the SLIF call  
+    string: modName: your modname for SLIF purposes (you could use your script name)  
+    string: node: the SLIF node to work with  
+    float: value: (optional: default: 0.0000001) the value to apply for hiding  
+    string: oldModName: (optional: default: "") see SLIF documentation; probably should use ""  
 
 
 
@@ -5584,11 +5836,11 @@ Tells SLIF to inflate the actor, on the given node, for the given amount.
 
 **Parameters**
 
-    Form actor: the Actor target for the SLIF call  
-    string modName: your modname for SLIF purposes (you could use your script name)  
-    string node: the SLIF node to work with  
-    float value: the value to apply  
-    string oldModName: (optional: default: "") see SLIF documentation; probably should use ""  
+    Form: actor: the Actor target for the SLIF call  
+    string: modName: your modname for SLIF purposes (you could use your script name)  
+    string: node: the SLIF node to work with  
+    float: value: the value to apply  
+    string: oldModName: (optional: default: "") see SLIF documentation; probably should use ""  
 
 
 
@@ -5597,7 +5849,7 @@ Tells SLIF to inflate the actor, on the given node, for the given amount.
 
 **Description**
 
-Returns true if SLIF is in maintenance mode, false otherwise
+Returns: bool: true if SLIF is in maintenance mode, false otherwise
 
 
 
@@ -5606,7 +5858,7 @@ Returns true if SLIF is in maintenance mode, false otherwise
 
 **Description**
 
-Returns true if SLIF is installed, false otherwise
+Returns: bool: true if SLIF is installed, false otherwise
 
 
 
@@ -5615,12 +5867,12 @@ Returns true if SLIF is installed, false otherwise
 
 **Description**
 
-Returns true if the SLIF node is hidden on the actor, false otherwise
+Returns: bool: true if the SLIF node is hidden on the actor, false otherwise
 
 **Parameters**
 
-    Form actor: the Actor target for the SLIF call  
-    string node: the SLIF node to work with  
+    Form: actor: the Actor target for the SLIF call  
+    string: node: the SLIF node to work with  
 
 
 
@@ -5629,7 +5881,7 @@ Returns true if the SLIF node is hidden on the actor, false otherwise
 
 **Description**
 
-Returns true if SLIF is updating, false otherwise
+Returns: bool: true if SLIF is updating, false otherwise
 
 
 
@@ -5638,7 +5890,7 @@ Returns true if SLIF is updating, false otherwise
 
 **Description**
 
-Returns true if SLIF is working, false otherwise
+Returns: bool: true if SLIF is working, false otherwise
 
 
 
@@ -5651,14 +5903,14 @@ Tells SLIF to register the actor. SLIF automatically registers on first inflate 
 
 **Parameters**
 
-    Form actor: the Actor target for the SLIF call  
-    string modName: your modname for SLIF purposes (you could use your script name)  
-    string node: (optional: default: "") the SLIF node to work with  
-    string oldModName: (optional: default: "") see SLIF documentation; probably should use ""  
-    float min: (optional: default: -1.0) min value  
-    float max: (optional: default: -1.0) max value  
-    float multiplier: (optional: default: -1.0) multiplier value  
-    float increment: (optional: default: -1.0) increment value  
+    Form: actor: the Actor target for the SLIF call  
+    string: modName: your modname for SLIF purposes (you could use your script name)  
+    string: node: (optional: default: "") the SLIF node to work with  
+    string: oldModName: (optional: default: "") see SLIF documentation; probably should use ""  
+    float: min: (optional: default: -1.0) min value  
+    float: max: (optional: default: -1.0) max value  
+    float: multiplier: (optional: default: -1.0) multiplier value  
+    float: increment: (optional: default: -1.0) increment value  
 
 
 
@@ -5671,15 +5923,15 @@ Resets the SLIF actor, with optional overrides for various settings
 
 **Parameters**
 
-    Form actor: the Actor target for the SLIF call  
-    string modName: your modname for SLIF purposes (you could use your script name)  
-    string node: (optional: default: "") the SLIF node to reset  
-    float value: (optional: default: 1.0) the value to apply to reset to  
-    string oldModName: (optional: default: "") see SLIF documentation; probably should use ""  
-    float min: (optional: default: -1.0) min value  
-    float max: (optional: default: -1.0) max value  
-    float multiplier: (optional: default: -1.0) multiplier value  
-    float increment: (optional: default: -1.0) increment value  
+    Form: actor: the Actor target for the SLIF call  
+    string: modName: your modname for SLIF purposes (you could use your script name)  
+    string: node: (optional: default: "") the SLIF node to reset  
+    float: value: (optional: default: 1.0) the value to apply to reset to  
+    string: oldModName: (optional: default: "") see SLIF documentation; probably should use ""  
+    float: min: (optional: default: -1.0) min value  
+    float: max: (optional: default: -1.0) max value  
+    float: multiplier: (optional: default: -1.0) multiplier value  
+    float: increment: (optional: default: -1.0) increment value  
 
 
 
@@ -5692,13 +5944,13 @@ Sets the default values for SLIF for the node on the actor
 
 **Parameters**
 
-    Form actor: the Actor target for the SLIF call  
-    string modName: your modname for SLIF purposes (you could use your script name)  
-    string node: the SLIF node to work with  
-    float min: (optional: default: 0.0) default min value if one is not specified  
-    float max: (optional: default: 100.0) default max value if one is not specified  
-    float multiplier: (optional: default: 1.0) default multiplier value if one is not specified  
-    float increment: (optional: default: 0.1) default increment value if one is not specified  
+    Form: actor: the Actor target for the SLIF call  
+    string: modName: your modname for SLIF purposes (you could use your script name)  
+    string: node: the SLIF node to work with  
+    float: min: (optional: default: 0.0) default min value if one is not specified  
+    float: max: (optional: default: 100.0) default max value if one is not specified  
+    float: multiplier: (optional: default: 1.0) default multiplier value if one is not specified  
+    float: increment: (optional: default: 0.1) default increment value if one is not specified  
 
 
 
@@ -5711,9 +5963,9 @@ Tells SLIF to show the node if it was previously hidden
 
 **Parameters**
 
-    Form actor: the Actor target for the SLIF call  
-    string modName: your modname for SLIF purposes (you could use your script name)  
-    string node: the SLIF node to work with  
+    Form: actor: the Actor target for the SLIF call  
+    string: modName: your modname for SLIF purposes (you could use your script name)  
+    string: node: the SLIF node to work with  
 
 
 
@@ -5726,8 +5978,8 @@ Tells SLIF to unregister the actor
 
 **Parameters**
 
-    Form actor: the Actor target for the SLIF call  
-    string modName: your modname for SLIF purposes (you could use your script name)  
+    Form: actor: the Actor target for the SLIF call  
+    string: modName: your modname for SLIF purposes (you could use your script name)  
 
 
 
@@ -5740,14 +5992,14 @@ Tells SLIF to update the actor
 
 **Parameters**
 
-    Form actor: the Actor target for the SLIF call  
-    string modName: your modname for SLIF purposes (you could use your script name)  
-    string node: (optional: default: "") the SLIF node to update  
-    string oldModName: (optional: default: "") see SLIF documentation; probably should use ""  
-    float min: (optional: default: -1.0) min value  
-    float max: (optional: default: -1.0) max value  
-    float multiplier: (optional: default: -1.0) multiplier value  
-    float increment: (optional: default: -1.0) increment value  
+    Form: actor: the Actor target for the SLIF call  
+    string: modName: your modname for SLIF purposes (you could use your script name)  
+    string: node: (optional: default: "") the SLIF node to update  
+    string: oldModName: (optional: default: "") see SLIF documentation; probably should use ""  
+    float: min: (optional: default: -1.0) min value  
+    float: max: (optional: default: -1.0) max value  
+    float: multiplier: (optional: default: -1.0) multiplier value  
+    float: increment: (optional: default: -1.0) increment value  
 
 
 
