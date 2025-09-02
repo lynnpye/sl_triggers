@@ -8,9 +8,6 @@ import sl_triggersStatics
 
 FormList Property				ContainerBlacklist Auto ; so many naming schemes to choose from
 
-string	EVENT_TOP_OF_THE_HOUR					= "TopOfTheHour"
-string	EVENT_TOP_OF_THE_HOUR_HANDLER			= "OnTopOfTheHour"
-
 int		EVENT_ID_KEYMAPPING 					= 1
 int		EVENT_ID_TOP_OF_THE_HOUR				= 2
 int  	EVENT_ID_NEW_SESSION					= 3
@@ -26,10 +23,6 @@ int		EVENT_ID_FAST_TRAVEL					= 12
 int		EVENT_ID_VAMPIRISM						= 13
 int		EVENT_ID_LYCANTHROPY					= 14
 int 	EVENT_ID_VAMPIRE_FEEDING				= 15
-
-
-; legacy, used for updates
-int		DEPRECATED_EVENT_ID_PLAYER_LOADING_SCREEN			= 5
 
 string ATTR_MOD_VERSION						= "__slt_mod_version__"
 string ATTR_EVENT							= "event"
@@ -102,7 +95,6 @@ string[]	triggerKeys_topOfTheHour
 string[]	triggerKeys_keyDown
 string[]	triggerKeys_newSession
 string[]	triggerKeys_playercellchange
-;string[]	triggerKeys_playerloadingscreen
 string[]	triggerKeys_container
 string[]	triggerKeys_location_change
 string[]	triggerKeys_equipment_change
@@ -178,18 +170,11 @@ Function PopulatePerk()
 		SLTErrMsg("Core.PopulatePerk: SLTRContainerPerk is not filled; Container activation tracking disabled; this is probably an error")
 	else
 		If !PlayerRef.HasPerk(SLT.SLTRContainerPerk)
-			;SLTDebugMsg("Core.OnUpdate: Adding SLTRContainerPerk to PlayerRef")
 			PlayerRef.AddPerk(SLT.SLTRContainerPerk)
 
 			If !PlayerRef.HasPerk(SLT.SLTRContainerPerk)
 				SLTErrMsg("Core.PopulatePerk: SLTRContainerPerk is not present on PlayerRef even after validation; Container activation tracking disabled; this is probably an error")
-			else
-				;SLTInfoMsg("Core.PopulatePerk: Registering/1 for OnSLTRPlayerContainerActivate")
-				;SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE(), EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE())
 			Endif
-		else
-			;SLTInfoMsg("Core.PopulatePerk: Registering/2 for OnSLTRContainerActivate")
-			;SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE(), EVENT_SLTR_ON_PLAYER_CONTAINER_ACTIVATE())
 		Endif
 	Endif
 EndFunction
@@ -200,11 +185,6 @@ Function SLTReady()
 	endif
 
 	PopulatePerk()
-	;/
-	if SLT.Debug_Extension_Core
-		SLTDebugMsg("CoreCurrentState [" + CoreCurrentState + "](" + CS_ToString(CoreCurrentState) + ")")
-	endif
-	/;
 	
 	_keystates = PapyrusUtil.BoolArray(256, false)
 
@@ -319,7 +299,8 @@ Event OnUpdateGameTime()
 			If (SLT.Debug_Extension_Core_TopOfTheHour)
 				SLTDebugMsg("Core.OnUpdateGameTime: sending mod event EVENT_TOP_OF_THE_HOUR; currentTime(" + currentTime + ") NextTopOfTheHour(" + NextTopOfTheHour + ")")
 			EndIf
-			SendModEvent(EVENT_TOP_OF_THE_HOUR, "", tohElapsedTime)
+			
+			SendModEvent("TopOfTheHour", "", tohElapsedTime)
 			AlignToNextHour(currentTime)
 		else
 			float deltaWait = (NextTopOfTheHour - currentTime) * 24.0 * 1.04
@@ -357,7 +338,6 @@ Event OnTopOfTheHour(String eventName, string strArg, Float fltArg, Form sender)
 	EndIf
 	
 	HandleTopOfTheHour()
-	;checkEvents(-1, 4, PlayerRef)
 EndEvent
 
 Event OnKeyUp(int KeyCode, float holdTime)
@@ -556,7 +536,6 @@ Function RefreshTriggerCache()
 	triggerKeys_keyDown					= PapyrusUtil.StringArray(0)
 	triggerKeys_newSession				= PapyrusUtil.StringArray(0)
 	triggerKeys_playercellchange		= PapyrusUtil.StringArray(0)
-	;triggerKeys_playerloadingscreen		= PapyrusUtil.StringArray(0)
 	triggerKeys_container				= PapyrusUtil.StringArray(0)
 	triggerKeys_location_change			= PapyrusUtil.StringArray(0)
 	triggerKeys_equipment_change		= PapyrusUtil.StringArray(0)
@@ -598,7 +577,7 @@ Function RefreshTriggerCache()
 		if !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
 			int eventCode = JsonUtil.GetIntValue(_triggerFile, ATTR_EVENT)
 	
-			if eventCode == EVENT_ID_TOP_OF_THE_HOUR ; topofthehour
+			if eventCode == EVENT_ID_TOP_OF_THE_HOUR
 				triggerKeys_topOfTheHour = 			PapyrusUtil.PushString(triggerKeys_topOfTheHour, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_KEYMAPPING
 				triggerKeys_keyDown = 				PapyrusUtil.PushString(triggerKeys_keyDown, TriggerKeys[i])
@@ -691,7 +670,6 @@ Function RefreshTriggerCache()
 	endwhile
 
 	_keycodes_of_interest = PapyrusUtil.IntArray(0)
-	;_keycode_status = PapyrusUtil.BoolArray(0)
 	if triggerKeys_keyDown.Length > 0
 		If (!__checked_modifier_keys.Length)
 			__checked_modifier_keys = new int[6]
@@ -723,7 +701,6 @@ Function RefreshTriggerCache()
 			i += 1
 		endwhile
 		_keycodes_of_interest = PapyrusUtil.MergeIntArray(_keycodes_of_interest, CheckedModifierKeys, true)
-		;_keycode_status = PapyrusUtil.BoolArray(_keycodes_of_interest.Length)
 	endif
 	if SLT.Debug_Extension_Core_Keymapping
 		SLTDebugMsg("Core.RefreshTriggerCache: triggerKeys_keyDown.Length(" + triggerKeys_keyDown.Length + ")  _keycodes_of_interest.Length(" + _keycodes_of_interest.Length + ")")
@@ -791,10 +768,10 @@ Function RegisterEvents()
 		SafeRegisterForModEvent_Quest(self, EVENT_SLT_ON_NEW_SESSION(), "OnSLTNewSession")
 	endif
 
-	UnregisterForModEvent(EVENT_TOP_OF_THE_HOUR)
+	UnregisterForModEvent("TopOfTheHour")
 	handlingTopOfTheHour = false
 	if triggerKeys_topOfTheHour.Length > 0
-		SafeRegisterForModEvent_Quest(self, EVENT_TOP_OF_THE_HOUR, EVENT_TOP_OF_THE_HOUR_HANDLER)
+		SafeRegisterForModEvent_Quest(self, "TopOfTheHour", "OnTopOfTheHour")
 		AlignToNextHour(SLT.GetTheGameTime())
 		handlingTopOfTheHour = true
 	endif
