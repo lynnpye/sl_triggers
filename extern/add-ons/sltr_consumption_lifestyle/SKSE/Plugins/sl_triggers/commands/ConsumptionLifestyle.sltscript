@@ -10,7 +10,6 @@ beginsub consumecheck
 endsub
 
 set $playerName resultfrom actor_name $system.player
-deb_msg $"Scanning {$playerName} inventory for that consumption lifestyle."
 
 set $foundItems 0
 set $consumedItems 0
@@ -46,5 +45,3 @@ set $checkFormID "TFEWaistPotion"
 gosub consumecheck
 set $checkFormID "TFEBellyPotion"
 gosub consumecheck
-
-deb_msg $"Done scanning for that consumption lifestyle; found {$foundItems} consumables; consumed {$consumedItems}."
