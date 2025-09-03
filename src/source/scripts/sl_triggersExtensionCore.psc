@@ -366,7 +366,7 @@ Event OnKeyDown(Int KeyCode)
 	If !IsEnabled
 		SLTWarnMsg("Not enabled yet, exiting OnKeyDown early")
 	else
-		HandleOnKeyDown()
+		HandleOnKeyDown(KeyCode)
 	Endif
 EndEvent
 
@@ -1216,7 +1216,7 @@ Function HandleTopOfTheHour()
 	endwhile
 EndFunction
 
-Function HandleOnKeyDown()
+Function HandleOnKeyDown(int keyPressed)
 	if SLT.Debug_Extension_Core || SLT.Debug_Extension_Core_Keymapping
 		SLTDebugMsg("Core.HandleOnKeyDown: starting")
 	endif
@@ -1227,6 +1227,7 @@ Function HandleOnKeyDown()
 	int i = 0
 	bool doRun
 	bool dakused
+	bool checkedModifierKeyDetected
 	int ival
 	int statusidx
 	string value
@@ -1245,6 +1246,7 @@ Function HandleOnKeyDown()
 		endif
 		
 		dakused = false
+		hasModifierKey = false
 		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
 		
 		if SLT.Debug_Extension_Core_Keymapping
@@ -1259,10 +1261,9 @@ Function HandleOnKeyDown()
 			;if statusidx < 0
 			;	doRun = false
 			;else
-			if ival > 0
+			if ival != keyPressed
 				;doRun = _keycode_status[statusidx]
-				doRun = _keystates[ival]
-				hasModifierKey = false
+				doRun = false
 			endif
 		
 			if SLT.Debug_Extension_Core_Keymapping
@@ -1308,7 +1309,15 @@ Function HandleOnKeyDown()
 			; do not run if no modifier key was specified but one was pressed
 			; we check:
 			; L CTRL/29, R CTRL/157, L ALT/56, R ALT/184, L SHIFT/42, R SHIFT/54
-			If (_keystates[29] || _keystates[157] || _keystates[56] || _keystates[184] || _keystates[42] || _keystates[54])
+			ival = __checked_modifier_keys.Length
+			checkedModifierKeyDetected = false
+			while ival > 0 && !checkedModifierKeyDetected
+				ival -= 1
+				if _keystates[__checked_modifier_keys[ival]]
+					checkedModifierKeyDetected = true
+				endif
+			endwhile
+			If (checkedModifierKeyDetected)
 				if SLT.Debug_Extension_Core_Keymapping
 					SLTDebugMsg("Core.HandleOnKeyDown: no modifier key requested, but one is pressed; negating run request for trigger (" + _triggerFile + ")")
 				endif

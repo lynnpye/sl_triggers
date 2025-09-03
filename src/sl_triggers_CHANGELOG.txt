@@ -2,6 +2,7 @@
     Savegame compatible
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
         (or whichever folder you have your SKSE logs directed to)
+    bugfix: Keymapping intermittent unresponsiveness
     enhancement: added weapon_doaction/weapon_dogetter/weapon_doconsumer/weapon_dofunction to implement Weapon related functions
     enhancement: added script: "Show Limited RaceMenu.sltscript" - shows the limited Race selection menu, which has race and sex options removed (like Vanity Mirror mod)
     documentation: numerous documentation improvements and standardizations
