@@ -49,3 +49,4 @@ gosub checksub
 set $checkFormID "TFEBellyPotion"
 gosub checksub
 
+call "ConsumptionLifestyle"
