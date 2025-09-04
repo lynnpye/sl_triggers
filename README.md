@@ -41,7 +41,7 @@ Events that occur in game (SexLab orgasm, Key press, Fast Travel) can be configu
   - Top of the Hour (triggers on the in-game hour (or on the next such hour after sleep or travel))
   - New Session (triggers on each new game load)
   - Player Cell Change (triggers on each Cell change; this happens more frequently than you might think, so be careful about heavy scripts with this, and protect against spamming i.e. player running back and forth across cell boundaries could generate spammed script executions)
-  - Player Closed Container (triggers after a Player closes a container)
+  - Player Opened Container (triggers after a Player opens a container; depending on timing of the backing ActiveMagicEffect landing, might not run until after the container is closed)
   - Player Location Change (triggers on each Location change; typically much less frequent than Cell change)
   - Player Equipment Change (triggers when the player swaps equipment)
   - Player Combat State Changed (triggers when the Player's combat status changes)

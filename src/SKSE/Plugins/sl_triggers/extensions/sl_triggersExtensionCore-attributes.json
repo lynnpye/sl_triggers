@@ -51,7 +51,7 @@
     "triggerattribute_event" : [
         ["# here is where you define aspects of the attribute"],
         ["type", "int"],
-        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Key Mapping", "Top of the Hour", "New Session", "Player Cell Change (Frequent)", "Player Closed Container", "Player Location Change (Less Frequent)", "Player Equipment Change", "Player Combat State Changed", "Player Hit or Is Hit", "Timer Based", "Harvesting", "Fast Travel Arrival", "Vampirism Transitions", "Werewolf Transitions", "Vampire Feeding"],
+        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Key Mapping", "Top of the Hour", "New Session", "Player Cell Change (Frequent)", "Player Opened Container", "Player Location Change (Less Frequent)", "Player Equipment Change", "Player Combat State Changed", "Player Hit or Is Hit", "Timer Based", "Harvesting", "Fast Travel Arrival", "Vampirism Transitions", "Werewolf Transitions", "Vampire Feeding"],
         ["info", "Choose which type of event this trigger will use."]
     ],
     "triggerattribute_keymapping" : 
