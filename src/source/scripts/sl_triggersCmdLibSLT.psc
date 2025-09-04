@@ -679,7 +679,7 @@ function item_remove(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string
                 if param.Length > 4
                     isSilent = CmdPrimary.ResolveBool(param[4])
                     if param.Length > 5
-                        akOtherContainer = CmdPrimary.ResolveForm(param[5]) as ObjectReference
+                        akOtherContainer = CmdPrimary.ResolveObjRef(param[5])
                         if !akOtherContainer
                             CmdPrimary.SFW("item_remove: unable to resolve target container (ObjectReference) from (param 5)(" + param[5] + "); continuing with 'none', check the ground?")
                         endif
