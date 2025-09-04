@@ -81,6 +81,8 @@ goto end
 
 [handleMercy]
 util_sendevent "PetCollarManipulate" "form" $system.self "form" $system.player "int" 10
+util_wait 1.0
+item_remove $system.player $petCollarFormID 1 true
 
 set $mercybase	resultfrom json_getvalue $petCollarGameData "int" "mercybase"	20
 
@@ -126,7 +128,7 @@ deb_msg "PetCollarGame: ending due to without a follower"
 goto end
 
 [endIsNotPlayer]
-deb_msg "PetCollarGame: ending due to $self is not $player"
+deb_msg "PetCollarGame: ending due to not targeting the player"
 goto end
 
 [end]

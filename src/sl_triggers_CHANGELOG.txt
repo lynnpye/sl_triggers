@@ -5,6 +5,7 @@
     bugfix: Keymapping intermittent unresponsiveness
     enhancement: added weapon_doaction/weapon_dogetter/weapon_doconsumer/weapon_dofunction to implement Weapon related functions
     enhancement: added script: "Show Limited RaceMenu.sltscript" - shows the limited Race selection menu, which has race and sex options removed (like Vanity Mirror mod)
+    change: PetCollarGame: remove collar from player inventory with 1 sec delay after sending manipulate event to PetCollar mod to unequip
     change: reduced log chatter for "ConsumptionLifestyle"
     documentation: numerous documentation improvements and standardizations
 
