@@ -65,6 +65,24 @@ Events that occur in game (SexLab orgasm, Key press, Fast Travel) can be configu
   - Orgasm
   - SceneChange
 
+# Scripts Provided
+These are some of the SLTScripts provided out of the box with just the Core install. That means you can run any of them from the console, or in response to any trigger, with no additional configuration. Making more SLTScripts available is simple; add them to your 'Data/SKSE/Plugins/sl_triggers/commands/' folder and on your next game launch you will see them. The 'target' of a script might be someone other than the player i.e. if you target them when using the console commands or if an event fires that targets them, like SexLab Separate Orgasm.
+- Example Scripts part of Core:
+  - Add Perk Point - adds 1 perk point
+  - Alcohol - feeds the player 1 random alcoholic drink
+  - Cast Calm - casts Apprentice level Calm spell on target
+  - Cast Light - casts Light spell on target
+  - Change stats (bad) - randomly modifies the Health, Magicka, and Stamina of the target by up to -10 (i.e. negative modifier to max)
+  - Change stats (good) - randomly modifies the Health, Magicka, and Stamina of the target by up to 10 (i.e. positive modifier to max)
+  - CureDisease - casts "Cure Disease" on the target
+  - Harm/Heal (-100/+100) - performs damage or healing as indicated on the target
+  - Show Limited RaceMenu - shows the "limited" racemenu, allowing modifying of RaceMenu settings besides Race and Sex (similar to Vanity Mirror)
+
+# Add-Ons/Mini-Games Available
+These are add-on packs or mini-games implemented through SLTR. These may alter gameplay or introduce new mechanics. Typically these involve combinations of SLTScripts, pre-built triggers, and sometimes configuration files.
+- PetCollar Game - (Requires: SexLab, PetCollar; Contents: SLTScript, trigger, JSON) At the start of SexLab scenes, your followers will (somewhat) randomly choose to equip and unequip the "Keyless Pet Collar" from the PetCollar mod. This is the one which cannot be picked or removed by the wearer.
+- Consumption Lifestyle - (Requires: Transformative Elixirs; contents: SLTScript, trigger) When the non-stealth varieties of Transformative Elixirs appear in containers the player interacts with, they will automatically pull them into their inventory and consume them. Additionally, a periodic timer will run which will look for these items and consume them.
+
 # Speaking of Copyright and Licensing / Attribution
 All work associated with "SL Triggers Redux" aka "SLTR" aka "SLT" (in relation to it's origin) is derived from [the original, SL Triggers, by Fotogen](https://www.loverslab.com/files/file/8760-sl-triggersv12-2022-06-05/). I received approval to continue development. More info available on the [SLT Wiki](https://github.com/lynnpye/sl_triggers/wiki).
 
