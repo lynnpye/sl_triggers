@@ -363,10 +363,10 @@ Event OnKeyDown(Int KeyCode)
 		SLTDebugMsg("Core.OnKeyDown: key(" + KeyCode + ")")
 	EndIf
 	
-	If !IsEnabled
-		SLTWarnMsg("Not enabled yet, exiting OnKeyDown early")
-	else
+	If IsEnabled
 		HandleOnKeyDown(KeyCode)
+	ElseIf SLT.Debug_Extension_Core_Keymapping
+		SLTWarnMsg("Core.OnKeyDown: Not enabled yet, exiting OnKeyDown early")
 	Endif
 EndEvent
 
