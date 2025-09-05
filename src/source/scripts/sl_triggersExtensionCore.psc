@@ -112,6 +112,8 @@ string[]	common_container_names
 float[]		timer_next_run_time
 float[]		timer_delays
 float 		_lastRealTimeTimerProcessed
+bool 		isPlayerSwimming
+float		playerSwimStart
 
 bool Function IsMCMConfigurable()
 	return true
@@ -404,6 +406,29 @@ Event OnSLTRHarvesting(ObjectReference harvestSource)
 			if acti
 				HandleHarvesting(harvestSource)
 			endif
+		endif
+	endif
+EndEvent
+
+Event OnAnimationEvent(ObjectReference akSource, string asEventName)
+	bool flagSaysSwimming = (akSource as Actor).IsSwimming()
+	if asEventName == "SoundPlay.FSTSwimSwim" || asEventName == "SoundPlay.FSTSwimTread" || asEventName == "SoundPlay"
+		if !isPlayerSwimming
+			isPlayerSwimming = true
+			playerSwimStart = Utility.GetCurrentGameTime()
+		endif
+
+		if flagSaysSwimming != isPlayerSwimming
+			SLTErrMsg("Swimming: discrepancy: flag: false, anim: true")
+		endif
+	elseif asEventName == "MTState"
+		if isPlayerSwimming
+			isPlayerSwimming = false
+			playerSwimStart = 0.0
+		endif
+
+		if flagSaysSwimming != isPlayerSwimming
+			SLTErrMsg("Swimming: discrepancy: flag: true, anim: false")
 		endif
 	endif
 EndEvent
@@ -802,6 +827,16 @@ Function RegisterEvents()
 	else
 		SLTDebugMsg("Core.RegisterEvents: failed/2 to register OnSLTRContainerActivate: IsEnabled(" + IsEnabled + ") / SLT.SLTRContainerPerk(" + SLT.SLTRContainerPerk + ") / PlayerRef(" + PlayerRef + ") / PlayerRef.HasPerk(" + (SLT && SLT.SLTRContainerPerk && PlayerRef && PlayerRef.HasPerk(SLT.SLTRContainerPerk)) + ")")
 	EndIf
+
+	UnregisterForAnimationEvent(SLT.PlayerRef, "MTState")
+	UnregisterForAnimationEvent(SLT.PlayerRef, "SoundPlay")
+	UnregisterForAnimationEvent(SLT.PlayerRef, "SoundPlay.FSTSwimSwim")
+	UnregisterForAnimationEvent(SLT.PlayerRef, "SoundPlay.FSTSwimTread")
+
+	RegisterForAnimationEvent(SLT.PlayerRef, "MTState")
+	RegisterForAnimationEvent(SLT.PlayerRef, "SoundPlay")
+	RegisterForAnimationEvent(SLT.PlayerRef, "SoundPlay.FSTSwimSwim")
+	RegisterForAnimationEvent(SLT.PlayerRef, "SoundPlay.FSTSwimTread")
 
 	UnregisterForModEvent(EVENT_SLTR_ON_PLAYER_EQUIP())
 	if triggerKeys_equipment_change.Length > 0
