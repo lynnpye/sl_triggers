@@ -822,7 +822,7 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 					if ival != 0 ; 0 is Any
 						if ival == 1 && otherMales == 0
 							doRun = false
-						elseIf ival == 2 && !otherFemales == 0
+						elseIf ival == 2 && otherFemales == 0
 							doRun = false
 						endIf
 					endIf

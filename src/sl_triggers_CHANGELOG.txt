@@ -1,8 +1,9 @@
-0.920
+0.930
     Savegame compatible
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
         (or whichever folder you have your SKSE logs directed to)
     bugfix: Keymapping intermittent unresponsiveness
+    bugfix: OStim: Partner Sex: Female; fails due to logic error
     enhancement: added weapon_doaction/weapon_dogetter/weapon_doconsumer/weapon_dofunction to implement Weapon related functions
     enhancement: added script: "Show Limited RaceMenu.sltscript" - shows the limited Race selection menu, which has race and sex options removed (like Vanity Mirror mod)
     change: PetCollarGame: remove collar from player inventory with 1 sec delay after sending manipulate event to PetCollar mod to unequip
