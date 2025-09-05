@@ -1,7 +1,7 @@
 <fomod> 
 	<Name>SLTriggers Redux</Name> 
 	<Author>Lynn Pye/hextun</Author> 
-	<Version>0.930</Version> 
+	<Version>0.940</Version> 
 	<Website>https://github.com/lynnpye/sl_triggers</Website> 
 	<Description>Run scripts, in response to event triggers, that can interact with game and mod APIs and objects. Create mini-games, patches, or other unique experiences.
 Write your own scripts, too! Share with fellow modders! No compiling needed!
