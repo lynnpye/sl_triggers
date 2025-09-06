@@ -3,6 +3,7 @@
         (or whichever folder you have your SKSE logs directed to)
     bugfix: LICENSE update; replaced unmodified copied template with correct names and license info for source code
     change: Harvesting trigger now uses TESHarvestedEvent instead of a custom TESActivatedEvent; should improve performance, but some harvests are not detected by default (e.g. some bugs and fish)
+        - I might revert this
     enhancement: new Core trigger: Player Swim Start/Stop
     enhancement: new Core trigger: Player Enter/Exit Water
     enhancement: new Core trigger: Soul Trap
