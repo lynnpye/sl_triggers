@@ -7,6 +7,7 @@ version_pet_collar_game :=      read('extern/add-ons/sltr_pet_collar_game/VERSIO
 
 dir_project :=                  source_directory()
 dir_dep :=                      dir_project / "deployables"
+dir_docs :=                     dir_project / "docs"
 dir_project_extern :=           dir_project / "extern"
 dir_project_addons :=           dir_project_extern / "add-ons"
 dir_pet_collar_game :=          dir_project_addons / "sltr_pet_collar_game"
@@ -62,6 +63,9 @@ dir_test_nef :=                 dir_modlistinstalls / "NEFARAM.15.4.2" / "mods" 
 dir_nef_plugins :=              dir_test_nef / "SKSE" / "Plugins"
 dir_sltr_test_scripts :=        dir_project_addons / "sltr_test_scripts"
 
+file_docs_Scripts_md :=         dir_docs / "Scripts.md"
+file_src_sltscripts_md :=       dir_project_src / "sl_triggers_sltscripts.md"
+
 file_fomod_info_xml :=          dir_fomod_fomod / "info.xml"
 
 file_catchup_exclusion :=       dir_project / "catchup_exclusion.txt"
@@ -105,6 +109,9 @@ raw_dir_pex_lib_ostim :=        replace(dir_pexout_lib_ostim,           '/', '\'
 raw_dir_pex_lib_sexlab :=       replace(dir_pexout_lib_sexlab,          '/', '\')
 raw_dir_pex_lib_sexlabplusplus := replace(dir_pexout_lib_sexlabplusplus,'/', '\')
 
+raw_file_Scripts_md :=          replace(file_docs_Scripts_md,           '/', '\')
+raw_file_sltscripts_md :=       replace(file_src_sltscripts_md,         '/', '\')
+
 raw_file_dep_mod :=             replace(file_dep_mod,                   '/', '\')
 raw_file_pet_collar_game :=     replace(file_dep_pet_collar_game,       '/', '\')
 raw_file_test_scripts :=        replace(file_dep_test_scripts,          '/', '\')
@@ -129,6 +136,9 @@ str_dir_project_sltr_caprica := replace("\"" + dir_project_sltr_caprica + "\\\""
 str_dir_project_peximport :=    replace("\"" + dir_project_sltr_peximport + "\\\"",     '/', '\')
 str_dir_project_scripts :=      replace("\"" + dir_project_scripts + "\\\"",            '/', '\')
 str_dir_project_headers :=      replace("\"" + dir_project_headers + "\\\"",            '/', '\')
+
+str_file_Scripts_md :=          replace("\"" + file_docs_Scripts_md + "\"",             '/', '\')
+str_file_sltscripts_md :=       replace("\"" + file_src_sltscripts_md + "\"",           '/', '\')
 
 str_file_catchup_exclusion :=   replace("\"" + file_catchup_exclusion + "\"",           '/', '\')
 str_file_plugin_release :=      replace("\"" + file_plugin_release + "\"",              '/', '\')
@@ -199,6 +209,7 @@ generatedocs:
     jcx SltParser "./extern/libraries/sexlab-dependent/sl_triggers_function_library_sexlab_dependent" "SexLab Dependent Function Library" "./extern/libraries/sexlab-dependent/source/scripts/sl_triggersCmdLibSexLabDependent.psc"
     jcx SltParser "./extern/libraries/sexlabplusplus/sl_triggers_function_library_sexlab" "SexLab P+ Function Library" "./extern/libraries/sexlabplusplus/source/scripts/sl_triggersCmdLibSexLab.psc"
     jcx SltParser "./extern/libraries/adult-general/sl_triggers_function_library_adult_general" "Adult General Function Library" "./extern/libraries/adult-general/source/scripts/sl_triggersCmdLibOSLAroused.psc" "./extern/libraries/adult-general/source/scripts/sl_triggersCmdLibSLIF.psc"
+    xcopy /y {{str_file_Scripts_md}} {{str_file_sltscripts_md}}
     Get-Content "./src/sl_triggers_function_library.md" , "./extern/libraries/sexlabplusplus/sl_triggers_function_library_sexlab.md" , "./extern/libraries/sexlab/sl_triggers_function_library_sexlab.md" , "./extern/libraries/sexlab-dependent/sl_triggers_function_library_sexlab_dependent.md" , "./extern/libraries/ostim/sl_triggers_function_library_ostim.md" , "./extern/libraries/adult-general/sl_triggers_function_library_adult_general.md" | Set-Content "./docs/Function_Libraries.md"
 
 packagefomod:

@@ -298,7 +298,7 @@ public class SltParser {
 
         Map<String, List<SltSection>> sortedSections = sortSltSections(sections);
 
-        exportTXT_v2(sortedSections, args[0] + ".txt", args[1]);
+        //exportTXT_v2(sortedSections, args[0] + ".txt", args[1]);
         exportMD_v2(sortedSections, args[0] + ".md", args[1]);
         
         /*
