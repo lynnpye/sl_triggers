@@ -121,9 +121,13 @@ float 		_lastRealTimeTimerProcessed
 bool 		isPlayerSwimming
 bool 		isPlayerInWater
 float		playerWaterStart
+int			playerWaterSession
 float		playerLastWaterDuration
+float		playerLastWaterStart
 float		playerSwimStart
+int			playerSwimSession
 float		playerLastSwimDuration
+float		playerLastSwimStart
 
 bool Function IsMCMConfigurable()
 	return true
@@ -246,24 +250,42 @@ bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string scope, strin
 		elseif token == "player.submerged_level"
 			CmdPrimary.CustomResolveFloatResult = sl_triggers.GetSubmergedLevel(SLT.PlayerRef)
 			return true
-		elseif token == "player.gametime_swimming"
+		elseif token == "player.swimming_start_gametime"
+			CmdPrimary.CustomResolveFloatResult = playerSwimStart
+			return true
+		elseif token == "player.swimming_session"
+			CmdPrimary.CustomResolveIntResult = playerSwimSession
+			return true
+		elseif token == "player.in_water_session"
+			CmdPrimary.CustomResolveIntResult = playerWaterSession
+			return true
+		elseif token == "player.in_water_start_gametime"
+			CmdPrimary.CustomResolveFloatResult = playerWaterStart
+			return true
+		elseif token == "player.swimming_duration"
 			if isPlayerSwimming
 				CmdPrimary.CustomResolveFloatResult = Utility.GetCurrentGameTime() - playerSwimStart
 			else
 				CmdPrimary.CustomResolveFloatResult = 0.0
 			endif
 			return true
-		elseif token == "player.gametime_in_water"
+		elseif token == "player.in_water_duration"
 			if isPlayerInWater
 				CmdPrimary.CustomResolveFloatResult = Utility.GetCurrentGameTime() - playerWaterStart
 			else
 				CmdPrimary.CustomResolveFloatResult = 0.0
 			endif
 			return true
-		elseif token == "player.gametime_last_swimming"
+		elseif token == "player.swimming_last_start_gametime"
+			CmdPrimary.CustomResolveFloatResult = playerLastSwimStart
+			return true
+		elseif token == "player.in_water_last_start_gametime"
+			CmdPrimary.CustomResolveFloatResult = playerLastWaterStart
+			return true
+		elseif token == "player.swimming_last_duration"
 			CmdPrimary.CustomResolveFloatResult = playerLastSwimDuration
 			return true
-		elseif token == "player.gametime_last_in_water"
+		elseif token == "player.in_water_last_duration"
 			CmdPrimary.CustomResolveFloatResult = playerLastWaterDuration
 			return true
 		endif
@@ -426,32 +448,22 @@ Event OnSLTRPlayerHit(Form kattacker, Form ktarget, int ksourceFormID, int kproj
 	HandlePlayerOnHit(kattacker, ktarget, ksourceFormID, kprojectileFormID, was_player_attacker, kPowerAttack, kSneakAttack, kBashAttack, kHitBlocked)
 EndEvent
 
-Event OnSLTRHarvesting(ObjectReference harvestSource)
-	Flora targetFlora = harvestSource.GetBaseObject() as Flora
-	if targetFlora
-		Form ingr = targetFlora.GetIngredient()
-		if ingr
-			HandleHarvesting(harvestSource)
-		endif
-	else
-		TreeObject targetTree = harvestSource.GetBaseObject() as TreeObject
-		if targetTree
-			Form ingr = targetTree.GetIngredient()
-			if ingr
-				HandleHarvesting(harvestSource)
-			endif
-		else
-			Activator acti = harvestSource.GetBaseObject() as Activator
-			if acti
-				HandleHarvesting(harvestSource)
-			endif
-		endif
-	endif
+Event OnSLTRHarvesting(Form harvestedItem)
+	HandleHarvesting(harvestedItem)
 EndEvent
 
 Event OnSLTRPlayerSwimEvent(bool isSwimming)
 	if isSwimming != isPlayerSwimming
 		isPlayerSwimming = isSwimming
+		if isPlayerSwimming
+			playerSwimStart = Utility.GetCurrentGameTime()
+			playerSwimSession = SLT.GetNextInstanceId()
+		else
+			playerLastSwimDuration = Utility.GetCurrentGameTime() - playerSwimStart
+			playerLastSwimStart = playerSwimStart
+			playerSwimSession = 0
+			playerSwimStart = 0.0
+		endif
 		HandlePlayerSwimEvent()
 	else
 		SLTWarnMsg("Core.OnSLTRPlayerSwimEvent: isSwimming(" + isSwimming + ") and isPlayerSwimming(" + isPlayerSwimming + "); unexpected edge event to current state; skipping trigger handling")
@@ -461,6 +473,15 @@ EndEvent
 Event OnSLTRPlayerWaterEvent(bool inWater)
 	if inWater != isPlayerInWater
 		isPlayerInWater = inWater
+		if isPlayerInWater
+			playerWaterStart = Utility.GetCurrentGameTime()
+			playerWaterSession = SLT.GetNextInstanceId()
+		else
+			playerLastWaterDuration = Utility.GetCurrentGameTime() - playerWaterStart
+			playerLastWaterStart = playerWaterStart
+			playerWaterSession = 0
+			playerWaterStart = 0.0
+		endif
 		HandlePlayerWaterEvent()
 	else
 		SLTWarnMsg("Core.OnSLTRPlayerWaterEvent: inWater(" + inWater + ") and isPlayerInWater(" + isPlayerInWater + "); unexpected edge event to current state; skipping trigger handling")
@@ -906,14 +927,14 @@ Function RegisterEvents()
 		sl_triggers_internal.SetHitSinkEnabled(false)
 	endif
 
-	bool enableActivateSink = false
+	bool enableHarvestingSink = false
 	UnregisterForModEvent(EVENT_SLTR_ON_HARVESTING())
 	if triggerKeys_harvesting.Length > 0
 		SafeRegisterForModEvent_Quest(self, EVENT_SLTR_ON_HARVESTING(), EVENT_SLTR_ON_HARVESTING())
-		enableActivateSink = true
+		enableHarvestingSink = true
 	endif
 
-	sl_triggers_internal.SetActivateSinkEnabled(enableActivateSink)
+	sl_triggers_internal.SetHarvestedSinkEnabled(enableHarvestingSink)
 EndFunction
 
 Function RegisterForKeyEvents()
@@ -2651,10 +2672,9 @@ int Function GetNextPlayerOnHitRequestId(int requestTargetFormId, int cmdRequest
 	return cmdRequestId
 EndFunction
 
-Function HandleHarvesting(ObjectReference harvestSource)
+Function HandleHarvesting(Form harvestedItem)
 	If (SLT.Debug_Extension_Core)
-		Form baseObject = harvestSource.GetBaseObject()
-		SLTDebugMsg("Core.HandleHarvesting harvestSource(" + harvestSource + ") baseObject(" + baseObject + ")")
+		SLTDebugMsg("Core.HandleHarvesting harvestedItem(" + harvestedItem + ")")
 	EndIf
 
 	if triggerKeys_harvesting.Length < 1
@@ -2743,25 +2763,25 @@ Function HandleHarvesting(ObjectReference harvestSource)
 			int cmdThreadId
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
 			if command
-				cmdRequestId = GetNextHarvestingRequestId(requestTargetFormId, cmdRequestId, harvestSource)
+				cmdRequestId = GetNextHarvestingRequestId(requestTargetFormId, cmdRequestId, harvestedItem)
 				cmdThreadId = SLT.GetNextInstanceId()
 				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
 			endIf
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
 			if command
-				cmdRequestId = GetNextHarvestingRequestId(requestTargetFormId, cmdRequestId, harvestSource)
+				cmdRequestId = GetNextHarvestingRequestId(requestTargetFormId, cmdRequestId, harvestedItem)
 				cmdThreadId = SLT.GetNextInstanceId()
 				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
 			endIf
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
 			if command
-				cmdRequestId = GetNextHarvestingRequestId(requestTargetFormId, cmdRequestId, harvestSource)
+				cmdRequestId = GetNextHarvestingRequestId(requestTargetFormId, cmdRequestId, harvestedItem)
 				cmdThreadId = SLT.GetNextInstanceId()
 				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
 			endIf
 			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_4)
 			if command
-				cmdRequestId = GetNextHarvestingRequestId(requestTargetFormId, cmdRequestId, harvestSource)
+				cmdRequestId = GetNextHarvestingRequestId(requestTargetFormId, cmdRequestId, harvestedItem)
 				cmdThreadId = SLT.GetNextInstanceId()
 				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
 			endIf
@@ -2771,12 +2791,11 @@ Function HandleHarvesting(ObjectReference harvestSource)
 	endwhile
 EndFunction
 
-int Function GetNextHarvestingRequestId(int requestTargetFormId, int cmdRequestId, ObjectReference harvestSource)
+int Function GetNextHarvestingRequestId(int requestTargetFormId, int cmdRequestId, Form harvestedItem)
 	if !cmdRequestId
 		cmdRequestId = SLT.GetNextInstanceId()
 
-		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.harvesting.harvest_objref", harvestSource)
-		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.harvesting.harvest_base_object", harvestSource.GetBaseObject())
+		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.harvesting.harvested_item", harvestedItem)
 	endif
 	return cmdRequestId
 EndFunction

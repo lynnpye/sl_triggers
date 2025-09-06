@@ -14,11 +14,13 @@ Function                SetExtensionEnabled(string extensionKey, bool enabledSta
 Function                SetCombatSinkEnabled(bool isEnabled) global native
 Function                SetEquipSinkEnabled(bool isEnabled) global native
 Function                SetHitSinkEnabled(bool isEnabled) global native
-Function                SetActivateSinkEnabled(bool isEnabled) global native
+;Function                SetActivateSinkEnabled(bool isEnabled) global native
 Function                SetSwimHookEnabled(bool isEnabled) global native
+Function                SetHarvestedSinkEnabled(bool isEnabled) global native
 bool Function           IsCombatSinkEnabled() global native
 bool Function           IsEquipSinkEnabled() global native
 bool Function           IsHitSinkEnabled() global native
-bool Function           IsActivateSinkEnabled() global native
+;bool Function           IsActivateSinkEnabled() global native
+bool Function           IsHarvestedSinkEnabled() global native
 bool Function           IsSwimHookEnabled() global native
 bool Function           StartScript(Actor CmdTargetActor, string initialScriptName) global native

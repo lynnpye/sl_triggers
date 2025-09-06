@@ -1,18 +1,25 @@
 0.940
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
         (or whichever folder you have your SKSE logs directed to)
-    bugfix: LICENSE update
-    enhancement: Core triggers: Player Swim Start/Stop, Player In/Out of Water
-    enhancement: new function: actor_submerged_level - returns a float, from 0.0 to 1.0 inclusive; 0.0 is dry, on land; 1.0 is fully submerged
+    bugfix: LICENSE update; replaced unmodified copied template with correct names and license info for source code
+    change: Harvesting trigger now uses TESHarvestedEvent instead of a custom TESActivatedEvent; should improve performance, but some harvests are not detected by default (e.g. some bugs and fish)
+    enhancement: Core triggers: Player Swim Start/Stop, Player Enter/Exit Water
+    enhancement: new function: actor_submerged_level - returns a float, from 0.0 to 1.0 inclusive; 0.0 is not in water, on land; 1.0 is fully submerged
     enhancement: new events "OnSLTRPlayerSwimEvent(bool isSwimming)" and "OnSLTRPlayerWaterEvent(bool inWater)"
     enhancement: new system variables: 
-        $system.player.is_swimming - bool: true if player is swimming; false otherwise
-        $system.player.is_in_water - bool: true if player is in water; false otherwise
-        $system.player.submerged_level - float: current submerged level of player
-        $system.player.gametime_swimming - float: gametime player has currently spent swimming; 0.0 if not currently swimming
-        $system.player.gametime_in_water - float: gametime player has currently spent in water; 0.0 if not currently in water
-        $system.player.gametime_last_swimming - float: gametime during last player time swimming; might be very small for repeated re-entries of deep water
-        $system.player.gametime_last_in_water - float: gametime during last player time in water; might be very small for repeated re-entries of shallow water
+        $system.player.is_swimming : bool - (Added by SLTR Core) true if player is swimming; false otherwise
+        $system.player.is_in_water : bool - (Added by SLTR Core) true if player is in water; false otherwise
+        $system.player.submerged_level : float - (Added by SLTR Core) current submerged level of player; 0.0 if not in water, 1.0 if fully submerged
+        $system.player.swimming_start_gametime : float - (Added by SLTR Core) gametime when player started current swim session; resets to 0.0 when not swimming
+        $system.player.in_water_start_gametime : float - (Added by SLTR Core) gametime when player started current in water session; resets to 0.0 when player leaves water
+        $system.player.swimming_session : int - (Added by SLTR Core) unique int ID to identify a period of unbroken time player spent swimming; 0 if not swimming
+        $system.player.in_water_session : int - (Added by SLTR Core) unique int ID to identify a period of unbroken time player spent in water; 0 if not in water
+        $system.player.swimming_duration : float - (Added by SLTR Core) gametime duration player has currently spent swimming; 0.0 if not currently swimming
+        $system.player.in_water_duration : float - (Added by SLTR Core) gametime duration player has currently spent in water; 0.0 if not currently in water
+        $system.player.swimming_last_start_gametime : float - (Added by SLTR Core) gametime when player started previous swim session
+        $system.player.in_water_last_start_gametime : float - (Added by SLTR Core) gametime when player started previous in water session
+        $system.player.swimming_last_duration : float - (Added by SLTR Core) gametime duration player was last swimming; might be very small for repeated re-entries of deep water
+        $system.player.in_water_last_duration : float - (Added by SLTR Core) gametime duration player was last in water; might be very small for repeated re-entries of shallow water
 
 0.930
     Savegame compatible

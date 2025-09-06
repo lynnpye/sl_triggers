@@ -127,6 +127,12 @@ RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESCombatEvent* e
 }
 
 namespace {
+    
+RE::BSFixedString onHarvesting("OnSLTRHarvesting");
+
+/*
+ * previous method, looking directly at activate events
+ *
 using namespace std;
 using namespace RE;
 vector<TESObjectACTI*> harvestableActis;
@@ -152,12 +158,15 @@ OnDataLoaded([]{
         }
     }
 })
+*/
 }
 
+/*
+ * previous method, looking directly at activate events
+ *
 RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESActivateEvent* event,
                                     RE::BSTEventSource<RE::TESActivateEvent>* source) {
     enum { kFlag_Harvested = 0x2000 };
-    RE::BSFixedString onHarvesting("OnSLTRHarvesting");
 
     if (IsEnabledActivateEvent()) {
         if (event && event->objectActivated && event->actionRef) {
@@ -216,6 +225,22 @@ RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESActivateEvent*
     
     return RE::BSEventNotifyControl::kContinue;
 }
+*/
+
+RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESHarvestedEvent::ItemHarvested* event,
+RE::BSTEventSource<RE::TESHarvestedEvent::ItemHarvested>* source) {
+    if (IsEnabledHarvestedEvent()) {
+        auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+        if (vm) {
+            auto* args = RE::MakeFunctionArguments(
+                static_cast<RE::TESForm*>(event->produceItem)
+            );
+            vm->SendEventAll(onHarvesting, args);
+        }
+    }
+
+    return RE::BSEventNotifyControl::kContinue;
+}
 
 // Registration helper macro
 #define REGISTER_PAPYRUS_PROVIDER(ProviderClass, ClassName) \
@@ -238,14 +263,17 @@ void GameEventHandler::onLoad() {
 
     auto* eventSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
     if (eventSourceHolder) {
+        RE::ScriptEventSourceHolder x;
         eventSourceHolder->AddEventSink<TESEquipEvent>(SLTREventSink::GetSingleton());
         eventSourceHolder->AddEventSink<TESHitEvent>(SLTREventSink::GetSingleton());
         eventSourceHolder->AddEventSink<TESCombatEvent>(SLTREventSink::GetSingleton());
-        eventSourceHolder->AddEventSink<TESActivateEvent>(SLTREventSink::GetSingleton());
+        //eventSourceHolder->AddEventSink<TESActivateEvent>(SLTREventSink::GetSingleton());
+        TESHarvestedEvent::GetEventSource()->AddEventSink(SLTREventSink::GetSingleton());
         logger::info("CombatEvent sink initialized, enabled({})", SLTREventSink::GetSingleton()->IsEnabledCombatEvent());
         logger::info("EquipEvent sink initialized, enabled({})", SLTREventSink::GetSingleton()->IsEnabledEquipEvent());
         logger::info("HitEvent sink initialized, enabled({})", SLTREventSink::GetSingleton()->IsEnabledHitEvent());
-        logger::info("ActivateEvent sink initialized, enabled({})", SLTREventSink::GetSingleton()->IsEnabledActivateEvent());
+        //logger::info("ActivateEvent sink initialized, enabled({})", SLTREventSink::GetSingleton()->IsEnabledActivateEvent());
+        logger::info("HarvestedEvent sink initialized, enabled({})", SLTREventSink::GetSingleton()->IsEnabledHarvestedEvent());
     } else {
         logger::error("Unable to register with ScriptEventSourceHolder");
     }

@@ -62,7 +62,9 @@ static void SetEquipSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled);
 
 static void SetHitSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled);
 
-static void SetActivateSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled);
+//static void SetActivateSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled);
+
+static void SetHarvestedSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled);
 
 static void SetSwimHookEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled);
 
@@ -72,7 +74,9 @@ static bool IsEquipSinkEnabled(PAPYRUS_NATIVE_DECL);
 
 static bool IsHitSinkEnabled(PAPYRUS_NATIVE_DECL);
 
-static bool IsActivateSinkEnabled(PAPYRUS_NATIVE_DECL);
+//static bool IsActivateSinkEnabled(PAPYRUS_NATIVE_DECL);
+
+static bool IsHarvestedSinkEnabled(PAPYRUS_NATIVE_DECL);
 
 static bool IsSwimHookEnabled(PAPYRUS_NATIVE_DECL);
 
@@ -354,11 +358,20 @@ public:
         SLT::SLTNativeFunctions::SetHitSinkEnabled(PAPYRUS_FN_PARMS, isEnabled);
     }
 
+    /*
     static void SetActivateSinkEnabled(PAPYRUS_STATIC_ARGS, bool isEnabled) {
         #ifdef LOG_PAPYRUS_CALLS
         logger::debug("PapyrusCall -> SetActivateSinkEnabled");
         #endif
         SLT::SLTNativeFunctions::SetActivateSinkEnabled(PAPYRUS_FN_PARMS, isEnabled);
+    }
+    */
+
+    static void SetHarvestedSinkEnabled(PAPYRUS_STATIC_ARGS, bool isEnabled) {
+        #ifdef LOG_PAPYRUS_CALLS
+        logger::debug("PapyrusCall -> SetHarvestedSinkEnabled");
+        #endif
+        SLT::SLTNativeFunctions::SetHarvestedSinkEnabled(PAPYRUS_FN_PARMS, isEnabled);
     }
 
     static void SetSwimHookEnabled(PAPYRUS_STATIC_ARGS, bool isEnabled) {
@@ -389,11 +402,20 @@ public:
         return SLT::SLTNativeFunctions::IsHitSinkEnabled(PAPYRUS_FN_PARMS);
     }
 
+    /*
     static bool IsActivateSinkEnabled(PAPYRUS_STATIC_ARGS) {
         #ifdef LOG_PAPYRUS_CALLS
         logger::debug("PapyrusCall -> IsActivateSinkEnabled");
         #endif
         return SLT::SLTNativeFunctions::IsActivateSinkEnabled(PAPYRUS_FN_PARMS);
+    }
+    */
+
+    static bool IsHarvestedSinkEnabled(PAPYRUS_STATIC_ARGS) {
+        #ifdef LOG_PAPYRUS_CALLS
+        logger::debug("PapyrusCall -> IsHarvestedSinkEnabled");
+        #endif
+        return SLT::SLTNativeFunctions::IsHarvestedSinkEnabled(PAPYRUS_FN_PARMS);
     }
 
     static bool IsSwimHookEnabled(PAPYRUS_STATIC_ARGS) {
@@ -427,12 +449,14 @@ public:
         reg.RegisterStatic("SetCombatSinkEnabled", &SLTInternalPapyrusFunctionProvider::SetCombatSinkEnabled);
         reg.RegisterStatic("SetEquipSinkEnabled", &SLTInternalPapyrusFunctionProvider::SetEquipSinkEnabled);
         reg.RegisterStatic("SetHitSinkEnabled", &SLTInternalPapyrusFunctionProvider::SetHitSinkEnabled);
-        reg.RegisterStatic("SetActivateSinkEnabled", &SLTInternalPapyrusFunctionProvider::SetActivateSinkEnabled);
+        //reg.RegisterStatic("SetActivateSinkEnabled", &SLTInternalPapyrusFunctionProvider::SetActivateSinkEnabled);
+        reg.RegisterStatic("SetHarvestedSinkEnabled", &SLTInternalPapyrusFunctionProvider::SetHarvestedSinkEnabled);
         reg.RegisterStatic("SetSwimHookEnabled", &SLTInternalPapyrusFunctionProvider::SetSwimHookEnabled);
         reg.RegisterStatic("IsCombatSinkEnabled", &SLTInternalPapyrusFunctionProvider::IsCombatSinkEnabled);
         reg.RegisterStatic("IsEquipSinkEnabled", &SLTInternalPapyrusFunctionProvider::IsEquipSinkEnabled);
         reg.RegisterStatic("IsHitSinkEnabled", &SLTInternalPapyrusFunctionProvider::IsHitSinkEnabled);
-        reg.RegisterStatic("IsActivateSinkEnabled", &SLTInternalPapyrusFunctionProvider::IsActivateSinkEnabled);
+        //reg.RegisterStatic("IsActivateSinkEnabled", &SLTInternalPapyrusFunctionProvider::IsActivateSinkEnabled);
+        reg.RegisterStatic("IsHarvestedSinkEnabled", &SLTInternalPapyrusFunctionProvider::IsHarvestedSinkEnabled);
         reg.RegisterStatic("IsSwimHookEnabled", &SLTInternalPapyrusFunctionProvider::IsSwimHookEnabled);
         reg.RegisterStatic("StartScript", &SLTInternalPapyrusFunctionProvider::StartScript);
     }

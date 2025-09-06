@@ -1080,14 +1080,21 @@ void SLTNativeFunctions::SetHitSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled) 
     logger::info("HitEvent sink enabled({})", SLTREventSink::GetSingleton()->IsEnabledHitEvent());
 }
 
+/*
 void SLTNativeFunctions::SetActivateSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled) {
     SLTREventSink::GetSingleton()->SetEnabledActivateEvent(isEnabled);
     logger::info("ActivateEvent sink enabled({})", SLTREventSink::GetSingleton()->IsEnabledActivateEvent());
 }
+*/
+
+void SLTNativeFunctions::SetHarvestedSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled) {
+    SLTREventSink::GetSingleton()->SetEnabledHarvestedEvent(isEnabled);
+    logger::info("HarvestedEvent sink enabled({})", SLTREventSink::GetSingleton()->IsEnabledHarvestedEvent());
+}
 
 void SLTNativeFunctions::SetSwimHookEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled) {
     SLTREventSink::GetSingleton()->SetEnabledSwimHooks(isEnabled);
-    logger::info("SwimHooks processing enabled({})", SLTREventSink::GetSingleton()->IsEnabledActivateEvent());
+    logger::info("SwimHooks processing enabled({})", SLTREventSink::GetSingleton()->IsEnabledSwimHooks());
 }
 
 bool SLTNativeFunctions::IsCombatSinkEnabled(PAPYRUS_NATIVE_DECL) {
@@ -1102,8 +1109,14 @@ bool SLTNativeFunctions::IsHitSinkEnabled(PAPYRUS_NATIVE_DECL) {
     return SLTREventSink::GetSingleton()->IsEnabledHitEvent();
 }
 
+/*
 bool SLTNativeFunctions::IsActivateSinkEnabled(PAPYRUS_NATIVE_DECL) {
     return SLTREventSink::GetSingleton()->IsEnabledActivateEvent();
+}
+*/
+
+bool SLTNativeFunctions::IsHarvestedSinkEnabled(PAPYRUS_NATIVE_DECL) {
+    return SLTREventSink::GetSingleton()->IsEnabledHarvestedEvent();
 }
 
 bool SLTNativeFunctions::IsSwimHookEnabled(PAPYRUS_NATIVE_DECL) {

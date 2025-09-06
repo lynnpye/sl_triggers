@@ -906,6 +906,24 @@ Returns: (varies): the state of the actor for a given sub-function
 
 
 
+### actor_submerged_level
+
+**Description**
+
+Get the Actor's level fo water submersion (from 0.0 to 1.0; 0.0 being basically dry, on land, and 1.0 being fully submerged while swimming)
+
+**Parameters**
+
+    Form: actor: target Actor  
+
+
+**Example**
+
+    set $submersion resultfrom actor_submerged_level $system.self  
+    ; at about $submersion 0.65 or so, you are chest high and likely to start having to swim  
+
+
+
 ### actor_wornhaskeyword
 
 **Description**
