@@ -83,13 +83,6 @@ These are add-on packs or mini-games implemented through SLTR. These may alter g
 - PetCollar Game - (Requires: SexLab, PetCollar; Contents: SLTScript, trigger, JSON) At the start of SexLab scenes, your followers will (somewhat) randomly choose to equip and unequip the "Keyless Pet Collar" from the PetCollar mod. This is the one which cannot be picked or removed by the wearer.
 - Consumption Lifestyle - (Requires: Transformative Elixirs; contents: SLTScript, trigger) When the non-stealth varieties of Transformative Elixirs appear in containers the player interacts with, they will automatically pull them into their inventory and consume them. Additionally, a periodic timer will run which will look for these items and consume them.
 
-# Speaking of Copyright and Licensing / Attribution
-All work associated with "SL Triggers Redux" aka "SLTR" aka "SLT" (in relation to it's origin) is derived from [the original, SL Triggers, by Fotogen](https://www.loverslab.com/files/file/8760-sl-triggersv12-2022-06-05/). I received approval to continue development. More info available on the [SLT Wiki](https://github.com/lynnpye/sl_triggers/wiki).
-
-All other work that exists as part of this project as well as the associated SKSE C++ plugin project (when it's not hosted here) is and always will be [MIT Licensed](https://opensource.org/license/mit).
-
-All SLTScripts created by anyone else are subject to their copyright and I hold none over them.
-
 # Installation
 ## If You Are Updating From An Older Version
 If you are moving from Fotogen's original SL Triggers, you will need a new save.
@@ -218,3 +211,8 @@ If you are looking to build anything here, here are a few things to keep in mind
 - There are VScode tasks for builds and packaging
 - Uses `jump` for task execution
 - I do *not* reuse the Papyrus VSCode instance to do C++ development, but YMMV
+
+# Speaking of Copyright and Licensing / Attribution
+See LICENSE for all license, copyright, and attribution details.
+
+All SLTScripts created by anyone else are subject to their copyright and I hold none over them.
