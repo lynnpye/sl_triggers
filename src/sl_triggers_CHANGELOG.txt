@@ -1,4 +1,5 @@
 0.940
+    Savegame compatible
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
         (or whichever folder you have your SKSE logs directed to)
     bugfix: LICENSE update; replaced unmodified copied template with correct names and license info for source code

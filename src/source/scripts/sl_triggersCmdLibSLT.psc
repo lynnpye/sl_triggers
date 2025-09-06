@@ -2060,7 +2060,7 @@ endFunction
 
 ; sltname actor_submerged_level
 ; sltgrup Actor
-; sltdesc Get the Actor's level fo water submersion (from 0.0 to 1.0; 0.0 being basically dry, on land, and 1.0 being fully submerged while swimming)
+; sltdesc Returns: float: Get the Actor's level of water submersion (from 0.0 to 1.0; 0.0 meaning not touching water, and 1.0 being fully submerged)
 ; sltargs Form: actor: target Actor
 ; sltsamp set $submersion resultfrom actor_submerged_level $system.self
 ; sltsamp ; at about $submersion 0.65 or so, you are chest high and likely to start having to swim

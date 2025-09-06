@@ -910,7 +910,7 @@ Returns: (varies): the state of the actor for a given sub-function
 
 **Description**
 
-Get the Actor's level fo water submersion (from 0.0 to 1.0; 0.0 being basically dry, on land, and 1.0 being fully submerged while swimming)
+Returns: float: Get the Actor's level of water submersion (from 0.0 to 1.0; 0.0 meaning not touching water, and 1.0 being fully submerged)
 
 **Parameters**
 
