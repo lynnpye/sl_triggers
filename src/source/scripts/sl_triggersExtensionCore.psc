@@ -23,6 +23,8 @@ int		EVENT_ID_FAST_TRAVEL					= 12
 int		EVENT_ID_VAMPIRISM						= 13
 int		EVENT_ID_LYCANTHROPY					= 14
 int 	EVENT_ID_VAMPIRE_FEEDING				= 15
+int		EVENT_ID_SWIMMING						= 16
+int		EVENT_ID_IN_WATER						= 17
 
 string ATTR_MOD_VERSION						= "__slt_mod_version__"
 string ATTR_EVENT							= "event"
@@ -57,6 +59,8 @@ string ATTR_WAS_BLOCKED						= "was_blocked"
 string ATTR_TIMER_DELAY						= "timer_delay"
 string ATTR_VAMPIRISM						= "vampirism"
 string ATTR_LYCANTHROPY						= "lycanthropy"
+string ATTR_SWIMMING						= "swimming"
+string ATTR_IN_WATER						= "in_water"
 string ATTR_DO_1							= "do_1"
 string ATTR_DO_2							= "do_2"
 string ATTR_DO_3							= "do_3"
@@ -106,6 +110,8 @@ string[]	triggerKeys_fast_travel
 string[] 	triggerKeys_vampirism
 string[]	triggerKeys_lycanthropy
 string[]	triggerKeys_vampire_feeding
+string[]	triggerKeys_swimming
+string[]	triggerKeys_in_water
 
 float 		last_time_PlayerCellChangeEvent
 string[]	common_container_names
@@ -113,7 +119,11 @@ float[]		timer_next_run_time
 float[]		timer_delays
 float 		_lastRealTimeTimerProcessed
 bool 		isPlayerSwimming
+bool 		isPlayerInWater
+float		playerWaterStart
+float		playerLastWaterDuration
 float		playerSwimStart
+float		playerLastSwimDuration
 
 bool Function IsMCMConfigurable()
 	return true
@@ -226,6 +236,35 @@ bool Function CustomResolveScoped(sl_triggersCmd CmdPrimary, string scope, strin
 			return true
 		elseif token == "toh_elapsed"
 			CmdPrimary.CustomResolveFloatResult = TohElapsedTime
+			return true
+		elseif token == "player.is_swimming"
+			CmdPrimary.CustomResolveBoolResult = isPlayerSwimming
+			return true
+		elseif token == "player.is_in_water"
+			CmdPrimary.CustomResolveBoolResult = isPlayerInWater
+			return true
+		elseif token == "player.submerged_level"
+			CmdPrimary.CustomResolveFloatResult = sl_triggers.GetSubmergedLevel(SLT.PlayerRef)
+			return true
+		elseif token == "player.gametime_swimming"
+			if isPlayerSwimming
+				CmdPrimary.CustomResolveFloatResult = Utility.GetCurrentGameTime() - playerSwimStart
+			else
+				CmdPrimary.CustomResolveFloatResult = 0.0
+			endif
+			return true
+		elseif token == "player.gametime_in_water"
+			if isPlayerInWater
+				CmdPrimary.CustomResolveFloatResult = Utility.GetCurrentGameTime() - playerWaterStart
+			else
+				CmdPrimary.CustomResolveFloatResult = 0.0
+			endif
+			return true
+		elseif token == "player.gametime_last_swimming"
+			CmdPrimary.CustomResolveFloatResult = playerLastSwimDuration
+			return true
+		elseif token == "player.gametime_last_in_water"
+			CmdPrimary.CustomResolveFloatResult = playerLastWaterDuration
 			return true
 		endif
 	elseif scope == "request"
@@ -410,26 +449,21 @@ Event OnSLTRHarvesting(ObjectReference harvestSource)
 	endif
 EndEvent
 
-Event OnAnimationEvent(ObjectReference akSource, string asEventName)
-	bool flagSaysSwimming = (akSource as Actor).IsSwimming()
-	if asEventName == "SoundPlay.FSTSwimSwim" || asEventName == "SoundPlay.FSTSwimTread" || asEventName == "SoundPlay"
-		if !isPlayerSwimming
-			isPlayerSwimming = true
-			playerSwimStart = Utility.GetCurrentGameTime()
-		endif
+Event OnSLTRPlayerSwimEvent(bool isSwimming)
+	if isSwimming != isPlayerSwimming
+		isPlayerSwimming = isSwimming
+		HandlePlayerSwimEvent()
+	else
+		SLTWarnMsg("Core.OnSLTRPlayerSwimEvent: isSwimming(" + isSwimming + ") and isPlayerSwimming(" + isPlayerSwimming + "); unexpected edge event to current state; skipping trigger handling")
+	endif
+EndEvent
 
-		if flagSaysSwimming != isPlayerSwimming
-			SLTErrMsg("Swimming: discrepancy: flag: false, anim: true")
-		endif
-	elseif asEventName == "MTState"
-		if isPlayerSwimming
-			isPlayerSwimming = false
-			playerSwimStart = 0.0
-		endif
-
-		if flagSaysSwimming != isPlayerSwimming
-			SLTErrMsg("Swimming: discrepancy: flag: true, anim: false")
-		endif
+Event OnSLTRPlayerWaterEvent(bool inWater)
+	if inWater != isPlayerInWater
+		isPlayerInWater = inWater
+		HandlePlayerWaterEvent()
+	else
+		SLTWarnMsg("Core.OnSLTRPlayerWaterEvent: inWater(" + inWater + ") and isPlayerInWater(" + isPlayerInWater + "); unexpected edge event to current state; skipping trigger handling")
 	endif
 EndEvent
 
@@ -571,6 +605,8 @@ Function RefreshTriggerCache()
 	triggerKeys_vampirism				= PapyrusUtil.StringArray(0)
 	triggerKeys_lycanthropy				= PapyrusUtil.StringArray(0)
 	triggerKeys_vampire_feeding			= PapyrusUtil.StringArray(0)
+	triggerKeys_swimming				= PapyrusUtil.StringArray(0)
+	triggerKeys_in_water				= PapyrusUtil.StringArray(0)
 
 	; paired - and handled differently /
 	;/
@@ -630,6 +666,10 @@ Function RefreshTriggerCache()
 				triggerKeys_lycanthropy =			PapyrusUtil.PushString(triggerKeys_lycanthropy, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_VAMPIRE_FEEDING
 				triggerKeys_vampire_feeding =		PapyrusUtil.PushString(triggerKeys_vampire_feeding, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_SWIMMING
+				triggerKeys_swimming =				PapyrusUtil.PushString(triggerKeys_swimming, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_IN_WATER
+				triggerKeys_in_water =				PapyrusUtil.PushString(triggerKeys_in_water, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_TIMER
 				string triggerKey = TriggerKeys[i]
 				float timerDelay = JsonUtil.GetFloatValue(_triggerFile, ATTR_TIMER_DELAY)
@@ -828,15 +868,19 @@ Function RegisterEvents()
 		SLTDebugMsg("Core.RegisterEvents: failed/2 to register OnSLTRContainerActivate: IsEnabled(" + IsEnabled + ") / SLT.SLTRContainerPerk(" + SLT.SLTRContainerPerk + ") / PlayerRef(" + PlayerRef + ") / PlayerRef.HasPerk(" + (SLT && SLT.SLTRContainerPerk && PlayerRef && PlayerRef.HasPerk(SLT.SLTRContainerPerk)) + ")")
 	EndIf
 
-	UnregisterForAnimationEvent(SLT.PlayerRef, "MTState")
-	UnregisterForAnimationEvent(SLT.PlayerRef, "SoundPlay")
-	UnregisterForAnimationEvent(SLT.PlayerRef, "SoundPlay.FSTSwimSwim")
-	UnregisterForAnimationEvent(SLT.PlayerRef, "SoundPlay.FSTSwimTread")
+	bool enableSwimHooks = false
+	UnregisterForModEvent("OnSLTRPlayerSwimEvent")
+	if triggerKeys_swimming.Length > 0
+		enableSwimHooks = true
+		SafeRegisterForModEvent_Quest(self, "OnSLTRPlayerSwimEvent", "OnSLTRPlayerSwimEvent")
+	endif
 
-	RegisterForAnimationEvent(SLT.PlayerRef, "MTState")
-	RegisterForAnimationEvent(SLT.PlayerRef, "SoundPlay")
-	RegisterForAnimationEvent(SLT.PlayerRef, "SoundPlay.FSTSwimSwim")
-	RegisterForAnimationEvent(SLT.PlayerRef, "SoundPlay.FSTSwimTread")
+	UnregisterForModEvent("OnSLTRPlayerWaterEvent")
+	if triggerKeys_in_water.Length > 0
+		enableSwimHooks = true
+		SafeRegisterForModEvent_Quest(self, "OnSLTRPlayerWaterEvent", "OnSLTRPlayerWaterEvent")
+	endif
+	sl_triggers_internal.SetSwimHookEnabled(enableSwimHooks)
 
 	UnregisterForModEvent(EVENT_SLTR_ON_PLAYER_EQUIP())
 	if triggerKeys_equipment_change.Length > 0
@@ -3214,4 +3258,120 @@ int Function GetNextVampireFeedingRequestId(int requestTargetFormId, int cmdRequ
 		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.vampire_feeding.target", akTarget)
 	endif
 	return cmdRequestId
+EndFunction
+
+Function HandlePlayerSwimEvent()
+	if (SLT.Debug_Extension_Core)
+		SLTDebugMsg("Core.HandlePlayerSwimEvent")
+	Endif
+	
+	int i = triggerKeys_swimming.Length
+	string triggerKey
+	string _triggerFile
+	float chance
+	bool doRun
+	int ival
+	string command
+
+	while i
+		i -= 1
+
+		triggerKey = triggerKeys_swimming[i]
+		_triggerFile = FN_T(triggerKey)
+
+		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+
+		if doRun
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
+			doRun = chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_SWIMMING)
+			if ival != 0 ; 0 - Either
+				if ival == 1 && !isPlayerSwimming ; 1 - Start Swimming
+					doRun = false
+				elseif ival == 2 && isPlayerSwimming; 2 - Stop Swimming
+					doRun = false
+				endif
+			endif
+		endif
+
+		if doRun
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+			if command
+				RequestCommand(PlayerRef, command)
+			endif
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+			if command
+				RequestCommand(PlayerRef, command)
+			endif
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				RequestCommand(PlayerRef, command)
+			endif
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_4)
+			if command
+				RequestCommand(PlayerRef, command)
+			endif
+		endif
+	endwhile
+EndFunction
+
+Function HandlePlayerWaterEvent()
+	if (SLT.Debug_Extension_Core)
+		SLTDebugMsg("Core.HandlePlayerWaterEvent")
+	endif
+	
+	int i = triggerKeys_in_water.Length
+	string triggerKey
+	string _triggerFile
+	float chance
+	bool doRun
+	int ival
+	string command
+
+	while i
+		i -= 1
+
+		triggerKey = triggerKeys_in_water[i]
+		_triggerFile = FN_T(triggerKey)
+
+		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+
+		if doRun
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
+			doRun = chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IN_WATER)
+			if ival != 0 ; 0 - Either
+				if ival == 1 && !isPlayerInWater ; 1 - Entering Water
+					doRun = false
+				elseif ival == 2 && isPlayerInWater; 2 - Leaving Water
+					doRun = false
+				endif
+			endif
+		endif
+
+		if doRun
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+			if command
+				RequestCommand(PlayerRef, command)
+			endif
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+			if command
+				RequestCommand(PlayerRef, command)
+			endif
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				RequestCommand(PlayerRef, command)
+			endif
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_4)
+			if command
+				RequestCommand(PlayerRef, command)
+			endif
+		endif
+	endwhile
 EndFunction

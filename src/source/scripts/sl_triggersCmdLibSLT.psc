@@ -2058,6 +2058,28 @@ function actor_setalpha(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, str
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
+; sltname actor_submerged_level
+; sltgrup Actor
+; sltdesc Get the Actor's level fo water submersion (from 0.0 to 1.0; 0.0 being basically dry, on land, and 1.0 being fully submerged while swimming)
+; sltargs Form: actor: target Actor
+; sltsamp set $submersion resultfrom actor_submerged_level $system.self
+; sltsamp ; at about $submersion 0.65 or so, you are chest high and likely to start having to swim
+function actor_submerged_level(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+    sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor _targetActor = CmdPrimary.ResolveActor(param[1])
+
+        if _targetActor
+            CmdPrimary.MostRecentFloatResult = sl_triggers.GetSubmergedLevel(_targetActor)
+        else
+            CmdPrimary.SFW("actor_submerged_level: unable to resolve actor from (" + param[1] + ")")
+        endif
+    endif
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
+
 ; sltname ism_applyfade
 ; sltgrup Imagespace Modifier
 ; sltdesc Apply imagespace modifier - per original author, check CreationKit, SpecialEffects\Imagespace Modifier

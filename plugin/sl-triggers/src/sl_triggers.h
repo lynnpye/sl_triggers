@@ -16,6 +16,8 @@ static std::vector<std::string> GetScriptsList(PAPYRUS_NATIVE_DECL);
 
 static SLTSessionId GetSessionId(PAPYRUS_NATIVE_DECL);
 
+static float GetSubmergedLevel(PAPYRUS_NATIVE_DECL, RE::Actor* akActor);
+
 static std::string GetTimestamp(PAPYRUS_NATIVE_DECL);
 
 static std::string GetTopicInfoResponse(PAPYRUS_NATIVE_DECL, RE::TESTopicInfo* topicInfo);
@@ -62,6 +64,8 @@ static void SetHitSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled);
 
 static void SetActivateSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled);
 
+static void SetSwimHookEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled);
+
 static bool IsCombatSinkEnabled(PAPYRUS_NATIVE_DECL);
 
 static bool IsEquipSinkEnabled(PAPYRUS_NATIVE_DECL);
@@ -69,6 +73,8 @@ static bool IsEquipSinkEnabled(PAPYRUS_NATIVE_DECL);
 static bool IsHitSinkEnabled(PAPYRUS_NATIVE_DECL);
 
 static bool IsActivateSinkEnabled(PAPYRUS_NATIVE_DECL);
+
+static bool IsSwimHookEnabled(PAPYRUS_NATIVE_DECL);
 
 static bool SmartEquals(PAPYRUS_NATIVE_DECL, std::string_view a, std::string_view b);
 //static std::vector<std::string> SplitFileContents(PAPYRUS_NATIVE_DECL, std::string_view filecontents);
@@ -123,6 +129,13 @@ public:
         logger::debug("PapyrusCall -> GetSessionId");
         #endif
         return SLT::SLTNativeFunctions::GetSessionId(PAPYRUS_FN_PARMS);
+    }
+
+    static float GetSubmergedLevel(PAPYRUS_STATIC_ARGS, RE::Actor* akActor) {
+        #ifdef LOG_PAPYRUS_CALLS
+        logger::debug("PapyrusCall -> GetSubmergedLevel");
+        #endif
+        return SLT::SLTNativeFunctions::GetSubmergedLevel(PAPYRUS_FN_PARMS, akActor);
     }
 
     static std::string GetTopicInfoResponse(PAPYRUS_STATIC_ARGS, RE::TESTopicInfo* topicInfo) {
@@ -213,6 +226,7 @@ public:
         reg.RegisterStatic("GetNumericLiteral", &SLTPapyrusFunctionProvider::GetNumericLiteral);
         reg.RegisterStatic("GetScriptsList", &SLTPapyrusFunctionProvider::GetScriptsList);
         reg.RegisterStatic("GetSessionId", &SLTPapyrusFunctionProvider::GetSessionId);
+        reg.RegisterStatic("GetSubmergedLevel", &SLTPapyrusFunctionProvider::GetSubmergedLevel);
         reg.RegisterStatic("GetTopicInfoResponse", &SLTPapyrusFunctionProvider::GetTopicInfoResponse);
         reg.RegisterStatic("GetTranslatedString", &SLTPapyrusFunctionProvider::GetTranslatedString);
         reg.RegisterStatic("NormalizeScriptfilename", &SLTPapyrusFunctionProvider::NormalizeScriptfilename);
@@ -347,6 +361,13 @@ public:
         SLT::SLTNativeFunctions::SetActivateSinkEnabled(PAPYRUS_FN_PARMS, isEnabled);
     }
 
+    static void SetSwimHookEnabled(PAPYRUS_STATIC_ARGS, bool isEnabled) {
+        #ifdef LOG_PAPYRUS_CALLS
+        logger::debug("PapyrusCall -> SetSwimHookEnabled");
+        #endif
+        SLT::SLTNativeFunctions::SetSwimHookEnabled(PAPYRUS_FN_PARMS, isEnabled);
+    }
+
     static bool IsCombatSinkEnabled(PAPYRUS_STATIC_ARGS) {
         #ifdef LOG_PAPYRUS_CALLS
         logger::debug("PapyrusCall -> IsCombatSinkEnabled");
@@ -375,6 +396,13 @@ public:
         return SLT::SLTNativeFunctions::IsActivateSinkEnabled(PAPYRUS_FN_PARMS);
     }
 
+    static bool IsSwimHookEnabled(PAPYRUS_STATIC_ARGS) {
+        #ifdef LOG_PAPYRUS_CALLS
+        logger::debug("PapyrusCall -> IsSwimHookEnabled");
+        #endif
+        return SLT::SLTNativeFunctions::IsSwimHookEnabled(PAPYRUS_FN_PARMS);
+    }
+
     static bool StartScript(PAPYRUS_STATIC_ARGS, RE::Actor* cmdTarget, std::string_view initialScriptName) {
         #ifdef LOG_PAPYRUS_CALLS
         logger::debug("PapyrusCall -> StartScript");
@@ -400,10 +428,12 @@ public:
         reg.RegisterStatic("SetEquipSinkEnabled", &SLTInternalPapyrusFunctionProvider::SetEquipSinkEnabled);
         reg.RegisterStatic("SetHitSinkEnabled", &SLTInternalPapyrusFunctionProvider::SetHitSinkEnabled);
         reg.RegisterStatic("SetActivateSinkEnabled", &SLTInternalPapyrusFunctionProvider::SetActivateSinkEnabled);
+        reg.RegisterStatic("SetSwimHookEnabled", &SLTInternalPapyrusFunctionProvider::SetSwimHookEnabled);
         reg.RegisterStatic("IsCombatSinkEnabled", &SLTInternalPapyrusFunctionProvider::IsCombatSinkEnabled);
         reg.RegisterStatic("IsEquipSinkEnabled", &SLTInternalPapyrusFunctionProvider::IsEquipSinkEnabled);
         reg.RegisterStatic("IsHitSinkEnabled", &SLTInternalPapyrusFunctionProvider::IsHitSinkEnabled);
         reg.RegisterStatic("IsActivateSinkEnabled", &SLTInternalPapyrusFunctionProvider::IsActivateSinkEnabled);
+        reg.RegisterStatic("IsSwimHookEnabled", &SLTInternalPapyrusFunctionProvider::IsSwimHookEnabled);
         reg.RegisterStatic("StartScript", &SLTInternalPapyrusFunctionProvider::StartScript);
     }
 };

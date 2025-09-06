@@ -218,6 +218,13 @@ $target< otherActor >.varname
 |`$system.forms.gold`|Form - returns the Form for gold (i.e. "0xf|Skyrim.esm")|
 |`$system.is_available.core`|bool - (Added by SLTR Core) is the SLTR Core extension available and enabled (very rare you would want this false)|
 |`$system.toh_elapsed`|float - (Added by SLTR Core) actual elapsed time in hours since the previous top of the hour (may be larger than 1.0 if e.g. sleeping or traveling)|
+|`$system.player.is_swimming`|bool - (Added by SLTR Core) true if player is swimming; false otherwise|
+|`$system.player.is_in_water`|bool - (Added by SLTR Core) true if player is in water; false otherwise|
+|`$system.player.submerged_level`|float - (Added by SLTR Core) current submerged level of player; 0.0 if not submerged/on dry land, 1.0 if fully submerged|
+|`$system.player.gametime_swimming`|float - (Added by SLTR Core) gametime player has currently spent swimming; 0.0 if not currently swimming|
+|`$system.player.gametime_in_water`|float - (Added by SLTR Core) gametime player has currently spent in water; 0.0 if not currently in water|
+|`$system.player.gametime_last_swimming`|float - (Added by SLTR Core) gametime during last player time swimming; might be very small for repeated re-entries of deep water|
+|`$system.player.gametime_last_in_water`|float - (Added by SLTR Core) gametime during last player time in water; might be very small for repeated re-entries of shallow water|
 |`$system.is_available.sexlab`|bool - (Added by SLTR SexLab) is the SLTR SexLab extension available and enabled (would be false if you installed on a system without SexLab)|
 |`$system.partner`|Actor - (Added by SLTR SexLab) the first member of the target Actor's current SexLab scene that is not the target Actor|
 |`$system.partner1`|Actor - (Added by SLTR SexLab) the first member of the target Actor's current SexLab scene that is not the target Actor|

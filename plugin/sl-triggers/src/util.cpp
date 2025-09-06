@@ -258,6 +258,29 @@ float Util::String::TryToFloat(std::string_view strval) {
     return 0.0f;
 }
 
+
+//=================================================================================================
+// Util::Actor implementations
+//=================================================================================================
+namespace {
+// Derived from Wade In Water mod - MIT License
+// Copyright (c) 2022 Tim
+float GetSubmergedLevel_Impl(RE::Actor* a_actor, float a_zPos, RE::TESObjectCELL* a_cell)
+{
+    using func_t = decltype(&GetSubmergedLevel_Impl);
+    REL::Relocation<func_t> func{ REL::RelocationID(36452, 37448) };  // 1.5.97 1405E1510
+    return func(a_actor, a_zPos, a_cell);
+}
+}
+
+float Util::Actor::GetSubmergedLevel(RE::Actor* akActor) {
+    if (!akActor) {
+        logger::warn("Util::Actor::GetSubmergedLevel: akActor is nullptr; return 0.0");
+        return 0.0;
+    }
+    return GetSubmergedLevel_Impl(akActor, akActor->GetPositionZ(), akActor->GetParentCell());
+}
+
 //=================================================================================================
 // MathUtil::Angle implementations
 //=================================================================================================

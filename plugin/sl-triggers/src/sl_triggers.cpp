@@ -124,6 +124,14 @@ SLTSessionId SLTNativeFunctions::GetSessionId(PAPYRUS_NATIVE_DECL) {
     return SLT::GetSessionId();
 }
 
+float SLTNativeFunctions::GetSubmergedLevel(PAPYRUS_NATIVE_DECL, RE::Actor* akActor) {
+    if (!akActor) {
+        logger::warn("GetSubmergedLevel: akActor is nullptr; return 0.0");
+        return 0.0;
+    }
+    return Util::Actor::GetSubmergedLevel(akActor);
+}
+
 namespace {
 
     namespace LocalTS {
@@ -291,7 +299,7 @@ std::string SLTNativeFunctions::GetTranslatedString(PAPYRUS_NATIVE_DECL, std::st
     RE::GFxTranslator::TranslateInfo transinfo;
     RE::GFxWStringBuffer result;
 
-    std::wstring key_utf16 = stl::utf8_to_utf16(input).value_or(L""s);
+    std::wstring key_utf16 = ::stl::utf8_to_utf16(input).value_or(L""s);
     transinfo.key = key_utf16.c_str();
 
     transinfo.result = std::addressof(result);
@@ -299,7 +307,7 @@ std::string SLTNativeFunctions::GetTranslatedString(PAPYRUS_NATIVE_DECL, std::st
     translator->Translate(std::addressof(transinfo));
 
     if (!result.empty()) {
-        std::string actualresult = stl::utf16_to_utf8(result).value();
+        std::string actualresult = ::stl::utf16_to_utf8(result).value();
         return actualresult;
     }
 
@@ -1077,6 +1085,11 @@ void SLTNativeFunctions::SetActivateSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnab
     logger::info("ActivateEvent sink enabled({})", SLTREventSink::GetSingleton()->IsEnabledActivateEvent());
 }
 
+void SLTNativeFunctions::SetSwimHookEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled) {
+    SLTREventSink::GetSingleton()->SetEnabledSwimHooks(isEnabled);
+    logger::info("SwimHooks processing enabled({})", SLTREventSink::GetSingleton()->IsEnabledActivateEvent());
+}
+
 bool SLTNativeFunctions::IsCombatSinkEnabled(PAPYRUS_NATIVE_DECL) {
     return SLTREventSink::GetSingleton()->IsEnabledCombatEvent();
 }
@@ -1091,6 +1104,10 @@ bool SLTNativeFunctions::IsHitSinkEnabled(PAPYRUS_NATIVE_DECL) {
 
 bool SLTNativeFunctions::IsActivateSinkEnabled(PAPYRUS_NATIVE_DECL) {
     return SLTREventSink::GetSingleton()->IsEnabledActivateEvent();
+}
+
+bool SLTNativeFunctions::IsSwimHookEnabled(PAPYRUS_NATIVE_DECL) {
+    return SLTREventSink::GetSingleton()->IsEnabledSwimHooks();
 }
 
 bool SLTNativeFunctions::SmartEquals(PAPYRUS_NATIVE_DECL, std::string_view a, std::string_view b) {

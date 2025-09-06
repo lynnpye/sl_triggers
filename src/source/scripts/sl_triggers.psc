@@ -6,6 +6,7 @@ endFunction
 
 ; GetForm -> Form
 ; string someFormofFormIdentification - accepts the following string formats:
+;   "<string:editorID>" - parsed as string; used as an editorID
 ;   "<int>"             - parsed as decimal; treated like a FormID() on the C++ side; attempts to load as such and return; note that this is treated as an absolute FormID and will vary based on load order
 ;   "0x<int>"           - parsed as hexadecimal; treated like a FormID() on the C++ side; attempts to load as such and return; note that this is treated as an absolute FormID and will vary based on load order
 ;   "<modfile>:<int>"   - parsed as decimal; treated like a mod filename and relative FormID on the C++ side; attempts to load as such and return
@@ -16,6 +17,7 @@ Form Function       GetForm(string someFormOfFormIdentification) global native
 string Function     GetNumericLiteral(string token) global native
 string[] Function   GetScriptsList() global native
 int Function        GetSessionId() global native
+float Function      GetSubmergedLevel(Actor akActor) global native
 
 ; GetTimestamp -> string
 ; returns - current, local realtime timestamp formatted as YYYYMMDDhhmmss (Year, Month, Day, hour, minute, second; all padded to the indicated number of digits with leading zeroes)

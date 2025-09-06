@@ -43,6 +43,8 @@
         ["timer_delay",             "triggerattribute_timer_delay"],
         ["vampirism",               "triggerattribute_vampirism"],
         ["lycanthropy",             "triggerattribute_lycanthropy"],
+        ["swimming",                "triggerattribute_swimming"],
+        ["in_water",                "triggerattribute_in_water"],
         ["do_1",                    "triggerattribute_do_1"],
         ["do_2",                    "triggerattribute_do_2"],
         ["do_3",                    "triggerattribute_do_3"],
@@ -51,7 +53,7 @@
     "triggerattribute_event" : [
         ["# here is where you define aspects of the attribute"],
         ["type", "int"],
-        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Key Mapping", "Top of the Hour", "New Session", "Player Cell Change (Frequent)", "Player Opened Container", "Player Location Change (Less Frequent)", "Player Equipment Change", "Player Combat State Changed", "Player Hit or Is Hit", "Timer Based", "Harvesting", "Fast Travel Arrival", "Vampirism Transitions", "Werewolf Transitions", "Vampire Feeding"],
+        ["widget", "menu", "Event: ", "0", "- Select an Event -", "Key Mapping", "Top of the Hour", "New Session", "Player Cell Change (Frequent)", "Player Opened Container", "Player Location Change (Less Frequent)", "Player Equipment Change", "Player Combat State Changed", "Player Hit or Is Hit", "Timer Based", "Harvesting", "Fast Travel Arrival", "Vampirism Transitions", "Werewolf Transitions", "Vampire Feeding", "Player Swim Start/Stop", "Player In/Out of Water"],
         ["info", "Choose which type of event this trigger will use."]
     ],
     "triggerattribute_keymapping" : 
@@ -205,6 +207,16 @@
         ["widget", "menu", "Lycanthropy Transition: ", "0", "Any", "Cured", "Contracted", "Enter Werewolf Form", "Leave Werewolf Form"],
         ["info", "Which phase of lycanthropy you wish to react to."]
     ],
+    "triggerattribute_swimming" : [
+        ["type", "int"],
+        ["widget", "menu", "Swimming Start/Stop: ", "0", "Either", "Start", "Stop"],
+        ["info", "Trigger when the player's swimming state transitions: Start, Stop, or Either."]
+    ],
+    "triggerattribute_in_water" : [
+        ["type", "int"],
+        ["widget", "menu", "Entering/Leaving Water: ", "0", "Either", "Entering", "Leaving"],
+        ["info", "Trigger when the player is Entering Water, Leaving Water, or Either."]
+    ],
     "triggerattribute_do_1" : [
         ["type", "string"],
         ["widget", "command", "Script 1: "],
@@ -242,7 +254,9 @@
         ["12", "triggerlayout_fast_travel"],
         ["13", "triggerlayout_vampirism"],
         ["14", "triggerlayout_lycanthropy"],
-        ["15", "triggerlayout_vampire_feeding"]
+        ["15", "triggerlayout_vampire_feeding"],
+        ["16", "triggerlayout_swimming"],
+        ["17", "triggerlayout_in_water"]
     ],
     "triggerlayout_keymapping" : [
         ["event", "chance"],
@@ -358,6 +372,18 @@
     "triggerlayout_vampire_feeding" : [
         ["event", "chance"],
         ["deeplocation", "daytime"],
+        ["do_1", "do_2"],
+        ["do_3", "do_4"]
+    ],
+    "triggerlayout_swimming" : [
+        ["event", "chance"],
+        ["swimming"],
+        ["do_1", "do_2"],
+        ["do_3", "do_4"]
+    ],
+    "triggerlayout_in_water" : [
+        ["event", "chance"],
+        ["in_water"],
         ["do_1", "do_2"],
         ["do_3", "do_4"]
     ],

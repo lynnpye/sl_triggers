@@ -367,6 +367,34 @@ $system.tohelapsed
 
 float - (Added by SLTR Core) actual elapsed time in hours since the previous top of the hour (may be larger than 1.0 if e.g. sleeping or traveling)
 
+$system.player.isswimming
+
+bool - (Added by SLTR Core) true if player is swimming; false otherwise
+
+$system.player.isinwater
+
+bool - (Added by SLTR Core) true if player is in water; false otherwise
+
+$system.player.submergedlevel
+
+float - (Added by SLTR Core) current submerged level of player; 0.0 if not submerged/on dry land, 1.0 if fully submerged
+
+$system.player.gametimeswimming
+
+float - (Added by SLTR Core) gametime player has currently spent swimming; 0.0 if not currently swimming
+
+$system.player.gametimeinwater
+
+float - (Added by SLTR Core) gametime player has currently spent in water; 0.0 if not currently in water
+
+$system.player.gametimelastswimming
+
+float - (Added by SLTR Core) gametime during last player time swimming; might be very small for repeated re-entries of deep water
+
+$system.player.gametimelastinwater
+
+float - (Added by SLTR Core) gametime during last player time in water; might be very small for repeated re-entries of shallow water
+
 $system.isavailable.sexlab
 
 bool - (Added by SLTR SexLab) is the SLTR SexLab extension available and enabled (would be false if you installed on a system without SexLab)

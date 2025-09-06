@@ -1,6 +1,18 @@
 0.940
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
         (or whichever folder you have your SKSE logs directed to)
+    bugfix: LICENSE update
+    enhancement: Core triggers: Player Swim Start/Stop, Player In/Out of Water
+    enhancement: new function: actor_submerged_level - returns a float, from 0.0 to 1.0 inclusive; 0.0 is dry, on land; 1.0 is fully submerged
+    enhancement: new events "OnSLTRPlayerSwimEvent(bool isSwimming)" and "OnSLTRPlayerWaterEvent(bool inWater)"
+    enhancement: new system variables: 
+        $system.player.is_swimming - bool: true if player is swimming; false otherwise
+        $system.player.is_in_water - bool: true if player is in water; false otherwise
+        $system.player.submerged_level - float: current submerged level of player
+        $system.player.gametime_swimming - float: gametime player has currently spent swimming; 0.0 if not currently swimming
+        $system.player.gametime_in_water - float: gametime player has currently spent in water; 0.0 if not currently in water
+        $system.player.gametime_last_swimming - float: gametime during last player time swimming; might be very small for repeated re-entries of deep water
+        $system.player.gametime_last_in_water - float: gametime during last player time in water; might be very small for repeated re-entries of shallow water
 
 0.930
     Savegame compatible
@@ -8,7 +20,7 @@
         (or whichever folder you have your SKSE logs directed to)
     bugfix: Keymapping intermittent unresponsiveness
     bugfix: OStim: Partner Sex: Female; fails due to logic error
-    enhancement: added weapon_doaction/weapon_dogetter/weapon_doconsumer/weapon_dofunction to implement Weapon related functions
+    enhancement: added weapon_dogetter/weapon_doconsumer to implement Weapon related functions
     enhancement: added script: "Show Limited RaceMenu.sltscript" - shows the limited Race selection menu, which has race and sex options removed (like Vanity Mirror mod)
     change: PetCollarGame: remove collar from player inventory with 1 sec delay after sending manipulate event to PetCollar mod to unequip
     change: reduced log chatter for "ConsumptionLifestyle"

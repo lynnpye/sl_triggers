@@ -144,8 +144,10 @@ namespace SLT {
         bool isEnabled_EquipEvent;
         bool isEnabled_HitEvent;
         bool isEnabled_ActivateEvent;
+        bool isEnabled_SwimHooks;
 
-        SLTREventSink() : isEnabled_CombatEvent(false), isEnabled_EquipEvent(false), isEnabled_HitEvent(false), isEnabled_ActivateEvent(false)
+        SLTREventSink() : isEnabled_CombatEvent(false), isEnabled_EquipEvent(false), isEnabled_HitEvent(false), isEnabled_ActivateEvent(false),
+            isEnabled_SwimHooks(false)
         {}
 
     public:
@@ -159,11 +161,13 @@ namespace SLT {
         bool IsEnabledHitEvent() { return isEnabled_HitEvent; }
         bool IsEnabledCombatEvent() { return isEnabled_CombatEvent; }
         bool IsEnabledActivateEvent() { return isEnabled_ActivateEvent; }
+        bool IsEnabledSwimHooks() { return isEnabled_SwimHooks; }
 
         void SetEnabledEquipEvent(bool b) { isEnabled_EquipEvent = b; }
         void SetEnabledHitEvent(bool b) { isEnabled_HitEvent = b; }
         void SetEnabledCombatEvent(bool b) { isEnabled_CombatEvent = b; }
         void SetEnabledActivateEvent(bool b) { isEnabled_ActivateEvent = b; }
+        void SetEnabledSwimHooks(bool b) { isEnabled_SwimHooks = b; }
 
         RE::BSEventNotifyControl ProcessEvent(const RE::TESEquipEvent* event, RE::BSTEventSource<RE::TESEquipEvent>* source) override;
 

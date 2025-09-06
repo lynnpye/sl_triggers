@@ -133,6 +133,11 @@ namespace Util
             return std::format("0x{:X}", value);
         }
     };
+
+    struct Actor
+    {
+        static float GetSubmergedLevel(RE::Actor* a_actor);
+    };
 }
 
 typedef Util::String str;
