@@ -52,6 +52,9 @@ Events that occur in game (SexLab orgasm, Key press, Fast Travel) can be configu
   - Vampirism Transitions (triggers when: you become a Vampire, you are cured, you transform to a Vampire Lord, and you end the Vampire Lord transformation)
   - Werewolf Transitions (triggers when: you are cursed, you are cured, you transform into a Werewolf, and you end the Werewolf transofmration)
   - Vampire Feeding (triggers when you begin vampiric feeding)
+  - Swim Start/Stop (triggers when you begin/end swimming animations)
+  - Water Enter/Exit (triggers when you enter/exit any water; e.g. stream, river, lake)
+  - Soul Trapped (triggers any time any Actor soul traps another Actor)
 - SexLab (optional)
   - Start
   - Stop

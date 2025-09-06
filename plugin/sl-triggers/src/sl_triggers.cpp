@@ -1065,6 +1065,15 @@ void SLTNativeFunctions::SetExtensionEnabled(PAPYRUS_NATIVE_DECL, std::string_vi
     }
 }
 
+bool SLTNativeFunctions::IsSwimHookEnabled(PAPYRUS_NATIVE_DECL) {
+    return SLTREventSink::GetSingleton()->IsEnabledSwimHooks();
+}
+
+void SLTNativeFunctions::SetSwimHookEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled) {
+    SLTREventSink::GetSingleton()->SetEnabledSwimHooks(isEnabled);
+    logger::info("SwimHooks processing enabled({})", SLTREventSink::GetSingleton()->IsEnabledSwimHooks());
+}
+
 void SLTNativeFunctions::SetCombatSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled) {
     SLTREventSink::GetSingleton()->SetEnabledCombatEvent(isEnabled);
     logger::info("CombatEvent sink enabled({})", SLTREventSink::GetSingleton()->IsEnabledCombatEvent());
@@ -1092,9 +1101,9 @@ void SLTNativeFunctions::SetHarvestedSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEna
     logger::info("HarvestedEvent sink enabled({})", SLTREventSink::GetSingleton()->IsEnabledHarvestedEvent());
 }
 
-void SLTNativeFunctions::SetSwimHookEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled) {
-    SLTREventSink::GetSingleton()->SetEnabledSwimHooks(isEnabled);
-    logger::info("SwimHooks processing enabled({})", SLTREventSink::GetSingleton()->IsEnabledSwimHooks());
+void SLTNativeFunctions::SetSoulsTrappedSinkEnabled(PAPYRUS_NATIVE_DECL, bool isEnabled) {
+    SLTREventSink::GetSingleton()->SetEnabledSoulsTrappedEvent(isEnabled);
+    logger::info("SoulsTrapped sink enabled({})", SLTREventSink::GetSingleton()->IsEnabledSoulsTrappedEvent());
 }
 
 bool SLTNativeFunctions::IsCombatSinkEnabled(PAPYRUS_NATIVE_DECL) {
@@ -1119,8 +1128,8 @@ bool SLTNativeFunctions::IsHarvestedSinkEnabled(PAPYRUS_NATIVE_DECL) {
     return SLTREventSink::GetSingleton()->IsEnabledHarvestedEvent();
 }
 
-bool SLTNativeFunctions::IsSwimHookEnabled(PAPYRUS_NATIVE_DECL) {
-    return SLTREventSink::GetSingleton()->IsEnabledSwimHooks();
+bool SLTNativeFunctions::IsSoulsTrappedSinkEnabled(PAPYRUS_NATIVE_DECL) {
+    return SLTREventSink::GetSingleton()->IsEnabledSoulsTrappedEvent();
 }
 
 bool SLTNativeFunctions::SmartEquals(PAPYRUS_NATIVE_DECL, std::string_view a, std::string_view b) {

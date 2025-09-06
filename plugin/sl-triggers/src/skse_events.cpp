@@ -242,6 +242,26 @@ RE::BSTEventSource<RE::TESHarvestedEvent::ItemHarvested>* source) {
     return RE::BSEventNotifyControl::kContinue;
 }
 
+namespace {
+RE::BSFixedString OnSoulTrapped("OnSLTRSoulTrapped");
+}
+
+RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::SoulsTrapped::Event* event,
+RE::BSTEventSource<RE::SoulsTrapped::Event>* source) {
+    if (IsEnabledSoulsTrappedEvent()) {
+        auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+        if (vm) {
+            auto* args = RE::MakeFunctionArguments(
+                static_cast<RE::Actor*>(event->trapper),
+                static_cast<RE::Actor*>(event->target)
+            );
+            vm->SendEventAll(OnSoulTrapped, args);
+        }
+    }
+
+    return RE::BSEventNotifyControl::kContinue;
+}
+
 // Registration helper macro
 #define REGISTER_PAPYRUS_PROVIDER(ProviderClass, ClassName) \
 { \
@@ -264,16 +284,19 @@ void GameEventHandler::onLoad() {
     auto* eventSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
     if (eventSourceHolder) {
         RE::ScriptEventSourceHolder x;
-        eventSourceHolder->AddEventSink<TESEquipEvent>(SLTREventSink::GetSingleton());
-        eventSourceHolder->AddEventSink<TESHitEvent>(SLTREventSink::GetSingleton());
-        eventSourceHolder->AddEventSink<TESCombatEvent>(SLTREventSink::GetSingleton());
-        //eventSourceHolder->AddEventSink<TESActivateEvent>(SLTREventSink::GetSingleton());
-        TESHarvestedEvent::GetEventSource()->AddEventSink(SLTREventSink::GetSingleton());
-        logger::info("CombatEvent sink initialized, enabled({})", SLTREventSink::GetSingleton()->IsEnabledCombatEvent());
-        logger::info("EquipEvent sink initialized, enabled({})", SLTREventSink::GetSingleton()->IsEnabledEquipEvent());
-        logger::info("HitEvent sink initialized, enabled({})", SLTREventSink::GetSingleton()->IsEnabledHitEvent());
-        //logger::info("ActivateEvent sink initialized, enabled({})", SLTREventSink::GetSingleton()->IsEnabledActivateEvent());
-        logger::info("HarvestedEvent sink initialized, enabled({})", SLTREventSink::GetSingleton()->IsEnabledHarvestedEvent());
+        auto* sinkleton = SLTREventSink::GetSingleton();
+        eventSourceHolder->AddEventSink<TESEquipEvent>(sinkleton);
+        eventSourceHolder->AddEventSink<TESHitEvent>(sinkleton);
+        eventSourceHolder->AddEventSink<TESCombatEvent>(sinkleton);
+        //eventSourceHolder->AddEventSink<TESActivateEvent>(sinkleton);
+        TESHarvestedEvent::GetEventSource()->AddEventSink(sinkleton);
+        SoulsTrapped::GetEventSource()->AddEventSink(sinkleton);
+        logger::info("CombatEvent sink initialized, enabled({})", sinkleton->IsEnabledCombatEvent());
+        logger::info("EquipEvent sink initialized, enabled({})", sinkleton->IsEnabledEquipEvent());
+        logger::info("HitEvent sink initialized, enabled({})", sinkleton->IsEnabledHitEvent());
+        //logger::info("ActivateEvent sink initialized, enabled({})", sinkleton->IsEnabledActivateEvent());
+        logger::info("HarvestedEvent sink initialized, enabled({})", sinkleton->IsEnabledHarvestedEvent());
+        logger::info("SoulsTrapped sink initialized, enabled({})", sinkleton->IsEnabledSoulsTrappedEvent());
     } else {
         logger::error("Unable to register with ScriptEventSourceHolder");
     }

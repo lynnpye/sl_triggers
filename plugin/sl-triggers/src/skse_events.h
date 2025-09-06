@@ -138,19 +138,27 @@ namespace SLT {
         public RE::BSTEventSink<RE::TESEquipEvent>,
         public RE::BSTEventSink<RE::TESHitEvent>,
         //public RE::BSTEventSink<RE::TESActivateEvent>,
-        public RE::BSTEventSink<RE::TESHarvestedEvent::ItemHarvested>
+        public RE::BSTEventSink<RE::TESHarvestedEvent::ItemHarvested>,
+        public RE::BSTEventSink<RE::SoulsTrapped::Event>
     {
     private:
+        bool isEnabled_SwimHooks;
+
         bool isEnabled_CombatEvent;
         bool isEnabled_EquipEvent;
         bool isEnabled_HitEvent;
         //bool isEnabled_ActivateEvent;
         bool isEnabled_HarvestedEvent;
-        bool isEnabled_SwimHooks;
+        bool isEnabled_SoulsTrappedEvent;
 
-        SLTREventSink() : isEnabled_CombatEvent(false), isEnabled_EquipEvent(false), isEnabled_HitEvent(false), 
+        SLTREventSink() :
+            isEnabled_CombatEvent(false),
+            isEnabled_EquipEvent(false),
+            isEnabled_HitEvent(false),
             //isEnabled_ActivateEvent(false),
-            isEnabled_SwimHooks(false), isEnabled_HarvestedEvent(false)
+            isEnabled_SwimHooks(false), 
+            isEnabled_HarvestedEvent(false), 
+            isEnabled_SoulsTrappedEvent(false)
         {}
 
     public:
@@ -159,20 +167,23 @@ namespace SLT {
             static SLTREventSink singleton;
             return &singleton;
         }
+        
+        bool IsEnabledSwimHooks() { return isEnabled_SwimHooks; }
+        void SetEnabledSwimHooks(bool b) { isEnabled_SwimHooks = b; }
 
         bool IsEnabledEquipEvent() { return isEnabled_EquipEvent; }
         bool IsEnabledHitEvent() { return isEnabled_HitEvent; }
         bool IsEnabledCombatEvent() { return isEnabled_CombatEvent; }
         //bool IsEnabledActivateEvent() { return isEnabled_ActivateEvent; }
         bool IsEnabledHarvestedEvent() { return isEnabled_HarvestedEvent; }
-        bool IsEnabledSwimHooks() { return isEnabled_SwimHooks; }
+        bool IsEnabledSoulsTrappedEvent() { return isEnabled_SoulsTrappedEvent; }
 
         void SetEnabledEquipEvent(bool b) { isEnabled_EquipEvent = b; }
         void SetEnabledHitEvent(bool b) { isEnabled_HitEvent = b; }
         void SetEnabledCombatEvent(bool b) { isEnabled_CombatEvent = b; }
         //void SetEnabledActivateEvent(bool b) { isEnabled_ActivateEvent = b; }
         void SetEnabledHarvestedEvent(bool b) { isEnabled_HarvestedEvent = b; }
-        void SetEnabledSwimHooks(bool b) { isEnabled_SwimHooks = b; }
+        void SetEnabledSoulsTrappedEvent(bool b) { isEnabled_SoulsTrappedEvent = b; }
 
         RE::BSEventNotifyControl ProcessEvent(const RE::TESEquipEvent* event, RE::BSTEventSource<RE::TESEquipEvent>* source) override;
 
@@ -189,6 +200,9 @@ namespace SLT {
 
         RE::BSEventNotifyControl ProcessEvent(const RE::TESHarvestedEvent::ItemHarvested* event,
                                         RE::BSTEventSource<RE::TESHarvestedEvent::ItemHarvested>* source) override;
+
+        RE::BSEventNotifyControl ProcessEvent(const RE::SoulsTrapped::Event* event,
+                                        RE::BSTEventSource<RE::SoulsTrapped::Event>* source) override;
     };
 }
 

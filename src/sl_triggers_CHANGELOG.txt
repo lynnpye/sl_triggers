@@ -3,7 +3,12 @@
         (or whichever folder you have your SKSE logs directed to)
     bugfix: LICENSE update; replaced unmodified copied template with correct names and license info for source code
     change: Harvesting trigger now uses TESHarvestedEvent instead of a custom TESActivatedEvent; should improve performance, but some harvests are not detected by default (e.g. some bugs and fish)
-    enhancement: Core triggers: Player Swim Start/Stop, Player Enter/Exit Water
+    enhancement: new Core trigger: Player Swim Start/Stop
+    enhancement: new Core trigger: Player Enter/Exit Water
+    enhancement: new Core trigger: Soul Trap
+        request variables:
+            $request.core.soul_trapped.trapper : Form - (Added by SLTR Core) (for Soul Trapped) the trapper who trapped the target
+            $request.core.soul_trapped.target : Form - (Added by SLTR Core) (for Soul Trapped) the target that was trapped
     enhancement: new function: actor_submerged_level - returns a float, from 0.0 to 1.0 inclusive; 0.0 is not in water, on land; 1.0 is fully submerged
     enhancement: new events "OnSLTRPlayerSwimEvent(bool isSwimming)" and "OnSLTRPlayerWaterEvent(bool inWater)"
     enhancement: new system variables: 

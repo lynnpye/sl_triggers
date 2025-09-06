@@ -25,6 +25,7 @@ int		EVENT_ID_LYCANTHROPY					= 14
 int 	EVENT_ID_VAMPIRE_FEEDING				= 15
 int		EVENT_ID_SWIMMING						= 16
 int		EVENT_ID_IN_WATER						= 17
+int		EVENT_ID_SOUL_TRAPPED					= 18
 
 string ATTR_MOD_VERSION						= "__slt_mod_version__"
 string ATTR_EVENT							= "event"
@@ -61,6 +62,7 @@ string ATTR_VAMPIRISM						= "vampirism"
 string ATTR_LYCANTHROPY						= "lycanthropy"
 string ATTR_SWIMMING						= "swimming"
 string ATTR_IN_WATER						= "in_water"
+string ATTR_IS_PLAYER						= "is_player"
 string ATTR_DO_1							= "do_1"
 string ATTR_DO_2							= "do_2"
 string ATTR_DO_3							= "do_3"
@@ -112,6 +114,7 @@ string[]	triggerKeys_lycanthropy
 string[]	triggerKeys_vampire_feeding
 string[]	triggerKeys_swimming
 string[]	triggerKeys_in_water
+string[]	triggerKeys_soul_trapped
 
 float 		last_time_PlayerCellChangeEvent
 string[]	common_container_names
@@ -488,6 +491,10 @@ Event OnSLTRPlayerWaterEvent(bool inWater)
 	endif
 EndEvent
 
+Event OnSLTRSoulTrapped(Actor akTrapper, Actor akTarget)
+	HandleSoulTrapped(akTrapper, akTarget)
+EndEvent
+
 int cellPreviousSessionId
 Function Send_SLTR_OnPlayerCellChange()
 	if !PlayerRef || !PlayerRef.Is3DLoaded() || PlayerRef.IsDisabled()
@@ -628,6 +635,7 @@ Function RefreshTriggerCache()
 	triggerKeys_vampire_feeding			= PapyrusUtil.StringArray(0)
 	triggerKeys_swimming				= PapyrusUtil.StringArray(0)
 	triggerKeys_in_water				= PapyrusUtil.StringArray(0)
+	triggerKeys_soul_trapped			= PapyrusUtil.StringArray(0)
 
 	; paired - and handled differently /
 	;/
@@ -691,6 +699,8 @@ Function RefreshTriggerCache()
 				triggerKeys_swimming =				PapyrusUtil.PushString(triggerKeys_swimming, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_IN_WATER
 				triggerKeys_in_water =				PapyrusUtil.PushString(triggerKeys_in_water, TriggerKeys[i])
+			elseif eventCode == EVENT_ID_SOUL_TRAPPED
+				triggerKeys_soul_trapped =			PapyrusUtil.PushString(triggerKeys_soul_trapped, TriggerKeys[i])
 			elseif eventCode == EVENT_ID_TIMER
 				string triggerKey = TriggerKeys[i]
 				float timerDelay = JsonUtil.GetFloatValue(_triggerFile, ATTR_TIMER_DELAY)
@@ -902,6 +912,14 @@ Function RegisterEvents()
 		SafeRegisterForModEvent_Quest(self, "OnSLTRPlayerWaterEvent", "OnSLTRPlayerWaterEvent")
 	endif
 	sl_triggers_internal.SetSwimHookEnabled(enableSwimHooks)
+
+	UnregisterForModEvent("OnSLTRSoulTrapped")
+	if triggerKeys_soul_trapped.Length > 0
+		SafeRegisterForModEvent_Quest(self, "OnSLTRSoulTrapped", "OnSLTRSoulTrapped")
+		sl_triggers_internal.SetSoulsTrappedSinkEnabled(true)
+	else
+		sl_triggers_internal.SetSoulsTrappedSinkEnabled(false)
+	endif
 
 	UnregisterForModEvent(EVENT_SLTR_ON_PLAYER_EQUIP())
 	if triggerKeys_equipment_change.Length > 0
@@ -3393,4 +3411,144 @@ Function HandlePlayerWaterEvent()
 			endif
 		endif
 	endwhile
+EndFunction
+
+Function HandleSoulTrapped(Actor akTrapper, Actor akTarget)
+	If (SLT.Debug_Extension_Core)
+		SLTDebugMsg("Core.HandleSoulTrapped")
+	EndIf
+
+	if triggerKeys_soul_trapped.Length < 1
+		return
+	endif
+	
+	int cmdRequestId
+	int		requestTargetFormId = PlayerRef.GetFormID() ; conveniently so, in this case
+	int i = 0
+	int j
+
+	bool   	doRun
+	string 	triggerKey
+	string 	_triggerFile
+	string 	command
+	bool  	trapperWasInInterior = akTrapper.IsInInterior()
+	Keyword trapperLocationKeyword = SLT.GetActorLocationKeyword(akTrapper)
+
+	int    	ival
+	bool 	bval
+	
+	float chance
+
+	while i < triggerKeys_soul_trapped.Length
+		triggerKey = triggerKeys_soul_trapped[i]
+		_triggerFile = FN_T(triggerKey)
+
+		doRun = !JsonUtil.HasStringValue(_triggerFile, DELETED_ATTRIBUTE())
+
+		if doRun
+			chance = JsonUtil.GetFloatValue(_triggerFile, ATTR_CHANCE, 100.0)
+
+			doRun = chance >= 100.0 || chance >= Utility.RandomFloat(0.0, 100.0)
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_PLAYER)
+			if ival != 0
+				if ival == 1 ; Is Player
+					doRun = akTrapper == SLT.PlayerRef
+				elseif ival == 2 ; Is Not Player
+					doRun = akTrapper != SLT.PlayerRef
+				endif
+			endif
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
+			if ival != 0 ; 0 is Any
+				if ival == 1
+					doRun = DayTime()
+				elseIf ival == 2
+					doRun = !DayTime()
+				endIf
+			endIf
+		endif
+
+		if doRun
+			ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION)
+			if ival != 0
+;/
+0 - Any
+
+1 - Inside
+2 - Outside
+3 - Safe (Home/Jail/Inn)
+4 - City (City/Town/Habitation/Dwelling)
+5 - Wilderness (!pLoc(DEFAULT)/Hold/Fort/Bandit Camp)
+6 - Dungeon (Cave/et. al.)
+
+; LocationKeywords[i - 7]
+5 - Player Home
+6 - Jail
+...
+/;
+
+				if ival == 1
+					doRun = trapperWasInInterior
+				elseif ival == 2
+					doRun = !trapperWasInInterior
+				elseif ival == 3
+					doRun = SLT.IsLocationKeywordSafe(trapperLocationKeyword)
+				elseif ival == 4
+					doRun = SLT.IsLocationKeywordCity(trapperLocationKeyword)
+				elseif ival == 5
+					doRun = SLT.IsLocationKeywordWilderness(trapperLocationKeyword)
+				elseif ival == 6
+					doRun = SLT.IsLocationKeywordDungeon(trapperLocationKeyword)
+				else
+					j = ival - 7
+					doRun = trapperLocationKeyword == SLT.LocationKeywords[j]
+				endif
+			endif
+		endIf
+		
+		if doRun
+			int cmdThreadId
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_1)
+			if command
+				cmdRequestId = GetNextSoulTrappedRequestId(requestTargetFormId, cmdRequestId, akTrapper, akTarget)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_2)
+			if command
+				cmdRequestId = GetNextSoulTrappedRequestId(requestTargetFormId, cmdRequestId, akTrapper, akTarget)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_3)
+			if command
+				cmdRequestId = GetNextSoulTrappedRequestId(requestTargetFormId, cmdRequestId, akTrapper, akTarget)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+			command = JsonUtil.GetStringValue(_triggerFile, ATTR_DO_4)
+			if command
+				cmdRequestId = GetNextSoulTrappedRequestId(requestTargetFormId, cmdRequestId, akTrapper, akTarget)
+				cmdThreadId = SLT.GetNextInstanceId()
+				RequestCommandWithThreadId(PlayerRef, command, cmdRequestId, cmdThreadId)
+			endIf
+		endif
+
+		i += 1
+	endwhile
+EndFunction
+
+int Function GetNextSoulTrappedRequestId(int requestTargetFormId, int cmdRequestId, Actor akTrapper, Actor akTarget)
+	if !cmdRequestId
+		cmdRequestId = SLT.GetNextInstanceId()
+
+		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.soul_trapped.trapper", akTrapper)
+		sl_triggersCmd.PrecacheRequestForm(SLT, requestTargetFormId, cmdRequestId, "core.soul_trapped.target", akTarget)
+	endif
+	return cmdRequestId
 EndFunction

@@ -45,6 +45,7 @@
         ["lycanthropy",             "triggerattribute_lycanthropy"],
         ["swimming",                "triggerattribute_swimming"],
         ["in_water",                "triggerattribute_in_water"],
+        ["is_player",               "triggerattribute_is_player"],
         ["do_1",                    "triggerattribute_do_1"],
         ["do_2",                    "triggerattribute_do_2"],
         ["do_3",                    "triggerattribute_do_3"],
@@ -217,6 +218,11 @@
         ["widget", "menu", "Entering/Leaving Water: ", "0", "Either", "Entering", "Leaving"],
         ["info", "Trigger when the player is Entering Water, Leaving Water, or Either."]
     ],
+    "triggerattribute_is_player" : [
+        ["type", "int"],
+        ["widget", "menu", "Is Player: ", "0", "Either", "Is Player", "Is Not Player"],
+        ["info", "Trigger when the soul collector Is the Player, Is Not the Player, or Either."]
+    ],
     "triggerattribute_do_1" : [
         ["type", "string"],
         ["widget", "command", "Script 1: "],
@@ -256,7 +262,8 @@
         ["14", "triggerlayout_lycanthropy"],
         ["15", "triggerlayout_vampire_feeding"],
         ["16", "triggerlayout_swimming"],
-        ["17", "triggerlayout_in_water"]
+        ["17", "triggerlayout_in_water"],
+        ["18", "triggerlayout_soul_trapped"]
     ],
     "triggerlayout_keymapping" : [
         ["event", "chance"],
@@ -384,6 +391,13 @@
     "triggerlayout_in_water" : [
         ["event", "chance"],
         ["in_water"],
+        ["do_1", "do_2"],
+        ["do_3", "do_4"]
+    ],
+    "triggerlayout_soul_trapped" : [
+        ["event", "chance"],
+        ["is_player"],
+        ["deeplocation", "daytime"],
         ["do_1", "do_2"],
         ["do_3", "do_4"]
     ],

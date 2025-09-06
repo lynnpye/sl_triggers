@@ -282,6 +282,8 @@ $target< otherActor >.varname
 |`$request.core.lycanthropy.started_werewolf`|bool - (Added by SLTR Core) (for Lycanthropy Transitions) did you transform to Werewolf?|
 |`$request.core.lycanthropy.ended_werewolf`|bool - (Added by SLTR Core) (for Lycanthropy Transitions) did you end the Werewolf transformation?|
 |`$request.core.vampire_feeding.target`|Form - (Added by SLTR Core) (for Vampire Feeding) the target of the feeding|
+|`$request.core.soul_trapped.trapper`|Form - (Added by SLTR Core) (for Soul Trapped) the trapper who trapped the target|
+|`$request.core.soul_trapped.target`|Form - (Added by SLTR Core) (for Soul Trapped) the target that was trapped|
 
 ## Basic Operations
 
