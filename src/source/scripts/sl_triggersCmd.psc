@@ -949,7 +949,7 @@ Function DoStartup()
             QueueUpdateLoop(0.01)
         endif
     else
-        SLTErrMsg("sl_triggersCmd unable to obtain threadid; bailing")
+        SLTErrMsg("sl_triggersCmd unable to obtain threadid; bailing threadid(" + threadid + ") hasValidFrame(" + hasValidFrame + ")")
         CleanupAndRemove()
     endif
 EndFunction
