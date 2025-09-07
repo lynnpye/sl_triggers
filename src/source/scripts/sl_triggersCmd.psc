@@ -1296,6 +1296,9 @@ bool Function InternalResolve(string token)
             elseif "forms.gold" == vname || "forms.septim" == vname
                 CustomResolveFormResult = sl_triggers.GetForm("0xf|Skyrim.esm")
                 return true
+            elseif "forms.sltr_main" == vname
+                CustomResolveFormResult = SLT
+                return true
             endif
         elseif "request" == scope
             int requestDataType = GetRequestDataType(vname)

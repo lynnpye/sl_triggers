@@ -216,6 +216,7 @@ $target< otherActor >.varname
 |`$system.currentScriptName`|string - the current script that is running; might differ from current script in case `call` was used|
 |`$system.sessionid`|int - the current SLTR sessionid (changes with each load of a save or creation of a new game)|
 |`$system.forms.gold`|Form - returns the Form for gold (i.e. "0xf|Skyrim.esm")|
+|`$system.forms.sltr_main`|Form - returns the SLTR Main Quest object (i.e. "0x83f|sl_triggers.esp")|
 |`$system.is_available.core`|bool - (Added by SLTR Core) is the SLTR Core extension available and enabled (very rare you would want this false)|
 |`$system.toh_elapsed`|float - (Added by SLTR Core) actual elapsed time in hours since the previous top of the hour (may be larger than 1.0 if e.g. sleeping or traveling)|
 |`$system.player.is_swimming`|bool - (Added by SLTR Core) true if player is swimming; false otherwise|
