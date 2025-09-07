@@ -2,6 +2,7 @@
     Savegame compatible
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
         (or whichever folder you have your SKSE logs directed to)
+    enhancement: new system variable: $system.forms.sltr_main - Form: the SLTR Main Quest
 
 0.941
     Savegame compatible
