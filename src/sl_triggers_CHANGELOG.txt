@@ -1,3 +1,12 @@
+0.941
+    Savegame compatible
+    Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
+        (or whichever folder you have your SKSE logs directed to)
+    bugfix: *_dofunction/*_doconsumer class functions not allowing for default parameters
+    bugfix: argument length related error messages are misleading
+    bugfix: actor_dofunction $$ GetEquippedWeapon not allowing for default parameter
+    bugfix: actor_dofunction $$ GetEquippedWeapon; none value is valid return value but behaves as if invalid
+
 0.940
     Savegame compatible
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 

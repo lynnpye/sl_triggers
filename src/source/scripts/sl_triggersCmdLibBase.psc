@@ -1473,63 +1473,120 @@ bool function _slt_objectreference_doconsumer(sl_triggersCmd CmdPrimary, ObjectR
                 _target.DamageObject(CmdPrimary.ResolveFloat(param[3]))
             endif
         elseif _theAction == "Disable"
-            if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                _target.Disable(CmdPrimary.ResolveBool(param[3]))
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abFadeOut = false
+                if param.Length > 3
+                    abFadeOut = CmdPrimary.ResolveBool(param[3])
+                endif
+                _target.Disable(abFadeOut)
             endif
         elseif _theAction == "DisableLinkChain"
-            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+            if ParamLengthGT(CmdPrimary, param.Length, 3)
                 Keyword _apKeyword = CmdPrimary.ResolveForm(param[3]) as Keyword
                 if _apKeyword
-                    _target.DisableLinkChain(_apKeyword, CmdPrimary.ResolveBool(param[4]))
+                    bool abFadeOut = false
+                    if param.Length > 4
+                        abFadeOut = CmdPrimary.ResolveBool(param[4])
+                    endif
+                    _target.DisableLinkChain(_apKeyword, abFadeOut)
                 endif
             endif
         elseif _theAction == "DisableNoWait"
-            if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                _target.DisableNoWait(CmdPrimary.ResolveBool(param[3]))
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abFadeOut = false
+                if param.Length > 3
+                    abFadeOut = CmdPrimary.ResolveBool(param[3])
+                endif
+                _target.DisableNoWait(abFadeOut)
             endif
         elseif _theAction == "DropObject"
-            if ParamLengthEQ(CmdPrimary, param.Length, 5)
+            if ParamLengthGT(CmdPrimary, param.Length, 3)
                 Form _akObject = CmdPrimary.ResolveForm(param[3])
                 if _akObject
-                    _target.DropObject(_akObject, CmdPrimary.ResolveInt(param[4]))
+                    int aiCount = 1
+                    if param.Length > 4
+                        aiCount = CmdPrimary.ResolveInt(param[4])
+                    endif
+                    _target.DropObject(_akObject, aiCount)
                 endif
             endif
         elseif _theAction == "Enable"
-            if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                _target.Enable(CmdPrimary.ResolveBool(param[3]))
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abFadeIn = false
+                if param.Length > 3
+                    abFadeIn = CmdPrimary.ResolveBool(param[3])
+                endif
+                _target.Enable(abFadeIn)
             endif
         elseif _theAction == "EnableFastTravel"
-            if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                _target.EnableFastTravel(CmdPrimary.ResolveBool(param[3]))
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abEnable = true
+                if param.Length > 3
+                    abEnable = CmdPrimary.ResolveBool(param[3])
+                endif
+                _target.EnableFastTravel(abEnable)
             endif
         elseif _theAction == "EnableLinkChain"
-            if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                Keyword _apKeyword = CmdPrimary.ResolveForm(param[3]) as Keyword
-                if _apKeyword
-                    _target.EnableLinkChain(_apKeyword)
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                Keyword apKeyword = none
+                if param.Length > 3
+                    apKeyword = CmdPrimary.ResolveForm(param[3]) as Keyword
                 endif
+                _target.EnableLinkChain(apKeyword)
             endif
         elseif _theAction == "EnableNoWait"
-            if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                _target.EnableNoWait(CmdPrimary.ResolveBool(param[3]))
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abFadeIn = false
+                if param.Length > 3
+                    abFadeIn = CmdPrimary.ResolveBool(param[3])
+                endif
+                _target.EnableNoWait(abFadeIn)
             endif
         elseif _theAction == "IgnoreFriendlyHits"
-            if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                _target.IgnoreFriendlyHits(CmdPrimary.ResolveBool(param[3]))
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abIgnore = true
+                if param.Length > 3
+                    abIgnore = CmdPrimary.ResolveBool(param[3])
+                endif
+                _target.IgnoreFriendlyHits(abIgnore)
             endif
         elseif _theAction == "KnockAreaEffect"
             if ParamLengthEQ(CmdPrimary, param.Length, 5)
                 _target.KnockAreaEffect(CmdPrimary.ResolveFloat(param[3]), CmdPrimary.ResolveFloat(param[4]))
             endif
         elseif _theAction == "Lock"
-            if ParamLengthEQ(CmdPrimary, param.Length, 5)
-                _target.Lock(CmdPrimary.ResolveBool(param[3]), CmdPrimary.ResolveBool(param[4]))
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abLock = true
+                bool abAsOwner = false
+                if param.Length > 3
+                    abLock = CmdPrimary.ResolveBool(param[3])
+                    if param.Length > 4
+                        abAsOwner = CmdPrimary.ResolveBool(param[4])
+                    endif
+                endif
+                _target.Lock(abLock, abAsOwner)
             endif
         elseif _theAction == "MoveTo"
-            if ParamLengthEQ(CmdPrimary, param.Length, 8)
+            if ParamLengthGT(CmdPrimary, param.Length, 3)
                 ObjectReference _akTarget = CmdPrimary.ResolveForm(param[3]) as ObjectReference
                 if _akTarget
-                    _target.MoveTo(_akTarget, CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveFloat(param[6]), CmdPrimary.ResolveBool(param[7]))
+                    float afXOffset = 0.0
+                    float afYOffset = 0.0
+                    float afZOffset = 0.0
+                    bool abMatchRotation = true
+                    if param.Length > 4
+                        afXOffset = CmdPrimary.ResolveFloat(param[4])
+                        if param.Length > 5
+                            afYOffset = CmdPrimary.ResolveFloat(param[5])
+                            if param.Length > 6
+                                afZOffset = CmdPrimary.ResolveFloat(param[6])
+                                if param.Length > 7
+                                    abMatchRotation = CmdPrimary.ResolveBool(param[7])
+                                endif
+                            endif
+                        endif
+                    endif
+                    _target.MoveTo(_akTarget, afXOffset, afYOffset, afZOffset, abMatchRotation)
                 endif
             endif
         elseif _theAction == "MoveToInteractionLocation"
@@ -1565,9 +1622,20 @@ bool function _slt_objectreference_doconsumer(sl_triggersCmd CmdPrimary, ObjectR
                 endif
             endif
         elseif _theAction == "RemoveAllItems"
-            if ParamLengthEQ(CmdPrimary, param.Length, 6)
-                ObjectReference _akTransferTo = CmdPrimary.ResolveForm(param[3]) as ObjectReference
-                _target.RemoveAllItems(_akTransferTo, CmdPrimary.ResolveBool(param[4]), CmdPrimary.ResolveBool(param[5]))
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                ObjectReference akTransferTo = none
+                bool abKeepOwnership = false
+                bool abRemoveQuestItems = false
+                if param.Length > 3
+                    akTransferTo = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                    if param.Length > 4
+                        abKeepOwnership = CmdPrimary.ResolveBool(param[4])
+                        if param.Length > 5
+                            abRemoveQuestItems = CmdPrimary.ResolveBool(param[5])
+                        endif
+                    endif
+                endif
+                _target.RemoveAllItems(akTransferTo, abKeepOwnership, abRemoveQuestItems)
             endif
         elseif _theAction == "RemoveInventoryEventFilter"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -1577,23 +1645,45 @@ bool function _slt_objectreference_doconsumer(sl_triggersCmd CmdPrimary, ObjectR
                 endif
             endif
         elseif _theAction == "RemoveItem"
-            if ParamLengthGT(CmdPrimary, param.Length, 5)
-                Form _toRemove = CmdPrimary.ResolveForm(param[3])
-                ObjectReference _akTransferTo = CmdPrimary.ResolveForm(param[6]) as ObjectReference
-                _target.RemoveItem(_toRemove, CmdPrimary.ResolveInt(param[4]), CmdPrimary.ResolveBool(param[5]), _akTransferTo)
+            if ParamLengthGT(CmdPrimary, param.Length, 3)
+                Form akItemToRemove = CmdPrimary.ResolveForm(param[3])
+                if akItemToRemove
+                    int aiCount = 1
+                    bool abSilent = false
+                    ObjectReference akOtherContainer = none
+                    if param.Length > 4
+                        aiCount = CmdPrimary.ResolveInt(param[4])
+                        if param.Length > 5
+                            abSilent = CmdPrimary.ResolveBool(param[5])
+                            if param.Length > 6
+                                akOtherContainer = CmdPrimary.ResolveForm(param[6]) as ObjectReference
+                            endif
+                        endif
+                    endif
+                    _target.RemoveItem(akItemToRemove, aiCount, abSilent, akOtherContainer)
+                endif
             endif
         elseif _theAction == "Reset"
-            if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                ObjectReference _akTarget = CmdPrimary.ResolveForm(param[3]) as ObjectReference
-                _target.Reset(_akTarget)
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                ObjectReference akTarget = none
+                if param.Length > 3
+                    akTarget = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                endif
+                _target.Reset(akTarget)
             endif
         elseif _theAction == "Say"
-            if ParamLengthEQ(CmdPrimary, param.Length, 6)
-                Topic _topic = CmdPrimary.ResolveForm(param[3]) as Topic
-                if _topic
-                    Actor _speakAs = CmdPrimary.ResolveActor(param[4])
-                    bool _inPlayerHead = CmdPrimary.ResolveBool(param[5])
-                    _target.Say(_topic, _speakAs, _inPlayerHead)
+            if ParamLengthGT(CmdPrimary, param.Length, 3)
+                Topic akTopicToSay = CmdPrimary.ResolveForm(param[3]) as Topic
+                if akTopicToSay
+                    Actor akActorToSpeakAs = none
+                    bool abSpeakInPlayersHead = false
+                    if param.Length > 4
+                        akActorToSpeakAs = CmdPrimary.ResolveActor(param[4])
+                        if param.Length > 5
+                            abSpeakInPlayersHead = CmdPrimary.ResolveBool(param[5])
+                        endif
+                    endif
+                    _target.Say(akTopicToSay, akActorToSpeakAs, abSpeakInPlayersHead)
                 endif
             endif
         elseif _theAction == "SendStealAlarm"
@@ -1634,8 +1724,12 @@ bool function _slt_objectreference_doconsumer(sl_triggersCmd CmdPrimary, ObjectR
                 _target.SetAnimationVariableInt(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveInt(param[4]))
             endif
         elseif _theAction == "SetDestroyed"
-            if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                _target.SetDestroyed(CmdPrimary.ResolveBool(param[3]))
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abDestroyed = true
+                if param.Length > 3
+                    abDestroyed = CmdPrimary.ResolveBool(param[3])
+                endif
+                _target.SetDestroyed(abDestroyed)
             endif
         elseif _theAction == "SetFactionOwner"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -1649,16 +1743,28 @@ bool function _slt_objectreference_doconsumer(sl_triggersCmd CmdPrimary, ObjectR
                 _target.SetLockLevel(CmdPrimary.ResolveInt(param[3]))
             endif
         elseif _theAction == "SetMotionType"
-            if ParamLengthEQ(CmdPrimary, param.Length, 5)
-                _target.SetMotionType(CmdPrimary.ResolveInt(param[3]), CmdPrimary.ResolveBool(param[4]))
+            if ParamLengthGT(CmdPrimary, param.Length, 3)
+                bool abAllowActivate = true
+                if param.Length > 4
+                    abAllowActivate = CmdPrimary.ResolveBool(param[4])
+                endif
+                _target.SetMotionType(CmdPrimary.ResolveInt(param[3]), abAllowActivate)
             endif
         elseif _theAction == "SetNoFavorAllowed"
-            if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                _target.SetNoFavorAllowed(CmdPrimary.ResolveBool(param[3]))
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abNoFavor = true
+                if param.Length > 3
+                    abNoFavor = CmdPrimary.ResolveBool(param[3])
+                endif
+                _target.SetNoFavorAllowed(abNoFavor)
             endif
         elseif _theAction == "SetOpen"
-            if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                _target.SetOpen(CmdPrimary.ResolveBool(param[3]))
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abOpen = true
+                if param.Length > 3
+                    abOpen = CmdPrimary.ResolveBool(param[3])
+                endif
+                _target.SetOpen(abOpen)
             endif
         elseif _theAction == "SetPosition"
             if ParamLengthEQ(CmdPrimary, param.Length, 6)
@@ -1680,15 +1786,23 @@ bool function _slt_objectreference_doconsumer(sl_triggersCmd CmdPrimary, ObjectR
                 _target.TranslateTo(CmdPrimary.ResolveFloat(param[3]), CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveFloat(param[6]), CmdPrimary.ResolveFloat(param[7]), CmdPrimary.ResolveFloat(param[8]), CmdPrimary.ResolveFloat(param[9]), CmdPrimary.ResolveFloat(param[10]))
             endif
         elseif _theAction == "TranslateToRef"
-            if ParamLengthEQ(CmdPrimary, param.Length, 6)
+            if ParamLengthGT(CmdPrimary, param.Length, 4)
                 ObjectReference _akref = CmdPrimary.ResolveForm(param[3]) as ObjectReference
                 if _akref
-                    _target.TranslateToRef(_akref, CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]))
+                    float afMaxRotationSpeed = 0.0
+                    if param.Length > 5
+                        afMaxRotationSpeed = CmdPrimary.ResolveFloat(param[5])
+                    endif
+                    _target.TranslateToRef(_akref, CmdPrimary.ResolveFloat(param[4]), afMaxRotationSpeed)
                 endif
             endif
         elseif _theAction == "SetHarvested"
-            if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                _target.SetHarvested(CmdPrimary.ResolveBool(param[3]))
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abHarvested = true
+                if param.Length > 3
+                    abHarvested = CmdPrimary.ResolveBool(param[3])
+                endif
+                _target.SetHarvested(abHarvested)
             endif
         elseif _theAction == "SetItemHealthPercent"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -1951,16 +2065,28 @@ endFunction
 bool function _slt_actorbase_doconsumer(sl_triggersCmd CmdPrimary, ActorBase _target, string _theAction, string[] param) global
     if _target && _theAction
         if _theAction == "SetEssential"
-            if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                _target.SetEssential(CmdPrimary.ResolveBool(param[3]))
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abEssential = true
+                if param.Length > 3
+                    abEssential = CmdPrimary.ResolveBool(param[3])
+                endif
+                _target.SetEssential(abEssential)
             endif
         elseif _theAction == "SetInvulnerable"
-            if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                _target.SetInvulnerable(CmdPrimary.ResolveBool(param[3]))
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abInvulnerable = true
+                if param.Length > 3
+                    abInvulnerable = CmdPrimary.ResolveBool(param[3])
+                endif
+                _target.SetInvulnerable(abInvulnerable)
             endif
         elseif _theAction == "SetProtected"
-            if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                _target.SetProtected(CmdPrimary.ResolveBool(param[3]))
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abProtected = true
+                if param.Length > 3
+                    abProtected = CmdPrimary.ResolveBool(param[3])
+                endif
+                _target.SetProtected(abProtected)
             endif
         elseif _theAction == "SetOutfit"
             if ParamLengthEQ(CmdPrimary, param.Length, 5)
@@ -2115,14 +2241,26 @@ bool function _slt_actor_doconsumer(sl_triggersCmd CmdPrimary, Actor _target, st
                 endif
 			endif
 		elseif _theAction == "EnableAI"
-			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-				_target.EnableAI(CmdPrimary.ResolveBool(param[3]))
+			if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abEnable = true
+                if param.Length > 3
+                    abEnable = CmdPrimary.ResolveBool(param[3])
+                endif
+				_target.EnableAI(abEnable)
 			endif
 		elseif _theAction == "EquipItem"
-			if ParamLengthEQ(CmdPrimary, param.Length, 6)
+			if ParamLengthGT(CmdPrimary, param.Length, 3)
                 Form _obj = CmdPrimary.ResolveForm(param[3])
                 if _obj
-				    _target.EquipItem(_obj, CmdPrimary.ResolveBool(param[4]), CmdPrimary.ResolveBool(param[5]))
+                    bool abPreventRemoval = false
+                    bool abSilent = false
+                    if param.Length > 4
+                        abPreventRemoval = CmdPrimary.ResolveBool(param[4])
+                        if param.Length > 5
+                            abSilent = CmdPrimary.ResolveBool(param[5])
+                        endif
+                    endif
+				    _target.EquipItem(_obj, abPreventRemoval, abSilent)
                 endif
 			endif
 		elseif _theAction == "EquipShout"
@@ -2148,10 +2286,33 @@ bool function _slt_actor_doconsumer(sl_triggersCmd CmdPrimary, Actor _target, st
                 _target.ForceAV(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
 			endif
 		elseif _theAction == "KeepOffsetFromActor"
-			if ParamLengthEQ(CmdPrimary, param.Length, 11)
-                Actor _obj = CmdPrimary.ResolveActor(param[3])
-                if _obj
-				    _target.KeepOffsetFromActor(_obj, CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveFloat(param[6]), CmdPrimary.ResolveFloat(param[7]), CmdPrimary.ResolveFloat(param[8]), CmdPrimary.ResolveFloat(param[9]), CmdPrimary.ResolveFloat(param[10]))
+			if ParamLengthGT(CmdPrimary, param.Length, 6)
+                Actor arTarget = CmdPrimary.ResolveActor(param[3])
+                float afOffsetX = CmdPrimary.ResolveFloat(param[4])
+                float afOffsetY = CmdPrimary.ResolveFloat(param[5])
+                float afOffsetZ = CmdPrimary.ResolveFloat(param[6])
+                float afOffsetAngleX = 0.0
+                float afOffsetAngleY = 0.0
+                float afOffsetAngleZ = 0.0
+                float afCatchUpRadius = 20.0
+                float afFollowRadius = 5.0
+                if arTarget
+                    if param.Length > 7
+                        afOffsetAngleX = CmdPrimary.ResolveFloat(param[7])
+                        if param.Length > 8
+                            afOffsetAngleY = CmdPrimary.ResolveFloat(param[8])
+                            if param.Length > 9
+                                afOffsetAngleZ = CmdPrimary.ResolveFloat(param[9])
+                                if param.Length > 10
+                                    afCatchUpRadius = CmdPrimary.ResolveFloat(param[10])
+                                    if param.Length > 11
+                                        afFollowRadius = CmdPrimary.ResolveFloat(param[11])
+                                    endif
+                                endif
+                            endif
+                        endif
+                    endif
+				    _target.KeepOffsetFromActor(arTarget, afOffsetX, afOffsetY, afOffsetZ, afOffsetAngleX, afOffsetAngleY, afOffsetAngleZ, afCatchUpRadius, afFollowRadius)
                 endif
 			endif
 		elseif _theAction == "Kill"
@@ -2191,8 +2352,12 @@ bool function _slt_actor_doconsumer(sl_triggersCmd CmdPrimary, Actor _target, st
                 endif
 			endif
 		elseif _theAction == "OpenInventory"
-			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-				_target.OpenInventory(CmdPrimary.ResolveBool(param[3]))
+			if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abForceOpen = false
+                if param.Length > 3
+                    abForceOpen = CmdPrimary.ResolveBool(param[3])
+                endif
+				_target.OpenInventory(abForceOpen)
 			endif
 		elseif _theAction == "PlaySubGraphAnimation"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -2232,32 +2397,64 @@ bool function _slt_actor_doconsumer(sl_triggersCmd CmdPrimary, Actor _target, st
                 _target.SetActorValue(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
 			endif
 		elseif _theAction == "SetAlert"
-			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-				_target.SetAlert(CmdPrimary.ResolveBool(param[3]))
+			if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abAlerted = true
+                if param.Length > 3
+                    abAlerted = CmdPrimary.ResolveBool(param[3])
+                endif
+				_target.SetAlert(abAlerted)
 			endif
 		elseif _theAction == "SetAllowFlying"
-			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-				_target.SetAllowFlying(CmdPrimary.ResolveBool(param[3]))
+			if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abAllowed = true
+                if param.Length > 3
+                    abAllowed = CmdPrimary.ResolveBool(param[3])
+                endif
+				_target.SetAllowFlying(abAllowed)
 			endif
 		elseif _theAction == "SetAllowFlyingEx"
-			if ParamLengthEQ(CmdPrimary, param.Length, 6)
-				_target.SetAllowFlyingEx(CmdPrimary.ResolveBool(param[3]), CmdPrimary.ResolveBool(param[4]), CmdPrimary.ResolveBool(param[5]))
+			if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abAllowed = true
+                bool abAllowCrash = true
+                bool abAllowSearch = false
+                if param.Length > 3
+                    abAllowed = CmdPrimary.ResolveBool(param[3])
+                    if param.Length > 4
+                        abAllowCrash = CmdPrimary.ResolveBool(param[4])
+                        if param.Length > 5
+                            abAllowSearch = CmdPrimary.ResolveBool(param[5])
+                        endif
+                    endif
+                endif
+				_target.SetAllowFlyingEx(abAllowed, abAllowCrash, abAllowSearch)
 			endif
 		elseif _theAction == "SetAlpha"
-			if ParamLengthEQ(CmdPrimary, param.Length, 5)
-                _target.SetAlpha(CmdPrimary.ResolveFloat(param[3]), CmdPrimary.ResolveBool(param[4]))
+			if ParamLengthGT(CmdPrimary, param.Length, 3)
+                bool abFade = false
+                if param.Length > 4
+                    abFade = CmdPrimary.ResolveBool(param[4])
+                endif
+                _target.SetAlpha(CmdPrimary.ResolveFloat(param[3]), abFade)
 			endif
 		elseif _theAction == "SetAttackActorOnSight"
-			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-				_target.SetAttackActorOnSight(CmdPrimary.ResolveBool(param[3]))
+			if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abAttackOnSight = true
+                if param.Length > 3
+                    abAttackOnSight = CmdPrimary.ResolveBool(param[3])
+                endif
+				_target.SetAttackActorOnSight(abAttackOnSight)
 			endif
 		elseif _theAction == "SetAV"
 			if ParamLengthEQ(CmdPrimary, param.Length, 5)
                 _target.SetAV(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveFloat(param[4]))
 			endif
 		elseif _theAction == "SetBribed"
-			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-				_target.SetBribed(CmdPrimary.ResolveBool(param[3]))
+			if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abBribed = true
+                if param.Length > 3
+                    abBribed = CmdPrimary.ResolveBool(param[3])
+                endif
+				_target.SetBribed(abBribed)
 			endif
 		elseif _theAction == "SetCrimeFaction"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -2271,16 +2468,28 @@ bool function _slt_actor_doconsumer(sl_triggersCmd CmdPrimary, Actor _target, st
 				_target.SetCriticalStage(CmdPrimary.ResolveInt(param[3]))
 			endif
 		elseif _theAction == "SetDoingFavor"
-			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-				_target.SetDoingFavor(CmdPrimary.ResolveBool(param[3]))
+			if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abDoingFavor = true
+                if param.Length > 3
+                    abDoingFavor = CmdPrimary.ResolveBool(param[3])
+                endif
+				_target.SetDoingFavor(abDoingFavor)
 			endif
 		elseif _theAction == "SetDontMove"
-			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-				_target.SetDontMove(CmdPrimary.ResolveBool(param[3]))
+			if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abDontMove = true
+                if param.Length > 3
+                    abDontMove = CmdPrimary.ResolveBool(param[3])
+                endif
+				_target.SetDontMove(abDontMove)
 			endif
 		elseif _theAction == "SetExpressionOverride"
-			if ParamLengthEQ(CmdPrimary, param.Length, 5)
-				_target.SetExpressionOverride(CmdPrimary.ResolveInt(param[3]), CmdPrimary.ResolveInt(param[4]))
+			if ParamLengthGT(CmdPrimary, param.Length, 3)
+                int aiStrength = 100
+                if param.Length > 4
+                    aiStrength = CmdPrimary.ResolveInt(param[4])
+                endif
+				_target.SetExpressionOverride(CmdPrimary.ResolveInt(param[3]), aiStrength)
 			endif
 		elseif _theAction == "SetEyeTexture"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -2304,22 +2513,34 @@ bool function _slt_actor_doconsumer(sl_triggersCmd CmdPrimary, Actor _target, st
                 endif
 			endif
 		elseif _theAction == "SetGhost"
-			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-				_target.SetGhost(CmdPrimary.ResolveBool(param[3]))
+			if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abIsGhost = true
+                if param.Length > 3
+                    abIsGhost = CmdPrimary.ResolveBool(param[3])
+                endif
+				_target.SetGhost(abIsGhost)
 			endif
 		elseif _theAction == "SetHeadTracking"
-			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-				_target.SetHeadTracking(CmdPrimary.ResolveBool(param[3]))
+			if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abEnable = true
+                if param.Length > 3
+                    abEnable = CmdPrimary.ResolveBool(param[3])
+                endif
+				_target.SetHeadTracking(abEnable)
 			endif
 		elseif _theAction == "SetIntimidated"
-			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-				_target.SetIntimidated(CmdPrimary.ResolveBool(param[3]))
+			if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abIntimidated = true
+                if param.Length > 3
+                    abIntimidated = CmdPrimary.ResolveBool(param[3])
+                endif
+				_target.SetIntimidated(abIntimidated)
 			endif
 		elseif _theAction == "SetLookAt"
 			if ParamLengthGT(CmdPrimary, param.Length, 3)
                 ObjectReference _obj = CmdPrimary.ResolveForm(param[3]) as ObjectReference
                 if _obj
-                    bool pathingLookAt
+                    bool pathingLookAt = false
                     if param.Length > 4
                         pathingLookAt = CmdPrimary.ResolveBool(param[4])
                     endif
@@ -2338,11 +2559,11 @@ bool function _slt_actor_doconsumer(sl_triggersCmd CmdPrimary, Actor _target, st
 			if ParamLengthGT(CmdPrimary, param.Length, 3)
                 Outfit _obj = CmdPrimary.ResolveForm(param[3]) as Outfit
                 if _obj
-                    bool _boolval
+                    bool abSleepOutfit = false
                     if param.Length > 4
-                        _boolval = CmdPrimary.ResolveBool(param[4])
+                        abSleepOutfit = CmdPrimary.ResolveBool(param[4])
                     endif
-                    _target.SetOutfit(_obj, _boolval)
+                    _target.SetOutfit(_obj, abSleepOutfit)
                 endif
 			endif
 		elseif _theAction == "SetPlayerControls"
@@ -2567,7 +2788,7 @@ endFunction
 function form_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthGT(CmdPrimary, param.Length, 3)
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
         Form _target = CmdPrimary.ResolveForm(param[1])
         
         if _target
@@ -2658,7 +2879,7 @@ endFunction
 function objectreference_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthGT(CmdPrimary, param.Length, 3)
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
         ObjectReference _target = CmdPrimary.ResolveForm(param[1]) as ObjectReference
         
         if _target
@@ -2693,7 +2914,7 @@ endFunction
 function globalvariable_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthGT(CmdPrimary, param.Length, 3)
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
         GlobalVariable _target = CmdPrimary.ResolveForm(param[1]) as GlobalVariable
         
         if _target
@@ -2744,7 +2965,7 @@ endFunction
 function weapon_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthGT(CmdPrimary, param.Length, 3)
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
         Weapon _target = CmdPrimary.ResolveForm(param[1]) as Weapon
         
         if _target
@@ -2783,7 +3004,7 @@ endFunction
 function armor_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthGT(CmdPrimary, param.Length, 3)
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
         Armor _target = CmdPrimary.ResolveForm(param[1]) as Armor
         
         if _target
@@ -2819,7 +3040,7 @@ endFunction
 function quest_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthGT(CmdPrimary, param.Length, 3)
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
         Quest _target = CmdPrimary.ResolveForm(param[1]) as Quest
         
         if _target
@@ -2866,7 +3087,7 @@ endFunction
 function actorbase_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthGT(CmdPrimary, param.Length, 3)
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
         ActorBase _target = CmdPrimary.ResolveForm(param[1]) as ActorBase
         
         if _target
@@ -2971,7 +3192,7 @@ endFunction
 function actor_doconsumer(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthGT(CmdPrimary, param.Length, 3)
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
         Actor _target = CmdPrimary.ResolveActor(param[1])
         
         if _target
@@ -3022,21 +3243,17 @@ bool Function _slt_form_dofunction(sl_triggersCmd CmdPrimary, Form _target, stri
                 Keyword _obj = CmdPrimary.ResolveForm(param[3]) as Keyword
                 if _obj
 				    CmdPrimary.MostRecentBoolResult = _target.HasKeyword(_obj)
+                else
+                    CmdPrimary.SFW("unable to resolve (" + param[3] + ") as Keyword")
                 endif
 			endif
         elseif _theAction == "GetNthKeyword"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                Keyword _obj = _target.GetNthKeyword(CmdPrimary.ResolveInt(param[3]))
-                if _obj
-				    CmdPrimary.MostRecentIntResult = _obj.GetFormID()
-                endif
+                CmdPrimary.MostRecentFormResult = _target.GetNthKeyword(CmdPrimary.ResolveInt(param[3]))
 			endif
         elseif _theAction == "GetWorldModelNthTextureSet"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                TextureSet _obj = _target.GetWorldModelNthTextureSet(CmdPrimary.ResolveInt(param[3]))
-                if _obj
-				    CmdPrimary.MostRecentFormResult = _obj.GetWorldModelNthTextureSet(CmdPrimary.ResolveInt(param[3]))
-                endif
+                CmdPrimary.MostRecentFormResult = _target.GetWorldModelNthTextureSet(CmdPrimary.ResolveInt(param[3]))
 			endif
         else
             return false
@@ -3050,15 +3267,24 @@ endFunction
 bool Function _slt_objectreference_dofunction(sl_triggersCmd CmdPrimary, ObjectReference _target, string _theAction, string[] param) global
     if _target && _theAction
         if _theAction == "CalculateEncounterLevel"
-            if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                CmdPrimary.MostRecentIntResult = _target.CalculateEncounterLevel(CmdPrimary.ResolveInt(param[3]))
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                int aiDifficulty = 4
+                if param.Length > 3
+                    aiDifficulty = CmdPrimary.ResolveInt(param[3])
+                endif
+                CmdPrimary.MostRecentIntResult = _target.CalculateEncounterLevel(aiDifficulty)
             endif
 		elseif _theAction == "CountLinkedRefChain"
-            if ParamLengthEQ(CmdPrimary, param.Length, 5)
-                Keyword _obj = CmdPrimary.ResolveForm(param[3]) as Keyword
-                if _obj
-                    CmdPrimary.MostRecentIntResult = _target.CountLinkedRefChain(_obj, CmdPrimary.ResolveInt(param[4]))
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                Keyword apKeyword = none
+                int maxExpectedLinkedRefs = 100
+                if param.Length > 3
+                    apKeyword = CmdPrimary.ResolveForm(param[3]) as Keyword
+                    if param.Length > 4
+                        maxExpectedLinkedRefs = CmdPrimary.ResolveInt(param[4])
+                    endif
                 endif
+                CmdPrimary.MostRecentIntResult = _target.CountLinkedRefChain(apKeyword, maxExpectedLinkedRefs)
             endif
 		elseif _theAction == "GetAnimationVariableBool"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -3074,9 +3300,11 @@ bool Function _slt_objectreference_dofunction(sl_triggersCmd CmdPrimary, ObjectR
             endif
 		elseif _theAction == "GetDistance"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                ObjectReference _obj = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                ObjectReference _obj = CmdPrimary.ResolveObjRef(param[3])
                 if _obj
                     CmdPrimary.MostRecentFloatResult = _target.GetDistance(_obj)
+                else
+                    CmdPrimary.SFW("unable to resolve (" + param[3] + ") to ObjectReference")
                 endif
             endif
 		elseif _theAction == "GetHeadingAngle"
@@ -3084,6 +3312,8 @@ bool Function _slt_objectreference_dofunction(sl_triggersCmd CmdPrimary, ObjectR
                 ObjectReference _obj = CmdPrimary.ResolveForm(param[3]) as ObjectReference
                 if _obj
                     CmdPrimary.MostRecentFloatResult = _target.GetHeadingAngle(_obj)
+                else
+                    CmdPrimary.SFW("unable to resolve (" + param[3] + ") to ObjectReference")
                 endif
             endif
 		elseif _theAction == "GetItemCount"
@@ -3119,12 +3349,20 @@ bool Function _slt_objectreference_dofunction(sl_triggersCmd CmdPrimary, ObjectR
                 endif
             endif
 		elseif _theAction == "IsFurnitureInUse"
-            if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                CmdPrimary.MostRecentBoolResult = _target.IsFurnitureInUse(CmdPrimary.ResolveBool(param[3]))
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abIgnoreReserved = false
+                if param.Length > 3
+                    abIgnoreReserved = CmdPrimary.ResolveBool(param[3])
+                endif
+                CmdPrimary.MostRecentBoolResult = _target.IsFurnitureInUse(abIgnoreReserved)
             endif
 		elseif _theAction == "IsFurnitureMarkerInUse"
-            if ParamLengthEQ(CmdPrimary, param.Length, 5)
-                CmdPrimary.MostRecentBoolResult = _target.IsFurnitureMarkerInUse(CmdPrimary.ResolveInt(param[3]), CmdPrimary.ResolveBool(param[4]))
+            if ParamLengthGT(CmdPrimary, param.Length, 3)
+                bool abIgnoreReserved = false
+                if param.Length > 4
+                    abIgnoreReserved = CmdPrimary.ResolveBool(param[4])
+                endif
+                CmdPrimary.MostRecentBoolResult = _target.IsFurnitureMarkerInUse(CmdPrimary.ResolveInt(param[3]), abIgnoreReserved)
             endif
 		elseif _theAction == "IsInLocation"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -3134,10 +3372,22 @@ bool Function _slt_objectreference_dofunction(sl_triggersCmd CmdPrimary, ObjectR
                 endif
             endif
 		elseif _theAction == "MoveToIfUnloaded"
-            if ParamLengthEQ(CmdPrimary, param.Length, 7)
-                ObjectReference _obj = CmdPrimary.ResolveForm(param[3]) as ObjectReference
-                if _obj
-                    CmdPrimary.MostRecentBoolResult = _target.MoveToIfUnloaded(_obj, CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveFloat(param[6]))
+            if ParamLengthGT(CmdPrimary, param.Length, 3)
+                ObjectReference akTarget = CmdPrimary.ResolveForm(param[3]) as ObjectReference
+                if akTarget
+                    float afXOffset = 0.0
+                    float afYOffset = 0.0
+                    float afZOffset = 0.0
+                    if param.Length > 4
+                        afXOffset = CmdPrimary.ResolveFloat(param[4])
+                        if param.Length > 5
+                            afYOffset = CmdPrimary.ResolveFloat(param[5])
+                            if param.Length > 6
+                                afZOffset = CmdPrimary.ResolveFloat(param[6])
+                            endif
+                        endif
+                    endif
+                    CmdPrimary.MostRecentBoolResult = _target.MoveToIfUnloaded(akTarget, afXOffset, afYOffset, afZOffset)
                 endif
             endif
 		elseif _theAction == "PlayAnimation"
@@ -3149,14 +3399,50 @@ bool Function _slt_objectreference_dofunction(sl_triggersCmd CmdPrimary, ObjectR
                 CmdPrimary.MostRecentBoolResult = _target.PlayAnimationAndWait(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveString(param[4]))
             endif
 		elseif _theAction == "PlayGamebryoAnimation"
-            if ParamLengthEQ(CmdPrimary, param.Length, 6)
-                CmdPrimary.MostRecentBoolResult = _target.PlayGamebryoAnimation(CmdPrimary.ResolveString(param[3]), CmdPrimary.ResolveBool(param[4]), CmdPrimary.ResolveFloat(param[5]))
+            if ParamLengthGT(CmdPrimary, param.Length, 3)
+                bool abStartOver = false
+                float afEaseInTime = 0.0
+                if param.Length > 4
+                    abStartOver = CmdPrimary.ResolveBool(param[4])
+                    if param.Length > 5
+                        afEaseInTime = CmdPrimary.ResolveFloat(param[5])
+                    endif
+                endif
+                CmdPrimary.MostRecentBoolResult = _target.PlayGamebryoAnimation(CmdPrimary.ResolveString(param[3]), abStartOver, afEaseInTime)
             endif
 		elseif _theAction == "PlayImpactEffect"
-            if ParamLengthEQ(CmdPrimary, param.Length, 11)
-                ImpactDataSet _obj = CmdPrimary.ResolveForm(param[3]) as ImpactDataSet
-                if _obj
-                    CmdPrimary.MostRecentBoolResult = _target.PlayImpactEffect(_obj, CmdPrimary.ResolveString(param[4]), CmdPrimary.ResolveFloat(param[5]), CmdPrimary.ResolveFloat(param[6]), CmdPrimary.ResolveFloat(param[7]), CmdPrimary.ResolveFloat(param[8]), CmdPrimary.ResolveBool(param[9]), CmdPrimary.ResolveBool(param[10]))
+            if ParamLengthGT(CmdPrimary, param.Length, 3)
+                ImpactDataSet akImpactEffect = CmdPrimary.ResolveForm(param[3]) as ImpactDataSet
+                if akImpactEffect
+                    string asNodeName = ""
+                    float afPickDirX = 0.0
+                    float afPickDirY = 0.0
+                    float afPickDirZ = -1.0
+                    float afPickLength = 512.0
+                    bool abApplyNodeRotation = false
+                    bool abUseNodeLocalRotation = false
+                    if param.Length > 4
+                        asNodeName = CmdPrimary.ResolveString(param[4])
+                        if param.Length > 5
+                            afPickDirX = CmdPrimary.ResolveFloat(param[5])
+                            if param.Length > 6
+                                afPickDirY = CmdPrimary.ResolveFloat(param[6])
+                                if param.Length > 7
+                                    afPickDirZ = CmdPrimary.ResolveFloat(param[7])
+                                    if param.Length > 8
+                                        afPickLength = CmdPrimary.ResolveFloat(param[8])
+                                        if param.Length > 9
+                                            abApplyNodeRotation = CmdPrimary.ResolveBool(param[9])
+                                            if param.Length > 10
+                                                abUseNodeLocalRotation = CmdPrimary.ResolveBool(param[10])
+                                            endif
+                                        endif
+                                    endif
+                                endif
+                            endif
+                        endif
+                    endif
+                    CmdPrimary.MostRecentBoolResult = _target.PlayImpactEffect(akImpactEffect, asNodeName, afPickDirX, afPickDirY, afPickDirZ, afPickLength, abApplyNodeRotation, abUseNodeLocalRotation)
                 endif
             endif
 		elseif _theAction == "PlaySyncedAnimationAndWaitSS"
@@ -3174,8 +3460,20 @@ bool Function _slt_objectreference_dofunction(sl_triggersCmd CmdPrimary, ObjectR
                 endif
             endif
 		elseif _theAction == "RampRumble"
-            if ParamLengthEQ(CmdPrimary, param.Length, 6)
-                CmdPrimary.MostRecentBoolResult = _target.RampRumble(CmdPrimary.ResolveFloat(param[3]), CmdPrimary.ResolveFloat(param[4]), CmdPrimary.ResolveFloat(param[5]))
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                float power = 0.5
+                float duration = 0.25
+                float falloff = 1600.0
+                if param.Length > 3
+                    power = CmdPrimary.ResolveFloat(param[3])
+                    if param.Length > 4
+                        duration = CmdPrimary.ResolveFloat(param[4])
+                        if param.Length > 5
+                            falloff = CmdPrimary.ResolveFloat(param[5])
+                        endif
+                    endif
+                endif
+                CmdPrimary.MostRecentBoolResult = _target.RampRumble(power, duration, falloff)
             endif
 		elseif _theAction == "WaitForAnimationEvent"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -3191,17 +3489,11 @@ bool Function _slt_objectreference_dofunction(sl_triggersCmd CmdPrimary, ObjectR
             endif
 		elseif _theAction == "GetNthForm"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                Form _obj = _target.GetNthForm(CmdPrimary.ResolveInt(param[3]))
-                if _obj
-                    CmdPrimary.MostRecentFormResult = _obj
-                endif
+                CmdPrimary.MostRecentFormResult = _target.GetNthForm(CmdPrimary.ResolveInt(param[3]))
             endif
 		elseif _theAction == "GetNthReferenceAlias"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                ReferenceAlias _obj = _target.GetNthReferenceAlias(CmdPrimary.ResolveInt(param[3]))
-                if _obj
-                    CmdPrimary.MostRecentAliasResult = _obj
-                endif
+                CmdPrimary.MostRecentAliasResult = _target.GetNthReferenceAlias(CmdPrimary.ResolveInt(param[3]))
             endif
 		elseif _theAction == "PlaceActorAtMe"
             if ParamLengthGT(CmdPrimary, param.Length, 3)
@@ -3215,10 +3507,7 @@ bool Function _slt_objectreference_dofunction(sl_triggersCmd CmdPrimary, ObjectR
                             akZone = CmdPrimary.ResolveForm(param[5]) as EncounterZone
                         endif
                     endif
-                    Actor _actor = _target.PlaceActorAtMe(_obj, aiLevelMod, akZone)
-                    if _actor
-                        CmdPrimary.MostRecentFormResult = _actor
-                    endif
+                    CmdPrimary.MostRecentFormResult = _target.PlaceActorAtMe(_obj, aiLevelMod, akZone)
                 endif
             endif
 		elseif _theAction == "PlaceAtMe"
@@ -3229,20 +3518,14 @@ bool Function _slt_objectreference_dofunction(sl_triggersCmd CmdPrimary, ObjectR
                     if param.Length > 4
                         aiCount = CmdPrimary.ResolveInt(param[4])
                     endif
-                    ObjectReference _placed = _target.PlaceAtMe(_obj, aiCount)
-                    if _placed
-                        CmdPrimary.MostRecentFormResult = _placed
-                    endif
+                    CmdPrimary.MostRecentFormResult = _target.PlaceAtMe(_obj, aiCount)
                 endif
             endif
 		elseif _theAction == "GetLinkedRef"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
                 Keyword _obj = CmdPrimary.ResolveForm(param[3]) as Keyword
                 if _obj
-                    ObjectReference linkref = _target.GetLinkedRef(_obj)
-                    if linkref
-                        CmdPrimary.MostRecentFormResult = linkref
-                    endif
+                    CmdPrimary.MostRecentFormResult = _target.GetLinkedRef(_obj)
                 endif
             endif
 		elseif _theAction == "GetNthLinkedRef"
@@ -3382,10 +3665,6 @@ bool Function _slt_quest_dofunction(sl_triggersCmd CmdPrimary, Quest _target, st
                     CmdPrimary.MostRecentBoolResult = _target.UpdateCurrentInstanceGlobal(globvar)
                 EndIf
             endif
-        elseif _theAction == "GetQuest"
-            if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                CmdPrimary.MostRecentFormResult = Quest.GetQuest(CmdPrimary.ResolveString(param[3]))
-            endif
         elseif _theAction == "GetNthAlias"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
                 CmdPrimary.MostRecentAliasResult = _target.GetNthAlias(CmdPrimary.ResolveInt(param[3]))
@@ -3406,8 +3685,12 @@ endFunction
 bool Function _slt_actorbase_dofunction(sl_triggersCmd CmdPrimary, ActorBase _target, string _theAction, string[] param) global
     if _target && _theAction
         if _theAction == "GetOutfit"
-            if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                CmdPrimary.MostRecentFormResult = _target.GetOutfit(CmdPrimary.ResolveBool(param[3]))
+            if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool bSleepOutfit = false
+                if param.Length > 3
+                    bSleepOutfit = CmdPrimary.ResolveBool(param[3])
+                endif
+                CmdPrimary.MostRecentFormResult = _target.GetOutfit(bSleepOutfit)
             endif
         elseif _theAction == "GetNthHeadPart"
             if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -3519,13 +3802,14 @@ bool Function _slt_actor_dofunction(sl_triggersCmd CmdPrimary, Actor _target, st
                 endif
 			endif
 		elseif _theAction == "HasAssociation"
-			if ParamLengthEQ(CmdPrimary, param.Length, 5)
+			if ParamLengthGT(CmdPrimary, param.Length, 3)
                 AssociationType _assoc = CmdPrimary.ResolveForm(param[3]) as AssociationType
                 if _assoc
-                    Actor _obj = CmdPrimary.ResolveActor(param[4])
-                    if _obj
-                        CmdPrimary.MostRecentBoolResult = _target.HasAssociation(_assoc, _obj)
+                    Actor akOther = none
+                    if param.Length > 4
+                        akOther = CmdPrimary.ResolveActor(param[4])
                     endif
+                    CmdPrimary.MostRecentBoolResult = _target.HasAssociation(_assoc, akOther)
                 endif
 			endif
 		elseif _theAction == "HasFamilyRelationship"
@@ -3677,11 +3961,12 @@ bool Function _slt_actor_dofunction(sl_triggersCmd CmdPrimary, Actor _target, st
                 endif
 			endif
 		elseif _theAction == "GetEquippedWeapon"
-			if ParamLengthEQ(CmdPrimary, param.Length, 4)
-                Weapon _obj = _target.GetEquippedWeapon(CmdPrimary.ResolveBool(param[3]))
-                if _obj
-				    CmdPrimary.MostRecentFormResult = _obj
+			if ParamLengthGT(CmdPrimary, param.Length, 2)
+                bool abLeftHand = false
+                if param.Length > 3
+                    abLeftHand = CmdPrimary.ResolveBool(param[3])
                 endif
+                CmdPrimary.MostRecentFormResult = _target.GetEquippedWeapon(abLeftHand)
 			endif
 		elseif _theAction == "GetEquippedArmorInSlot"
 			if ParamLengthEQ(CmdPrimary, param.Length, 4)
@@ -3742,7 +4027,7 @@ endFunction
 function form_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthGT(CmdPrimary, param.Length, 3)
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
         Form _target = CmdPrimary.ResolveForm(param[1])
         if _target
             string _theAction = CmdPrimary.ResolveString(param[2])
@@ -3806,7 +4091,7 @@ endFunction
 function objectreference_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthGT(CmdPrimary, param.Length, 3)
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
         ObjectReference _target = CmdPrimary.ResolveForm(param[1]) as ObjectReference
         if _target
             string _theAction = CmdPrimary.ResolveString(param[2])
@@ -3838,7 +4123,7 @@ endFunction
 function globalvariable_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthGT(CmdPrimary, param.Length, 3)
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
         GlobalVariable _target = CmdPrimary.ResolveForm(param[1]) as GlobalVariable
         if _target
             string _theAction = CmdPrimary.ResolveString(param[2])
@@ -3872,7 +4157,7 @@ endFunction
 function armor_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthGT(CmdPrimary, param.Length, 3)
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
         Armor _target = CmdPrimary.ResolveForm(param[1]) as Armor
         if _target
             string _theAction = CmdPrimary.ResolveString(param[2])
@@ -3905,7 +4190,6 @@ endFunction
 ; sltargsmore SetCurrentStageID
 ; sltargsmore SetStage
 ; sltargsmore UpdateCurrentInstanceGlobal
-; sltargsmore GetQuest
 ; sltargsmore GetNthAlias
 ; sltargsmore GetAliasByName
 ; sltargsmore ;;;; will call form_dofunction if no matches are found
@@ -3917,7 +4201,7 @@ endFunction
 function quest_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthGT(CmdPrimary, param.Length, 3)
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
         Quest _target = CmdPrimary.ResolveForm(param[1]) as Quest
         if _target
             string _theAction = CmdPrimary.ResolveString(param[2])
@@ -3953,7 +4237,7 @@ endFunction
 function actorbase_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthGT(CmdPrimary, param.Length, 3)
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
         ActorBase _target = CmdPrimary.ResolveForm(param[1]) as ActorBase
         if _target
             string _theAction = CmdPrimary.ResolveString(param[2])
@@ -4023,7 +4307,7 @@ endFunction
 function actor_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthGT(CmdPrimary, param.Length, 3)
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
         Actor _target = CmdPrimary.ResolveActor(param[1])
         if _target
             string _theAction = CmdPrimary.ResolveString(param[2])
@@ -4700,7 +4984,7 @@ endFunction
 function game_dofunction(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthGT(CmdPrimary, param.Length, 2)
+    if ParamLengthGT(CmdPrimary, param.Length, 1)
         string _theAction = CmdPrimary.ResolveString(param[1])
 
         if _theAction == "AddHavokBallAndSocketConstraint"

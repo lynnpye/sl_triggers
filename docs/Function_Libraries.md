@@ -3279,7 +3279,6 @@ https://ck.uesp.net/wiki/Quest_Script
     SetCurrentStageID  
     SetStage  
     UpdateCurrentInstanceGlobal  
-    GetQuest  
     GetNthAlias  
     GetAliasByName  
     ;;;; will call form_dofunction if no matches are found  

@@ -17,7 +17,7 @@ Function SLTWarnMsg(string msg) global
 EndFunction
 
 int Function GetModVersion() global
-	return 940
+	return 941
 EndFunction
 
 ;;;;;;;
@@ -395,17 +395,17 @@ Function SquawkFunctionDebug(sl_triggersCmd _cmdPrimary, string msg) global
 	sl_triggers_internal.LogDebug("SLTR:(" + _cmdPrimary.currentScriptName + ")[" + _cmdPrimary.lineNum + "]: " + msg)
 EndFunction
 
-bool Function ParamLengthLT(sl_triggersCmd _cmdPrimary, int actualLength, int neededLength) global
-    if actualLength >= neededLength
-        SquawkFunctionError(_cmdPrimary, "too many parameters (needed no more than " + neededLength + " but was provided " + actualLength + ")")
+bool Function ParamLengthLT(sl_triggersCmd _cmdPrimary, int actualLength, int lessThanThis) global
+    if actualLength >= lessThanThis
+        SquawkFunctionError(_cmdPrimary, "too many parameters (needed " + (lessThanThis - 1) + " or fewer but was provided " + actualLength + ")")
         return false
     endif
     return true
 EndFunction
 
-bool Function ParamLengthGT(sl_triggersCmd _cmdPrimary, int actualLength, int neededLength) global
-    if actualLength <= neededLength
-        SquawkFunctionError(_cmdPrimary, "insufficient parameters (needed at least " + neededLength + " but only provided " + actualLength + ")")
+bool Function ParamLengthGT(sl_triggersCmd _cmdPrimary, int actualLength, int biggerThanThis) global
+    if actualLength <= biggerThanThis
+        SquawkFunctionError(_cmdPrimary, "insufficient parameters (needed at least " + (biggerThanThis + 1) + " but only provided " + actualLength + ")")
         return false
     endif
     return true
