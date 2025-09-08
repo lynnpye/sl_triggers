@@ -1,4 +1,7 @@
 sl_isin $system.self
+if $$ == false
+	deb_msg "CumControl: sl_disableorgasm only works during a SexLab scene; exiting early"
+endif
 
 rnd_int 0 100
 if $$ > 70
