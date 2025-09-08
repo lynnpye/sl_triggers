@@ -21,8 +21,8 @@
         <Import>.\inc\dd52</Import>
         <Import>.\inc\slang</Import>
         <Import>.\inc\advfwk</Import>
-        <!-- Import>.\inc\slso</Import -->
         <Import>.\inc\dfr</Import>
+        <Import>.\inc\sls</Import>
     </Imports>
     <Folders>
         <Folder>.\extern\libraries\sexlabplusplus\source\scripts</Folder>

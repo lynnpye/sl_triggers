@@ -2,7 +2,41 @@
     Savegame compatible
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
         (or whichever folder you have your SKSE logs directed to)
-    enhancement: new system variable: $system.forms.sltr_main - Form: the SLTR Main Quest
+    enhancement: new system variable: $system.forms.sltr_main - Form: the SLTR Main Quest; useful for functions requiring tracking Forms
+    enhancement: integration: SexLab Survival:
+        new functions
+            sls_block_license_purchase
+            sls_revoke_license
+            sls_send_to_kennel
+            sls_evict_from_home
+            sls_unevict_from_home
+            sls_increase_ground_time
+            sls_remove_magic_curse
+            sls_add_magic_curse
+            sls_swallow_cum
+            sls_get_creature_corruption
+            sls_is_enjoying_cum
+            sls_get_load_tier
+            sls_get_load_size
+            sls_get_load_size_actual
+            sls_get_load_fullness
+            sls_get_cum_stuffed_factor
+            sls_is_drugged
+            sls_is_high_on_skooma
+            sls_is_high_on_skooma_whore_drugs
+            sls_is_high_on_lactacid
+            sls_get_skooma_junkie_level
+            sls_do_female_pain_sound
+            sls_do_hit_sound
+            sls_do_trauma_hit_sound
+        new SLTScripts:
+            SLS Evict from Markarth/Riften/Solitude/Whiterun/Windhelm
+            SLS UnEvict from Markarth/Riften/Solitude/Whiterun/Windhelm
+            SLS Send to Kennel - Markarth/Riften/Solitude/Whiterun/Windhelm
+            SLS Magic Curse Add/Remove
+            SLS Revoke All/Random Licenses
+            
+
 
 0.941
     Savegame compatible

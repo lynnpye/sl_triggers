@@ -23,6 +23,7 @@
         <Import>.\inc\advfwk</Import>
         <Import>.\inc\slso</Import>
         <Import>.\inc\dfr</Import>
+        <Import>.\inc\sls</Import>
     </Imports>
     <Folders>
         <Folder>.\extern\libraries\sexlab\source\scripts</Folder>
