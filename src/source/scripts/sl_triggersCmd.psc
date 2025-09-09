@@ -628,6 +628,8 @@ EndFunction
 ; oh frabjous joy
 int         Property MostRecentResultType Auto Hidden
 
+bool runOpReturnedValue
+
 string  _recentResultString
 bool    _recentResultBool
 int     _recentResultInt
@@ -650,6 +652,9 @@ string	    Property MostRecentStringResult Hidden
     Function Set(string value)
         _recentResultString = value
         MostRecentResultType = SLT.RT_STRING
+        if runOpPending
+            runOpReturnedValue = true
+        endif
     EndFunction
 EndProperty
 bool        Property MostRecentBoolResult Hidden
@@ -659,6 +664,9 @@ bool        Property MostRecentBoolResult Hidden
     Function Set(bool value)
         _recentResultBool = value
         MostRecentResultType = SLT.RT_BOOL
+        if runOpPending
+            runOpReturnedValue = true
+        endif
     EndFunction
 EndProperty
 int         Property MostRecentIntResult  Hidden
@@ -668,6 +676,9 @@ int         Property MostRecentIntResult  Hidden
     Function Set(int value)
         _recentResultInt = value
         MostRecentResultType = SLT.RT_INT
+        if runOpPending
+            runOpReturnedValue = true
+        endif
     EndFunction
 EndProperty
 float        Property MostRecentFloatResult  Hidden
@@ -677,6 +688,9 @@ float        Property MostRecentFloatResult  Hidden
     Function Set(float value)
         _recentResultFloat = value
         MostRecentResultType = SLT.RT_FLOAT
+        if runOpPending
+            runOpReturnedValue = true
+        endif
     EndFunction
 EndProperty
 Form        Property MostRecentFormResult Hidden
@@ -686,6 +700,9 @@ Form        Property MostRecentFormResult Hidden
     Function Set(Form value)
         _recentResultForm = value
         MostRecentResultType = SLT.RT_FORM
+        if runOpPending
+            runOpReturnedValue = true
+        endif
     EndFunction
 EndProperty
 string      Property MostRecentLabelResult Hidden
@@ -695,6 +712,9 @@ string      Property MostRecentLabelResult Hidden
     Function Set(string value)
         _recentResultLabel = value
         MostRecentResultType = SLT.RT_LABEL
+        if runOpPending
+            runOpReturnedValue = true
+        endif
     EndFunction
 EndProperty
 Alias       Property MostRecentAliasResult Hidden
@@ -704,6 +724,9 @@ Alias       Property MostRecentAliasResult Hidden
     Function Set(Alias value)
         _recentResultAlias = value
         MostRecentResultType = SLT.RT_ALIAS
+        if runOpPending
+            runOpReturnedValue = true
+        endif
     EndFunction
 EndProperty
 string[]    Property MostRecentListStringResult Hidden
@@ -713,6 +736,9 @@ string[]    Property MostRecentListStringResult Hidden
     Function Set(string[] value)
         _recentListString = value
         MostRecentResultType = SLT.RT_LIST_STRING
+        if runOpPending
+            runOpReturnedValue = true
+        endif
     EndFunction
 EndProperty
 string[]    Property MostRecentListLabelResult Hidden
@@ -722,6 +748,9 @@ string[]    Property MostRecentListLabelResult Hidden
     Function Set(string[] value)
         _recentListLabel = value
         MostRecentResultType = SLT.RT_LIST_LABEL
+        if runOpPending
+            runOpReturnedValue = true
+        endif
     EndFunction
 EndProperty
 bool[]    Property MostRecentListBoolResult Hidden
@@ -731,6 +760,9 @@ bool[]    Property MostRecentListBoolResult Hidden
     Function Set(bool[] value)
         _recentListBool = value
         MostRecentResultType = SLT.RT_LIST_BOOL
+        if runOpPending
+            runOpReturnedValue = true
+        endif
     EndFunction
 EndProperty
 int[]    Property MostRecentListIntResult Hidden
@@ -740,6 +772,9 @@ int[]    Property MostRecentListIntResult Hidden
     Function Set(int[] value)
         _recentListInt = value
         MostRecentResultType = SLT.RT_LIST_INT
+        if runOpPending
+            runOpReturnedValue = true
+        endif
     EndFunction
 EndProperty
 float[]    Property MostRecentListFloatResult Hidden
@@ -749,6 +784,9 @@ float[]    Property MostRecentListFloatResult Hidden
     Function Set(float[] value)
         _recentListFloat = value
         MostRecentResultType = SLT.RT_LIST_FLOAT
+        if runOpPending
+            runOpReturnedValue = true
+        endif
     EndFunction
 EndProperty
 Form[]    Property MostRecentListFormResult Hidden
@@ -758,6 +796,9 @@ Form[]    Property MostRecentListFormResult Hidden
     Function Set(Form[] value)
         _recentListForm = value
         MostRecentResultType = SLT.RT_LIST_FORM
+        if runOpPending
+            runOpReturnedValue = true
+        endif
     EndFunction
 EndProperty
 Alias[]     Property MostRecentListAliasResult Hidden
@@ -767,6 +808,9 @@ Alias[]     Property MostRecentListAliasResult Hidden
     Function Set(Alias[] value)
         _recentListAlias = value
         MostRecentResultType = SLT.RT_LIST_ALIAS
+        if runOpPending
+            runOpReturnedValue = true
+        endif
     EndFunction
 EndProperty
 
@@ -1022,8 +1066,7 @@ Function RunOperationOnActor(string[] opCmdLine)
         Return
     endif
 
-    InvalidateMostRecentResult()
-
+    runOpReturnedValue = false
     runOpPending = true
     bool success = sl_triggers_internal.RunOperationOnActor(CmdTargetActor, self, opCmdLine)
     if !success
@@ -1049,6 +1092,10 @@ EndFunction
 
 Function CompleteOperationOnActor()
     runOpPending = false
+
+    if !runOpReturnedValue
+        InvalidateMostRecentResult()
+    endif
 
     if IsResetRequested || !SLT.IsEnabled || SLT.IsResetting
         SFI("SLTReset requested(" + IsResetRequested + ") / SLT.IsEnabled(" + SLT.IsEnabled + ") / SLT.IsResetting(" + SLT.IsResetting + ")")

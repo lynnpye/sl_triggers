@@ -3,6 +3,10 @@
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
         (or whichever folder you have your SKSE logs directed to)
     bugfix: av_getpercentage: function was improperly named, but properly documented; the name now reflects the documentation
+    bugfix: $$ was unavailable as a parameter for function calls
+        example: this should now work to remove all of a player's stamina
+            av_getmax $system.player Stamina
+            av_damage $system.player Stamina $$
 
 0.950
     Savegame compatible
