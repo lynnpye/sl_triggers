@@ -203,6 +203,43 @@ string Function RT_ToString(int rt_type)
     return "<invalid RT type: " + rt_type + ">"
 EndFunction
 
+string Function RT_ToFriendlyName(int rt_type)
+    if RT_STRING == rt_type
+        return "string"
+    elseif RT_INT == rt_type
+        return "int"
+    elseif RT_FLOAT == rt_type
+        return "float"
+    elseif RT_BOOL == rt_type
+        return "bool"
+    elseif RT_FORM == rt_type
+        return "Form"
+	elseif RT_LABEL == rt_type
+		return "Label"
+	elseif RT_MAP == rt_type
+		return "Map"
+	elseif RT_ALIAS == rt_type
+		return "Alias"
+	elseif RT_LIST_STRING == rt_type
+		return "string[]"
+	elseif RT_LIST_BOOL == rt_type
+		return "bool[]"
+	elseif RT_LIST_INT == rt_type
+		return "int[]"
+	elseif RT_LIST_FLOAT == rt_type
+		return "float[]"
+	elseif RT_LIST_FORM == rt_type
+		return "Form[]"
+	elseif RT_LIST_LABEL == rt_type
+		return "Label[]"
+	;elseif RT_LIST_MAP == rt_type
+	;	return "RT_LIST_MAP"
+	elseif RT_LIST_ALIAS == rt_type
+		return "Alias[]"
+    endif
+    return "Invalid"
+EndFunction
+
 bool Function RT_IsList(int rt_type)
 	return RT_LIST_MIN <= rt_type && RT_LIST_MAX >= rt_type && RT_LIST_MAP != rt_type
 EndFunction

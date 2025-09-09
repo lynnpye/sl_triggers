@@ -2848,9 +2848,9 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
             if ParamLengthEQ(self, cmdLine.Length, 2)
                 string[] varscope = GetVarScopeWithResolution(cmdLine[1], false)
                 if varscope[SLT.VS_SCOPE]
-                    MostRecentStringResult = SLT.RT_ToString(GetVarType(varscope))
+                    MostRecentStringResult = SLT.RT_ToFriendlyName(GetVarType(varscope))
                 else
-                    MostRecentStringResult = SLT.RT_ToString(SLT.RT_INVALID)
+                    MostRecentStringResult = SLT.RT_ToFriendlyName(SLT.RT_INVALID)
                     SFE("typename argument must be a valid scoped variable; received (" + cmdLine[1] + ")")
                 endif
             endif

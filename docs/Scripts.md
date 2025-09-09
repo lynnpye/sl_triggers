@@ -4,17 +4,19 @@
 
 Script for SL Triggers, or SLTScript, is primarily a text file using a simple marker-to-enclose tokenization strategy. Lines are tokenized by splitting on whitespace, except when fields are enclosed in either double-quotes (`""`), dollar-double-quotes for string interpolation (`$""`) or square brackets (`[]`). Enclosed strings may contain whitespace, and embedded double quotes are escaped by doubling them (`""`).
 
-The legacy option of .JSON still exists but is deprecated.
+The legacy option of .JSON is no longer supported.
 
 In cases where a bare word is detected and not determined to be a function or variable name, it will be interpreted as a string literal (`""`).
 
 ```sltscript
-; $1 is a valid variable name, and this is an example of a comment
-set $1 "Hello world"
-msg_console $1
-goto done
+; $msg is a valid variable name, and this is an example of a comment
+set $msg "Hello world"
+; this prints a message to the console
+msg_console $msg
+; this jumps to the [done] label
+goto [done]
 
-; stuff
+; this code would not be run
 
 [done]
 ```
@@ -30,7 +32,7 @@ Empty lines are ignored.
 ### Command Structure
 Each command and its parameters must reside on one line, with any amount of separating, trailing, or preceding whitespace. Commands can be either **intrinsics** (part of the SLTScript language) or **functions** (from extension libraries).
 
-**Generally, you won't need to worry about the distinction between 'intrinsics' and 'functions'; you can just refer to them all as 'commands'.**
+**Generally, you won't need to worry about the distinction between 'intrinsics' and 'functions'; you can just refer to them all as 'commands', but 'intrinsics' tend to be faster than 'functions'.**
 
 ### Script Execution
 Scripts run each command in sequence until they encounter a `return` or reach the end of the script. This allows for very long-running scripts.
@@ -178,17 +180,22 @@ SLTScript supports scoped variables:
 
 Variable names can include any of the following characters after the scope: `A-Za-z0-9._`.
 
-CRITICAL: Because the scripts are tokenized based on whitespace, it is critical to note that you MUST NOT HAVE ANY WHITESPACE INSIDE YOUR VARIABLE NAMES.
+Note: You can have whitespacen inside a variable statement only if it is inside the target sub-scope, list index, or map key.
 For example:
 ```sltscript
-; this is valid
-$target<otherActor>.varname
+; these are valid
+$target<$otherActor>.varname
+$target< $otherActor >.varname
+$map{42}
+$map{ 42 }
+$list[0]
+$list[ 0 ]
 
-; but this will result in three separate tokens, the first of which, having a leading '$', will be treated like a variable, but will fail to parse because it will be considered malformed
-$target< otherActor >.varname
-; token 1: $target<
-; token 2: otherActor
-; token 3: >.varname
+; but these are not
+$target <$otherActor>.varname
+$target<$otherActor> .varname
+$map {42}
+$list [0]
 ```
 
 ### Special Scopes
@@ -247,7 +254,6 @@ $target< otherActor >.varname
 
 #### Request
 `request` scoped variables are also read-only and typically intended to convey information relevant to the context of the trigger, or the environment at the time the script was requested. Unlike `system` scoped variables that are intrinsic to the system, `request` scoped variables are only going to have relevant information in certain circumstances.
-
 |Variable|Returns|
 |---|---|
 |`$request.core.activatedContainer`|Form - (Added by SLTR Core) container that was activated as part of a container activation trigger|
@@ -290,21 +296,22 @@ $target< otherActor >.varname
 
 ### Variable Assignment and Manipulation
 
-#### `$"{variable}"` - Variable interpolation
-You can use the `$"{variablename}"` construct to perform string interpolation. This will create a string literal with the specified variables injected into place. Scopes are respected, so you can also have references to e.g. `global` scoped variables.
+#### `$"{$variable}"` - Variable interpolation
+You can use the `$"{$variablename}"` construct to perform string interpolation. This will create a string literal with the specified variables injected into place. Scopes are respected, so you can also have references to e.g. `global` scoped variables.
 ```sltscript
 set $global.monkey.count 21
-set $var $"{global.monkey.count} Monkeys"
+set $var $"{$global.monkey.count} Monkeys"
 ; $var now contains '21 Monkeys'
 ```
-
-Note that when in the interpolation tag, the preceding `$` is avoided.
 
 #### `set` - Basic Assignment
 Sets the value of the specified variable.
 ```sltscript
 set $1 "Hi there"
+msg_console $1
+
 set $playerName "John"
+msg_console $playerName
 ```
 
 #### `set resultfrom` - Assignment from Function
@@ -361,7 +368,7 @@ mapclear $mapvar
 ; $mapvar{key1} and $mapvar{key2} no longer have a value
 ```
 
-#### `mapkeys` - Returns a string[] list of the keys in the map
+#### `mapkeys` - Returns: string[]: a list of the keys in the map
 Returns a list of strings corresponding to the available keys in the map.
 ```sltscript
 set $mapvar{fork} = "pointy"
@@ -371,7 +378,7 @@ set $keylist resultfrom mapkeys $mapvar
 ; $keylist now contains a list, ["fork", "knife", "spoon"]
 ```
 
-#### `listcount` - Returns the size of the indicated list
+#### `listcount` - Returns: int: the size of the indicated list
 Returns a count (the size) of the number of elements in the list.
 ```sltscript
 set $listvar[0] = "first"
@@ -448,15 +455,87 @@ Increments the numeric value of a variable by the specified amount (default: 1; 
 set $2 12
 inc $2 2
 ; $2 is now 14
-inc $3    ; increments $3 by 1
+
+inc $3    ; increments $3 by 1; since it was not set, it will be initialized to 0 and incremented by 1
 ```
 
 #### `cat` - String Concatenation
 Concatenates strings into the target variable.
 ```sltscript
 cat $3 "one " "two " "three "
+; $3 is now "one two three "
 cat $4 $1 $2 $3
+; $4 would have the contents of $1, $2, and $3, concatenated with no adjoining spaces
 ```
+
+#### `typeid` - Returns: int: the Type ID of the variable
+The type ID of a variable is an int value representing the underlying type when the variable was last assigned.
+Attempting to get the type ID of something that is not a variable, basically literals, will return 0.
+If a variable has not been set yet, it will return 0.
+This can be used to determine if a value has ever been set before, including globals.
+Because system variables are more akin to macros rather than actual variables, they also have no type ID. But you can
+obtain it by setting a variable to the value of the system variable.
+
+Possible values:
+- 0 - Invalid
+- 1 - string
+- 2 - bool
+- 3 - int
+- 4 - float
+- 5 - Form (or Form sub-type e.g. ObjectReference, Actor)
+- 6 - Label - a goto target e.g. [label]
+- 7 - Map
+- 8 - Alias (or ReferenceAlias)
+- 101 - string[] (i.e. string list)
+- 102 - bool[]
+- 103 - int[]
+- 104 - float[]
+- 105 - Form[]
+- 106 - Label[]
+- ; there is no list of maps
+- 108 - Alias[]
+```sltscript
+typeid $var
+; $$ is 0
+set $var "true"
+typeid $var
+; $$ is 1, because "true" is a string
+set $var true
+typeid $var
+; $$ is 2, because the bare keyword true is a boolean
+set $var 42
+typeid $var
+; $$ is 3
+set $var 42.0
+typeid $var
+; $$ is 4
+; $$ is 0 for all of the following literals
+typeid "Hello, world!"
+typeid 42
+typeid true
+typeid false
+typeid 42.0
+```
+
+#### `typename` - Returns: string: the type name of the variable
+Returns the name associated with the id from `typeid`.
+
+Possible values:
+- "string"
+- "int"
+- "float"
+- "bool"
+- "Form"
+- "Label"
+- "Map"
+- "Alias"
+- "string[]"
+- "bool[]"
+- "int[]"
+- "float[]"
+- "Form[]"
+- "Label[]"
+- "Alias[]"
 
 ## Flow Control
 

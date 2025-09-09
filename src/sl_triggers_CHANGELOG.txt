@@ -35,7 +35,47 @@
             SLS Send to Kennel - Markarth/Riften/Solitude/Whiterun/Windhelm
             SLS Magic Curse Add/Remove
             SLS Revoke All/Random Licenses
-            
+    enhancement: typeid: intrinsic command that returns an int representing the type of the variable
+        This can be used to determine if a value has ever been set before, including globals.
+        Because system variables are more akin to macros rather than actual variables, they also have no type ID. But you can
+        obtain it by setting a variable to the value of the system variable.
+        Possible values:
+        - 0 - Invalid (meaning that it has no data)
+        - 1 - string
+        - 2 - bool
+        - 3 - int
+        - 4 - float
+        - 5 - Form (or Form sub-type e.g. ObjectReference, Actor)
+        - 6 - Label - a goto target e.g. [label]
+        - 7 - Map
+        - 8 - Alias (or ReferenceAlias)
+        - 101 - string[] (i.e. string list)
+        - 102 - bool[]
+        - 103 - int[]
+        - 104 - float[]
+        - 105 - Form[]
+        - 106 - Label[]
+        - ; there is no list of maps
+        - 108 - Alias[]
+    enhancement: typename: intrinsic command that returns a string representing the type of the variable
+        Returns the name associated with the id from `typeid`.
+        Possible values:
+        - "Invalid"
+        - "string"
+        - "int"
+        - "float"
+        - "bool"
+        - "Form"
+        - "Label"
+        - "Map"
+        - "Alias"
+        - "string[]"
+        - "bool[]"
+        - "int[]"
+        - "float[]"
+        - "Form[]"
+        - "Label[]"
+        - "Alias[]"
 
 
 0.941

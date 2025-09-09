@@ -24,7 +24,7 @@
             <Keywords name="Folders in comment, open"></Keywords>
             <Keywords name="Folders in comment, middle"></Keywords>
             <Keywords name="Folders in comment, close"></Keywords>
-            <Keywords name="Keywords1">goto gosub call set inc return callarg cat resultfrom true false none mapcopy mapunset mapclear maphaskey mapkeys listadd listcount listclear listresize listslice string bool int float Form label listjoin</Keywords>
+            <Keywords name="Keywords1">goto gosub call set inc return callarg cat resultfrom true false none mapcopy mapunset mapclear maphaskey mapkeys listadd listcount listclear listresize listslice string bool int float Form label listjoin typeid typename</Keywords>
             <Keywords name="Keywords2"></Keywords>
             <Keywords name="Keywords3"></Keywords>
             <Keywords name="Keywords4"></Keywords>
