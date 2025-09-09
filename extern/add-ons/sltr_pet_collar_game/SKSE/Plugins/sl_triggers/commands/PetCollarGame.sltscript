@@ -46,7 +46,7 @@ set $high		resultfrom json_getvalue $petCollarGameData "int" "high"			50
 rnd_int $low $high
 if $$ > $global.petCollarGame.petCollarTime endMissedChance
 
-set $petCollarFormID 	"petcollar.esp:31017"
+set $petCollarFormID 	"petcollar.esp:0x7929"
 actor_iswearing $system.player $petCollarFormID
 if $$ == true handleMercy
 
@@ -81,7 +81,10 @@ goto end
 
 [handleMercy]
 util_sendevent "PetCollarManipulate" "form" $system.self "form" $system.player "int" 10
+[wait_for_collar_removal]
 util_wait 1.0
+actor_iswearing $system.player $petCollarFormID
+if $$ == true [wait_for_collar_removal]
 item_remove $system.player $petCollarFormID 1 true
 
 set $mercybase	resultfrom json_getvalue $petCollarGameData "int" "mercybase"	20

@@ -1,0 +1,1 @@
+util_sendevent "PetCollarManipulate" "form" $system.self "form" $system.player "int" 11

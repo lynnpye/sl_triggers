@@ -1,0 +1,7 @@
+util_sendevent "PetCollarManipulate" "form" $system.self "form" $system.player "int" 0
+set $keyless_pet_collar_form_id "petcollar.esp:0x7929"
+[wait_for_collar_removal]
+util_wait 1.0
+actor_iswearing $system.self $keyless_pet_collar_form_id
+if $$ == true [wait_for_collar_removal]
+item_remove $system.self $keyless_pet_collar_form_id 1 true

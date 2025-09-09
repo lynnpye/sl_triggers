@@ -76,7 +76,13 @@
         - "Form[]"
         - "Label[]"
         - "Alias[]"
-
+    bugfix: PetCollarGame: after sending the PetCollar event for removal, now sits in a 1 second wait loop until the player is no longer wearing the collar before removing it from inventory
+    enhancement: integration: PetCollar:
+        new SLTScripts:
+            PetCollar - Add
+            PetCollar - Add Keyless
+            PetCollar - Remove
+            PetCollar - Remove Keyless
 
 0.941
     Savegame compatible
