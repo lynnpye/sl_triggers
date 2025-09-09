@@ -379,7 +379,7 @@ endFunction
 ; sltargs string: av name: Actor Value name e.g. Health
 ; sltsamp av_getpercentage $system.self Health
 ; sltrslt Sets the actor's percentage of Health remaining into $$
-function av_getpercent(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+function av_getpercentage(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     float nextResult
