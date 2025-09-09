@@ -70,16 +70,80 @@ Events that occur in game (SexLab orgasm, Key press, Fast Travel) can be configu
 
 # Scripts Provided
 These are some of the SLTScripts provided out of the box with just the Core install. That means you can run any of them from the console, or in response to any trigger, with no additional configuration. Making more SLTScripts available is simple; add them to your 'Data/SKSE/Plugins/sl_triggers/commands/' folder and on your next game launch you will see them. The 'target' of a script might be someone other than the player i.e. if you target them when using the console commands or if an event fires that targets them, like SexLab Separate Orgasm.
-- Example Scripts part of Core:
-  - Add Perk Point - adds 1 perk point
-  - Alcohol - feeds the player 1 random alcoholic drink
-  - Cast Calm - casts Apprentice level Calm spell on target
-  - Cast Light - casts Light spell on target
-  - Change stats (bad) - randomly modifies the Health, Magicka, and Stamina of the target by up to -10 (i.e. negative modifier to max)
-  - Change stats (good) - randomly modifies the Health, Magicka, and Stamina of the target by up to 10 (i.e. positive modifier to max)
-  - CureDisease - casts "Cure Disease" on the target
-  - Harm/Heal (-100/+100) - performs damage or healing as indicated on the target
-  - Show Limited RaceMenu - shows the "limited" racemenu, allowing modifying of RaceMenu settings besides Race and Sex (similar to Vanity Mirror)
+
+<details>
+<summary>Core SLTScripts</summary>
+
+- Add perk point.sltscript
+- Alcohol.sltscript
+- Cast Calm.sltscript
+- Cast Fear.sltscript
+- Cast Light.sltscript
+- Change stats (bad).sltscript
+- Change stats (good).sltscript
+- Change stats (mix).sltscript
+- Cry.sltscript
+- CureDisease.sltscript
+- Doomstone Lover.sltscript
+- Eat (sweets).sltscript
+- Give Gold(10).sltscript
+- Harm (-100).sltscript
+- Heal (+100).sltscript
+- Learn skill (Mage).sltscript
+- Learn skill (random).sltscript
+- Learn skill (Thief).sltscript
+- Learn skill (Warrior).sltscript
+- Lovers comfort.sltscript
+- MFG Reset.sltscript
+- Necks bitten(+1).sltscript
+- Show Limited RaceMenu.sltscript
+- Sound - Levelup.sltscript
+- Toggle Collision.sltscript
+- Toggle God Mode.sltscript
+</details>
+<details>
+<summary>SexLab SLTScripts (included when selecting either of SexLab/SexLab P+)</summary>
+
+- CumControl.sltscript
+- DD Unlock All.sltscript
+- DF Reset All.sltscript
+- DF Set Debt to 0.sltscript
+- Disease.sltscript
+- Heart beat(A).sltscript
+- Sex is crime.sltscript
+- SLS Evict from Markarth.sltscript
+- SLS Evict from Riften.sltscript
+- SLS Evict from Solitude.sltscript
+- SLS Evict from Whiterun.sltscript
+- SLS Evict from Windhelm.sltscript
+- SLS Magic Curse Add.sltscript
+- SLS Magic Curse Remove.sltscript
+- SLS Revoke All Licenses.sltscript
+- SLS Revoke Random License.sltscript
+- SLS Send to Kennel - Markarth.sltscript
+- SLS Send to Kennel - Riften.sltscript
+- SLS Send to Kennel - Solitude.sltscript
+- SLS Send to Kennel - Whiterun.sltscript
+- SLS Send to Kennel - Windhelm.sltscript
+- SLS UnEvict from Markarth.sltscript
+- SLS UnEvict from Riften.sltscript
+- SLS UnEvict from Solitude.sltscript
+- SLS UnEvict from Whiterun.sltscript
+- SLS UnEvict from Windhelm.sltscript
+- Time Control.sltscript
+- Time Slow.sltscript
+- Vision blurred.sltscript
+</details>
+<details>
+<summary>General Adult-oriented SLTScripts (included when selecting any of OStim/SexLab/SexLab P+)</summary>
+
+- Contamination - MME_Lactacid.sltscript
+- Contamination - Transformative Elixir.sltscript
+- PetCollar - Add Keyless.sltscript
+- PetCollar - Add.sltscript
+- PetCollar - Remove Keyless.sltscript
+- PetCollar - Remove.sltscript
+</details>
 
 # Add-Ons/Mini-Games Available
 These are add-on packs or mini-games implemented through SLTR. These may alter gameplay or introduce new mechanics. Typically these involve combinations of SLTScripts, pre-built triggers, and sometimes configuration files.
