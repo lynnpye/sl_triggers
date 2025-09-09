@@ -1893,7 +1893,8 @@ int Function RunCommandLine(string[] cmdLine, int startidx, int endidx, bool sub
 
                             __strListVal = PapyrusUtil.SliceStringArray(cmdLine, 3)
                             
-                            InvalidateMostRecentResult()
+                            ; 20250909 - could not use $$ as an argument, this would affect set
+                            ;InvalidateMostRecentResult()
                             RunCommandLine(__strListVal, startidx + 3, endidx)
                             if SLT.Debug_Cmd_RunScript_Set
                                 InternalResolve("$$")
