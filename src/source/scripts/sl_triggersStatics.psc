@@ -17,7 +17,7 @@ Function SLTWarnMsg(string msg) global
 EndFunction
 
 int Function GetModVersion() global
-	return 951
+	return 952
 EndFunction
 
 ;;;;;;;
@@ -471,6 +471,8 @@ string Function FormPortableStringFromForm(Form theForm) global
 			lightModIndex = Math.LogicalAnd(lightShift, 0xFFF)
 			modName = Game.GetLightModName(lightModIndex)
 			formID = Math.LogicalAnd(formID, 0xFFF)
+		elseif modIndex == 255
+			return formID ; temporary Forms get absolute FormID treatment
 		else
 			; 0xMMFFFFFF
 			modName = Game.GetModName(modIndex)
