@@ -1,0 +1,33 @@
+set $water_session $system.player.in_water_session
+if $water_session == 0
+	return
+endif
+set $water_time $system.gametime
+while $water_session == $system.player.in_water_session
+	set $current_submergence $system.player.submerged_level
+	if $global.sltr_wetness_current < 100.0
+		if $current_submergence > 0.35
+			set $gametime_slice $system.gametime - $water_time
+			set $water_time $system.gametime
+			set $accrued_wetness $gametime_slice * 14400 ; 24 hr * 60 min * 60 sec / 6 sec (weird little math I did to sync it to *something*; in this case roughly 1/10th of in-game minute; tweak the 14400 here upward to increase rapidity of wetness gain)
+			set $accrued_wetness $accrued_wetness * $current_submergence
+			inc $global.sltr_wetness_current $accrued_wetness
+			if $global.sltr_wetness_current > 100.0 ; some arbitrary "max wetness"
+				set $global.sltr_wetness_current 100.0
+			endif
+		endif
+	endif
+	if $global.sltr_wetness_sls_licenses_destroyed < 3
+		if $current_submergence > 0.98
+			call "SLS Destroy Random License"
+			inc $global.sltr_wetness_sls_licenses_destroyed
+		elseif $current_submergence > 0.35
+			set $under_this_removes $global.sltr_wetness_current * $current_submergence
+			if $system.random.100 < $under_this_removes
+				call "SLS Destroy Random License"
+				inc $global.sltr_wetness_sls_licenses_destroyed
+			endif
+		endif
+	endif
+	util_wait 0.5
+endwhile

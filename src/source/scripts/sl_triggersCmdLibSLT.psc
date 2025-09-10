@@ -352,7 +352,7 @@ endFunction
 ; sltdesc Returns: float: the actor's max value for the specified Actor Value
 ; sltargs Form: actor: target Actor
 ; sltargs string: av name: Actor Value name e.g. Health
-; sltsamp av_get $system.self Health
+; sltsamp av_getmax $system.self Health
 ; sltrslt Sets the actor's max Health into $$
 function av_getmax(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd

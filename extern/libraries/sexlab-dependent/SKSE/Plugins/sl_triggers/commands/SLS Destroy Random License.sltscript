@@ -1,0 +1,42 @@
+beginsub destroy_form
+	inc $checked_count 1
+	set $count resultfrom objectreference_dofunction $system.player GetItemCount $destroy_form_id
+	if $count > 0
+        item_remove $system.player $destroy_form_id $count false
+        return
+	endif
+	if $checked_count >= 9
+		return
+	endif
+endsub
+set $start_license resultfrom rnd_int 1 9
+set $start_label $"license_{$start_license}"
+goto $start_label
+[license_1]
+set $destroy_form_id "_SLS_LicenceMagic"
+gosub destroy_form
+[license_2]
+set $destroy_form_id "_SLS_LicenceArmor"
+gosub destroy_form
+[license_3]
+set $destroy_form_id "_SLS_LicenceWeapon"
+gosub destroy_form
+[license_4]
+set $destroy_form_id "_SLS_LicenceBikini"
+gosub destroy_form
+[license_5]
+set $destroy_form_id "_SLS_LicenceClothes"
+gosub destroy_form
+[license_6]
+set $destroy_form_id "_SLS_LicenceWhore"
+gosub destroy_form
+[license_7]
+set $destroy_form_id "_SLS_LicenceCurfew"
+gosub destroy_form
+[license_8]
+set $destroy_form_id "_SLS_LicenceFreedom"
+gosub destroy_form
+[license_9]
+set $destroy_form_id "_SLS_LicenceProperty"
+gosub destroy_form
+goto [license_1]

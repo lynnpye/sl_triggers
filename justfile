@@ -11,6 +11,7 @@ dir_docs :=                     dir_project / "docs"
 dir_project_extern :=           dir_project / "extern"
 dir_project_addons :=           dir_project_extern / "add-ons"
 dir_pet_collar_game :=          dir_project_addons / "sltr_pet_collar_game"
+dir_sls_wet_license :=          dir_project_addons / "sls_wet_license_destruction"
 dir_consumption :=              dir_project_addons / "sltr_consumption_lifestyle"
 dir_test_scripts :=             dir_project_addons / "sltr_test_scripts"
 dir_lang_support :=             dir_project_extern / "lang-support"
@@ -34,6 +35,7 @@ dir_fomod_example_trigger :=    dir_project_fomod / "example-trigger"
 dir_fomod_test_scripts :=       dir_project_fomod / "test-scripts"
 dir_fomod_pet_collar_game :=    dir_project_fomod / "pet-collar-game"
 dir_fomod_consumption :=        dir_project_fomod / "consumption-lifestyle"
+dir_fomod_sls_wet_license :=    dir_project_fomod / "sls-wet-license-destruction"
 dir_project_inc :=              dir_project / "inc"
 dir_project_inc_beth :=         dir_project_inc / "beth"
 dir_project_inc_skse :=         dir_project_inc / "skse"
@@ -102,6 +104,7 @@ raw_dir_fomod_example_trigger := replace(dir_fomod_example_trigger,     '/', '\'
 raw_dir_fomod_test_scripts :=   replace(dir_fomod_test_scripts,         '/', '\')
 raw_dir_fomod_pet_collar_game := replace(dir_fomod_pet_collar_game,     '/', '\')
 raw_dir_fomod_consumption :=    replace(dir_fomod_consumption,          '/', '\')
+raw_dir_fomod_sls_wet_license := replace(dir_fomod_sls_wet_license,     '/', '\')
 
 raw_dir_pex_core :=             replace(dir_pexout_core,                '/', '\')
 raw_dir_pex_lib_adult_general := replace(dir_pexout_lib_adult_general,  '/', '\')
@@ -154,6 +157,7 @@ str_file_dep_pet_collar_game := replace("\"" + file_dep_pet_collar_game + "\"", 
 fileglob_sltr_test_scripts :=   replace("\"" + dir_sltr_test_scripts / "*.*" + "\"",    '/', '\')
 
 str_dir_addon_pet_collar_game := replace("\"" + dir_pet_collar_game + "\\\"",           '/', '\')
+str_dir_addon_sls_wet_license := replace("\"" + dir_sls_wet_license + "\\\"",            '/', '\')
 str_dir_addon_consumption :=    replace("\"" + dir_consumption + "\\\"",                '/', '\')
 str_dir_addon_test_scripts :=   replace("\"" + dir_test_scripts + "\\\"",               '/', '\')
 
@@ -172,7 +176,7 @@ str_dir_fomod_example_trigger := replace("\"" + dir_fomod_example_trigger + "\\\
 str_dir_fomod_test_scripts :=   replace("\"" + dir_fomod_test_scripts + "\\\"",         '/', '\')
 str_dir_fomod_pet_collar_game := replace("\"" + dir_fomod_pet_collar_game + "\\\"",     '/', '\')
 str_dir_fomod_consumption :=    replace("\"" + dir_fomod_consumption + "\\\"",          '/', '\')
-
+str_dir_fomod_sls_wet_license := replace("\"" + dir_fomod_sls_wet_license + "\\\"",     '/', '\')
 
 default:
     @just --list
@@ -221,6 +225,7 @@ packagefomod:
     powershell.exe -Command "if (Test-Path '{{raw_dir_fomod_test_scripts}}') { Remove-Item -Path '{{raw_dir_fomod_test_scripts}}' -Recurse }"
     powershell.exe -Command "if (Test-Path '{{raw_dir_fomod_pet_collar_game}}') { Remove-Item -Path '{{raw_dir_fomod_pet_collar_game}}' -Recurse }"
     powershell.exe -Command "if (Test-Path '{{raw_dir_fomod_consumption}}') { Remove-Item -Path '{{raw_dir_fomod_consumption}}' -Recurse }"
+    powershell.exe -Command "if (Test-Path '{{raw_dir_fomod_sls_wet_license}}') { Remove-Item -Path '{{raw_dir_fomod_sls_wet_license}}' -Recurse }"
     #Core
     xcopy /e /i /y {{str_dir_project_src}} {{str_dir_fomod_core}}
     #OStim
@@ -242,6 +247,8 @@ packagefomod:
     xcopy /e /i /y {{str_dir_addon_pet_collar_game}} {{str_dir_fomod_pet_collar_game}}
     #Consumption Lifestyle
     xcopy /e /i /y {{str_dir_addon_consumption}} {{str_dir_fomod_consumption}}
+    #SLS Wet License Destruction
+    xcopy /e /i /y {{str_dir_addon_sls_wet_license}} {{str_dir_fomod_sls_wet_license}}
     #Build the FOMOD
     powershell.exe -Command "if (Test-Path '{{raw_file_dep_fomod}}') { Remove-Item -Path '{{raw_file_dep_fomod}}' }"
     powershell.exe -Command "Compress-Archive -Path '{{raw_dir_project_fomod}}\\*' -DestinationPath '{{raw_file_dep_fomod}}'"

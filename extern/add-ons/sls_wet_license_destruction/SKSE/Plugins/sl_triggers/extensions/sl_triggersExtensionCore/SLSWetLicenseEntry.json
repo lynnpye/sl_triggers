@@ -1,0 +1,12 @@
+{
+	"int" : 
+	{
+		"__slt_mod_version__" : 952,
+		"event" : 17,
+		"in_water" : 1
+	},
+	"string" : 
+	{
+		"do_1" : "SLSWetLicenseEntry"
+	}
+}
