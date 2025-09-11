@@ -160,16 +160,8 @@ Event OnKeyDown(int keyCode)
 							consoleLinesToSkip += 1
 						elseif subcommand == "list"
 							string[] commandsList = sl_triggers.GetScriptsList()
-							int i = 0
-							MiscUtil.PrintConsole("SLT Scripts List Start:")
-							consoleLinesToSkip += 1
-							while i < commandsList.Length
-								MiscUtil.PrintConsole(commandsList[i])
-								consoleLinesToSkip += 1
-								i += 1
-							endwhile
-							MiscUtil.PrintConsole("SLT Scripts List End:")
-							consoleLinesToSkip += 1
+							PrintScriptsListToConsole(commandsList)
+							consoleLinesToSkip += commandsList.Length + 2
 						elseif subcommand == "run"
 							string _thescriptname = cmd[2]
 							if !_thescriptname

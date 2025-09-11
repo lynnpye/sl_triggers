@@ -9,6 +9,7 @@
         Staying out of water dries you out over time
         Lose a max of 3 licenses while soaked
         Shallow water poses zero risk of destruction but accumulates wetness
+    bugfix: slt console command CTD when script list too large
 
 0.952
     Savegame compatible
