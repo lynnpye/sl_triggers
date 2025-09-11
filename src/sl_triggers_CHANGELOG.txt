@@ -31,8 +31,12 @@
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
         (or whichever folder you have your SKSE logs directed to)
     enhancement: new system variable: $system.forms.sltr_main - Form: the SLTR Main Quest; useful for functions requiring tracking Forms
+    enhancement: integration: SexLab:
+        6 new SLTScripts:
+            SL Aggressive Sex With Player - Anal/Oral/Vaginal
+            SL Sex With Player - Anal/Oral/Vaginal
     enhancement: integration: SexLab Survival:
-        new functions
+        24 new functions
             sls_block_license_purchase
             sls_revoke_license
             sls_send_to_kennel
@@ -57,7 +61,7 @@
             sls_do_female_pain_sound
             sls_do_hit_sound
             sls_do_trauma_hit_sound
-        new SLTScripts:
+        19 new SLTScripts:
             SLS Evict from Markarth/Riften/Solitude/Whiterun/Windhelm
             SLS UnEvict from Markarth/Riften/Solitude/Whiterun/Windhelm
             SLS Send to Kennel - Markarth/Riften/Solitude/Whiterun/Windhelm
