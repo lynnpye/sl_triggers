@@ -2,7 +2,7 @@
     Savegame compatible
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
         (or whichever folder you have your SKSE logs directed to)
-    enhancement: new SexLab/SexLab P+ script: SLS Destroy Random License.sltscript: deletes 1 randomly selected SLS license from the player, if one is present
+    enhancement: new SexLab/SexLab P+ script for SexLab Survival: SLS Destroy Random License.sltscript: deletes 1 randomly selected SLS license from the player, if one is present
     enhancement: new add-on: SLS Wet License Destruction
         Requirement: SexLab Survival (SLS)
         While in water, you have an increasing chance per second to lose a random SLS license due to water damage
