@@ -572,7 +572,7 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 							otherVictims += 1
 						endif
 						int otherRaceType = ActorRaceType(aPartner)
-						if otherRaceType == 2
+						if (otherRaceType == 2 || otherRaceType == 1)
 							If (SLT.Debug_Extension_SexLab)
 								SLTDebugMsg("SexLab: for self(" + theSelf + "): humanoid(" + aPartner + ")")
 							EndIf
@@ -698,11 +698,12 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_RACE)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && ActorRaceType(theSelf) != 2 ; should be humanoid
+						int actor_race_type = ActorRaceType(theSelf)
+						if ival == 1 && (actor_race_type != 2 && actor_race_type != 1) ; should be humanoid
 							doRun = false
-						elseIf ival == 2 && ActorRaceType(theSelf) != 4 ; should be creature
+						elseIf ival == 2 && actor_race_type != 4 ; should be creature
 							doRun = false
-						elseIf ival == 3 && ActorRaceType(theSelf) != 3 ; should be undead
+						elseIf ival == 3 && actor_race_type != 3 ; should be undead
 							doRun = false
 							;/
 						else

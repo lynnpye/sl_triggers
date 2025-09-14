@@ -10,6 +10,7 @@
         Lose a max of 3 licenses while soaked
         Shallow water poses zero risk of destruction but accumulates wetness
     bugfix: slt console command CTD when script list too large
+    bugfix: SexLab/SexLab P+/OStim: "Race:" and "Partner Race:" filters not treating Player as Humanoid
 
 0.952
     Savegame compatible

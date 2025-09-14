@@ -45,22 +45,22 @@
     "triggerattribute_race" : [
         ["type", "int"],
         ["widget", "menu", "Race: ", "0", "Any", "Humanoid", "Creature", "Undead"],
-        ["info", "The 'race' of a scene participant for the script to run on them."]
+        ["info", "To run the script on a target, the Actor must have the selected race type."]
     ],
     "triggerattribute_role" : [
         ["type", "int"],
-        ["widget", "menu", "Role: ", "0", "Any", "Aggressor", "Victim", "Not part of aggressive scene"],
-        ["info", "The role of a scene participant with regard to aggression."]
+        ["widget", "menu", "Role: ", "0", "Any", "Aggressor", "Victim", "Not part of aggressive scene."],
+        ["info", "To run the script on a target, the Actor must have the selected role."]
     ],
     "triggerattribute_player" : [
         ["type", "int"],
         ["widget", "menu", "Player Relationship: ", "0", "Any", "Player", "Not Player", "Partner Player", "Partner Not Player"],
-        ["info", "The relationship to the Player of a scene participant."]
+        ["info", "For a script target, is the target: Player - Actor is Player; Not Player - Actor is not Player; Partner Player - Actor in scene with Player; Partner Not Player - Actor not in scene with Player"]
     ],
     "triggerattribute_gender" : [
         ["type", "int"],
-        ["widget", "menu", "Sex: ", "0", "Any", "Male", "Female", "Creature - Male", "Creature - Female"],
-        ["info", "The SexLab sex of a scene participant."]
+        ["widget", "menu", "Sex: ", "0", "Any", "Male", "Female", "Futa", "Creature - Male", "Creature - Female"],
+        ["info", "To run the script on a target, the Actor must have a scene partner of the selected sex."]
     ],
     "triggerattribute_tag" : [
         ["type", "int"],
@@ -120,17 +120,17 @@
     "triggerattribute_partner_race" : [
         ["type", "int"],
         ["widget", "menu", "Partner Race: ", "0", "Any", "Humanoid", "Creature", "Undead"],
-        ["info", "Requires the script target's partner to be of the selected 'race', if any."]
+        ["info", "To run the script on a target, the Actor must have a scene partner of the selected race type."]
     ],
     "triggerattribute_partner_role" : [
         ["type", "int"],
         ["widget", "menu", "Partner Role: ", "0", "Any", "Aggressor", "Victim", "Not part of aggressive scene"],
-        ["info", "Requires the script target's partner to be in the selected role, if any."]
+        ["info", "To run the script on a target, the Actor must have a scene partner with the selected role."]
     ],
     "triggerattribute_partner_gender" : [
         ["type", "int"],
-        ["widget", "menu", "Partner Sex: ", "0", "Any", "Male", "Female", "Creature - Male", "Creature - Female"],
-        ["info", "Requires the script target's partner to be of the selected sex."]
+        ["widget", "menu", "Partner Sex: ", "0", "Any", "Male", "Female", "Futa", "Creature - Male", "Creature - Female"],
+        ["info", "To run the script on a target, the Actor must have a scene partner of the selected sex."]
     ],
     "triggerlayout" : [
         ["event", "chance"],
