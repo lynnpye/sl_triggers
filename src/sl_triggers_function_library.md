@@ -1035,7 +1035,7 @@ Returns: float: the actor's max value for the specified Actor Value
 
 **Example**
 
-    av_get $system.self Health  
+    av_getmax $system.self Health  
 
 Sets the actor's max Health into $$  
 
