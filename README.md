@@ -111,6 +111,14 @@ These are some of the SLTScripts provided out of the box with just the Core inst
 - Disease.sltscript
 - Heart beat(A).sltscript
 - Sex is crime.sltscript
+- SL Aggressive Sex With Player - Anal.sltscript
+- SL Aggressive Sex With Player - Oral.sltscript
+- SL Aggressive Sex With Player - Vaginal.sltscript
+- SL Masturbate Self.sltscript
+- SL Sex With Player - Anal.sltscript
+- SL Sex With Player - Oral.sltscript
+- SL Sex With Player - Vaginal.sltscript
+- SLS Destroy Random License.sltscript
 - SLS Evict from Markarth.sltscript
 - SLS Evict from Riften.sltscript
 - SLS Evict from Solitude.sltscript
@@ -133,6 +141,18 @@ These are some of the SLTScripts provided out of the box with just the Core inst
 - Time Control.sltscript
 - Time Slow.sltscript
 - Vision blurred.sltscript
+</details>
+<details>
+<summary>OStim SLTScripts (included when selecting OStim)</summary>
+
+- OStim Disease.sltscript
+- OStim Heart beat(A).sltscript
+- OStim Masturbate Self.sltscript
+- OStim Sex is crime.sltscript
+- OStim Sex With Player.sltscript
+- OStim Time Control.sltscript
+- OStim Time Slow.sltscript
+- OStim Vision blurred.sltscript
 </details>
 <details>
 <summary>General Adult-oriented SLTScripts (included when selecting any of OStim/SexLab/SexLab P+)</summary>

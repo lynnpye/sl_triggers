@@ -1,3 +1,26 @@
+0.965
+    Savegame compatible
+    Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
+        (or whichever folder you have your SKSE logs directed to)
+    bugfix: SexLab/SexLab P+/OStim: "Partner Relationship:" filter error; "Player" and "Not Player" fail in masturbation scenarios (where there is no partner)
+    enhancement: SexLab/SexLab P+: new commands:
+        sl_count_cum
+        sl_clear_cum
+        sl_add_cum
+    enhancement: SexLab/SexLab P+: new script:
+        SL Masturbate Self.sltscript
+    enhancement: OStim: new command:
+        ostim_quickstart
+    enhancement: OStim: new scripts:
+        OStim Disease.sltscript
+        OStim Heart beat(A).sltscript
+        OStim Masturbate Self.sltscript
+        OStim Sex is crime.sltscript
+        OStim Sex With Player.sltscript
+        OStim Time Control.sltscript
+        OStim Time Slow.sltscript
+        OStim Vision blurred.sltscript
+
 0.960
     Savegame compatible
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 

@@ -222,6 +222,28 @@ Permits this actor to climax again (as in it undoes ostim_stallclimax)
 
 
 
+### ostim_quickstart
+
+**Description**
+
+Returns: int: Starts an OStim scene and returns the ThreadId
+
+**Parameters**
+
+    Form[]: actors: list containing the Actors to be in the scene, limited to 5  
+    string: animation: the animation to play (optional: default: "" which auto-selects)  
+    Form: furniture: (ObjectReference) furniture to use (optional: default: none)  
+
+
+**Example**
+
+    ; start a solo session  
+    Form[] $actor_list  
+    set $actor_list[0] $system.self  
+    ostim_quickstart $actor_list  
+
+
+
 ### ostim_stallclimax
 
 **Description**

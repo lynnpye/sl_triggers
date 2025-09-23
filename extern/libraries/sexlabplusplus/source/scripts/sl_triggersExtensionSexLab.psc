@@ -619,47 +619,26 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 						endif
 					endif
 				endwhile
-				
+
+				int self_race_type = ActorRaceType(theSelf)				
 				If (SLT.Debug_Extension_SexLab)
-					;SLTDebugMsg("SexLab: actorCount(" + actorCount + ") / theSelf(" + theSelf + ") actorRaceType(theSelf)=>(" + ActorRaceType(theSelf) + ") / theOther(" + theOther + ") actorRaceType(theOther)=>(" + ActorRaceType(theOther) + ") / playerFound(" + playerFound + ")")
-					SLTDebugMsg("SexLab: actorCount(" + actorCount + ") / theSelf(" + theSelf + ") actorRaceType(theSelf)=>(" + ActorRaceType(theSelf) + ") / playerFound(" + playerFound + ") / otherAggressors(" + otherAggressors + ") / otherVictims(" + otherVictims + ") / otherHumanoids(" + otherHumanoids + ") / otherCreatures(" + otherCreatures + ") / otherUndead(" + otherUndead + ") / otherMales(" + otherMales + ") / otherFemales(" + otherFemales + ") / otherFuta(" + otherFuta + ") / otherCreatureMale(" + otherCreatureMale + ") / otherCreatureFemale(" + otherCreatureFemale + ")")
+					;SLTDebugMsg("SexLab: actorCount(" + actorCount + ") / theSelf(" + theSelf + ") actorRaceType(theSelf)=>(" + self_race_type + ") / theOther(" + theOther + ") actorRaceType(theOther)=>(" + ActorRaceType(theOther) + ") / playerFound(" + playerFound + ")")
+					SLTDebugMsg("SexLab: actorCount(" + actorCount + ") / theSelf(" + theSelf + ") actorRaceType(theSelf)=>(" + self_race_type + ") / playerFound(" + playerFound + ") / otherAggressors(" + otherAggressors + ") / otherVictims(" + otherVictims + ") / otherHumanoids(" + otherHumanoids + ") / otherCreatures(" + otherCreatures + ") / otherUndead(" + otherUndead + ") / otherMales(" + otherMales + ") / otherFemales(" + otherFemales + ") / otherFuta(" + otherFuta + ") / otherCreatureMale(" + otherCreatureMale + ") / otherCreatureFemale(" + otherCreatureFemale + ")")
 				EndIf
 
-				doRun = true
-				
-				if doRun
-					;if eventId == 3 ; spec check for separate orgasm
-						; no need for the eventId, if you use 'specActor' it will only operate for that
-						; actor in the scene
-						if specActor && theSelf != specActor
-							doRun = false
-
-							If (SLT.Debug_Extension_SexLab && !doRun)
-								SLTDebugMsg("SexLab: doRun(" + doRun + ") due to specActor")
-							EndIf
-						endIf
-					;endIf
-				endIf
-
-				;/
-				; no longer necessary as a) we isolate only SexLab events here 
-				; and b) the only event specific check is right above us, go read the note
-				if doRun
-					ival = JsonUtil.GetStringValue(SettingsName, _makeSlotIdFromPrefix(slotNoPrefixList[i], 2)) as int
-					if ival != eventId
-						doRun = false
-					endIf
-				endIf
-				/;
+				doRun = !specActor || theSelf == specActor
+				If (SLT.Debug_Extension_SexLab && !doRun)
+					SLTDebugMsg("SexLab: doRun(" + doRun + ") due to specActor")
+				EndIf
 					
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_ARMED)
 					if ival != 0
-						if ival == 1
+						if 		ival == 1
 							doRun = PlayerRef.GetEquippedItemType(0) != 0 || PlayerRef.GetEquippedItemType(1) != 0
-						elseif ival == 2
+						elseif 	ival == 2
 							doRun = PlayerRef.GetEquippedItemType(0) == 0 && PlayerRef.GetEquippedItemType(1) == 0
-						elseif ival == 3
+						elseif 	ival == 3
 							doRun = PlayerRef.GetEquippedItemType(1) == 0
 						endif
 
@@ -672,11 +651,11 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_CLOTHED)
 					if ival != 0
-						if ival == 1
+						if 		ival == 1
 							doRun = PlayerRef.GetEquippedArmorInSlot(32) != none
-						elseif ival == 2
+						elseif 	ival == 2
 							doRun = PlayerRef.GetEquippedArmorInSlot(32) == none
-						elseif ival == 3
+						elseif 	ival == 3
 							Armor bodyItem = PlayerRef.GetEquippedArmorInSlot(32)
 							doRun = (bodyItem == none) || bodyItem.HasKeywordString("zad_Lockable")
 						endif
@@ -690,9 +669,9 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_WEAPON_DRAWN)
 					if ival != 0
-						if ival == 1
+						if 		ival == 1
 							doRun = PlayerRef.IsWeaponDrawn()
-						elseif ival == 2
+						elseif 	ival == 2
 							doRun = !PlayerRef.IsWeaponDrawn()
 						endif
 
@@ -705,28 +684,12 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_RACE)
 					if ival != 0 ; 0 is Any
-						int actor_race_type = ActorRaceType(theSelf)
-						if ival == 1 && (actor_race_type != 2 && actor_race_type != 1) ; should be humanoid
-							doRun = false
-						elseIf ival == 2 && actor_race_type != 4 ; should be creature
-							doRun = false
-						elseIf ival == 3 && actor_race_type != 3 ; should be undead
-							doRun = false
-							;/
-						else
-							;check other
-							if actorCount <= 1 ; is solo, Partner is auto-false
-								doRun = false
-							else
-								if ival == 4 && otherHumanoids == 0 ; should be humanoid
-									doRun = false
-								elseIf ival == 5 && otherCreatures == 0 ; should be creature
-									doRun = false
-								elseIf ival == 6 && otherUndead == 0 ; should be undead
-									doRun = false
-								endIf
-							endIf
-							/;
+						if 		ival == 1
+							doRun = self_race_type == 2 || self_race_type == 1
+						elseIf 	ival == 2 
+							doRun = self_race_type == 4
+						elseIf 	ival == 3 
+							doRun = self_race_type == 3
 						endIf
 
 						If (SLT.Debug_Extension_SexLab && !doRun)
@@ -738,12 +701,12 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PARTNER_RACE)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && otherHumanoids == 0 ; should be humanoid
-							doRun = false
-						elseIf ival == 2 && otherCreatures == 0 ; should be creature
-							doRun = false
-						elseIf ival == 3 && otherUndead == 0 ; should be undead
-							doRun = false
+						if 		ival == 1
+							doRun = otherHumanoids > 0
+						elseIf 	ival == 2
+							doRun = otherCreatures > 0
+						elseIf 	ival == 3
+							doRun = otherUndead > 0
 						endIf
 
 						If (SLT.Debug_Extension_SexLab && !doRun)
@@ -756,21 +719,14 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PLAYER)
 
 					if ival != 0 ; 0 is Any
-						if ival == 1 && ActorRaceType(theSelf) != 1 ; should be player
-							doRun = false
-						elseIf ival == 2 && ActorRaceType(theSelf) == 1 ; should be not-player
-							doRun = false
-						else
-							; check other
-							if actorCount <= 1
-								doRun = false
-							else
-								if ival == 3 && (!playerFound || ActorRaceType(theSelf) == 1) ; partner should be player
-									doRun = false
-								elseIf ival == 4 && playerFound ; partner should be not-player
-									doRun = false
-								endIf
-							endIf
+						if 		ival == 1
+							doRun = self_race_type == 1
+						elseIf 	ival == 2
+							doRun = self_race_type != 1
+						elseif 	ival == 3
+							doRun = actorCount > 1 && playerFound && self_race_type != 1
+						elseif 	ival == 4
+							doRun = actorCount > 1 && !playerFound
 						endIf
 
 						If (SLT.Debug_Extension_SexLab && !doRun)
@@ -782,12 +738,12 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_ROLE)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && !thread.IsAggressor(theSelf) ; aggresor
-							doRun = false
-						elseIf ival == 2 && !thread.IsVictim(theSelf) ; victim
-							doRun = false
-						elseIf ival == 3 && thread.IsAggressive ; not
-							doRun = false
+						if 		ival == 1
+							doRun = thread.IsAggressor(theSelf)
+						elseIf 	ival == 2
+							doRun = thread.IsVictim(theSelf)
+						elseIf 	ival == 3
+							doRun = !thread.IsAggressive
 						endIf
 
 						If (SLT.Debug_Extension_SexLab && !doRun)
@@ -799,12 +755,12 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PARTNER_ROLE)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && otherAggressors == 0 ; aggresor
-							doRun = false
-						elseIf ival == 2 && otherVictims == 0 ; victim
-							doRun = false
-						elseIf ival == 3 && thread.IsAggressive ; not
-							doRun = false
+						if 		ival == 1
+							doRun = otherAggressors > 0
+						elseIf 	ival == 2
+							doRun = otherVictims > 0
+						elseIf 	ival == 3
+							doRun = !thread.IsAggressive
 						endIf
 
 						If (SLT.Debug_Extension_SexLab && !doRun)
@@ -816,9 +772,7 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_GENDER)
 					if ival != 0 ; 0 is Any
-						if (ival - 1) != (SexLabForm as SexLabFramework).GetGender(theSelf)
-							doRun = false
-						endif
+						doRun = (ival - 1) == (SexLabForm as SexLabFramework).GetGender(theSelf)
 						;/
 						if ival == 1 && (SexLabForm as SexLabFramework).GetGender(theSelf) != 0
 							doRun = false
@@ -836,16 +790,16 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PARTNER_GENDER)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && otherMales == 0
-							doRun = false
-						elseIf ival == 2 && otherFemales == 0
-							doRun = false
-						elseIf ival == 3 && otherFuta == 0
-							doRun = false
-						elseIf ival == 4 && otherCreatureMale == 0
-							doRun = false
-						elseIf ival == 5 && otherCreatureFemale == 0
-							doRun = false
+						if 		ival == 1
+							doRun = otherMales > 0
+						elseIf 	ival == 2
+							doRun = otherFemales > 0
+						elseIf 	ival == 3
+							doRun = otherFuta > 0
+						elseIf 	ival == 4
+							doRun = otherCreatureMale > 0
+						elseIf 	ival == 5
+							doRun = otherCreatureFemale > 0
 						endIf
 
 						If (SLT.Debug_Extension_SexLab && !doRun)
@@ -857,12 +811,12 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_TAG)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && !thread.IsVaginal
-							doRun = false
-						elseIf ival == 2 && !thread.IsAnal
-							doRun = false
-						elseIf ival == 3 && !thread.IsOral
-							doRun = false
+						if 		ival == 1
+							doRun = thread.IsVaginal
+						elseIf 	ival == 2
+							doRun = thread.IsAnal
+						elseIf 	ival == 3
+							doRun = thread.IsOral
 						endIf
 
 						If (SLT.Debug_Extension_SexLab && !doRun)
@@ -874,10 +828,10 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && !dayTime()
-							doRun = false
-						elseIf ival == 2 && dayTime()
-							doRun = false
+						if 		ival == 1
+							doRun = dayTime()
+						elseIf 	ival == 2
+							doRun = !dayTime()
 						endIf
 
 						If (SLT.Debug_Extension_SexLab && !doRun)
@@ -885,23 +839,6 @@ Function HandleSexLabCheckEvents(int tid, Actor specActor, string[] _eventTrigge
 						EndIf
 					endIf
 				endIf
-
-				;/
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_LOCATION)
-					if ival != 0 ; 0 is Any
-						if ival == 1 && !theSelf.IsInInterior()
-							doRun = false
-						elseIf ival == 2 && theSelf.IsInInterior()
-							doRun = false
-						endIf
-
-						If (SLT.Debug_Extension_SexLab && !doRun)
-							SLTDebugMsg("SexLab: doRun(" + doRun + ") due to ATTR_LOCATION")
-						EndIf
-					endIf
-				endIf
-				/;
 
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION)

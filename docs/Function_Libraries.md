@@ -4038,6 +4038,34 @@ Returns: int: the actor's SexLab gender, 0 - male, 1 - female, 2 - futa, 3 - mal
 
 
 
+### sl_add_cum
+
+**Description**
+
+Adds a cum layer to each requested slot for the target Actor
+
+**Parameters**
+
+    Form: actor: the Actor to query about being forbidden from SexLab scenes  
+    bool: vaginal: if true, count vaginal cum layers (optional: default: true)  
+    bool: oral: if true, count oral cum layers (optional: default: true)  
+    bool: anal: if true, count anal cum layers (optional: default: true)  
+    int: count: number of layers to add (optional: default: 1)  
+
+
+**Example**
+
+    ; to add an anal cum layer  
+    sl_add_cum $system.self false false true  
+    ; to add an oral cum layer  
+    sl_add_cum $system.self false true  
+    ; to add 2 vaginal cum layers  
+    sl_add_cum $system.self true false false 2  
+    ; to add 2 vaginal and anal cum layers  
+    sl_add_cum $system.self true false true 2  
+
+
+
 ### sl_advance
 
 **Description**
@@ -4091,6 +4119,49 @@ WARNING: This uses a deprecated API until/unless an up to date alternative can b
 
     sl_animname $system.self  
     msg_notify "Playing: " $$  
+
+
+
+### sl_clear_cum
+
+**Description**
+
+Clears cum layers from the target actor
+
+**Parameters**
+
+    Form: actor: the target Actor  
+    bool: vaginal: if true, count vaginal cum layers (optional: default: true)  
+    bool: oral: if true, count oral cum layers (optional: default: true)  
+    bool: anal: if true, count anal cum layers (optional: default: true)  
+
+
+**Example**
+
+    sl_clear_cum $system.self  
+
+
+
+### sl_count_cum
+
+**Description**
+
+Returns: int: count of cum layers for the actor of the specified type(s)
+
+**Parameters**
+
+    Form: actor: the Actor to query about being forbidden from SexLab scenes  
+    bool: vaginal: if true, count vaginal cum layers (optional: default: true)  
+    bool: oral: if true, count oral cum layers (optional: default: true)  
+    bool: anal: if true, count anal cum layers (optional: default: true)  
+
+
+**Example**
+
+    ; to count only vaginal and anal cum layers  
+    sl_count_cum $system.self true false true  
+    ; to count only vaginal layers  
+    sl_count_cum $system.self true  
 
 
 
@@ -4565,6 +4636,33 @@ Returns: int: the actor's SexLab gender, 0 - male, 1 - female, 2 - male creature
 
 
 
+### sl_add_cum
+
+**Description**
+
+Adds a cum layer to each requested slot for the target Actor
+
+**Parameters**
+
+    Form: actor: the Actor to query about being forbidden from SexLab scenes  
+    bool: vaginal: if true, count vaginal cum layers (optional: default: true)  
+    bool: oral: if true, count oral cum layers (optional: default: true)  
+    bool: anal: if true, count anal cum layers (optional: default: true)  
+
+
+**Example**
+
+    ; to add an anal cum layer  
+    sl_add_cum $system.self false false true  
+    ; to add an oral cum layer  
+    sl_add_cum $system.self false true  
+    ; to add a vaginal cum layer  
+    sl_add_cum $system.self true  
+    ; to add a vaginal and anal cum layer  
+    sl_add_cum $system.self true false true  
+
+
+
 ### sl_advance
 
 **Description**
@@ -4616,6 +4714,46 @@ Returns: string: to the current SexLab animation name
 
     sl_animname $system.self  
     msg_notify "Playing: " $$  
+
+
+
+### sl_clear_cum
+
+**Description**
+
+Clears cum layers from the target actor
+
+**Parameters**
+
+    Form: actor: the target Actor  
+
+
+**Example**
+
+    sl_clear_cum $system.self  
+
+
+
+### sl_count_cum
+
+**Description**
+
+Returns: int: count of cum layers for the actor of the specified type(s)
+
+**Parameters**
+
+    Form: actor: the Actor to query about being forbidden from SexLab scenes  
+    bool: vaginal: if true, count vaginal cum layers (optional: default: true)  
+    bool: oral: if true, count oral cum layers (optional: default: true)  
+    bool: anal: if true, count anal cum layers (optional: default: true)  
+
+
+**Example**
+
+    ; to count only vaginal and anal cum layers  
+    sl_count_cum $system.self true false true  
+    ; to count only vaginal layers  
+    sl_count_cum $system.self true  
 
 
 
@@ -5972,6 +6110,28 @@ Permits this actor to climax again (as in it undoes ostim_stallclimax)
 **Example**
 
     ostim_permitclimax $system.player  
+
+
+
+### ostim_quickstart
+
+**Description**
+
+Returns: int: Starts an OStim scene and returns the ThreadId
+
+**Parameters**
+
+    Form[]: actors: list containing the Actors to be in the scene, limited to 5  
+    string: animation: the animation to play (optional: default: "" which auto-selects)  
+    Form: furniture: (ObjectReference) furniture to use (optional: default: none)  
+
+
+**Example**
+
+    ; start a solo session  
+    Form[] $actor_list  
+    set $actor_list[0] $system.self  
+    ostim_quickstart $actor_list  
 
 
 

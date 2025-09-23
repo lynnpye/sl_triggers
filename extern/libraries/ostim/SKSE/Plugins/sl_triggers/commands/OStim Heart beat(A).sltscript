@@ -1,0 +1,5 @@
+snd_play "skyrim.esm:318128" $system.self
+set $1 $$
+snd_setvolume $1 1.0
+ostim_waitforend $system.self
+snd_stop $1

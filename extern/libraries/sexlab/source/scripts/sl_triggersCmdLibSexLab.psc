@@ -888,3 +888,112 @@ function sl_get_skill(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
+
+; sltname sl_count_cum
+; sltgrup SexLab
+; sltdesc Returns: int: count of cum layers for the actor of the specified type(s)
+; sltargs Form: actor: the Actor to query about being forbidden from SexLab scenes
+; sltargs bool: vaginal: if true, count vaginal cum layers (optional: default: true)
+; sltargs bool: oral: if true, count oral cum layers (optional: default: true)
+; sltargs bool: anal: if true, count anal cum layers (optional: default: true)
+; sltsamp ; to count only vaginal and anal cum layers
+; sltsamp sl_count_cum $system.self true false true
+; sltsamp ; to count only vaginal layers
+; sltsamp sl_count_cum $system.self true
+function sl_count_cum(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    if slExtension.IsEnabled && ParamLengthGT(CmdPrimary, param.Length, 1)
+        Actor theActor = CmdPrimary.ResolveActor(param[1])
+        if theActor
+            SexLabFramework slapi = slExtension.SexLabForm as SexLabFramework
+            bool vaginal = true
+            bool oral = true
+            bool anal = true
+            If (param.Length > 2)
+                vaginal = CmdPrimary.ResolveBool(param[2])
+                If (param.Length > 3)
+                    oral = CmdPrimary.ResolveBool(param[3])
+                    If (param.Length > 4)
+                        anal = CmdPrimary.ResolveBool(param[4])
+                    EndIf
+                EndIf
+            EndIf
+            CmdPrimary.MostRecentIntResult = slapi.CountCum(theActor, vaginal, oral, anal)
+        else
+            CmdPrimary.SFW("sl_count_cum: unable to resolve Actor from (" + param[1] + ")")
+        endif
+    endif
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname sl_clear_cum
+; sltgrup SexLab
+; sltdesc Clears cum layers from the target actor
+; sltargs Form: actor: the target Actor
+; sltsamp sl_clear_cum $system.self
+function sl_clear_cum(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    if slExtension.IsEnabled && ParamLengthEQ(CmdPrimary, param.Length, 2)
+        Actor theActor = CmdPrimary.ResolveActor(param[1])
+        if theActor
+            SexLabFramework slapi = slExtension.SexLabForm as SexLabFramework
+            slapi.ClearCum(theActor)
+        else
+            CmdPrimary.SFW("sl_clear_cum: unable to resolve Actor from (" + param[1] + ")")
+        endif
+    endif
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname sl_add_cum
+; sltgrup SexLab
+; sltdesc Adds a cum layer to each requested slot for the target Actor
+; sltargs Form: actor: the Actor to query about being forbidden from SexLab scenes
+; sltargs bool: vaginal: if true, count vaginal cum layers (optional: default: true)
+; sltargs bool: oral: if true, count oral cum layers (optional: default: true)
+; sltargs bool: anal: if true, count anal cum layers (optional: default: true)
+; sltsamp ; to add an anal cum layer
+; sltsamp sl_add_cum $system.self false false true
+; sltsamp ; to add an oral cum layer
+; sltsamp sl_add_cum $system.self false true
+; sltsamp ; to add a vaginal cum layer
+; sltsamp sl_add_cum $system.self true
+; sltsamp ; to add a vaginal and anal cum layer
+; sltsamp sl_add_cum $system.self true false true
+function sl_add_cum(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    sl_triggersExtensionSexLab slExtension = GetExtension()
+
+    if slExtension.IsEnabled && ParamLengthGT(CmdPrimary, param.Length, 1)
+        Actor theActor = CmdPrimary.ResolveActor(param[1])
+        if theActor
+            SexLabFramework slapi = slExtension.SexLabForm as SexLabFramework
+            bool vaginal = true
+            bool oral = true
+            bool anal = true
+            If (param.Length > 2)
+                vaginal = CmdPrimary.ResolveBool(param[2])
+                If (param.Length > 3)
+                    oral = CmdPrimary.ResolveBool(param[3])
+                    If (param.Length > 4)
+                        anal = CmdPrimary.ResolveBool(param[4])
+                    EndIf
+                EndIf
+            EndIf
+            slapi.AddCum(theActor, vaginal, oral, anal)
+        else
+            CmdPrimary.SFW("sl_count_cum: unable to resolve Actor from (" + param[1] + ")")
+        endif
+    endif
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction

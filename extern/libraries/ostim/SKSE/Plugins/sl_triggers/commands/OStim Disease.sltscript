@@ -1,0 +1,11 @@
+rnd_list skyrim.esm:755580 skyrim.esm:755582 skyrim.esm:755583 skyrim.esm:755584 skyrim.esm:755585 skyrim.esm:755586 skyrim.esm:755587
+set $1 $$
+
+[more]
+spell_dcsa $1 $system.self
+ostim_isin $system.self
+if $$ = 0 end
+util_wait 6
+goto more
+
+[end]

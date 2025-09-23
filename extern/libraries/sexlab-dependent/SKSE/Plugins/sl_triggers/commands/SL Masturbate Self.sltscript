@@ -1,0 +1,5 @@
+Form[] $actorList
+
+set $actorList[0] = $system.self
+
+sl_startsex $actorList none "" false

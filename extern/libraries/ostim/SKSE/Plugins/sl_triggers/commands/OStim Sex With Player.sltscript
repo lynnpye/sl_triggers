@@ -1,0 +1,6 @@
+Form[] $actorList
+
+set $actorList[0] = $system.player
+set $actorList[1] = $system.self
+
+ostim_quickstart $actorList

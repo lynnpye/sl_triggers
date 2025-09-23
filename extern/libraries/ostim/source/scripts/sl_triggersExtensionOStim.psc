@@ -610,277 +610,217 @@ Function HandleCheckEvents(int tid, Actor specActor, string[] _eventTriggerKeys,
 					otherVictims = 0 ; no aggressors => no victims
 				endif
 				
+				int self_race_type = ActorRaceType(theSelf)
 				If (SLT.Debug_Extension_OStim)
-					;SLTDebugMsg("OStim: actorCount(" + actorCount + ") / theSelf(" + theSelf + ") actorRaceType(theSelf)=>(" + ActorRaceType(theSelf) + ") / theOther(" + theOther + ") actorRaceType(theOther)=>(" + ActorRaceType(theOther) + ")")
-					SLTDebugMsg("OStim: actorCount(" + actorCount + ") / theSelf(" + theSelf + ") actorRaceType(theSelf)=>(" + ActorRaceType(theSelf) + ") / playerFound(" + playerFound + ") / otherAggressors(" + otherAggressors + ") / otherVictims(" + otherVictims + ") / otherHumanoids(" + otherHumanoids + ") / otherCreatures(" + otherCreatures + ") / otherUndead(" + otherUndead + ") / otherMales(" + otherMales + ") / otherFemales(" + otherFemales + ")")
+					;SLTDebugMsg("OStim: actorCount(" + actorCount + ") / theSelf(" + theSelf + ") actorRaceType(theSelf)=>(" + self_race_type + ") / theOther(" + theOther + ") actorRaceType(theOther)=>(" + ActorRaceType(theOther) + ")")
+					SLTDebugMsg("OStim: actorCount(" + actorCount + ") / theSelf(" + theSelf + ") actorRaceType(theSelf)=>(" + self_race_type + ") / playerFound(" + playerFound + ") / otherAggressors(" + otherAggressors + ") / otherVictims(" + otherVictims + ") / otherHumanoids(" + otherHumanoids + ") / otherCreatures(" + otherCreatures + ") / otherUndead(" + otherUndead + ") / otherMales(" + otherMales + ") / otherFemales(" + otherFemales + ")")
 				EndIf
 
-				doRun = true
-				
-				if doRun
-					;if eventId == 3 ; spec check for separate orgasm
-						; no need for the eventId, if you use 'specActor' it will only operate for that
-						; actor in the scene
-						if specActor && theSelf != specActor
-							doRun = false
-						endIf
-					;endIf
-				endIf
-
-				If (SLT.Debug_Extension_OStim)
-					SLTDebugMsg("OStim: doRun(" + doRun + ") after specActor")
+				doRun = !specActor || theSelf == specActor
+						
+				If (SLT.Debug_Extension_OStim && !doRun)
+					SLTDebugMsg("OStim: doRun(" + doRun + ") due to specActor")
 				EndIf
-
-				;/
-				; no longer necessary as a) we isolate only SexLab events here 
-				; and b) the only event specific check is right above us, go read the note
-				if doRun
-					ival = JsonUtil.GetStringValue(SettingsName, _makeSlotIdFromPrefix(slotNoPrefixList[i], 2)) as int
-					if ival != eventId
-						doRun = false
-					endIf
-				endIf
-				/;
 					
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_ARMED)
 					if ival != 0
-						if ival == 1
+						if 		ival == 1
 							doRun = PlayerRef.GetEquippedItemType(0) != 0 || PlayerRef.GetEquippedItemType(1) != 0
-						elseif ival == 2
+						elseif 	ival == 2
 							doRun = PlayerRef.GetEquippedItemType(0) == 0 && PlayerRef.GetEquippedItemType(1) == 0
-						elseif ival == 3
+						elseif 	ival == 3
 							doRun = PlayerRef.GetEquippedItemType(1) == 0
 						endif
+
+						If (SLT.Debug_Extension_OStim && !doRun)
+							SLTDebugMsg("OStim: doRun(" + doRun + ") due to ATTR_IS_ARMED")
+						EndIf
 					endif
 				endif
-
-				If (SLT.Debug_Extension_OStim)
-					SLTDebugMsg("OStim: doRun(" + doRun + ") after ATTR_IS_ARMED")
-				EndIf
 
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_CLOTHED)
 					if ival != 0
-						if ival == 1
+						if 		ival == 1
 							doRun = PlayerRef.GetEquippedArmorInSlot(32) != none
-						elseif ival == 2
+						elseif 	ival == 2
 							doRun = PlayerRef.GetEquippedArmorInSlot(32) == none
-						elseif ival == 3
+						elseif 	ival == 3
 							Armor bodyItem = PlayerRef.GetEquippedArmorInSlot(32)
 							doRun = (bodyItem == none) || bodyItem.HasKeywordString("zad_Lockable")
 						endif
+
+						If (SLT.Debug_Extension_OStim && !doRun)
+							SLTDebugMsg("OStim: doRun(" + doRun + ") due to ATTR_IS_CLOTHED")
+						EndIf
 					endif
 				endif
-
-				If (SLT.Debug_Extension_OStim)
-					SLTDebugMsg("OStim: doRun(" + doRun + ") after ATTR_IS_CLOTHED")
-				EndIf
 
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_IS_WEAPON_DRAWN)
 					if ival != 0
-						if ival == 1
+						if 		ival == 1
 							doRun = PlayerRef.IsWeaponDrawn()
-						elseif ival == 2
+						elseif 	ival == 2
 							doRun = !PlayerRef.IsWeaponDrawn()
 						endif
+
+						If (SLT.Debug_Extension_OStim && !doRun)
+							SLTDebugMsg("OStim: doRun(" + doRun + ") due to ATTR_IS_WEAPON_DRAWN")
+						EndIf
 					endif
 				endif
-
-				If (SLT.Debug_Extension_OStim)
-					SLTDebugMsg("OStim: doRun(" + doRun + ") after ATTR_IS_WEAPON_DRAWN")
-				EndIf
 				
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_RACE)
 					if ival != 0 ; 0 is Any
-						int actor_race_type = ActorRaceType(theSelf)
-						if ival == 1 && (actor_race_type != 2 && actor_race_type != 1) ; should be humanoid
-							doRun = false
-						elseIf ival == 2 && actor_race_type != 4 ; should be creature
-							doRun = false
-						elseIf ival == 3 && actor_race_type != 3 ; should be undead
-							doRun = false
-							;/
-						else
-							;check other
-							if actorCount <= 1 ; is solo, Partner is auto-false
-								doRun = false
-							else
-								if ival == 4 && ActorRaceType(theOther) != 2 ; should be humanoid
-									doRun = false
-								elseIf ival == 5 && ActorRaceType(theOther) != 4 ; should be creature
-									doRun = false
-								elseIf ival == 6 && ActorRaceType(theOther) != 3 ; should be undead
-									doRun = false
-								endIf
-							endIf
-							/;
+						if 		ival == 1 ; should be humanoid
+							doRun = self_race_type == 2 || self_race_type == 1
+						elseIf 	ival == 2 ; should be creature
+							doRun = self_race_type == 4
+						elseIf 	ival == 3 ; should be undead
+							doRun = self_race_type == 3
 						endIf
+
+						If (SLT.Debug_Extension_OStim && !doRun)
+							SLTDebugMsg("OStim: doRun(" + doRun + ") due to ATTR_RACE")
+						EndIf
 					endIf
 				endIf
-
-				If (SLT.Debug_Extension_OStim)
-					SLTDebugMsg("OStim: doRun(" + doRun + ") after ATTR_RACE")
-				EndIf
 				
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PARTNER_RACE)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && otherHumanoids == 0 ; should be humanoid
-							doRun = false
-						elseIf ival == 2 && otherCreatures == 0 ; should be creature
-							doRun = false
-						elseIf ival == 3 && otherUndead == 0 ; should be undead
-							doRun = false
+						if 		ival == 1
+							doRun = otherHumanoids > 0
+						elseIf 	ival == 2
+							doRun = otherCreatures > 0
+						elseIf 	ival == 3
+							doRun = otherUndead > 0
 						endIf
+
+						If (SLT.Debug_Extension_OStim && !doRun)
+							SLTDebugMsg("OStim: doRun(" + doRun + ") due to ATTR_PARTNER_RACE")
+						EndIf
 					endIf
 				endIf
-
-				If (SLT.Debug_Extension_OStim)
-					SLTDebugMsg("OStim: doRun(" + doRun + ") after ATTR_PARTNER_RACE")
-				EndIf
 
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PLAYER)
 
 					if ival != 0 ; 0 is Any
-						if ival == 1 && ActorRaceType(theSelf) != 1 ; should be player
-							doRun = false
-						elseIf ival == 2 && ActorRaceType(theSelf) == 1 ; should be not-player
-							doRun = false
-						else
-							; check other
-							if actorCount <= 1
-								doRun = false
-							else
-								if ival == 3 &&  (!playerFound || ActorRaceType(theSelf) == 1) ; should be player
-									doRun = false
-								elseIf ival == 4 && playerFound ; should be not-player
-									doRun = false
-								endIf
-							endIf
+						if 		ival == 1
+							doRun = self_race_type == 1
+						elseIf 	ival == 2
+							doRun = self_race_type != 1
+						elseif 	ival == 3
+							doRun = actorCount > 1 && playerFound && self_race_type != 1
+						elseif 	ival == 4
+							doRun = actorCount > 1 && !playerFound
 						endIf
+
+						If (SLT.Debug_Extension_OStim && !doRun)
+							SLTDebugMsg("OStim: doRun(" + doRun + ") due to ATTR_PLAYER")
+						EndIf
 					endIf
 				endIf
-
-				If (SLT.Debug_Extension_OStim)
-					SLTDebugMsg("OStim: doRun(" + doRun + ") after ATTR_PLAYER")
-				EndIf
 
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_ROLE)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && !OMetadata.HasActorTag(sceneId, idx_Self, "dominant") ; aggresor
-							doRun = false
-						elseIf ival == 2 && (!hasDominance || OMetadata.HasActorTag(sceneId, idx_Self, "dominant")) ; victim
-							doRun = false
-						elseIf ival == 3 && !hasDominance
-							doRun = false
+						if 		ival == 1
+							doRun = OMetadata.HasActorTag(sceneId, idx_Self, "dominant")
+						elseIf 	ival == 2
+							doRun = hasDominance && !OMetadata.HasActorTag(sceneId, idx_Self, "dominant")
+						elseIf 	ival == 3
+							doRun = !hasDominance
 						endIf
+
+						If (SLT.Debug_Extension_OStim && !doRun)
+							SLTDebugMsg("OStim: doRun(" + doRun + ") due to ATTR_ROLE")
+						EndIf
 					endIf
 				endIf
-
-				If (SLT.Debug_Extension_OStim)
-					SLTDebugMsg("OStim: doRun(" + doRun + ") after ATTR_ROLE")
-				EndIf
 
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PARTNER_ROLE)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && otherAggressors == 0 ; aggresor
-							doRun = false
-						elseIf ival == 2 && otherVictims == 0
-							doRun = false
-						elseIf ival == 3 && hasDominance
-							doRun = false
+						if 		ival == 1
+							doRun = otherAggressors > 0
+						elseIf 	ival == 2
+							doRun = otherVictims > 0
+						elseIf 	ival == 3
+							doRun = !hasDominance
 						endIf
+
+						If (SLT.Debug_Extension_OStim && !doRun)
+							SLTDebugMsg("OStim: doRun(" + doRun + ") due to ATTR_PARTNER_ROLE")
+						EndIf
 					endIf
 				endIf
-
-				If (SLT.Debug_Extension_OStim)
-					SLTDebugMsg("OStim: doRun(" + doRun + ") after ATTR_PARTNER_ROLE")
-				EndIf
 
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_GENDER)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && ostim.IsFemale(theSelf)
-							doRun = false
-						elseIf ival == 2 && !ostim.IsFemale(theSelf)
-							doRun = false
+						if 		ival == 1
+							doRun = !ostim.IsFemale(theSelf)
+						elseIf 	ival == 2
+							doRun = ostim.IsFemale(theSelf)
 						endIf
+
+						If (SLT.Debug_Extension_OStim && !doRun)
+							SLTDebugMsg("OStim: doRun(" + doRun + ") due to ATTR_GENDER")
+						EndIf
 					endIf
 				endIf
-
-				If (SLT.Debug_Extension_OStim)
-					SLTDebugMsg("OStim: doRun(" + doRun + ") after ATTR_GENDER")
-				EndIf
 
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_PARTNER_GENDER)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && otherMales == 0
-							doRun = false
-						elseIf ival == 2 && otherFemales == 0
-							doRun = false
+						if 		ival == 1
+							doRun = otherMales > 0
+						elseIf 	ival == 2
+							doRun = otherFemales > 0
 						endIf
+
+						If (SLT.Debug_Extension_OStim && !doRun)
+							SLTDebugMsg("OStim: doRun(" + doRun + ") due to ATTR_PARTNER_GENDER")
+						EndIf
 					endIf
 				endIf
-
-				If (SLT.Debug_Extension_OStim)
-					SLTDebugMsg("OStim: doRun(" + doRun + ") after ATTR_PARTNER_GENDER")
-				EndIf
 
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_TAG)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && !SceneHasVaginalAction(sceneId)
-							doRun = false
-						elseIf ival == 2 && !SceneHasAnalAction(sceneId)
-							doRun = false
-						elseIf ival == 3 && !SceneHasOralAction(sceneId)
-							doRun = false
+						if 		ival == 1
+							doRun = SceneHasVaginalAction(sceneId)
+						elseIf 	ival == 2
+							doRun = SceneHasAnalAction(sceneId)
+						elseIf 	ival == 3
+							doRun = SceneHasOralAction(sceneId)
 						endIf
+
+						If (SLT.Debug_Extension_OStim && !doRun)
+							SLTDebugMsg("OStim: doRun(" + doRun + ") due to ATTR_TAG")
+						EndIf
 					endIf
 				endIf
-
-				If (SLT.Debug_Extension_OStim)
-					SLTDebugMsg("OStim: doRun(" + doRun + ") after ATTR_TAG")
-				EndIf
 
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DAYTIME)
 					if ival != 0 ; 0 is Any
-						if ival == 1 && !dayTime()
-							doRun = false
-						elseIf ival == 2 && dayTime()
-							doRun = false
+						if 		ival == 1
+							doRun = dayTime()
+						elseIf 	ival == 2
+							doRun = !dayTime()
 						endIf
+
+						If (SLT.Debug_Extension_OStim && !doRun)
+							SLTDebugMsg("OStim: doRun(" + doRun + ") due to ATTR_DAYTIME")
+						EndIf
 					endIf
 				endIf
-
-				If (SLT.Debug_Extension_OStim)
-					SLTDebugMsg("OStim: doRun(" + doRun + ") after ATTR_DAYTIME")
-				EndIf
-
-				;/
-				if doRun
-					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_LOCATION)
-					if ival != 0 ; 0 is Any
-						if ival == 1 && !theSelf.IsInInterior()
-							doRun = false
-						elseIf ival == 2 && theSelf.IsInInterior()
-							doRun = false
-						endIf
-					endIf
-				endIf
-
-				If (SLT.Debug_Extension_OStim)
-					SLTDebugMsg("OStim: doRun(" + doRun + ") after ATTR_LOCATION")
-				EndIf
-				/;
 
 				if doRun
 					ival = JsonUtil.GetIntValue(_triggerFile, ATTR_DEEPLOCATION)

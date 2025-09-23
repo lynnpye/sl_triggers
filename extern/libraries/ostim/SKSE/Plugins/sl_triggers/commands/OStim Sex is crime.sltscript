@@ -1,0 +1,14 @@
+[more]
+util_wait 10
+ostim_isin $system.self
+if $$ = 0 end
+util_getrndactor 750 1
+actor_isvalid $system.actor
+if $$ = 0 more
+actor_haslos $system.actor $system.self
+if $$ = 0 more
+rnd_int 5 15
+actor_modcrimegold $system.actor $$
+msg_notify "Reported for sex crime!"
+goto more
+[end]

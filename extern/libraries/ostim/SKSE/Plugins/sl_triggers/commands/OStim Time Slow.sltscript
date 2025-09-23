@@ -1,0 +1,3 @@
+console $system.self "sgtm 0.5"
+ostim_waitforend $system.self
+console $system.self "sgtm 1"

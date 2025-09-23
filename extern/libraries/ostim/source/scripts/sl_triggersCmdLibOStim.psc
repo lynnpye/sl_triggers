@@ -604,3 +604,38 @@ function ostim_climax(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, strin
 
     CmdPrimary.CompleteOperationOnActor()
 endFunction
+
+; sltname ostim_quickstart
+; sltgrup OStim
+; sltdesc Returns: int: Starts an OStim scene and returns the ThreadId
+; sltargs Form[]: actors: list containing the Actors to be in the scene, limited to 5
+; sltargs string: animation: the animation to play (optional: default: "" which auto-selects)
+; sltargs Form: furniture: (ObjectReference) furniture to use (optional: default: none)
+; sltsamp ; start a solo session
+; sltsamp Form[] $actor_list
+; sltsamp set $actor_list[0] $system.self
+; sltsamp ostim_quickstart $actor_list
+function ostim_quickstart(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    sl_triggersExtensionOstim sltrex = GetExtension()
+    
+    if sltrex.IsEnabled && ParamLengthGT(CmdPrimary, param.Length, 1)
+        Actor[] actors = CmdPrimary.ResolveListActor(param[1])
+        if actors.Length > 0
+            string animation = ""
+            ObjectReference furn = none
+            if (param.Length > 2)
+                animation = CmdPrimary.ResolveString(param[2])
+                If (param.Length > 3)
+                    furn = CmdPrimary.ResolveObjRef(param[3])
+                EndIf
+            endif
+            OThread.QuickStart(actors, animation, furn)
+        else
+            CmdPrimary.SFW("ostim_quickstart: no actors available in actor_list")
+        endif
+    endif
+
+    CmdPrimary.CompleteOperationOnActor()
+endFunction
