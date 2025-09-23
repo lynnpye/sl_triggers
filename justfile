@@ -150,6 +150,9 @@ str_file_caprica_exe :=         replace("\"" + file_caprica_exe + "\"",         
 
 str_file_sl_triggersStatics :=  replace("\"" + file_sl_triggersStatics + "\"",          '/', '\')
 
+str_file_lang_npp :=            replace("\"" + file_dep_lang_npp + "\"",                '/', '\')
+str_file_lang_vscode :=         replace("\"" + file_dep_lang_vscode + "\"",             '/', '\')
+
 str_file_dep_mod :=             replace("\"" + file_dep_mod + "\"",                     '/', '\')
 str_file_dep_test_scripts :=    replace("\"" + file_dep_test_scripts + "\"",            '/', '\')
 str_file_dep_pet_collar_game := replace("\"" + file_dep_pet_collar_game + "\"",         '/', '\')
@@ -265,16 +268,15 @@ update-version-safe:
     @echo "Updating version to {{version_mod}} in sl_triggersStatics.psc"
     powershell.exe -File update-version.ps1 -ScriptPath "{{file_sl_triggersStatics}}" -InfoXmlPath "{{file_fomod_info_xml}}" -NewVersion "{{version_mod}}" -NewFomodVersion "{{version_fomod}}"
 
-_package_preclean:
-    powershell.exe -File clean-deps.ps1 -dir_dep "{{dir_dep}}"
-
 packagemodonly: 
     powershell.exe -Command "if (Test-Path '{{raw_file_dep_mod}}') { Remove-Item -Path '{{raw_file_dep_mod}}' }"
     powershell.exe -Command "Compress-Archive -Path '{{raw_dir_project_src}}\\*' -DestinationPath '{{raw_file_dep_mod}}'"
 
 packagelang:
+    del {{str_file_lang_npp}}
+    del {{str_file_lang_vscode}}
     powershell.exe -Command "Compress-Archive -Path '{{raw_dir_lang_npp}}\\*' -DestinationPath '{{raw_file_lang_npp}}'"
     powershell.exe -Command "Compress-Archive -Path '{{raw_dir_lang_vscode}}\\*' -DestinationPath '{{raw_file_lang_vscode}}'"
 
-packageall: _package_preclean packagefomod packagelang
+packageall: packagefomod packagelang
     @echo "Packaging all"
