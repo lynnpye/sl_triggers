@@ -1,3 +1,10 @@
+0.970
+    Savegame compatible
+    Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
+        (or whichever folder you have your SKSE logs directed to)
+    bugfix: sl-triggers.dll: increased water/swimming check delay from 100 to 500 ms to reduce system load
+    bugfix: dd_unlockall/dd_unlockslot: not working
+
 0.965
     Savegame compatible
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 

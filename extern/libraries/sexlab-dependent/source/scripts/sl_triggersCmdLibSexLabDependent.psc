@@ -67,38 +67,55 @@ endFunction
 ;;
 ;;
 
+function dd_unlockslot_impl(zadLibs ddlib, Actor _targetActor, int slot, bool force) global
+    Armor device = _targetActor.GetEquippedArmorInSlot(slot)
+    if device
+        if device.HasKeyWord(ddlib.zad_Lockable)
+            if force || (!device.HasKeyWord(ddlib.zad_QuestItem) && !device.HasKeyWord(ddlib.zad_BlockGeneric))
+                ddlib.UnlockDevice(_targetActor, device)
+                _targetActor.UnequipItemSlot(slot)
+            else
+                SLTDebugMsg("dd_unlockslot_impl: force flag not set and device has either zad_quest or zad_blockgeneric keyword")
+            endif
+        endif
+    endif
+endfunction
+
 ; sltname dd_unlockslot
 ; sltgrup Devious Devices
 ; sltdesc Attempts to unlock any device in the specified slot
 ; sltargs Form: actor: target Actor
 ; sltargs int: armorslot: int value armor slot e.g. 32 is body armor
 ; sltargs string: force: "force" to force an unlock, anything else otherwise
-; sltsamp dd_unlockslot $self 32 force
+; sltsamp dd_unlockslot $system.self 32 force
 ; sltrslt Should remove anything in body slot e.g. corset, harness, etc., and forced, so including quest items (be careful!)
 function dd_unlockslot(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthLT(CmdPrimary, param.Length, 5)
+    if ParamLengthGT(CmdPrimary, param.Length, 2)
         zadLibs ddlib = GetForm_DeviousDevices_zadLibs() as zadLibs
         
         if ddlib
             Actor _targetActor = CmdPrimary.ResolveActor(param[1])
             if _targetActor
-                bool force = (param.Length > 3 && CmdPrimary.ResolveString(param[3]) == "force")
-                int i = CmdPrimary.ResolveInt(param[2])
-
-                Armor device = _targetActor.GetEquippedArmorInSlot(i)
-                if device
-                    Keyword ddkeyword = ddlib.GetDeviceKeyword(device)
-                    if ddkeyword
-                        Armor renderedDevice = ddlib.GetRenderedDevice(device)
-                        if renderedDevice && (force || (!renderedDevice.HasKeyWord(ddlib.zad_QuestItem) && !device.HasKeyword(ddlib.zad_QuestItem)))
-                            ddlib.UnlockDevice(_targetActor, device, renderedDevice)
-                        endif
-                    endif
+                int slot = CmdPrimary.ResolveInt(param[2])
+                bool force = false
+                if param.Length > 3
+                    force = (param.Length > 3 && CmdPrimary.ResolveString(param[3]) == "force")
                 endif
+
+                Armor device = _targetActor.GetEquippedArmorInSlot(slot)
+                if device
+                    dd_unlockslot_impl(ddlib, _targetActor, slot, force)
+                endif
+            else
+                SLTDebugMsg("dd_unlockslot: failed to resolve actor from (" + param[1] + ")")
             endif
+        else
+            SLTDebugMsg("dd_unlockslot: failed to get zadLibs")
         endif
+    else
+        SLTDebugMsg("dd_unlockslot: failed parm length")
     endif
 
     CmdPrimary.CompleteOperationOnActor()
@@ -109,37 +126,37 @@ endFunction
 ; sltdesc Attempts to unlock all devices locked on the actor
 ; sltargs Form: actor: target Actor
 ; sltargs string: force: "force" to force an unlock, anything else otherwise
-; sltsamp dd_unlockall $self force
+; sltsamp dd_unlockall $system.self force
 ; sltrslt Will attempt to (forcibly if necessary, e.g. quest locked items) unlock all lockable items on targeted actor.
 function dd_unlockall(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
-    if ParamLengthLT(CmdPrimary, param.Length, 4)
+    if ParamLengthGT(CmdPrimary, param.Length, 1)
         zadLibs ddlib = GetForm_DeviousDevices_zadLibs() as zadLibs
 
         if ddlib
             Actor _targetActor = CmdPrimary.ResolveActor(param[1])
             if _targetActor
-                bool force = (param.Length > 2 && CmdPrimary.ResolveString(param[2]) == "force")
+                bool force = false
+                if param.Length > 2
+                    force = (param.Length > 2 && CmdPrimary.ResolveString(param[2]) == "force")
+                endif
                 bool lockable
-                int i = 0
+                int slot = 0
                 Armor device
-                Armor renderedDevice
-                while i < 61
-                    device = _targetActor.GetEquippedArmorInSlot(i)
-                    if device
-                        renderedDevice = ddlib.GetRenderedDevice(device)
-                        lockable = device.HasKeyword(ddlib.zad_lockable) || renderedDevice.HasKeyword(ddlib.zad_lockable)
-
-                        if lockable && (force || (!(renderedDevice && renderedDevice.HasKeyWord(ddlib.zad_QuestItem)) && !device.HasKeyword(ddlib.zad_QuestItem)))
-                            ddlib.UnlockDevice(_targetActor, device, renderedDevice)
-                        endif
-                    endif
+                while slot < 61
+                    dd_unlockslot_impl(ddlib, _targetActor, slot, force)
             
-                    i += 1
+                    slot += 1
                 endwhile
+            else
+                SLTDebugMsg("dd_unlockall: failed to resolve actor from (" + param[1] + ")")
             endif
+        else
+            SLTDebugMsg("dd_unlockall: failed to get zadLibs")
         endif
+    else
+        SLTDebugMsg("dd_unlockall: failed parm length")
     endif
 
     CmdPrimary.CompleteOperationOnActor()
