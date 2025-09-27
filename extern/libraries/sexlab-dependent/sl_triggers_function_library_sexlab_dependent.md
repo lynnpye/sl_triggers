@@ -16,7 +16,7 @@ Attempts to unlock all devices locked on the actor
 
 **Example**
 
-    dd_unlockall $self force  
+    dd_unlockall $system.self force  
 
 Will attempt to (forcibly if necessary, e.g. quest locked items) unlock all lockable items on targeted actor.  
 
@@ -36,7 +36,7 @@ Attempts to unlock any device in the specified slot
 
 **Example**
 
-    dd_unlockslot $self 32 force  
+    dd_unlockslot $system.self 32 force  
 
 Should remove anything in body slot e.g. corset, harness, etc., and forced, so including quest items (be careful!)  
 
