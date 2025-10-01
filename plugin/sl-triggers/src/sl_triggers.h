@@ -6,6 +6,8 @@ namespace SLT {
 class SLTNativeFunctions {
 public:
 // Non-latent functions
+static bool AddKeywordToForm(PAPYRUS_NATIVE_DECL, RE::TESForm* form, RE::BGSKeyword* keyword);
+
 static bool DeleteTrigger(PAPYRUS_NATIVE_DECL, std::string_view extKeyStr, std::string_view trigKeyStr);
 
 static RE::TESForm* GetForm(PAPYRUS_NATIVE_DECL, std::string_view a_editorID);
@@ -47,6 +49,8 @@ static std::int32_t NormalizeScriptfilename(PAPYRUS_NATIVE_DECL, std::string_vie
 static std::vector<std::int32_t> NormalizeTimestamp(PAPYRUS_NATIVE_DECL, std::string_view sourceTimestamp);
 
 static std::vector<std::int32_t> NormalizeTimestampComponents(PAPYRUS_NATIVE_DECL, std::vector<std::int32_t> optionalSourceTimestampComponents);
+
+static bool RemoveKeywordFromForm(PAPYRUS_NATIVE_DECL, RE::TESForm* form, RE::BGSKeyword* keyword);
 
 static bool RunOperationOnActor(PAPYRUS_NATIVE_DECL, RE::Actor* cmdTarget, RE::ActiveEffect* cmdPrimary,
                                             std::vector<std::string> tokens);
@@ -111,6 +115,14 @@ static std::string Trim(PAPYRUS_NATIVE_DECL, std::string_view str);
 class SLTPapyrusFunctionProvider : public SLT::binding::PapyrusFunctionProvider<SLTPapyrusFunctionProvider> {
 public:
     // Static Papyrus function implementations
+
+    static bool AddKeywordToForm(PAPYRUS_STATIC_ARGS, RE::TESForm* form, RE::BGSKeyword* keyword) {
+        #ifdef LOG_PAPYRUS_CALLS
+        logger::debug("PapyrusCall -> AddKeywordToForm");
+        #endif
+        return SLT::SLTNativeFunctions::AddKeywordToForm(PAPYRUS_FN_PARMS, form, keyword);
+    }
+
     static RE::TESForm* GetForm(PAPYRUS_STATIC_ARGS, std::string_view someFormOfFormIdentification) {
         #ifdef LOG_PAPYRUS_CALLS
         logger::debug("PapyrusCall -> GetForm");
@@ -181,6 +193,13 @@ public:
         return SLT::SLTNativeFunctions::NormalizeTimestampComponents(PAPYRUS_FN_PARMS, optionalSourceTimestampComponents);
     }
 
+    static bool RemoveKeywordFromForm(PAPYRUS_STATIC_ARGS, RE::TESForm* form, RE::BGSKeyword* keyword) {
+        #ifdef LOG_PAPYRUS_CALLS
+        logger::debug("PapyrusCall -> RemoveKeywordFromForm");
+        #endif
+        return SLT::SLTNativeFunctions::RemoveKeywordFromForm(PAPYRUS_FN_PARMS, form, keyword);
+    }
+
     static bool SmartEquals(PAPYRUS_STATIC_ARGS, std::string_view a, std::string_view b) {
         #ifdef LOG_PAPYRUS_CALLS
         logger::debug("PapyrusCall -> SmartEquals");
@@ -230,6 +249,7 @@ public:
     void RegisterAllFunctions(RE::BSScript::Internal::VirtualMachine* vm, std::string_view className) {
         SLT::binding::PapyrusRegistrar<SLTPapyrusFunctionProvider> reg(vm, className);
         
+        reg.RegisterStatic("AddKeywordToForm", &SLTPapyrusFunctionProvider::AddKeywordToForm);
         reg.RegisterStatic("GetForm", &SLTPapyrusFunctionProvider::GetForm);
         reg.RegisterStatic("GetNumericLiteral", &SLTPapyrusFunctionProvider::GetNumericLiteral);
         reg.RegisterStatic("GetScriptsList", &SLTPapyrusFunctionProvider::GetScriptsList);
@@ -238,6 +258,7 @@ public:
         reg.RegisterStatic("GetTopicInfoResponse", &SLTPapyrusFunctionProvider::GetTopicInfoResponse);
         reg.RegisterStatic("GetTranslatedString", &SLTPapyrusFunctionProvider::GetTranslatedString);
         reg.RegisterStatic("NormalizeScriptfilename", &SLTPapyrusFunctionProvider::NormalizeScriptfilename);
+        reg.RegisterStatic("RemoveKeywordFromForm", &SLTPapyrusFunctionProvider::RemoveKeywordFromForm);
         reg.RegisterStatic("SmartEquals", &SLTPapyrusFunctionProvider::SmartEquals);
         //reg.RegisterStatic("SplitScriptContents", &SLTPapyrusFunctionProvider::SplitScriptContents);
         reg.RegisterStatic("SplitScriptContentsAndTokenize", &SLTPapyrusFunctionProvider::SplitScriptContentsAndTokenize);

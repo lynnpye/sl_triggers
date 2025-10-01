@@ -510,9 +510,14 @@ RE::TESForm* FormUtil::Parse::GetForm(std::string_view data) {
                 
                 auto* dataHandler = RE::TESDataHandler::GetSingleton();
                 if (dataHandler) {
-                    retVal = dataHandler->LookupForm(id, modfile);
-                    if (!retVal) {
-                        logger::warn("GetForm: data({}) appears valid, but dataHandler->LookupForm() returned nullptr", data);
+                    auto* modTESFile = dataHandler->LookupModByName(modfile);
+                    if (modTESFile) {
+                        retVal = dataHandler->LookupForm(id, modfile);
+                        if (!retVal) {
+                            logger::warn("GetForm: data({}) appears valid, but dataHandler->LookupForm() returned nullptr", data);
+                        }
+                    } else {
+                        logger::warn("GetForm: mod file ({}) does not exist", modfile);
                     }
                 }
                 else {

@@ -4,6 +4,8 @@ sl_triggersMain Function Main() global
     return sl_triggersStatics.GetSLTMain()
 endFunction
 
+bool Function       AddKeywordToForm(Form akForm, Keyword akKeyword) global native
+
 ; GetForm -> Form
 ; string someFormofFormIdentification - accepts the following string formats:
 ;   "<string:editorID>" - parsed as string; used as an editorID
@@ -71,6 +73,7 @@ string Function     GetTranslatedString(string _translationKey) global native
 int Function        NormalizeScriptfilename(string scriptfilename) global native
 int[] Function      NormalizeTimestamp(string optionalSourceTimestamp = "") global native
 int[] Function      NormalizeTimestampComponents(int[] optionalSourceTimestampComponents = none) global native
+bool Function       RemoveKeywordFromForm(Form akForm, Keyword akKeyword) global native
 bool Function       SmartEquals(string a, string b) global native
 string[] Function   SplitScriptContentsAndTokenize(string _scriptfilename) global native
 string[] Function   Tokenize(string _tokenString) global native

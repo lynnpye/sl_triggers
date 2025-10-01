@@ -1381,6 +1381,25 @@ For example, if you slept from 1:30 to 4:00, you would get a Top of the Hour eve
 
 ## Form
 
+### form_addkeyword
+
+**Description**
+
+Returns: bool: true if able to add the keyword, false otherwise
+
+**Parameters**
+
+    Form: akForm: the Form to add a Keyword to  
+    Form: akKeyword: the Keyword to add  
+
+
+**Example**
+
+    set $akKeyword resultfrom keyword_get "ArmorHeavy"  
+    set $did_add resultfrom form_addkeyword $armor_piece $akKeyword  
+
+
+
 ### form_doaction
 
 **Description**
@@ -1529,6 +1548,25 @@ Anywhere a Form is called for in other functions, one of these formIDs can be su
     msg_notify $"{$aleName}!! Yay!!"  
     ; Ale!! Yay!!  
     ; anything that derives from Form can be retrieved with this, including Armor, Weapon, Quest, Spell, MagicEffect, Actor, and other types of objects  
+
+
+
+### form_removekeyword
+
+**Description**
+
+Returns: bool: true if able to remove the keyword, false otherwise
+
+**Parameters**
+
+    Form: akForm: the Form to remove a Keyword from  
+    Form: akKeyword: the Keyword to remove  
+
+
+**Example**
+
+    set $akKeyword resultfrom keyword_get "ArmorHeavy"  
+    set $did_remove resultfrom form_removekeyword $armor_piece $akKeyword  
 
 
 
@@ -2144,6 +2182,25 @@ Sets a value in a JSON file (uses PapyrusUtil/JsonUtil)
     json_setvalue "../somefolder/afile" float "demofloatvalue" 2.3  
 
 JsonUtil automatically appends .json when not given a file extension  
+
+
+## Keyword
+
+### keyword_get
+
+**Description**
+
+Returns: Form: the Keyword to retrieve
+
+**Parameters**
+
+    string: akKeywordString: the string of the keyword to fetch  
+
+
+**Example**
+
+    set $akKeyword resultfrom keyword_get "ArmorHeavy"  
+
 
 
 ## MfgFix

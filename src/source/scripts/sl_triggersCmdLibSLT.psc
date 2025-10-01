@@ -3637,3 +3637,84 @@ Function topicinfo_getresponsetext(Actor CmdTargetActor, ActiveMagicEffect _CmdP
 	CmdPrimary.CompleteOperationOnActor()
 endFunction
 
+; sltname keyword_get
+; sltgrup Keyword
+; sltdesc Returns: Form: the Keyword to retrieve
+; sltargs string: akKeywordString: the string of the keyword to fetch
+; sltsamp set $akKeyword resultfrom keyword_get "ArmorHeavy"
+Function keyword_get(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    Form keywordResult = none
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 2)
+        string akKeywordString = CmdPrimary.ResolveString(param[1])
+        keywordResult = Keyword.GetKeyword(akKeywordString)
+    endif
+
+    CmdPrimary.MostRecentFormResult = keywordResult
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname form_removekeyword
+; sltgrup Form
+; sltdesc Returns: bool: true if able to remove the keyword, false otherwise
+; sltargs Form: akForm: the Form to remove a Keyword from
+; sltargs Form: akKeyword: the Keyword to remove
+; sltsamp set $akKeyword resultfrom keyword_get "ArmorHeavy" 
+; sltsamp set $did_remove resultfrom form_removekeyword $armor_piece $akKeyword
+Function form_removekeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    bool returnValue = false
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Form akForm = CmdPrimary.ResolveForm(param[1])
+        Keyword akKeyword = CmdPrimary.ResolveForm(param[2]) as Keyword
+        if akForm
+            if akKeyword
+                returnValue = sl_triggers.RemoveKeywordFromForm(akForm, akKeyword)
+            else
+                CmdPrimary.SFE("form_removekeyword: unable to resolve keyword from (" + param[2] + ")")
+            endif
+        else
+            CmdPrimary.SFE("form_removekeyword: unable to resolve form from (" + param[1] + ")")
+        endif
+    endif
+
+    CmdPrimary.MostRecentBoolResult = returnValue
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction
+
+; sltname form_addkeyword
+; sltgrup Form
+; sltdesc Returns: bool: true if able to add the keyword, false otherwise
+; sltargs Form: akForm: the Form to add a Keyword to
+; sltargs Form: akKeyword: the Keyword to add
+; sltsamp set $akKeyword resultfrom keyword_get "ArmorHeavy" 
+; sltsamp set $did_add resultfrom form_addkeyword $armor_piece $akKeyword
+Function form_addkeyword(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary, string[] param) global
+	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
+
+    bool returnValue = false
+
+    if ParamLengthEQ(CmdPrimary, param.Length, 3)
+        Form akForm = CmdPrimary.ResolveForm(param[1])
+        Keyword akKeyword = CmdPrimary.ResolveForm(param[2]) as Keyword
+        if akForm
+            if akKeyword
+                returnValue = sl_triggers.AddKeywordToForm(akForm, akKeyword)
+            else
+                CmdPrimary.SFE("form_addkeyword: unable to resolve keyword from (" + param[2] + ")")
+            endif
+        else
+            CmdPrimary.SFE("form_addkeyword: unable to resolve form from (" + param[1] + ")")
+        endif
+    endif
+
+    CmdPrimary.MostRecentBoolResult = returnValue
+
+	CmdPrimary.CompleteOperationOnActor()
+endFunction

@@ -9,6 +9,7 @@ It is ESL flagged to minimize impact on your load order and most dependencies ar
 - [SKSE](https://skse.silverlock.org/) - SLTR comes with a plugin that provides core functionality; it is also required for PapyrusUtil
 - [Address Library for SKSE Plugins](https://www.nexusmods.com/skyrimspecialedition/mods/32444) - the SLTR plugin needs this as does PapyrusUtil
 - [PapyrusUtil](https://www.nexusmods.com/skyrimspecialedition/mods/13048) - provides core functionality
+- [powerofthree's Tweaks](https://www.nexusmods.com/skyrimspecialedition/mods/51073) - provides editorID lookup
 
 ## Optional
 These mods provide additional functionality, mostly in the form of integration, i.e. bindings in SLTScript to run functions in the mod, or, as in SexLab's case, full on extensions to provide trigger support and a broad set of additional functions for SLTScript. Not having them simply means your SLTScripts will not have access to functions provided for that mod.

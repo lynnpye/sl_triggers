@@ -1,3 +1,16 @@
+0.970
+    Savegame compatible
+    Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
+        (or whichever folder you have your SKSE logs directed to)
+    enhancement: sl-triggers.dll now logs when a requested formID is referencing a mod that is not found
+    enhancement: improved 'Function Library Development' documentation
+    enhancement: sl_triggers.AddKeywordToForm(Form, Keyword)
+    enhancement: sl_triggers.RemoveKeywordFromFrom(Form, Keyword)
+    enhancement: new SLTScript commands:
+        form_addkeyword $form $keyword
+        form_removekeyword $form $keyword
+        keyword_get $keyword_string
+
 0.966
     Savegame compatible
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 

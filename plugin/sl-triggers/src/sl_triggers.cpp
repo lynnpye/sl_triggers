@@ -12,6 +12,24 @@ namespace SLT {
 #pragma region SLTNativeFunctions definition
 
 // Non-latent Functions
+
+bool SLTNativeFunctions::AddKeywordToForm(PAPYRUS_NATIVE_DECL, RE::TESForm* form, RE::BGSKeyword* keyword) {
+    if (form == nullptr) {
+        logger::error("AddKeywordToForm: form is null");
+        return false;
+    }
+    if (keyword == nullptr) {
+        logger::error("AddKeywordToForm: keyword is null");
+        return false;
+    }
+    const auto keywordForm = form->As<BGSKeywordForm>();
+    if (keywordForm == nullptr) {
+        logger::error("AddKeywordToForm: unable to convert TESForm* to BGSKeywordForm*");
+        return false;
+    }
+    return keywordForm->AddKeyword(keyword);
+}
+
 bool SLTNativeFunctions::DeleteTrigger(PAPYRUS_NATIVE_DECL, std::string_view extKeyStr, std::string_view trigKeyStr) {
     if (!SystemUtil::File::IsValidPathComponent(extKeyStr) || !SystemUtil::File::IsValidPathComponent(trigKeyStr)) {
         logger::error("Invalid characters in extensionKey ({}) or triggerKey ({})", extKeyStr, trigKeyStr);
@@ -1039,6 +1057,23 @@ std::int32_t SLTNativeFunctions::NormalizeScriptfilename(PAPYRUS_NATIVE_DECL, st
     }
 
     return 0;
+}
+
+bool SLTNativeFunctions::RemoveKeywordFromForm(PAPYRUS_NATIVE_DECL, RE::TESForm* form, RE::BGSKeyword* keyword) {
+    if (form == nullptr) {
+        logger::error("RemoveKeywordFromForm: form is null");
+        return false;
+    }
+    if (keyword == nullptr) {
+        logger::error("RemoveKeywordFromForm: keyword is null");
+        return false;
+    }
+    const auto keywordForm = form->As<BGSKeywordForm>();
+    if (keywordForm == nullptr) {
+        logger::error("RemoveKeywordFromForm: unable to convert TESForm* to BGSKeywordForm*");
+        return false;
+    }
+    return keywordForm->RemoveKeyword(keyword);
 }
 
 bool SLTNativeFunctions::RunOperationOnActor(PAPYRUS_NATIVE_DECL, RE::Actor* cmdTarget, RE::ActiveEffect* cmdPrimary,

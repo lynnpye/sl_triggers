@@ -65,12 +65,16 @@ dir_test_nef :=                 dir_modlistinstalls / "NEFARAM.15.4.2" / "mods" 
 dir_nef_plugins :=              dir_test_nef / "SKSE" / "Plugins"
 dir_sltr_test_scripts :=        dir_project_addons / "sltr_test_scripts"
 
-file_docs_Scripts_md :=         dir_docs / "Scripts.md"
-file_src_sltscripts_md :=       dir_project_src / "sl_triggers_sltscripts.md"
 file_docs_ETF_md :=             dir_docs / "Events_Triggers_and_Filters.md"
 file_src_slt_etf_md :=          dir_project_src / "sl_triggers_events_triggers_and_filters.md"
+file_docs_Forms_md :=           dir_docs / "Forms_and_FormIDs.md"
+file_src_slt_forms_md :=        dir_project_src / "sl_triggers_forms_and_formids.md"
+file_docs_Func_lib_Dev_md :=    dir_docs / "Function_Library_Development.md"
+file_src_slt_func_lib_dev_md := dir_project_src / "sl_triggers_function_library_development.md"
 file_docs_Script_desc_md :=     dir_docs / "Script_Descriptions.md"
 file_src_script_desc_md :=      dir_project_src / "sl_triggers_script_descriptions.md"
+file_docs_Scripts_md :=         dir_docs / "Scripts.md"
+file_src_sltscripts_md :=       dir_project_src / "sl_triggers_sltscripts.md"
 
 file_fomod_info_xml :=          dir_fomod_fomod / "info.xml"
 
@@ -144,12 +148,16 @@ str_dir_project_peximport :=    replace("\"" + dir_project_sltr_peximport + "\\\
 str_dir_project_scripts :=      replace("\"" + dir_project_scripts + "\\\"",            '/', '\')
 str_dir_project_headers :=      replace("\"" + dir_project_headers + "\\\"",            '/', '\')
 
-str_file_Scripts_md :=          replace("\"" + file_docs_Scripts_md + "\"",             '/', '\')
-str_file_sltscripts_md :=       replace("\"" + file_src_sltscripts_md + "\"",           '/', '\')
 str_file_ETF_md :=              replace("\"" + file_docs_ETF_md + "\"",                 '/', '\')
 str_file_slt_etf_md :=          replace("\"" + file_src_slt_etf_md + "\"",              '/', '\')
+str_file_forms_md :=            replace("\"" + file_docs_Forms_md + "\"",               '/', '\')
+str_file_slt_forms_md :=        replace("\"" + file_src_slt_forms_md + "\"",            '/', '\')
+str_file_func_lib_dev_md :=     replace("\"" + file_docs_Func_lib_Dev_md + "\"",        '/', '\')
+str_file_slt_func_lib_dev_md := replace("\"" + file_src_slt_func_lib_dev_md + "\"",     '/', '\')
 str_file_script_desc_md :=      replace("\"" + file_docs_Script_desc_md + "\"",         '/', '\')
 str_file_slt_script_desc_md :=  replace("\"" + file_src_script_desc_md + "\"",          '/', '\')
+str_file_Scripts_md :=          replace("\"" + file_docs_Scripts_md + "\"",             '/', '\')
+str_file_sltscripts_md :=       replace("\"" + file_src_sltscripts_md + "\"",           '/', '\')
 
 str_file_catchup_exclusion :=   replace("\"" + file_catchup_exclusion + "\"",           '/', '\')
 str_file_plugin_release :=      replace("\"" + file_plugin_release + "\"",              '/', '\')
@@ -224,9 +232,11 @@ generatedocs:
     jcx SltParser "./extern/libraries/sexlab-dependent/sl_triggers_function_library_sexlab_dependent" "SexLab Dependent Function Library" "./extern/libraries/sexlab-dependent/source/scripts/sl_triggersCmdLibSexLabDependent.psc"
     jcx SltParser "./extern/libraries/sexlabplusplus/sl_triggers_function_library_sexlab" "SexLab P+ Function Library" "./extern/libraries/sexlabplusplus/source/scripts/sl_triggersCmdLibSexLab.psc"
     jcx SltParser "./extern/libraries/adult-general/sl_triggers_function_library_adult_general" "Adult General Function Library" "./extern/libraries/adult-general/source/scripts/sl_triggersCmdLibOSLAroused.psc" "./extern/libraries/adult-general/source/scripts/sl_triggersCmdLibSLIF.psc"
-    copy -Force {{str_file_Scripts_md}} {{str_file_sltscripts_md}}
     copy -Force {{str_file_ETF_md}} {{str_file_slt_etf_md}}
+    copy -Force {{str_file_forms_md}} {{str_file_slt_forms_md}}
+    copy -Force {{str_file_func_lib_dev_md}} {{str_file_slt_func_lib_dev_md}}
     copy -Force {{str_file_script_desc_md}} {{str_file_slt_script_desc_md}}
+    copy -Force {{str_file_Scripts_md}} {{str_file_sltscripts_md}}
     Get-Content "./src/sl_triggers_function_library.md" , "./extern/libraries/sexlabplusplus/sl_triggers_function_library_sexlab.md" , "./extern/libraries/sexlab/sl_triggers_function_library_sexlab.md" , "./extern/libraries/sexlab-dependent/sl_triggers_function_library_sexlab_dependent.md" , "./extern/libraries/ostim/sl_triggers_function_library_ostim.md" , "./extern/libraries/adult-general/sl_triggers_function_library_adult_general.md" | Set-Content "./docs/Function_Libraries.md"
 
 packagefomod:
