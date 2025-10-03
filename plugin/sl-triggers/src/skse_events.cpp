@@ -97,20 +97,14 @@ RE::BSFixedString onPlayerHitEvent("OnSLTRPlayerHit");
 
 RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESHitEvent* event, 
                                     RE::BSTEventSource<RE::TESHitEvent>* source) {
-    logger::info("TESHitEvent::ProcessEvent");
     if (IsEnabledHitEvent()) {
-        logger::info("IsenabledHitEvent: event:{} event->target:{} event->cause:{}", event != nullptr, event->target != nullptr, event->cause != nullptr);
         if (event && event->target && event->cause) {
-            logger::info("event && event->target && event->cause");
             bool isTarget = event->target && (event->target->GetBaseObject()->IsPlayer() || event->target->IsPlayer());
             bool isAttacker = event->cause && (event->cause->GetBaseObject()->IsPlayer() || event->cause->IsPlayer());
-
-            logger::info("isTarget:{} isAttacker:{}", isTarget, isAttacker);
 
             if (isTarget || isAttacker) {
                 auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
                 if (vm) {
-                    logger::info("has vm, making and sending");
                     auto* args = RE::MakeFunctionArguments(
                         static_cast<RE::TESObjectREFR*>(event->cause.get()),
                         static_cast<RE::TESObjectREFR*>(event->target.get()),
@@ -123,7 +117,6 @@ RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESHitEvent* even
                         static_cast<bool>(event->flags.any(RE::TESHitEvent::Flag::kHitBlocked))
                     );
                     vm->SendEventAll(onPlayerHitEvent, args);
-                    logger::info("sent");
                 }
             }
         }
