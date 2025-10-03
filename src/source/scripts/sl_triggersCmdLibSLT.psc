@@ -1716,59 +1716,70 @@ function actor_isaffectedby(Actor CmdTargetActor, ActiveMagicEffect _CmdPrimary,
 	sl_triggersCmd CmdPrimary = _CmdPrimary as sl_triggersCmd
 
     bool actualResult
-    int nextResult = -1
 
     if ParamLengthGT(CmdPrimary, param.Length, 2)
         Actor _targetActor = CmdPrimary.ResolveActor(param[1])
         if _targetActor
             int idx = 2
-            bool needAll
+            string pstr = CmdPrimary.ResolveString(param[idx])
+            bool needAll = false
+            if "ALL" == pstr
+                needAll = true
+                actualResult = true
+                idx = 3
+            endif
             int spelidx
             int numeffs
-            while idx < param.Length && nextResult < -1
-                string pstr = CmdPrimary.ResolveString(param[idx])
-                if idx == 2 && "ALL" == pstr
-                    needAll = true
-                    idx += 1
-                else
-                    Form wizardStuff = CmdPrimary.ResolveForm(param[idx])
+            while idx < param.Length
+                Form wizardStuff = CmdPrimary.ResolveForm(param[idx])
 
-                    if wizardStuff
-                        if !needAll
-                            MagicEffect mgef = wizardStuff as MagicEffect
-                            if mgef
-                                if _targetActor.HasMagicEffect(mgef)
-                                    nextResult = 1
-                                endif
-                            endif
-                            
-                            Spell spel = wizardStuff as Spell
-                            if spel
-                                spelidx = 0
-                                numeffs = spel.GetNumEffects()
-                                while spelidx < numeffs && nextResult < 0
-                                    mgef = spel.GetNthEffectMagicEffect(spelidx)
-                                    if _targetActor.HasMagicEffect(mgef)
-                                        nextResult = 1
-                                    endif
-                                    
-                                    spelidx += 1
-                                endwhile
-                            endif
+                if wizardStuff
+                    MagicEffect mgef = wizardStuff as MagicEffect
+                    if mgef
+                        bool hasmgef = _targetActor.HasMagicEffect(mgef)
+                        if hasmgef && !needAll
+                            actualResult = true
+                            idx = param.Length
+                        elseif !hasmgef && needAll
+                            actualResult = false
+                            idx = param.Length
                         endif
-                    elseif needAll
-                        nextResult = 0
+                    else
+                        Spell spel = wizardStuff as Spell
+                        if spel
+                            spelidx = 0
+                            numeffs = spel.GetNumEffects()
+                            while spelidx < numeffs
+                                mgef = spel.GetNthEffectMagicEffect(spelidx)
+                                bool hasmgef = _targetActor.HasMagicEffect(mgef)
+                                if hasmgef && !needAll
+                                    actualResult = true
+                                    spelidx = numeffs
+                                    idx = param.Length
+                                elseif !hasmgef && needAll
+                                    actualResult = false
+                                    spelidx = numeffs
+                                    idx = param.Length
+                                endif
+                                
+                                spelidx += 1
+                            endwhile
+                        else
+                            CmdPrimary.SFE("actor_isaffectedby: not a MGEF or SPEL (" + param[idx] + ") is (" + wizardStuff + ")")
+                        endif
+                    endif
+                else
+                    CmdPrimary.SFE("actor_isaffectedby: unable to resolve MGEF/SPEL from (" + param[idx] + ")")
+                    if needAll
+                        actualResult = false
+                        idx = param.Length
                     endif
                 endif
+
+                idx += 1
             endwhile
         endif
     endif
-
-    if nextResult < 0
-        nextResult = 0
-    endif
-
-    actualResult = (nextResult == 1)
 	
 	CmdPrimary.MostRecentBoolResult = actualResult
 
