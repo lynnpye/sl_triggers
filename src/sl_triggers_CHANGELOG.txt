@@ -1,3 +1,9 @@
+0.972
+    Savegame compatible
+    Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 
+        (or whichever folder you have your SKSE logs directed to)
+    bugfix: OnSLTRPlayerHit: populating $request.core.player_on_hit.attacker and $request.core.player_on_hit.target with base Form instead of ObjectReference
+
 0.971
     Savegame compatible
     Reminder: Note that logging output is all sent to <My Documents>\My Games\Skyrim Special Edition\SKSE\sl-triggers.log 

@@ -17,6 +17,9 @@ void DelayedFunction(auto function, int delay) {
 
 bool bPlayerInCombat = false;
 
+namespace {
+RE::BSFixedString onPlayerCombatStateChanged("OnSLTRPlayerCombatStateChanged");
+}
 void HandlePlayerCombatStatusChange() {
     auto* player = RE::PlayerCharacter::GetSingleton();
 
@@ -50,11 +53,14 @@ void HandlePlayerCombatStatusChange() {
                 static_cast<bool>(bPlayerInCombat)
             );
             if (args) {
-                RE::BSFixedString onPlayerCombatStateChanged("OnSLTRPlayerCombatStateChanged");
                 vm->SendEventAll(onPlayerCombatStateChanged, args);
             }
         }
     }
+}
+
+namespace {
+RE::BSFixedString onPlayerEquipEvent("OnSLTRPlayerEquipEvent");
 }
 
 RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESEquipEvent* event, RE::BSTEventSource<RE::TESEquipEvent>* source) {
@@ -68,7 +74,6 @@ RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESEquipEvent* ev
                     // send event all
                     auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
                     if (vm) {
-                        RE::BSFixedString onPlayerEquipEvent("OnSLTRPlayerEquipEvent");
                         auto* args = RE::MakeFunctionArguments(
                             static_cast<RE::TESForm*>(baseForm),
                             static_cast<TESObjectREFR*>(originalRef),
@@ -86,29 +91,39 @@ RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESEquipEvent* ev
     return RE::BSEventNotifyControl::kContinue;
 }
 
+namespace {
+RE::BSFixedString onPlayerHitEvent("OnSLTRPlayerHit");
+}
+
 RE::BSEventNotifyControl SLTREventSink::ProcessEvent(const RE::TESHitEvent* event, 
                                     RE::BSTEventSource<RE::TESHitEvent>* source) {
+    logger::info("TESHitEvent::ProcessEvent");
     if (IsEnabledHitEvent()) {
+        logger::info("IsenabledHitEvent: event:{} event->target:{} event->cause:{}", event != nullptr, event->target != nullptr, event->cause != nullptr);
         if (event && event->target && event->cause) {
-            auto* target = event->target->GetBaseObject();
-            auto* attacker = event->cause->GetBaseObject();
+            logger::info("event && event->target && event->cause");
+            bool isTarget = event->target && (event->target->GetBaseObject()->IsPlayer() || event->target->IsPlayer());
+            bool isAttacker = event->cause && (event->cause->GetBaseObject()->IsPlayer() || event->cause->IsPlayer());
 
-            if ((target && target->IsPlayer()) || (attacker && attacker->IsPlayer())) {
+            logger::info("isTarget:{} isAttacker:{}", isTarget, isAttacker);
+
+            if (isTarget || isAttacker) {
                 auto* vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
                 if (vm) {
-                    RE::BSFixedString onPlayerHitEvent("OnSLTRPlayerHit");
+                    logger::info("has vm, making and sending");
                     auto* args = RE::MakeFunctionArguments(
-                        static_cast<RE::TESForm*>(attacker),
-                        static_cast<RE::TESForm*>(target),
+                        static_cast<RE::TESObjectREFR*>(event->cause.get()),
+                        static_cast<RE::TESObjectREFR*>(event->target.get()),
                         static_cast<RE::FormID>(event->source),
                         static_cast<RE::FormID>(event->projectile),
-                        static_cast<bool>(attacker && attacker->IsPlayer()),
+                        static_cast<bool>(isAttacker),
                         static_cast<bool>(event->flags.any(RE::TESHitEvent::Flag::kPowerAttack)),
                         static_cast<bool>(event->flags.any(RE::TESHitEvent::Flag::kSneakAttack)),
                         static_cast<bool>(event->flags.any(RE::TESHitEvent::Flag::kBashAttack)),
                         static_cast<bool>(event->flags.any(RE::TESHitEvent::Flag::kHitBlocked))
                     );
                     vm->SendEventAll(onPlayerHitEvent, args);
+                    logger::info("sent");
                 }
             }
         }

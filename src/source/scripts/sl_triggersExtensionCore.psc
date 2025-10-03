@@ -447,7 +447,7 @@ Event OnSLTRPlayerCombatStateChanged(Actor target, bool player_in_combat)
 	HandlePlayerCombatStateChanged(target, player_in_combat)
 EndEvent
 
-Event OnSLTRPlayerHit(Form kattacker, Form ktarget, int ksourceFormID, int kprojectileFormID, bool was_player_attacker, bool kPowerAttack, bool kSneakAttack, bool kBashAttack, bool kHitBlocked)
+Event OnSLTRPlayerHit(ObjectReference kattacker, ObjectReference ktarget, int ksourceFormID, int kprojectileFormID, bool was_player_attacker, bool kPowerAttack, bool kSneakAttack, bool kBashAttack, bool kHitBlocked)
 	HandlePlayerOnHit(kattacker, ktarget, ksourceFormID, kprojectileFormID, was_player_attacker, kPowerAttack, kSneakAttack, kBashAttack, kHitBlocked)
 EndEvent
 
@@ -2514,7 +2514,7 @@ Function HandlePlayerCombatStateChanged(Actor target, bool player_in_combat)
 	endwhile
 EndFunction
 
-Function HandlePlayerOnHit(Form kattacker, Form ktarget, int ksourceFormID, int kprojectileFormID, bool was_player_attacker, bool kPowerAttack, bool kSneakAttack, bool kBashAttack, bool kHitBlocked)
+Function HandlePlayerOnHit(ObjectReference kattacker, ObjectReference ktarget, int ksourceFormID, int kprojectileFormID, bool was_player_attacker, bool kPowerAttack, bool kSneakAttack, bool kBashAttack, bool kHitBlocked)
 	If (SLT.Debug_Extension_Core)
 		SLTDebugMsg("Core.HandlePlayerOnHit: attacker(" + kattacker + ") target(" + ktarget + ") source(" + ksourceFormID + ") projectile(" + kprojectileFormID + ") was_player_attacker(" + was_player_attacker + ") power(" + kPowerAttack + ") sneak(" + kSneakAttack + ") bash(" + kBashAttack + ") blocked(" + kHitBlocked + ")")
 	EndIf
@@ -2678,7 +2678,7 @@ Function HandlePlayerOnHit(Form kattacker, Form ktarget, int ksourceFormID, int 
 	endwhile
 EndFunction
 
-int Function GetNextPlayerOnHitRequestId(int requestTargetFormId, int cmdRequestId, Form kattacker, Form ktarget, int ksourceFormID, int kprojectileFormID)
+int Function GetNextPlayerOnHitRequestId(int requestTargetFormId, int cmdRequestId, ObjectReference kattacker, ObjectReference ktarget, int ksourceFormID, int kprojectileFormID)
 	if !cmdRequestId
 		cmdRequestId = SLT.GetNextInstanceId()
 
